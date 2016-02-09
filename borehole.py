@@ -41,8 +41,11 @@ class BoreholeUI(QtGui.QWidget):
        
         #-- Widgets --
         
-        btn_new = QtGui.QPushButton('Add')
-        btn_new.clicked.connect(self.add_new_bhole)
+        # Create the child widgets that will be incorporated into the
+        # parent toolbar widget.
+        
+        btn_new = QtGui.QPushButton('Add')        
+        btn_new.clicked.connect(self.add_new_bhole) # Connect a slot to signal
         
         self.bname_edit = QtGui.QLineEdit()
         
@@ -54,19 +57,27 @@ class BoreholeUI(QtGui.QWidget):
         
         #-- Grid --
         
+        # Create the parent toolbar widget and a grid layout 
+        
         toolbar_grid = QtGui.QGridLayout()
         toolbar_widget = QtGui.QWidget()
-           
+        
+        # Insert the child widgets previously created into the grid
+        
         toolbar_grid.addWidget(btn_new, 0, 0)
         toolbar_grid.addWidget(self.bname_edit, 0, 1, 1, 2)
         toolbar_grid.addWidget(btn_remove, 1, 0)
         toolbar_grid.addWidget(btn_import, 1, 1)
         toolbar_grid.addWidget(btn_plot, 1, 2)
-                       
+           
+        # Define the grid layout properties
+            
         toolbar_grid.setSpacing(5)
         toolbar_grid.setContentsMargins(0, 0, 0, 0)
         toolbar_grid.setColumnStretch(3, 100)
-                
+        
+        # Assign layout to parent toolbar widget
+        
         toolbar_widget.setLayout(toolbar_grid)
         
         #--------------------------------------------------------- List View --
@@ -75,6 +86,9 @@ class BoreholeUI(QtGui.QWidget):
         
         #------------------------------------------------------- Main Layout --
         
+        # Insert the subwidget (toolbar and list view) in the main layout of
+        # the main widget
+        
         main_grid = QtGui.QGridLayout()        
         main_grid.addWidget(toolbar_widget, 0, 0)
         main_grid.addWidget(self.bhole_list, 1, 0)
@@ -82,9 +96,19 @@ class BoreholeUI(QtGui.QWidget):
         self.setLayout(main_grid)
         
     def add_new_bhole(self):
-        self.bhole_list.insertItem(0, self.bname_edit.text())
         
-    def remove_bhole(self):        
+        # Add a new item to the ListView widget with a name corresponding to
+        # what is written in the field "bname_edit" if it is not empty.
+        
+        if self.bname_edit.text() == '':
+            pass
+        else:
+            self.bhole_list.insertItem(0, self.bname_edit.text())
+        
+    def remove_bhole(self):
+        
+        # Remove the item currently selected in the list of borehole
+    
         self.bhole_list.takeItem(self.bhole_list.currentRow())
         
 if __name__ == '__main__':
