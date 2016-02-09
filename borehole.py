@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2016 Bernard Girouxl
+Copyright 2016 Bernard Giroux
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -41,8 +41,9 @@ class BoreholeUI(QtGui.QWidget):
        
         #-- Widgets --
         
-        # Create the child widgets that will be incorporated into the
-        # parent toolbar widget.
+        # Create the child widgets that will be incorporated in the layout
+        # of a subwidget that will be used as a toolbar for the main widget
+        # created from class "BoreholeUI".
         
         btn_new = QtGui.QPushButton('Add')        
         btn_new.clicked.connect(self.add_new_bhole) # Connect a slot to signal
@@ -57,7 +58,7 @@ class BoreholeUI(QtGui.QWidget):
         
         #-- Grid --
         
-        # Create the parent toolbar widget and a grid layout 
+        # Create the toolbar subwidget and a grid layout 
         
         toolbar_grid = QtGui.QGridLayout()
         toolbar_widget = QtGui.QWidget()
@@ -76,18 +77,20 @@ class BoreholeUI(QtGui.QWidget):
         toolbar_grid.setContentsMargins(0, 0, 0, 0)
         toolbar_grid.setColumnStretch(3, 100)
         
-        # Assign layout to parent toolbar widget
+        # Assign layout to toolbar subwidget
         
         toolbar_widget.setLayout(toolbar_grid)
         
         #--------------------------------------------------------- List View --
         
+        # Create a new widget where are going to be listed the borehole names
+        
         self.bhole_list = QtGui.QListWidget()
         
         #------------------------------------------------------- Main Layout --
         
-        # Insert the subwidgets (toolbar and list view) in the main layout of
-        # the main widget
+        # Insert the subwidgets (toolbar and list view) in the main layout and
+        # assign it to the main widget
         
         main_grid = QtGui.QGridLayout()        
         main_grid.addWidget(toolbar_widget, 0, 0)
