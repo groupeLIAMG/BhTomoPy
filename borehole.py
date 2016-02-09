@@ -86,7 +86,7 @@ class BoreholeUI(QtGui.QWidget):
         
         #------------------------------------------------------- Main Layout --
         
-        # Insert the subwidget (toolbar and list view) in the main layout of
+        # Insert the subwidgets (toolbar and list view) in the main layout of
         # the main widget
         
         main_grid = QtGui.QGridLayout()        
@@ -100,14 +100,13 @@ class BoreholeUI(QtGui.QWidget):
         # Add a new item to the ListView widget with a name corresponding to
         # what is written in the field "bname_edit" if it is not empty.
         
-        if self.bname_edit.text() == '':
-            pass
-        else:
+        if self.bname_edit.text() != '':
             self.bhole_list.insertItem(0, self.bname_edit.text())
+            
         
     def remove_bhole(self):
         
-        # Remove the item currently selected in the list of borehole
+        # Remove the item currently selected in the list of boreholes
     
         self.bhole_list.takeItem(self.bhole_list.currentRow())
         
