@@ -3,6 +3,9 @@
 
 This is (going to be) a python port of the Matlab bh_tomo package.  The original Matlab code is [available here] (http://liamg.ca/wp-content/uploads/2011/11/bh_tomo.zip)
 
+## Contributors
+- Bernard Giroux: main author of orignal Matlab version
+- Jean-Sébastien Gosselin: python & PySide guru
 
 ## References
 
