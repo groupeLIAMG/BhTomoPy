@@ -66,7 +66,7 @@ class BoreholeUI(QtGui.QWidget):
         # Insert the child widgets previously created into the grid
         
         toolbar_grid.addWidget(btn_new, 0, 0)
-        toolbar_grid.addWidget(self.bname_edit, 0, 1, 1, 2)
+        toolbar_grid.addWidget(self.bname_edit, 0, 1, 1, 3)
         toolbar_grid.addWidget(btn_remove, 1, 0)
         toolbar_grid.addWidget(btn_import, 1, 1)
         toolbar_grid.addWidget(btn_plot, 1, 2)
@@ -87,15 +87,89 @@ class BoreholeUI(QtGui.QWidget):
         
         self.bhole_list = QtGui.QListWidget()
         
+        #------------------------------------------------------- Coordinates --
+        
+        class  MyQDSpinBox(QtGui.QDoubleSpinBox):
+            def __init__(self, parent=None):
+                super(MyQDSpinBox, self).__init__(parent)
+                self.setDecimals(2)
+                self.setSingleStep(1)
+                self.setRange(-10000, 10000)
+                self.setAlignment(QtCore.Qt.AlignCenter)
+                
+        class  MyQLabel(QtGui.QLabel):
+            def __init__(self, label, ha='left',  parent=None):
+                super(MyQLabel, self).__init__(label,parent)
+                if ha == 'center':
+                    self.setAlignment(QtCore.Qt.AlignCenter)
+                elif ha == 'right':
+                    self.setAlignment(QtCore.Qt.AlignRight)
+                else:
+                    self.setAlignment(QtCore.Qt.AlignLeft)
+                
+        #-- Layout --
+        
+        bhcoord_grid = QtGui.QGridLayout()
+        bhcoord_widget = QtGui.QWidget()
+        
+        bhcoord_grid.addWidget(MyQLabel('Coordinates', ha='right'), 0, 0)
+        bhcoord_grid.addWidget(MyQLabel('Collar', ha='center'), 0, 1)
+        bhcoord_grid.addWidget(MyQLabel('Bottom', ha='center'), 0, 2)
+        
+        for row, label in enumerate(['X :', 'Y :', 'Elev. :']):        
+            bhcoord_grid.addWidget(MyQLabel(label, ha='right'), row+1, 0)
+            bhcoord_grid.addWidget(MyQDSpinBox(), row+1, 1)
+            bhcoord_grid.addWidget(MyQDSpinBox(), row+1, 2)
+        row += 2
+        labels = ['Elev. Surf. :', 'Elev. Water :', 'Diam. :']
+        for col, label in enumerate(labels): 
+            bhcoord_grid.addWidget(MyQLabel(label, ha='center'), row, col)
+            bhcoord_grid.addWidget(MyQDSpinBox(), row+1, col)
+        
+        bhcoord_grid.setHorizontalSpacing(15)
+        bhcoord_grid.setVerticalSpacing(5)
+        bhcoord_grid.setContentsMargins(0, 0, 0, 0) #(L, T, R, B)
+        bhcoord_grid.setColumnStretch(3, 100)
+        
+        bhcoord_widget.setLayout(bhcoord_grid)
+        
+        #---------------------------------------------------- Toolbar Bottom --
+        
+        #-- Widgets --
+        
+        btn_ConSlo = QtGui.QPushButton('Constraints slo.')
+        btn_ConAtt = QtGui.QPushButton('Constraints att.')
+        
+        #-- Layout --
+        
+        lowTbar_grid = QtGui.QGridLayout()
+        lowTbar_widget = QtGui.QWidget()
+        
+        lowTbar_grid.addWidget(btn_ConSlo, 0, 0)
+        lowTbar_grid.addWidget(btn_ConAtt, 0, 1)
+            
+        lowTbar_grid.setSpacing(5)
+        lowTbar_grid.setContentsMargins(0, 0, 0, 0) #(L, T, R, B)
+        
+        lowTbar_widget.setLayout(lowTbar_grid)
+        
         #------------------------------------------------------- Main Layout --
         
         # Insert the subwidgets (toolbar and list view) in the main layout and
         # assign it to the main widget
         
-        main_grid = QtGui.QGridLayout()        
-        main_grid.addWidget(toolbar_widget, 0, 0)
-        main_grid.addWidget(self.bhole_list, 1, 0)
+        main_grid = QtGui.QGridLayout()
+        
+        main_grid.addWidget(toolbar_widget, 0, 1)
+        main_grid.addWidget(self.bhole_list, 1, 1)
+        main_grid.addWidget(bhcoord_widget, 2, 1)
+        main_grid.addWidget(lowTbar_widget, 3, 1)
+        
         main_grid.setRowStretch(1, 100)
+        main_grid.setColumnStretch(0, 100)
+        main_grid.setColumnStretch(2, 100)
+        main_grid.setVerticalSpacing(15)
+        
         self.setLayout(main_grid)
         
     def add_new_bhole(self):
