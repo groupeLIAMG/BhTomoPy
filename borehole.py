@@ -24,6 +24,12 @@ class Borehole:
     
     def __init__(self, name=None):
         self.name = name
+        self.X = [0, 0]
+        self.Y = [0, 0]
+        self.Z = [0, 0]
+        self.Zsurf = 0
+        self.Zwater = 0
+        self.Diam = 0
         
         
 
