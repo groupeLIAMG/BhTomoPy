@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #---- STANDARD LIBRARY IMPORTS ----
 
+import csv
 import sys
 
 #---- THIRD PARTY IMPORTS ----
@@ -61,6 +62,11 @@ class BoreholeUI(QtGui.QWidget):
         btn_remove.clicked.connect(self.remove_bhole)
         
         btn_import = QtGui.QPushButton('Import')
+        btn_import.clicked.connect(self.import_btn_clicked)
+
+        btn_save = QtGui.QPushButton('Save')
+        btn_save.clicked.connect(self.save_btn_clicked)
+        
         btn_plot = QtGui.QPushButton('Plot')
         
         #-- Grid --
@@ -73,16 +79,17 @@ class BoreholeUI(QtGui.QWidget):
         # Insert the child widgets previously created into the grid
         
         toolbar_grid.addWidget(btn_new, 0, 0)
-        toolbar_grid.addWidget(self.bname_edit, 0, 1, 1, 3)
+        toolbar_grid.addWidget(self.bname_edit, 0, 1, 1, 4)
         toolbar_grid.addWidget(btn_remove, 1, 0)
-        toolbar_grid.addWidget(btn_import, 1, 1)
-        toolbar_grid.addWidget(btn_plot, 1, 2)
+        toolbar_grid.addWidget(btn_save, 1, 1)
+        toolbar_grid.addWidget(btn_import, 1, 2)
+        toolbar_grid.addWidget(btn_plot, 1, 3)
            
         # Define the grid layout properties
             
         toolbar_grid.setSpacing(5)
         toolbar_grid.setContentsMargins(0, 0, 0, 0) #(L, T, R, B)
-        toolbar_grid.setColumnStretch(3, 100)
+        toolbar_grid.setColumnStretch(4, 100)
         
         # Assign layout to toolbar subwidget
         
@@ -93,7 +100,7 @@ class BoreholeUI(QtGui.QWidget):
         # Create a new widget where are going to be listed the borehole names
         
         self.bholeListWidg = QtGui.QListWidget()
-        self.bholeListWidg.currentRowChanged.connect(self.sel_bhole_changed)                                                    
+        self.bholeListWidg.currentRowChanged.connect(self.selec_bhole_changed)                                                    
         
         #------------------------------------------------------- Coordinates --
         
@@ -238,7 +245,7 @@ class BoreholeUI(QtGui.QWidget):
         bhole.Zwater = self.Zwater.value()
         bhole.Diam = self.Diam.value()
         
-    def sel_bhole_changed(self, row):
+    def selec_bhole_changed(self, row):
         # Grab values from the UI and store the values into the class
         # instance related to the currently selected borehole in the list.
         self.isUserEvent = False
@@ -252,7 +259,51 @@ class BoreholeUI(QtGui.QWidget):
         self.Diam.setValue(bhole.Diam)
         self.isUserEvent = True
         
-                
+    def save_btn_clicked(self):
+        self.save_bhole_info('bholes.csv')
+        
+    def save_bhole_info(self, fname): 
+        print('Saving boreholes info in: %s...' % fname)
+        fcontent = []
+        for bhole in self.bholes:
+            fcontent.append([bhole.name,
+                             bhole.X[0], bhole.X[1],
+                             bhole.Y[0], bhole.Y[1],
+                             bhole.Z[0], bhole.Z[1],
+                             bhole.Zsurf, bhole.Zwater, bhole.Diam])
+                             
+        with open(fname, 'w') as f:
+            writer = csv.writer(f, delimiter='\t')
+            writer.writerows(fcontent)
+        print('Boreholes info saved.')
+    
+    def import_btn_clicked(self):
+        self.load_bhole_info('bholes.csv')
+        
+    def load_bhole_info(self, fname):
+        print('Loading boreholes info from: %s' % fname)
+        self.bholes = []
+         
+        with open(fname, 'r') as f:
+            reader = list(csv.reader(f, delimiter='\t'))
+            
+        for line in reader:
+            bhname = line[0].decode('utf-8')
+            self.bholeListWidg.insertItem(0, bhname)
+            
+            bhole = borehole.Borehole(bhname)
+            bhole.X = [float(line[1]), float(line[2])]
+            bhole.Y = [float(line[3]), float(line[4])]
+            bhole.Z = [float(line[5]), float(line[6])]
+            bhole.Zsurf = float(line[7])
+            bhole.Zwater = float(line[8])
+            bhole.Diam = float(line[9])
+        
+            self.bholes.insert(0, bhole)
+            
+        self.bholeListWidg.setCurrentRow (0)
+        print('Boreholes info loaded.')
+                            
 if __name__ == '__main__':
     
     app = QtGui.QApplication(sys.argv)
