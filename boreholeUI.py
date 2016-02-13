@@ -30,14 +30,14 @@ from PySide import QtGui, QtCore
 
 #---- PERSONAL IMPORTS ----
 
-import borehole
+from borehole import BoreholeSet
 
 class BoreholeUI(QtGui.QWidget):
     
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__(parent)
         
-        self.bholes = [] # A list to hold all borehole instances
+        self.bholeSet = BoreholeSet() # An object holding a set of boreholes
         self.isUserEvent = True # Flag to disable user generated events 
                                 # when UI is being updated programmatically
         
@@ -216,8 +216,8 @@ class BoreholeUI(QtGui.QWidget):
         
         if self.bname_edit.text() != '':
             bname = self.bname_edit.text()
-            self.bholeListWidg.insertItem(0, bname)             
-            self.bholes.insert(0, borehole.Borehole(bname))
+            self.bholeListWidg.insertItem(0, bname)
+            self.bholeSet.add_bhole(bname, [0, 0], [0, 0], [0, 0], 0, 0, 0)
             self.bholeListWidg.setCurrentRow (0)
                         
     def remove_bhole(self):        
@@ -225,7 +225,7 @@ class BoreholeUI(QtGui.QWidget):
         bindx = self.bholeListWidg.currentRow()
         if bindx != -1:
             self.bholeListWidg.takeItem(bindx)
-            del self.bholes[bindx]
+            self.bholeSet.del_bhole(bindx)
         
     def bhole_info_changed(self):
         if self.bholeListWidg.currentRow() == -1:
@@ -236,8 +236,11 @@ class BoreholeUI(QtGui.QWidget):
             # programmatically from the stored internal variables.
             return
         
-        bhole = self.bholes[self.bholeListWidg.currentRow()]
-
+        # Grab values from the UI and store the values into the related
+        # object of the borehole set.
+        
+        bhole = self.bholeSet.get_bhole(self.bholeListWidg.currentRow())
+        
         bhole.X = [self.X[0].value(), self.X[1].value()]
         bhole.Y = [self.Y[0].value(), self.Y[1].value()]
         bhole.Z = [self.Z[0].value(), self.Z[1].value()]
@@ -246,10 +249,9 @@ class BoreholeUI(QtGui.QWidget):
         bhole.Diam = self.Diam.value()
         
     def selec_bhole_changed(self, row):
-        # Grab values from the UI and store the values into the class
-        # instance related to the currently selected borehole in the list.
+        # Grab borehole values from bholeSet object and update UI
         self.isUserEvent = False
-        bhole = self.bholes[row]
+        bhole = self.bholeSet.get_bhole(row)
         for i in range(2):
             self.X[i].setValue(bhole.X[i])
             self.Y[i].setValue(bhole.Y[i])
@@ -260,49 +262,14 @@ class BoreholeUI(QtGui.QWidget):
         self.isUserEvent = True
         
     def save_btn_clicked(self):
-        self.save_bhole_info('bholes.csv')
-        
-    def save_bhole_info(self, fname): 
-        print('Saving boreholes info in: %s...' % fname)
-        fcontent = []
-        for bhole in self.bholes:
-            fcontent.append([bhole.name,
-                             bhole.X[0], bhole.X[1],
-                             bhole.Y[0], bhole.Y[1],
-                             bhole.Z[0], bhole.Z[1],
-                             bhole.Zsurf, bhole.Zwater, bhole.Diam])
-                             
-        with open(fname, 'w') as f:
-            writer = csv.writer(f, delimiter='\t')
-            writer.writerows(fcontent)
-        print('Boreholes info saved.')
+        self.bholeSet.save_bholes('bholes.csv')
     
     def import_btn_clicked(self):
-        self.load_bhole_info('bholes.csv')
+        self.bholeSet.load_bholes('bholes.csv')
         
-    def load_bhole_info(self, fname):
-        print('Loading boreholes info from: %s' % fname)
-        self.bholes = []
-         
-        with open(fname, 'r') as f:
-            reader = list(csv.reader(f, delimiter='\t'))
-            
-        for line in reader:
-            bhname = line[0].decode('utf-8')
-            self.bholeListWidg.insertItem(0, bhname)
-            
-            bhole = borehole.Borehole(bhname)
-            bhole.X = [float(line[1]), float(line[2])]
-            bhole.Y = [float(line[3]), float(line[4])]
-            bhole.Z = [float(line[5]), float(line[6])]
-            bhole.Zsurf = float(line[7])
-            bhole.Zwater = float(line[8])
-            bhole.Diam = float(line[9])
-        
-            self.bholes.insert(0, bhole)
-            
+        for bhole in reversed(self.bholeSet.bholes):
+            self.bholeListWidg.insertItem(0, bhole.name)        
         self.bholeListWidg.setCurrentRow (0)
-        print('Boreholes info loaded.')
                             
 if __name__ == '__main__':
     
