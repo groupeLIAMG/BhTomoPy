@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #---- STANDARD LIBRARY IMPORTS ----
 
+import csv
 import sys
 
 #---- THIRD PARTY IMPORTS ----
@@ -29,14 +30,14 @@ from PySide import QtGui, QtCore
 
 #---- PERSONAL IMPORTS ----
 
-import borehole
+from borehole import BoreholeSet
 
 class BoreholeUI(QtGui.QWidget):
     
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__(parent)
         
-        self.bholes = [] # A list to hold all borehole instances
+        self.bholeSet = BoreholeSet() # An object holding a set of boreholes
         self.isUserEvent = True # Flag to disable user generated events 
                                 # when UI is being updated programmatically
         
@@ -61,6 +62,11 @@ class BoreholeUI(QtGui.QWidget):
         btn_remove.clicked.connect(self.remove_bhole)
         
         btn_import = QtGui.QPushButton('Import')
+        btn_import.clicked.connect(self.import_btn_clicked)
+
+        btn_save = QtGui.QPushButton('Save')
+        btn_save.clicked.connect(self.save_btn_clicked)
+        
         btn_plot = QtGui.QPushButton('Plot')
         
         #-- Grid --
@@ -73,16 +79,17 @@ class BoreholeUI(QtGui.QWidget):
         # Insert the child widgets previously created into the grid
         
         toolbar_grid.addWidget(btn_new, 0, 0)
-        toolbar_grid.addWidget(self.bname_edit, 0, 1, 1, 3)
+        toolbar_grid.addWidget(self.bname_edit, 0, 1, 1, 4)
         toolbar_grid.addWidget(btn_remove, 1, 0)
-        toolbar_grid.addWidget(btn_import, 1, 1)
-        toolbar_grid.addWidget(btn_plot, 1, 2)
+        toolbar_grid.addWidget(btn_save, 1, 1)
+        toolbar_grid.addWidget(btn_import, 1, 2)
+        toolbar_grid.addWidget(btn_plot, 1, 3)
            
         # Define the grid layout properties
             
         toolbar_grid.setSpacing(5)
         toolbar_grid.setContentsMargins(0, 0, 0, 0) #(L, T, R, B)
-        toolbar_grid.setColumnStretch(3, 100)
+        toolbar_grid.setColumnStretch(4, 100)
         
         # Assign layout to toolbar subwidget
         
@@ -93,7 +100,7 @@ class BoreholeUI(QtGui.QWidget):
         # Create a new widget where are going to be listed the borehole names
         
         self.bholeListWidg = QtGui.QListWidget()
-        self.bholeListWidg.currentRowChanged.connect(self.sel_bhole_changed)                                                    
+        self.bholeListWidg.currentRowChanged.connect(self.selec_bhole_changed)                                                    
         
         #------------------------------------------------------- Coordinates --
         
@@ -209,8 +216,8 @@ class BoreholeUI(QtGui.QWidget):
         
         if self.bname_edit.text() != '':
             bname = self.bname_edit.text()
-            self.bholeListWidg.insertItem(0, bname)             
-            self.bholes.insert(0, borehole.Borehole(bname))
+            self.bholeListWidg.insertItem(0, bname)
+            self.bholeSet.add_bhole(bname, [0, 0], [0, 0], [0, 0], 0, 0, 0)
             self.bholeListWidg.setCurrentRow (0)
                         
     def remove_bhole(self):        
@@ -218,7 +225,7 @@ class BoreholeUI(QtGui.QWidget):
         bindx = self.bholeListWidg.currentRow()
         if bindx != -1:
             self.bholeListWidg.takeItem(bindx)
-            del self.bholes[bindx]
+            self.bholeSet.del_bhole(bindx)
         
     def bhole_info_changed(self):
         if self.bholeListWidg.currentRow() == -1:
@@ -229,8 +236,11 @@ class BoreholeUI(QtGui.QWidget):
             # programmatically from the stored internal variables.
             return
         
-        bhole = self.bholes[self.bholeListWidg.currentRow()]
-
+        # Grab values from the UI and store the values into the related
+        # object of the borehole set.
+        
+        bhole = self.bholeSet.get_bhole(self.bholeListWidg.currentRow())
+        
         bhole.X = [self.X[0].value(), self.X[1].value()]
         bhole.Y = [self.Y[0].value(), self.Y[1].value()]
         bhole.Z = [self.Z[0].value(), self.Z[1].value()]
@@ -238,11 +248,10 @@ class BoreholeUI(QtGui.QWidget):
         bhole.Zwater = self.Zwater.value()
         bhole.Diam = self.Diam.value()
         
-    def sel_bhole_changed(self, row):
-        # Grab values from the UI and store the values into the class
-        # instance related to the currently selected borehole in the list.
+    def selec_bhole_changed(self, row):
+        # Grab borehole values from bholeSet object and update UI
         self.isUserEvent = False
-        bhole = self.bholes[row]
+        bhole = self.bholeSet.get_bhole(row)
         for i in range(2):
             self.X[i].setValue(bhole.X[i])
             self.Y[i].setValue(bhole.Y[i])
@@ -252,7 +261,16 @@ class BoreholeUI(QtGui.QWidget):
         self.Diam.setValue(bhole.Diam)
         self.isUserEvent = True
         
-                
+    def save_btn_clicked(self):
+        self.bholeSet.save_bholes('bholes.csv')
+    
+    def import_btn_clicked(self):
+        self.bholeSet.load_bholes('bholes.csv')
+        
+        for bhole in reversed(self.bholeSet.bholes):
+            self.bholeListWidg.insertItem(0, bhole.name)        
+        self.bholeListWidg.setCurrentRow (0)
+                            
 if __name__ == '__main__':
     
     app = QtGui.QApplication(sys.argv)
