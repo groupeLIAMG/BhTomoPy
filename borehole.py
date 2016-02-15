@@ -22,6 +22,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #---- STANDARD LIBRARY IMPORTS ----
 
 import csv
+import sys
+
+#----- THIRD PARTY IMPORTS -----
+
+from PySide import QtGui, QtCore
+
+import matplotlib as mpl
+mpl.rcParams['backend.qt4']='PySide'
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from mpl_toolkits.mplot3d import axes3d
 
 class Borehole(object):
     
@@ -88,7 +98,48 @@ class BoreholeSet(object):
             writer.writerows(fcontent)
         print('Borehole set saved.')
         
+class BoreholeFig(FigureCanvasQTAgg):
+
+    def __init__(self):
+        
+        fw, fh = 6, 8
+        fig = mpl.figure.Figure(figsize=(fw, fh), facecolor='white')
+        
+        super(BoreholeFig, self).__init__(fig)
+        
+        self.initFig()
+        
+    def initFig(self):        
+        ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+        ax.set_axisbelow(True)        
+        
+    def plot_bholes(self, bholes):
+        ax = self.figure.axes[0]
+        ax.cla()
+        for bhole in bholes:
+            ax.plot(bhole.X, bhole.Y, bhole.Z, label=bhole.name)
+                
+        l = ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
+                      borderpad=0)
+        l.draw_frame(False)
+        
+        self.draw()
+        
+            
+#X, Y, Z = axes3d.get_test_data(0.1)
+#ax.plot_wireframe(X, Y, Z, rstride=5, cstride=5)
+                
+        
 if __name__ == '__main__':
     
-    bh = Borehole('B01' )
+    app = QtGui.QApplication(sys.argv)
+    
+    bholeSet = BoreholeSet()
+    bholeSet.load_bholes('bholes.csv')
+    
+    bholeFig = BoreholeFig()
+    bholeFig.plot_bholes(bholeSet.bholes)
+    bholeFig.show()
+    
+    sys.exit(app.exec_())
     

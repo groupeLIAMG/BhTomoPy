@@ -30,7 +30,7 @@ from PySide import QtGui, QtCore
 
 #---- PERSONAL IMPORTS ----
 
-from borehole import BoreholeSet
+from borehole import BoreholeSet, BoreholeFig
 
 class BoreholeUI(QtGui.QWidget):
     
@@ -45,6 +45,10 @@ class BoreholeUI(QtGui.QWidget):
         
     def initUI(self):
         
+        #---------------------------------------------------------- Fig Plot --
+        
+        self.bholeFig = BoreholeFig()
+
         #----------------------------------------------------------- Toolbar --
        
         #-- Widgets --
@@ -68,6 +72,7 @@ class BoreholeUI(QtGui.QWidget):
         btn_save.clicked.connect(self.save_btn_clicked)
         
         btn_plot = QtGui.QPushButton('Plot')
+        btn_plot.clicked.connect(self.plot_bholes)
         
         #-- Grid --
         
@@ -248,6 +253,9 @@ class BoreholeUI(QtGui.QWidget):
         bhole.Zwater = self.Zwater.value()
         bhole.Diam = self.Diam.value()
         
+        # update graph        
+        self.bholeFig.plot_bholes(self.bholeSet.bholes)
+        
     def selec_bhole_changed(self, row):
         # Grab borehole values from bholeSet object and update UI
         self.isUserEvent = False
@@ -267,9 +275,14 @@ class BoreholeUI(QtGui.QWidget):
     def import_btn_clicked(self):
         self.bholeSet.load_bholes('bholes.csv')
         
+        self.bholeListWidg.clear()
         for bhole in reversed(self.bholeSet.bholes):
             self.bholeListWidg.insertItem(0, bhole.name)        
         self.bholeListWidg.setCurrentRow (0)
+        self.bholeFig.plot_bholes(self.bholeSet.bholes)
+        
+    def plot_bholes(self):        
+        self.bholeFig.show()
                             
 if __name__ == '__main__':
     
