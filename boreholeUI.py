@@ -231,6 +231,7 @@ class BoreholeUI(QtGui.QWidget):
         if bindx != -1:
             self.bholeListWidg.takeItem(bindx)
             self.bholeSet.del_bhole(bindx)
+            self.bholeFig.plot_bholes(self.bholeSet.bholes)
         
     def bhole_info_changed(self):
         if self.bholeListWidg.currentRow() == -1:
