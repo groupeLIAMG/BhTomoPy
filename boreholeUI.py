@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import csv
 import sys
+import os
 
 #---- THIRD PARTY IMPORTS ----
 
@@ -271,16 +272,35 @@ class BoreholeUI(QtGui.QWidget):
         self.isUserEvent = True
         
     def save_btn_clicked(self):
-        self.bholeSet.save_bholes('bholes.csv')
-    
+                
+        filename, ftype = QtGui.QFileDialog.getSaveFileName(
+               caption="Save borehole list",
+               dir=os.getcwd() + '/MyBoreholeList.csv',
+               filter=('*.csv'))
+                                                
+        if filename:
+            if filename[-4:] != ftype[1:]: 
+                # Add a file extension if there is none. Necessary for
+                # cross-compatibility between Windows and Linux plateform.
+                filename = filename + ftype[1:]
+                
+            self.bholeSet.save_bholes(filename)
+                                                 
+                                                 
     def import_btn_clicked(self):
-        self.bholeSet.load_bholes('bholes.csv')
         
-        self.bholeListWidg.clear()
-        for bhole in reversed(self.bholeSet.bholes):
-            self.bholeListWidg.insertItem(0, bhole.name)        
-        self.bholeListWidg.setCurrentRow (0)
-        self.bholeFig.plot_bholes(self.bholeSet.bholes)
+        filename, _ = QtGui.QFileDialog.getOpenFileName(
+                          self, 'Select a borehole list', os.getcwd(), '*.csv')
+        
+        if filename:                            
+            self.bholeSet.load_bholes(filename)
+        
+            self.bholeListWidg.clear()
+            for bhole in reversed(self.bholeSet.bholes):
+                self.bholeListWidg.insertItem(0, bhole.name)        
+            self.bholeListWidg.setCurrentRow (0)
+            self.bholeFig.plot_bholes(self.bholeSet.bholes)
+        
         
     def plot_bholes(self):        
         self.bholeFig.show()
