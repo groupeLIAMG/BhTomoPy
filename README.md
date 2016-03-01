@@ -1,7 +1,7 @@
 # BhTomoPy
 ##Borehole radar/seismic tomography package
 
-This is (going to be) a python port of the Matlab bh_tomo package.  The original Matlab code is [available here] (http://liamg.ca/wp-content/uploads/2011/11/bh_tomo.zip)
+This is (going to be) a python port of the Matlab bh_tomo package.  The original Matlab code is [available here] (https://github.com/groupeLIAMG/bh_tomo)
 
 ## Contributors
 - Bernard Giroux: main author of orignal Matlab version
