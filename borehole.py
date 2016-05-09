@@ -21,7 +21,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class Borehole:
-    
+    """
+    Class to hold borehole data
+    """
     def __init__(self, name=None):
         self.name = name
         
