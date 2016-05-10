@@ -74,13 +74,13 @@ class Borehole:
             raise TypeError
 
     #TODO
-    def setXmax(self,Xmax):
-    def setYmax(self,Ymax):
-    def setZmax(self,Zmax):
-    def setZ_surf(self,Xmax):
-    def setZ_water(self,Xmax):
-    def setdiam(self,Xmax):
-    def setfdata(self):
+    #def setXmax(self,Xmax):
+    #ef setYmax(self,Ymax):
+    #def setZmax(self,Zmax):
+    #def setZ_surf(self,Xmax):
+    #def setZ_water(self,Xmax):
+    #def setdiam(self,Xmax):
+    #def setfdata(self):
 
 
 
@@ -100,4 +100,6 @@ class Borehole:
 if __name__ == '__main__':
     
     bh = Borehole('B01' )
+    bh.X = 3
+    print(bh.X)
     
