@@ -26,7 +26,8 @@ import sys
 
 #---- THIRD PARTY IMPORTS ----
 
-from PySide import QtGui, QtCore
+from PyQt4 import QtGui, QtCore
+
 
 class BoreholeUI(QtGui.QWidget):
     
