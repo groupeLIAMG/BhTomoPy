@@ -219,8 +219,7 @@ class Borehole:
         y = np.zeros((npts,1))
         z = np.zeros((npts,1))
         c = np.zeros((npts, 3))
-    #TODO:
-    #voir la sytaxe pour depthBH afin de vor si le résultat obtenu correspond à celui de la version mathlab.
+
         depthBH = np.append(np.array([[0]]),np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1))))
 
 
@@ -268,9 +267,12 @@ class Borehole:
         return x,y,z,c
 
 if __name__ == '__main__':
-    fdata=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
-    ldepth = np.array([1, 2, 3, 4, 5])
+    fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
+    ldepthtest = np.array([1, 2, 3, 4, 5])
 
-    #bh = Borehole('B01')
+    bh = Borehole('B01')
+    bh.fdata = fdatatest
+    print(bh.name)
+    print(bh.fdata.shape)
 
-    x,y,z,c = Borehole.project(fdata,ldepth)
+    #x,y,z,c = Borehole.project(fdatatest,ldepthtest)
