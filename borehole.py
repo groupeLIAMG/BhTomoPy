@@ -26,7 +26,7 @@ class Borehole:
     Class to hold borehole data
     """
 
-    def __init__(self, name=None, X=0, Y=0, Z=0, Xmax=0, Ymax=0, Zmax=0, Z_surf=0, Z_water="", diam=0,
+    def __init__(self, name=None, X=0.0, Y=0.0, Z=0.0, Xmax=0.0, Ymax=0.0, Zmax=0.0, Z_surf=0.0, Z_water=0.0, diam=0.0,
                  scont=np.array([]), acont=np.array([]), fdata=np.array([[0, 0, 0], [0, 0, 0]])):
         """Attributes:
         name: name of the borehole(BH)
@@ -174,14 +174,18 @@ class Borehole:
 
     @fdata.setter
     def fdata(self, fdata):
+#        if isinstance(fdata, np.array):
+#            self.__fdata = fdata
+#        else:
+#            raise TypeError
+            
         l = fdata.shape
         if len(l) == 2:
             if l[1] == 3:
             # We only verify the column index of the matrix to be sure the number of dimensions is 3
             # We don't need to verifiy the line index because only the physical dimensions are in need to be restrained
             # not the lenght of the trajectory
-                if isinstance(fdata, np.array):
-                    self.__fdata = fdata
+                self.__fdata = fdata
         else:
             raise TypeError
 
@@ -228,7 +232,7 @@ class Borehole:
 
 
         for n in range(npts):
-            i1 = np.nonzero(ldepth[n] >= depthBH)
+            i1, = np.nonzero(ldepth[n] >= depthBH)
             if i1.size == 0:
                 x = np.zeros((1, npts))
                 y = np.zeros((1, npts))
@@ -237,7 +241,7 @@ class Borehole:
                 raise ValueError
             i1 = i1[-1]
 
-            i2 = np.nonzero(ldepth[n] < depthBH)
+            i2, = np.nonzero(ldepth[n] < depthBH)
             if i2.size == 0:
                 x = np.zeros((1, npts))
                 y = np.zeros((1, npts))
@@ -261,9 +265,12 @@ class Borehole:
 
             #We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
             # the closest upper point's coordinates
-
+        return x,y,z,c
 
 if __name__ == '__main__':
+    fdata=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
     ldepth = np.array([0, 1, 2, 3, 4, 5])
 
     bh = Borehole('B01')
+
+    x,y,z,c = Borehole.project(fdata,ldepth)
