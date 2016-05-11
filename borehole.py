@@ -64,7 +64,7 @@ class Borehole:
         if isinstance(name, str):
             self.__name = name
         else:
-            raise TypeError
+            raise TypeError("Please enter a valid borehole name(i.e. a str)")
 
     @property
     def X(self):
@@ -75,7 +75,7 @@ class Borehole:
         if isinstance(X, float or int):
             self.__X = X
         else:
-            raise TypeError
+            raise TypeError("coordinates must be float or int")
 
     @property
     def Y(self):
@@ -217,8 +217,10 @@ class Borehole:
         z = np.zeros((1, npts))
         c = np.zeros((npts, 3))
     #TODO:
-    #voir la sytaxe pour depthBH afin de vor si le résultat obtenu correspond à celui de la version mathlab.
-        depthBH = np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1)))
+    #voir si cette syntaxe fonctionne
+        ini = np.array([[0]])
+        dist = np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1)))
+        depthBH = np.append(ini, dist)
 
 
         #Knowing that de BH's depth is a matrix which contains the distance between every points of fdata, and that ldepth
@@ -260,11 +262,32 @@ class Borehole:
             z[n] = fdata[i1, 2] + d2 * l[2]
             c[n, :] = 1
 
+        return x, y, z, c
+
             #We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
             # the closest upper point's coordinates
 
+    #def boreholes_order(self, ):
+
 
 if __name__ == '__main__':
-    ldepth = np.array([0, 1, 2, 3, 4, 5])
+    ldepthtest = np.array([0.75 , 1.22])
+    fdatatest = np.array([[0,0,0],
+                          [1,1,1],
+                          [2,2,2]])
+    depthBHtest = np.array([ np.cumsum(np.sqrt(np.sum(np.diff(fdatatest, n=1, axis=0) ** 2, axis=1)))])
+    ini = np.array([[0]])
 
-    bh = Borehole('B01')
+
+    print(np.diff(fdatatest, n=1, axis=0) ** 2)
+    print(np.sum(np.diff(fdatatest, n=1, axis=0) ** 2, axis=1))
+    print(np.sum(np.diff(fdatatest, n=1, axis=0) ** 2, axis=0))
+    print(np.sqrt(np.sum(np.diff(fdatatest, n=1, axis=0) ** 2, axis=0)))
+    print(np.cumsum(np.sqrt(np.sum(np.diff(fdatatest, n=1, axis=0) ** 2, axis=0))))
+    print(np.cumsum(np.sqrt(np.sum(np.diff(fdatatest, n=1, axis=0) ** 2, axis=1))))
+    print(np.append(ini, depthBHtest))
+    Borehole.project(fdatatest, ldepthtest)
+
+
+
+

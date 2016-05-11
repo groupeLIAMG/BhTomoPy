@@ -45,7 +45,13 @@ class BoreholeUI(QtGui.QWidget):
         # Create the child widgets that will be incorporated in the layout
         # of a subwidget that will be used as a toolbar for the main widget
         # created from class "BoreholeUI".
-        
+
+        btn_veloc = QtGui.QPushButton('Constraints Veloc.')
+        #btn_veloc.clicked.connect()
+
+        btn_atten = QtGui.QPushButton('Constraints Atten.')
+        #btn_atten.clicked.connect()
+
         btn_new = QtGui.QPushButton('Add')        
         btn_new.clicked.connect(self.add_new_bhole) # Connect a slot to signal
         
@@ -62,8 +68,9 @@ class BoreholeUI(QtGui.QWidget):
         # Create the toolbar subwidget and a grid layout 
         
         toolbar_grid = QtGui.QGridLayout()
+        stoolbar_grid = QtGui.QGridLayout()
         toolbar_widget = QtGui.QWidget()
-        
+        stoolbar_widget = QtGui.QWidget()
         # Insert the child widgets previously created into the grid
         
         toolbar_grid.addWidget(btn_new, 0, 0)
@@ -71,16 +78,25 @@ class BoreholeUI(QtGui.QWidget):
         toolbar_grid.addWidget(btn_remove, 1, 0)
         toolbar_grid.addWidget(btn_import, 1, 1)
         toolbar_grid.addWidget(btn_plot, 1, 2)
+        stoolbar_grid.addWidget(btn_veloc, 3, 1)
+        stoolbar_grid.addWidget(btn_atten, 3, 2)
+
            
         # Define the grid layout properties
             
         toolbar_grid.setSpacing(5)
+        #toolbar_grid.setDefaultPositioning(0,)
         toolbar_grid.setContentsMargins(0, 0, 0, 0)
         toolbar_grid.setColumnStretch(3, 100)
+        #stoolbar_grid.setSpacing(5)
+        #stoolbar_grid.setContentsMargins(0,0,0,0)
+        #stoolbar_grid.setColumnStretch(3,100)
+        #stoolbar_grid.setDefaultPositioning(2)
         
         # Assign layout to toolbar subwidget
         
         toolbar_widget.setLayout(toolbar_grid)
+        stoolbar_widget.setLayout(stoolbar_grid)
         
         #--------------------------------------------------------- List View --
         
@@ -93,7 +109,8 @@ class BoreholeUI(QtGui.QWidget):
         # Insert the subwidgets (toolbar and list view) in the main layout and
         # assign it to the main widget
         
-        main_grid = QtGui.QGridLayout()        
+        main_grid = QtGui.QGridLayout()
+        second_grid =QtGui.QGridLayout()
         main_grid.addWidget(toolbar_widget, 0, 0)
         main_grid.addWidget(self.bhole_list, 1, 0)
         main_grid.setRowStretch(1, 100)
