@@ -215,13 +215,13 @@ class Borehole:
         npts = ldepth.size
         # the x,y and z coordinates are initially a matrix which contains as much 0 as the number of measurement points
         # we can see the c value as the combination of the three cartesian coordinates in unitary form
-        x = np.zeros((1, npts))
-        y = np.zeros((1, npts))
-        z = np.zeros((1, npts))
+        x = np.zeros((npts,1))
+        y = np.zeros((npts,1))
+        z = np.zeros((npts,1))
         c = np.zeros((npts, 3))
     #TODO:
     #voir la sytaxe pour depthBH afin de vor si le résultat obtenu correspond à celui de la version mathlab.
-        depthBH = np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1)))
+        depthBH = np.append(np.array([[0]]),np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1))))
 
 
         #Knowing that de BH's depth is a matrix which contains the distance between every points of fdata, and that ldepth
@@ -234,18 +234,18 @@ class Borehole:
         for n in range(npts):
             i1, = np.nonzero(ldepth[n] >= depthBH)
             if i1.size == 0:
-                x = np.zeros((1, npts))
-                y = np.zeros((1, npts))
-                z = np.zeros((1, npts))
+                x = np.zeros((npts,1))
+                y = np.zeros((npts,1))
+                z = np.zeros((npts,1))
                 c = np.zeros((npts, 3))
                 raise ValueError
             i1 = i1[-1]
 
             i2, = np.nonzero(ldepth[n] < depthBH)
             if i2.size == 0:
-                x = np.zeros((1, npts))
-                y = np.zeros((1, npts))
-                z = np.zeros((1, npts))
+                x = np.zeros((npts,1))
+                y = np.zeros((npts,1))
+                z = np.zeros((npts,1))
                 c = np.zeros((npts, 3))
                 raise ValueError
             i2 = i2[0]
@@ -269,8 +269,8 @@ class Borehole:
 
 if __name__ == '__main__':
     fdata=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
-    ldepth = np.array([0, 1, 2, 3, 4, 5])
+    ldepth = np.array([1, 2, 3, 4, 5])
 
-    bh = Borehole('B01')
+    #bh = Borehole('B01')
 
     x,y,z,c = Borehole.project(fdata,ldepth)
