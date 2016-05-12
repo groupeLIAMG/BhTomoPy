@@ -63,7 +63,7 @@ class Borehole:
         if isinstance(name, str):
             self.__name = name
         else:
-            raise TypeError
+            raise TypeError("Please enter a valid name of type str")
 
     @property
     def X(self):
@@ -74,7 +74,7 @@ class Borehole:
         if isinstance(X, float or int):
             self.__X = X
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def Y(self):
@@ -85,7 +85,7 @@ class Borehole:
         if isinstance(Y, float or int):
             self.__Y = Y
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def Z(self):
@@ -96,7 +96,7 @@ class Borehole:
         if isinstance(Z, float or int):
             self.__Z = Z
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def Xmax(self):
@@ -107,7 +107,7 @@ class Borehole:
         if isinstance(Xmax, float or int):
             self.__Xmax = Xmax
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def Ymax(self):
@@ -118,7 +118,7 @@ class Borehole:
         if isinstance(Ymax, float or int):
             self.__Ymax = Ymax
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def Zmax(self):
@@ -129,7 +129,7 @@ class Borehole:
         if isinstance(Zmax, float or int):
             self.__Zmax = Zmax
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def Z_surf(self):
@@ -140,7 +140,7 @@ class Borehole:
         if isinstance(Z_surf, float or int):
             self.__Z_surf = Z_surf
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def Z_water(self):
@@ -151,7 +151,7 @@ class Borehole:
         if isinstance(Z_water, float or int):
             self.__Z_water = Z_water
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric coordinate")
 
     @property
     def diam(self):
@@ -162,7 +162,7 @@ class Borehole:
         if isinstance(diam, float or int):
             self.__diam = diam
         else:
-            raise TypeError
+            raise TypeError("Please enter a numeric diameter")
 
         # As you see, we set the @property and @something.setter to be able the either get the information from one attribute of the Borehole class
         # or to change its value while verifying if the new value respects the criteria to be valid simply by calling Borehole.something. This
@@ -174,20 +174,21 @@ class Borehole:
 
     @fdata.setter
     def fdata(self, fdata):
-#        if isinstance(fdata, np.array):
-#            self.__fdata = fdata
-#        else:
-#            raise TypeError
-            
         l = fdata.shape
-        if len(l) == 2:
-            if l[1] == 3:
-            # We only verify the column index of the matrix to be sure the number of dimensions is 3
-            # We don't need to verifiy the line index because only the physical dimensions are in need to be restrained
-            # not the lenght of the trajectory
-                self.__fdata = fdata
+        if isinstance(fdata, np.array):
+            if len(l) == 2:
+                if l[1] == 3:
+                # We only verify the column index of the matrix to be sure the number of dimensions is 3
+                # We don't need to verifiy the line index because only the physical dimensions are in need to be restrained
+                # not the lenght of the trajectory
+                    self.__fdata = fdata
+                else:
+                    raise TypeError("Please enter a [n,3] fdata matrix")
+            else:
+                raise TypeError("Please enter a [n,3] fdata matrix")
         else:
-            raise TypeError
+            raise TypeError("Please enter a [n,3] fdata matrix")
+
 
     @staticmethod
     def project(fdata, ldepth):
