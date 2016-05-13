@@ -38,19 +38,19 @@ class ModelUI(QtGui.QFrame):
         Models_Sub_Widget.setLayout(Models_Sub_Grid)
 
         #--- Grid Sub Widget ---#
-        Grid_Sub_Widget =  QtGui.QWidget()
+        Grid_GroupBox =  QtGui.QGroupBox("Grid")
         Grid_Sub_Grid   = QtGui.QGridLayout()
         Grid_Sub_Grid.addWidget(btn_Create_Grid, 0, 0)
         Grid_Sub_Grid.addWidget(btn_Edit_Grid, 0, 1)
-        Grid_Sub_Widget.setLayout(Grid_Sub_Grid)
+        Grid_GroupBox.setLayout(Grid_Sub_Grid)
 
         #--- MOGS Sub Widget ---#
-        MOGS_Sub_Widget =  QtGui.QWidget()
+        MOGS_Groupbox =  QtGui.QGroupBox("MOGs")
         MOGS_Sub_Grid   = QtGui.QGridLayout()
         MOGS_Sub_Grid.addWidget(btn_Add_MOG, 0, 0, 1, 2)
         MOGS_Sub_Grid.addWidget(btn_Remove_MOG, 0, 2, 1, 2)
         MOGS_Sub_Grid.addWidget(MOG_list, 1, 0, 1, 4)
-        MOGS_Sub_Widget.setLayout(MOGS_Sub_Grid)
+        MOGS_Groupbox.setLayout(MOGS_Sub_Grid)
 
 
 
@@ -58,8 +58,8 @@ class ModelUI(QtGui.QFrame):
         master_grid     = QtGui.QGridLayout()
         #--- Sub Widgets Disposition ---#
         master_grid.addWidget(Models_Sub_Widget, 0, 0)
-        master_grid.addWidget(Grid_Sub_Widget, 1, 0)
-        master_grid.addWidget(MOGS_Sub_Widget, 0, 1)
+        master_grid.addWidget(Grid_GroupBox, 1, 0)
+        master_grid.addWidget(MOGS_Groupbox, 0, 1 , 2, 1)
 
 
         self.setLayout(master_grid)

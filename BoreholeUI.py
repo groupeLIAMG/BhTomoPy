@@ -1,6 +1,6 @@
 import sys
 from PyQt4 import QtGui, QtCore
-from borehole import Borehole
+#from borehole import Borehole, BoreholeSetup, BoreholeFig
 
 class BoreholeUI(QtGui.QFrame):
     def __init__(self, parent=None):
@@ -9,6 +9,9 @@ class BoreholeUI(QtGui.QFrame):
         self.initUI()
 
     def initUI(self):
+
+    #------ Fig Plot -----#
+        #self.bholeFig = BoreholeFig()
 
 
         class  MyQLabel(QtGui.QLabel):

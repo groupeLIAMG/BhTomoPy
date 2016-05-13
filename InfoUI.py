@@ -10,10 +10,13 @@ class InfoUI(QtGui.QFrame):
 
     def initUI(self):
         #--- Widget ---#
-        info_box = QtGui.QTextEdit("Database")
+        info = QtGui.QTextEdit("Database")
+        info.setReadOnly(True)
+        #--- GroupBox ---#
+
         #--- Grid ---#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(info_box, 0, 0)
+        master_grid.addWidget(info , 0, 0)
         self.setLayout(master_grid)
 
 
