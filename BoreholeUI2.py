@@ -1,13 +1,15 @@
 import sys
 from PyQt4 import QtGui, QtCore
+from borehole import Borehole
 
-class BoreholeUI(QtGui.QWidget):
+class BoreholeUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Borehole")
         self.initUI()
 
     def initUI(self):
+
 
         class  MyQLabel(QtGui.QLabel):
             def __init__(self, label, ha='left',  parent=None):
@@ -23,7 +25,6 @@ class BoreholeUI(QtGui.QWidget):
         self.bh_Creation = BH_Creation()
 
         #------- Widget Creation -------#
-
         #--- Buttons Set---#
         btn_Add               = QtGui.QPushButton("Add")
         btn_Remove            = QtGui.QPushButton("Remove")
@@ -58,12 +59,9 @@ class BoreholeUI(QtGui.QWidget):
         Diam_edit                = QtGui.QLineEdit()
 
         #--- list ---#
-        bh_list         = QtGui.QListWidget()
-
-
+        self.bh_list             = QtGui.QListWidget()
 
         #--- sub widgets ---#
-
         #--- Diam ---#
         sub_Diam_widget          = QtGui.QWidget()
         sub_Diam_Grid            = QtGui.QGridLayout()
@@ -81,8 +79,6 @@ class BoreholeUI(QtGui.QWidget):
         sub_upper_buttons_Grid.addWidget(btn_Plot, 0, 3)
         sub_upper_buttons_widget.setLayout(sub_upper_buttons_Grid)
 
-
-
         #------- Grid Disposition -------#
         master_grid     = QtGui.QGridLayout()
 
@@ -92,7 +88,7 @@ class BoreholeUI(QtGui.QWidget):
         master_grid.addWidget(btn_Constraints_atten, 9, 2, 1, 2)
 
         #--- List Disposition ---#
-        master_grid.addWidget(bh_list, 2, 0, 1, 4)
+        master_grid.addWidget(self.bh_list, 2, 0, 1, 4)
 
         #--- Labels Disposition ---#
         master_grid.addWidget(Coord_label, 3, 0)
@@ -117,15 +113,9 @@ class BoreholeUI(QtGui.QWidget):
         #--- Others ---#
         master_grid.addWidget(sub_Diam_widget, 8, 2)
 
-
-
-
-
-
         #------- Grid settings -------#
-        master_grid.setColumnStretch(2, 100)
+        master_grid.setColumnStretch(3, 100)
         master_grid.setRowStretch(2, 100)
-
 
         #------- set Layout -------#
         self.setLayout(master_grid)
@@ -143,6 +133,7 @@ class BH_Creation(QtGui.QWidget):
     def initUI(self):
         bh_edit               = QtGui.QLineEdit()
         btn_ok                = QtGui.QPushButton("Ok")
+
         #------- Grid Creation -------#
 
         creation_grid = QtGui.QGridLayout()

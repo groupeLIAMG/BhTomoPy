@@ -3,7 +3,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 
 
-class MOGUI(QtGui.QWidget):
+class MOGUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/MOGs")
@@ -115,18 +115,24 @@ class MOGUI(QtGui.QWidget):
         #- Sub Right Buttons Widget -#
         sub_right_buttons_widget = QtGui.QWidget()
         sub_right_buttons_Grid   = QtGui.QGridLayout()
-        sub_right_buttons_Grid.addWidget(btn_Rename, 0, 0)
-        sub_right_buttons_Grid.addWidget(btn_Import, 0, 1)
-        sub_right_buttons_Grid.addWidget(btn_Merge, 0, 2)
-        sub_right_buttons_Grid.addWidget(btn_Raw_Data, 1, 0)
-        sub_right_buttons_Grid.addWidget(btn_Trace_ZOP, 1, 1)
-        sub_right_buttons_Grid.addWidget(btn_Spectra, 1, 2)
-        sub_right_buttons_Grid.addWidget(btn_Stats_tt, 2, 0)
-        sub_right_buttons_Grid.addWidget(btn_Stats_Ampl, 2, 1)
-        sub_right_buttons_Grid.addWidget(btn_Ray_Coverage, 2, 2)
-        sub_right_buttons_Grid.addWidget(btn_Export_tt, 3, 0)
-        sub_right_buttons_Grid.addWidget(btn_export_tau, 3, 1)
-        sub_right_buttons_Grid.addWidget(btn_Prune, 3, 2)
+        sub_right_buttons_Grid.addWidget(btn_Rename, 1, 1)
+        sub_right_buttons_Grid.addWidget(btn_Import, 1, 2)
+        sub_right_buttons_Grid.addWidget(btn_Merge, 1, 3)
+        sub_right_buttons_Grid.addWidget(btn_Raw_Data, 2, 1)
+        sub_right_buttons_Grid.addWidget(btn_Trace_ZOP, 2, 2)
+        sub_right_buttons_Grid.addWidget(btn_Spectra, 2, 3)
+        sub_right_buttons_Grid.addWidget(btn_Stats_tt, 3, 1)
+        sub_right_buttons_Grid.addWidget(btn_Stats_Ampl, 3, 2)
+        sub_right_buttons_Grid.addWidget(btn_Ray_Coverage, 3, 3)
+        sub_right_buttons_Grid.addWidget(btn_Export_tt, 4, 1)
+        sub_right_buttons_Grid.addWidget(btn_export_tau, 4, 2)
+        sub_right_buttons_Grid.addWidget(btn_Prune, 4, 3)
+        sub_right_buttons_Grid.setVerticalSpacing(0)
+        sub_right_buttons_Grid.setHorizontalSpacing(0)
+        sub_right_buttons_Grid.setRowStretch(0, 100)
+        sub_right_buttons_Grid.setRowStretch(5, 100)
+        sub_right_buttons_Grid.setColumnStretch(0, 100)
+        sub_right_buttons_Grid.setColumnStretch(5, 100)
         sub_right_buttons_widget.setLayout(sub_right_buttons_Grid)
 
         #- MOG and list Sub Widget -#
