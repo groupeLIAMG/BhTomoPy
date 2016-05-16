@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import matplotlib as mpl
-#mpl.rcParams['backend.qt4']='PyQt'
+mpl.rcParams['backend.qt4']='PyQt4'
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
+from BoreholeUI import BoreholeUI
 
 """
 Copyright 2016 Bernard Giroux
@@ -30,7 +31,8 @@ class Borehole:
     Class to hold borehole data
     """
 
-    def __init__(self, name=None):
+    def __init__(self, name=None,X = 0.0, Y = 0.0, Z = 0.0, Xmax = 0.0, Ymax = 0.0, Zmax = 0.0, Z_surf = 0.0, Z_water = 0.0,
+                 diam = 0.0, scont = np.array([]), acont = np.array([]),fdata = np.array([[0, 0, 0], [0, 0, 0]])):
         """Attributes:
         name: name of the borehole(BH)
         X, Y and Z: the BH's top cartesian coordinates
@@ -43,18 +45,18 @@ class Borehole:
         fdata: the BH's trajectory's coordinates discrete evolution"""
 
         self.name = name
-        self.X = 0.0
-        self.Y = 0.0
-        self.Z = 0.0
-        self.Xmax = 0.0
-        self.Ymax = 0.0
-        self.Zmax = 0.0
-        self.Z_surf = 0.0
-        self.Z_water = 0.0
-        self.diam = 0.0
-        self.scont = np.array([])
-        self.acont = np.array([])
-        self.fdata = np.array([[0, 0, 0], [0, 0, 0]])
+        self.X = X
+        self.Y = Y
+        self.Z = Z
+        self.Xmax = Xmax
+        self.Ymax = Ymax
+        self.Zmax = Zmax
+        self.Z_surf = Z_surf
+        self.Z_water = Z_water
+        self.diam = diam
+        self.scont = scont
+        self.acont = acont
+        self.fdata = fdata
 
 
     @property
@@ -178,21 +180,18 @@ class Borehole:
     @fdata.setter
     def fdata(self, fdata):
         l = fdata.shape
-        if isinstance(fdata, np.array):
-            if len(l) == 2:
-                if l[1] == 3:
+        if len(l) == 2:
+            if l[1] == 3:
                 # We only verify the column index of the matrix to be sure the number of dimensions is 3
                 # We don't need to verifiy the line index because only the physical dimensions are in need to be restrained
                 # not the lenght of the trajectory
-                    self.__fdata = fdata
-                else:
-                    raise TypeError("Please enter a [n,3] fdata matrix")
+                self.__fdata = fdata
             else:
                 raise TypeError("Please enter a [n,3] fdata matrix")
         else:
             raise TypeError("Please enter a [n,3] fdata matrix")
-
-
+        #else:
+            #raise TypeError("Please enter a [n,3] fdata matrix")
 
     @staticmethod
     def project(fdata, ldepth):
@@ -271,67 +270,50 @@ class Borehole:
             # the closest upper point's coordinates
         return x,y,z,c
 
-class BoreholeSetup:
 
-    def __init__(self, name=None):
-        self.bholes = []
 
-    def add_bhole(self, name, X, Y, Z, Xmax, Ymax, Zmax, Z_surf, Z_water, diam):
-        bhole = Borehole(name)
-        bhole.X, bhole.Y, bhole.Z, bhole.Xmax, bhole.Ymax, bhole.Zmax = X, Y, Z, Xmax, Ymax, Zmax
-        bhole.Z_surf = Z_surf
-        bhole.Z_water = Z_water
-        bhole.diam = diam
 
-        self.bholes.insert(0, bhole)
-        print('Added bhole %s to the set of boreholes.' % name)
+class BoreholeFig(FigureCanvasQTAgg):
 
-    def del_bhole(self, index):
-        del self.bholes[index]
+    def __init__(self):
 
-    def get_bhole(self, index):
-        return self.bholes[index]
+        fig_width, fig_height = 6, 8
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
 
-    def load_bholes(self, fname):
-        print('Loading borehole set from: %s' % fname)
-        self.bholes = []
+        super(BoreholeFig, self).__init__(fig)
 
-#class BoreholeFig(FigureCanvasQTAgg):
+        self.initFig()
 
-#   def __init__(self):
-#
- #       fig_width, fig_height = 6, 8
-  #      fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
-#
- #       super(BoreholeFig, self).__init__(fig)
-#
- #       self.initFig()
-#
- #   def initFig(self):
-  #      ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
-   #     ax.set_axisbelow(True)
-#
- #   def plot_bholes(self, bholes):
-  #      ax = self.figure.axes[0]
-   #     ax.cla()
-    #    for bhole in bholes:
-     #       ax.plot(bhole.X, bhole.Y, bhole.Z, label=bhole.name)
-#
- #       l = ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
-  #                    borderpad=0)
-   #     l.draw_frame(False)
-#
- #       self.draw()
+    def initFig(self):
+        ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+        ax.set_axisbelow(True)
+
+    def plot_bholes(self, boreholes):
+        ax = self.figure.axes[0]
+        ax.cla()
+        for bhole in boreholes:
+            ax.plot(bhole.X, bhole.Y, bhole.Z, label=bhole.name)
+
+        l = ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
+                    borderpad=0)
+        l.draw_frame(False)
+
+        self.draw()
 
 
 
 if __name__ == '__main__':
     fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
     ldepthtest = np.array([1, 2, 3, 4, 5])
-
-    bh = Borehole('B01')
-    bh.fdata = fdatatest
-    print(bh.name)
-    print(bh.fdata.shape)
-
-    #x,y,z,c = Borehole.project(fdatatest,ldepthtest)
+    bh1 = Borehole('BH1',0.0, 0.0, 0.0, 4.0, 4.0, 4.0)
+    bh1.fdata = fdatatest
+    x,y,z,c = Borehole.project(fdatatest,ldepthtest)
+    #BoreholeSetup.add_bhole(bh1)
+    #print(BoreholeSetup.bholes)
+    print(bh1.X)
+    print(bh1.name)
+    print(bh1.fdata.shape)
+    print(x)
+    print(y)
+    print(z)
+    print(c)

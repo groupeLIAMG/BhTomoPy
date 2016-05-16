@@ -10,6 +10,7 @@ class DatabaseUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Database")
+        #--- Other Modules Instance ---#
         self.bh = BoreholeUI()
         self.model = ModelUI()
         self.mog = MOGUI()
@@ -19,6 +20,7 @@ class DatabaseUI(QtGui.QWidget):
 
 
     def initUI(self):
+        #--- MenuBar ---#
 
         #--- GroupBoxes ---#
 
@@ -28,21 +30,25 @@ class DatabaseUI(QtGui.QWidget):
         bh_Sub_Grid.addWidget(self.bh)
         bh_GroupBox.setLayout(bh_Sub_Grid)
 
+        #- MOGs GroupBox -#
         MOGs_GroupBox =  QtGui.QGroupBox("MOGs")
         MOGs_Sub_Grid   = QtGui.QGridLayout()
         MOGs_Sub_Grid.addWidget(self.mog)
         MOGs_GroupBox.setLayout(MOGs_Sub_Grid)
 
+        #- Models GroupBox -#
         Models_GroupBox =  QtGui.QGroupBox("Models")
         Models_Sub_Grid   = QtGui.QGridLayout()
         Models_Sub_Grid.addWidget(self.model)
         Models_GroupBox.setLayout(Models_Sub_Grid)
 
+        #- Info GroupBox -#
         Info_GroupBox =  QtGui.QGroupBox("Infos")
-        Grid_Sub_Grid   = QtGui.QGridLayout()
-        Grid_Sub_Grid.addWidget(self.info)
-        Info_GroupBox.setLayout(Grid_Sub_Grid)
+        Info_Sub_Grid   = QtGui.QGridLayout()
+        Info_Sub_Grid.addWidget(self.info)
+        Info_GroupBox.setLayout(Info_Sub_Grid)
 
+        #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(bh_GroupBox, 0, 0)
         master_grid.addWidget(MOGs_GroupBox, 0, 1)

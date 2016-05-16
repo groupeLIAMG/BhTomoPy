@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
+from MogData import MogData
+
+
 class AirShots:
     def __init__(self, name=None):
         self.name = name
@@ -55,35 +58,92 @@ class AirShots:
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
 
 
-class MogData:
-    """
-    Class to hold multi-offset gather (mog) data
-    """
+class Mog:
     def __init__(self, name=None, date=None):
-        self.name = name
-        self.date = date
-        self.av = None             # index of air shot before survey
-        self.ap = None             # index of air shot after survey
-        self.tt = np.array([])     # traveltime vector
-        self.et = np.array([])     # traveltime standard vector deviation
-        self.ntrace      = 0       # number of traces in MOG
-        self.nptsptrc    = 0       # number of sample per trace
-        self.rstepsz     = 0       # theoretical spatial step size between traces
-        self.cunits      = ''      # spatial units
-        self.rnomfreq    = 0       # nominal frequency of source
-        self.csurvmod    = ''      # type of survey
-        self.timec       = 0       # sampling period
-        self.rdata       = 0       # raw data
-        self.timestp     = 0       # time vector
-        self.Tx_x        = 0       # x coordinate of source
-        self.Tx_z        = 0       # z coordinate of source
-        self.TxCosDir    = 0       # direction cosine of source
-        self.Rx_x        = 0       # x coordinate of receiver
-        self.Rx_z        = 0       # z coordinate of receiver
-        self.RxCosDir    = 0       # direction cosine of receiver
-        self.antennas    = ''      # type of antenna
-        self.synthetique = 0       # true of synthetic data
-        self.tunits      = ''      # time units
+        self.pruneParams              = PruneParams()
+        self.name                     = name
+        self.date                     = date
+        self.data                     = None
+        self.av                       = np.array([])
+        self.ap                       = np.array([])
+        self.Tx                       = 1
+        self.Rx                       = 1
+        self.tau_params               = np.array([])
+        self.fw                       = np.array([])
+        self.f_et                     = 1
+        self.amp_name_Ldc             = []
+        self.type                     = 1
+        self.fac_dt                   = 1
+        self.user_fac_dt              = 0
+        self.pruneParams.stepTx       = 0
+        self.pruneParams.stepRx       = 0
+        self.pruneParams.round_factor = 0
+        self.pruneParams.use_SNR      = 0
+        self.pruneParams.treshold_SNR = 0
+        self.pruneParams.zmin         = -1e99
+        self.pruneParams.zmax         = 1e99
+        self.pruneParams.thetaMin     = -90
+        self.pruneParams.thetaMax     = 90
+        self.useAirShots              = 0
+        self.ID                       = Mog.getID()
+
+    def initialize(self):
+        if self.data == None: #rempace le isempty de matlab
+            return
+        self.date                     = self.data.date
+        self.tt                       = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.et                       = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.tt_done                  = -1*np.zeros((1, self.data.ntrace), dtype = bool)
+        if self.data.tdata == None:
+            self.ttTx                 = np.array([])
+            self.ttTx_done            = np.array([])
+        else:
+            self.amp_tmin             = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.amp_tmax             = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.amp_done             = np.zeros((1,self.data.ntrace), dtype= bool)
+            self.App                  = np.zeros((1,self.data.ntrace), dtype= float)
+            self.fcentroid            = np.zeros((1,self.data.ntrace), dtype= float)
+            self.scentroid            = np.zeros((1,self.data.ntrace), dtype= float)
+            self.tau_App              = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.tauApp_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.tauFce               = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.tauFce_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.tauHyb               = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.Tx_z_orig            = self.data.Tx_z
+            self.Rx_z_orig            = self.data.Rx_z
+            self.inside               = np.ones((1,self.data.ntrace), dtype= bool)  #substitut de obj.in
+            self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]))
+            self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]))
+#TODO:
+    def correction_t0(self, ndata, before, after, *args):
+        nargin = len(args)
+        if nargin >= 4 :
+            show = args[1]
+        else:
+            show = False
+        fac_dt_av = 1
+        fac_dt_ap = 1
+        if self.useAirShots == 0:
+            t0 = np.zeros(1, ndata)
+            return
+        elif before and after == None and self.useAirShots == 1 :
+            t0 = np.zeros(1, ndata)
+            raise InterruptedError(" t0 correction not applied;Pick t0 before and t0 after for correction")
+
+
+        v_air = 0.2998
+        t0av = np.array([])
+        t0ap = np.array([])
+
+        if before == None :
+            if 'fixed_antenna' in before:  #que signifie before.method dans matlab?
+                pass
+
+
+
+
 
 
     # vérification d'entrées
@@ -149,6 +209,17 @@ class MogData:
                 airBefore = air(self.av)
                 airAfter = air(self.ap)
 
+class PruneParams:
+    def __init__(self):
+        self.stepTx = 0
+        self.stepRx = 0
+        self.round_factor = 0
+        self.use_SNR = 0
+        self.treshold_SNR = 0
+        self.zmin = -1e99
+        self.zmax = 1e99
+        self.thetaMin = -90
+        self.thetaMax = 90
 
 
 
@@ -161,21 +232,8 @@ class MogData:
 
 
 
-    def readRAMAC(self, basename):
-        """
-        load data in Malå RAMAC format
-        """
-
-        self.tunits = 'ns'
-        self.cunits = 'm'
-
-        self.readRAD(basename)
 
 
-    def readRAD(self, basename):
-        """
-        load content of Malå header file (*.rad extension)
-        """
 
 
 

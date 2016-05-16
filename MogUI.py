@@ -1,6 +1,7 @@
 
 import sys
 from PyQt4 import QtGui, QtCore
+from BoreholeUI import BoreholeUI
 
 
 class MOGUI(QtGui.QFrame):
@@ -9,9 +10,14 @@ class MOGUI(QtGui.QFrame):
         self.setWindowTitle("bh_thomoPy/MOGs")
         self.initUI()
 
+    def update_Combobox_Widget(self):
+        self.bh_list.clear()
+        for bh in self.boreholes:
+            self.Tx_combo.addItem(bh.name)
+            self.Rx_combo.addItem(bh.name)
     def initUI(self):
 
-
+        #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
             def __init__(self, label, ha='left',  parent=None):
                 super(MyQLabel, self).__init__(label,parent)
@@ -45,11 +51,11 @@ class MOGUI(QtGui.QFrame):
         MOG_list = QtGui.QListWidget()
 
         #--- combobox ---#
-        Type_combo = QtGui.QComboBox()
-        Tx_combo = QtGui.QComboBox()
-        Rx_combo = QtGui.QComboBox()
-        Type_combo.addItem(" Crosshole ")
-        Type_combo.addItem(" VSP/VRP ")
+        self.Type_combo = QtGui.QComboBox()
+        self.Tx_combo = QtGui.QComboBox()
+        self.Rx_combo = QtGui.QComboBox()
+        self.Type_combo.addItem(" Crosshole ")
+        self.Type_combo.addItem(" VSP/VRP ")
 
         #--- Checkbox ---#
         Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")
@@ -79,14 +85,14 @@ class MOGUI(QtGui.QFrame):
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
-        Sub_AirShots_Widget = QtGui.QWidget()
-        Sub_AirShots_Grid   = QtGui.QGridLayout()
+        Sub_AirShots_Widget                 = QtGui.QWidget()
+        Sub_AirShots_Grid                   = QtGui.QGridLayout()
         Sub_AirShots_Grid.addWidget(Type_label, 0, 1)
         Sub_AirShots_Grid.addWidget(Tx_label, 1, 1)
         Sub_AirShots_Grid.addWidget(Rx_label, 2, 1)
-        Sub_AirShots_Grid.addWidget(Type_combo, 0, 2, 1, 2)
-        Sub_AirShots_Grid.addWidget(Tx_combo, 1, 2, 1, 2)
-        Sub_AirShots_Grid.addWidget(Rx_combo, 2, 2, 1, 2)
+        Sub_AirShots_Grid.addWidget(self.Type_combo, 0, 2, 1, 2)
+        Sub_AirShots_Grid.addWidget(self.Tx_combo, 1, 2, 1, 2)
+        Sub_AirShots_Grid.addWidget(self.Rx_combo, 2, 2, 1, 2)
         Sub_AirShots_Grid.addWidget(Air_shots_checkbox, 3, 0)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_Before, 4, 0, 1, 2)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_After, 5, 0, 1, 2)
@@ -113,8 +119,8 @@ class MOGUI(QtGui.QFrame):
         Sub_Labels_Checkbox_and_Edits_Widget.setLayout(Sub_Labels_Checkbox_and_Edits_Grid)
 
         #- Sub Right Buttons Widget -#
-        sub_right_buttons_widget = QtGui.QWidget()
-        sub_right_buttons_Grid   = QtGui.QGridLayout()
+        sub_right_buttons_widget            = QtGui.QWidget()
+        sub_right_buttons_Grid              = QtGui.QGridLayout()
         sub_right_buttons_Grid.addWidget(btn_Rename, 1, 1)
         sub_right_buttons_Grid.addWidget(btn_Import, 1, 2)
         sub_right_buttons_Grid.addWidget(btn_Merge, 1, 3)
@@ -136,15 +142,15 @@ class MOGUI(QtGui.QFrame):
         sub_right_buttons_widget.setLayout(sub_right_buttons_Grid)
 
         #- MOG and list Sub Widget -#
-        sub_MOG_and_List_widget = QtGui.QWidget()
-        sub_MOG_and_List_Grid   = QtGui.QGridLayout()
+        sub_MOG_and_List_widget            = QtGui.QWidget()
+        sub_MOG_and_List_Grid              = QtGui.QGridLayout()
         sub_MOG_and_List_Grid.addWidget(btn_Add_MOG, 0, 0, 1, 2)
         sub_MOG_and_List_Grid.addWidget(btn_Remove_MOG, 0, 2, 1, 2)
         sub_MOG_and_List_Grid.addWidget(MOG_list, 1, 0, 1, 4)
         sub_MOG_and_List_widget.setLayout(sub_MOG_and_List_Grid)
 
         #------- Grid Disposition -------#
-        master_grid     = QtGui.QGridLayout()
+        master_grid                        = QtGui.QGridLayout()
         #--- Sub Widgets Disposition ---#
         master_grid.addWidget(sub_MOG_and_List_widget, 0, 0)
         master_grid.addWidget(sub_right_buttons_widget, 0, 1)
