@@ -4,7 +4,7 @@ import matplotlib as mpl
 mpl.rcParams['backend.qt4']='PyQt4'
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
-from BoreholeUI import BoreholeUI
+
 
 """
 Copyright 2016 Bernard Giroux
