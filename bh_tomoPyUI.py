@@ -3,7 +3,8 @@ from PyQt4 import QtGui, QtCore
 from DatabaseUI import DatabaseUI
 from manual_ttUI import ManualttUI
 from covarUI import CovarUI
-
+from inversionUI import InversionUI
+from interpUI import InterpretationUI
 
 class Bh_ThomoPyUI(QtGui.QFrame):
     def __init__(self, parent=None):
@@ -15,6 +16,8 @@ class Bh_ThomoPyUI(QtGui.QFrame):
         self.database_pop = Database_Pop()
         self.manual_tt_pop = Manual_tt_Pop()
         self.covar_pop = Covar_Pop()
+        self.inv_pop = Inv_Pop()
+        self.inte_pop = Interp_Pop()
         #--- Widgets ---#
         btn_Database = QtGui.QPushButton("Database")
         btn_Automatic_Traveltime_Picking = QtGui.QPushButton("Automatic Traveltime Picking (AIC-CWT)")
@@ -32,6 +35,8 @@ class Bh_ThomoPyUI(QtGui.QFrame):
         btn_Database.clicked.connect(self.database_pop.show)
         btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt_pop.show)
         btn_Cov_Mod.clicked.connect(self.covar_pop.show)
+        btn_Inversion.clicked.connect(self.inv_pop.show)
+        btn_Interpretation.clicked.connect(self.inte_pop.show)
 
 
         btn_Automatic_Traveltime_Picking.setDisabled(True)
@@ -108,6 +113,37 @@ class Covar_Pop(QtGui.QWidget):
         creation_grid.addWidget(self.Covar)
         self.setLayout(creation_grid)
 
+class Inv_Pop(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(Inv_Pop, self).__init__()
+        self.setWindowTitle("Bh_thomoPy/Inversion")
+        self.setWindowFlags(QtCore.Qt.Window)
+        self.initUI()
+
+        #------- Widget Creation -------#
+    def initUI(self):
+        self.Inv = InversionUI()
+        #------- Grid Creation -------#
+
+        creation_grid = QtGui.QGridLayout()
+        creation_grid.addWidget(self.Inv)
+        self.setLayout(creation_grid)
+
+class Interp_Pop(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(Interp_Pop, self).__init__()
+        self.setWindowTitle("Bh_thomoPy/Interpretation")
+        self.setWindowFlags(QtCore.Qt.Window)
+        self.initUI()
+
+        #------- Widget Creation -------#
+    def initUI(self):
+        self.Inter = InterpretationUI()
+        #------- Grid Creation -------#
+
+        creation_grid = QtGui.QGridLayout()
+        creation_grid.addWidget(self.Inter)
+        self.setLayout(creation_grid)
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
