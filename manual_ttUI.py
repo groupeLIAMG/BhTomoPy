@@ -135,6 +135,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_T_and_A_Labels_Grid.addWidget(t_max_label, 0, 1)
         Sub_T_and_A_Labels_Grid.addWidget(A_min_label, 0, 2)
         Sub_T_and_A_Labels_Grid.addWidget(A_max_label, 0, 3)
+        Sub_T_and_A_Labels_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_T_and_A_Labels_Widget.setLayout(Sub_T_and_A_Labels_Grid)
 
         #--- Time and Amplitude Edits SubWidget ---#
@@ -146,7 +147,16 @@ class ManualttUI(QtGui.QFrame):
         Sub_T_and_A_Edits_Grid.addWidget(A_max_Edit, 0, 3)
         Sub_T_and_A_Edits_Grid.addWidget(btn_Stats, 1, 0, 1, 2)
         Sub_T_and_A_Edits_Grid.setHorizontalSpacing(0)
+        Sub_T_and_A_Edits_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_T_and_A_Edits_Widget.setLayout(Sub_T_and_A_Edits_Grid)
+
+        #--- Time and Ampitude Labels and Edits SubWidget ---#
+        Sub_T_and_A_Widget = QtGui.QWidget()
+        Sub_T_and_A_Grid   = QtGui.QGridLayout()
+        Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Labels_Widget, 0, 0)
+        Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Edits_Widget, 1, 0)
+        Sub_T_and_A_Grid.setRowStretch(3, 100)
+        Sub_T_and_A_Widget.setLayout(Sub_T_and_A_Grid)
 
         #--- Control Center SubWidget ---#
         Control_Center_GroupBox = QtGui.QGroupBox("Control Center")
@@ -154,20 +164,16 @@ class ManualttUI(QtGui.QFrame):
         Control_Center_Grid.addWidget(Sub_left_Part_Widget, 0, 0, 4, 1)
         Control_Center_Grid.addWidget(Sub_upper_right_Widget, 0, 1)
         Control_Center_Grid.addWidget(Conti_Groupbox, 1, 1)
-        Control_Center_Grid.addWidget(Sub_T_and_A_Labels_Widget, 2, 1)
-        Control_Center_Grid.addWidget(Sub_T_and_A_Edits_Widget, 3, 1)
+        Control_Center_Grid.addWidget(Sub_T_and_A_Widget, 2, 1)
         Control_Center_GroupBox.setLayout(Control_Center_Grid)
 
 
-
-
-
+        #--- Master Grid Disposition ---#
         master_grid = QtGui.QGridLayout()
         master_grid.addWidget(futur_Graph1, 0, 0, 1, 3)
         master_grid.addWidget(futur_Graph2, 1, 0, 1, 2)
         master_grid.addWidget(Control_Center_GroupBox, 1, 2)
         master_grid.setRowStretch(1, 100)
-        master_grid.setRowStretch(3, 100)
         master_grid.setColumnStretch(1, 100)
         self.setLayout(master_grid)
 
