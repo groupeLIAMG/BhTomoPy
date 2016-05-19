@@ -11,10 +11,11 @@ class MOGUI(QtGui.QFrame):
         self.initUI()
 
     def update_Combobox_Widget(self):
-        self.bh_list.clear()
-        for bh in self.boreholes:
+
+        for bh in self.BoreholeUI.boreholes:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
+
     def initUI(self):
 
         #--- Class For Alignment ---#
@@ -166,7 +167,9 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
+
     MOGUI_ui = MOGUI()
     MOGUI_ui.show()
+
 
     sys.exit(app.exec_())

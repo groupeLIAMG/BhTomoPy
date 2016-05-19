@@ -90,7 +90,6 @@ class BoreholeUI(QtGui.QWidget):
          #--- list ---#
         self.bh_list             = QtGui.QListWidget()
 
-
         #--- Labels ---#
         Coord_label              = MyQLabel('Coordinates:', ha='center')
         Collar_label             = MyQLabel('Collar:', ha='center')

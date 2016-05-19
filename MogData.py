@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import scanf
 import re
 import numpy as np
+from os.path import getsize
 
 class MogData:
     """
@@ -33,7 +35,7 @@ class MogData:
 #TODO:
     def readRAMAC(self, basename):
         """
-        load data in Malå RAMAC format
+        load data in MalÃ¥ RAMAC format
         """
 
         self.tunits = 'ns'
@@ -44,7 +46,7 @@ class MogData:
 
     def readRAD(self, basename):
         """
-        load content of Malå header file (*.rad extension)
+        load content of MalÃ¥ header file (*.rad extension)
         """
         try:
             file = open(basename, 'r')
@@ -56,26 +58,27 @@ class MogData:
                     file = open(basename + ".RAD", 'r')
                 except:
                     raise IOError (" Cannot open Rad file: {}".format(basename))
-        lines = file.readlines()
-        for line in lines:
-            if isinstance(line, str):
-                if "SAMPLES:" not in line:
-                    self.nptsptrc = scanf.sscanf(line, '%*8c%d')
-                elif "FREQUENCY:" not in line:
-                    self.timec = scanf.sscanf(line,'%*10c%f' )
-                elif "OPERATOR:" not in line:
-                    self.synthetique = re.match('MoRad' and 'once', line) , re.match('synthetic' and 'once', line)  # Vraiment pas sur de cette etape, voir Bernard
-                elif "ANTENNAS:" not in line :
-                    start, end = re.match('\d+', line)
-                    self.rnomfreq = float(line[start:end])
-                    self.antennas = line[10:]
-                elif "LAST TRACE" not in line:
-                    self.ntrace = scanf.sscanf(line, '%*s %*6c%d')
+
+        for line in file:
+
+            if "SAMPLES:" in line:
+                self.nptsptrc = scanf.sscanf(line, '%*8c%d')
+            elif "FREQUENCY:" in line:
+                self.timec = scanf.sscanf(line,'%*10c%f' )
+            elif "OPERATOR:" in line:
+                if 'MoRad' in line  or 'syntetic' in line:
+                    self.synthetique = True
                 else:
-                    print('Well i dont know whats the problem')
+                    self.synthetique = False
+            elif "ANTENNAS:" in line :
+                start, end = re.match('\d+', line)
+                self.rnomfreq = float(line[start:end])
+                self.antennas = line[9:]
+            elif "LAST TRACE" not in line:
+                self.ntrace = scanf.sscanf(line, '%*s %*6c%d')
 
         self.timec = self.timec/1000
-        self.timestp = self.timec[:self.nptsptrc - 1]  # Pas sur de cette étape la non plus
+        self.timestp = self.timec*np.arange(self.nptsptrc)  # Pas sur de cette Ã©tape la non plus
                                                            # Pk obj.timec*(0:obj.nptsptrc - 1) dans matlab?
         if self.synthetique == 0 :
             self.antennas = self.antennas + " - Ramac"
@@ -88,17 +91,17 @@ class MogData:
         fact: RD3 stands for Ray Dream Designer 3 graphics
         """
         try:
-            file = open(basename, 'r')
+            file = open(basename, 'rb')
         except:
             try:
-                file = open(basename + ".rd3", 'r')
+                file = open(basename + ".rd3", 'rb')
             except:
                 try:
-                    file = open(basename + ".RD3", 'r')
+                    file = open(basename + ".RD3", 'rb')
                 except:
                     raise IOError(" Cannot open RD3 file: {}".format(basename))
-        self.rdata = file.read(n= 16)
 
+        self.rdata = np.fromfile(file, dtype= 'int16', count= self.nptsptrc*self.ntrace)
 
     def readTLF(self, basename):
         """
@@ -237,7 +240,10 @@ class MogData:
         :return:
         """
 
+if __name__ == '__main__':
 
+    m = MogData()
+    m.readRAD('testData/formats/ramac/t0102')
 
 
 
