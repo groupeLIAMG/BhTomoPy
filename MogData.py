@@ -82,7 +82,7 @@ class MogData:
         for line in lines:
 
             if "SAMPLES:" in line:
-                self.nptsptrc = float(re.search('\d+', line).group())
+                self.nptsptrc = int(re.search('\d+', line).group())
             elif "FREQUENCY:" in line:
                 self.timec = float(re.search(r"[-+]?\d*\.\d+|\d+", line).group())
             elif "OPERATOR:" in line:
@@ -95,7 +95,7 @@ class MogData:
                 self.rnomfreq = float(line[start:end])
                 self.antennas = line[9:]
             elif "LAST TRACE" in line:
-                self.ntrace = re.search('\d+', line).group()  # ca fonctionne dans test, mais pas ici, voir Bernard
+                self.ntrace = int(re.search('\d+', line).group())  # ca fonctionne dans test, mais pas ici, voir Bernard
 
         self.timec = self.timec/1000
         self.timestp = self.timec*np.arange(self.nptsptrc)
@@ -285,7 +285,7 @@ if __name__ == '__main__':
 
     m = MogData()
     m.readRAD('testData/formats/ramac/t0102')
-    #m.readRD3('testData/formats/ramac/t0102')
+    m.readRD3('testData/formats/ramac/t0102')
 
 
 
