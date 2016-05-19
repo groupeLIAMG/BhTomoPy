@@ -42,6 +42,26 @@ class MogData:
         self.cunits = 'm'
 
         self.readRAD(basename)
+        self.readRD3(basename)
+        self.readTLF(basename)
+
+        self.TxOffset = 0
+        self.RxOffset = 0
+
+        if not self.synthetique:
+            if self.rnomfreq == 100.0:
+                self.TxOffset = 0.665
+                self.RxOffset = 0.665
+            elif self.rnomfreq == 250.0:
+                self.TxOffset = 0.325
+                self.RxOffset = 0.365
+
+        self.Tx_z = self.Tx_z*np.arange(self.ntrace)
+        self.Rx_z = self.Rx_z*np.arange(self.ntrace)
+        self.Tx_y = np.zeros(1, self.ntrace)
+        self.Rx_y = np.zeros(1, self.ntrace)
+        self.Tx_x = np.zeros(1, self.ntrace)
+        self.Rx_x = np.zeros(1, self.ntrace)
 
 
     def readRAD(self, basename):
@@ -58,32 +78,37 @@ class MogData:
                     file = open(basename + ".RAD", 'r')
                 except:
                     raise IOError (" Cannot open Rad file: {}".format(basename))
-
-        for line in file:
+        lines = file.readlines()
+        for line in lines:
 
             if "SAMPLES:" in line:
-                self.nptsptrc = scanf.sscanf(line, '%*8c%d')
+                self.nptsptrc = float(re.search('\d+', line).group())
             elif "FREQUENCY:" in line:
-                self.timec = scanf.sscanf(line,'%*10c%f' )
+                self.timec = float(re.search(r"[-+]?\d*\.\d+|\d+", line).group())
             elif "OPERATOR:" in line:
                 if 'MoRad' in line  or 'syntetic' in line:
                     self.synthetique = True
                 else:
                     self.synthetique = False
             elif "ANTENNAS:" in line :
-                start, end = re.match('\d+', line)
+                start, end = re.search('\d+', line).span()
                 self.rnomfreq = float(line[start:end])
                 self.antennas = line[9:]
-            elif "LAST TRACE" not in line:
-                self.ntrace = scanf.sscanf(line, '%*s %*6c%d')
+            elif "LAST TRACE" in line:
+                self.ntrace = re.search('\d+', line).group()  # ca fonctionne dans test, mais pas ici, voir Bernard
 
         self.timec = self.timec/1000
-        self.timestp = self.timec*np.arange(self.nptsptrc)  # Pas sur de cette étape la non plus
-                                                           # Pk obj.timec*(0:obj.nptsptrc - 1) dans matlab?
-        if self.synthetique == 0 :
+        self.timestp = self.timec*np.arange(self.nptsptrc)
+        if not self.synthetique :
             self.antennas = self.antennas + " - Ramac"
 
         file.close()
+        print(self.nptsptrc)
+        print(self.timec)
+        print(self.synthetique)
+        print(self.rnomfreq)
+        print(self.antennas)
+        print(self.ntrace)
 
     def readRD3(self, basename):
         """
@@ -102,6 +127,11 @@ class MogData:
                     raise IOError(" Cannot open RD3 file: {}".format(basename))
 
         self.rdata = np.fromfile(file, dtype= 'int16', count= self.nptsptrc*self.ntrace)
+        self.rdata.reshape(self.nptsptrc, self.ntrace)
+
+        print(self.rdata)  # petit problème ici, le print retourne une un array vide. est-ce un problème ?
+
+
 
     def readTLF(self, basename):
         """
@@ -119,30 +149,35 @@ class MogData:
                     raise IOError(" Cannot open TLF file: {}".format(basename))
         self.Tx_z = np.array([])
         self.Rx_z = np.array([])
-        while file.read():
-            tnd = scanf.sscanf(file,'%d')
-            tnf = scanf.sscanf(file,'%d')
-            nt = tnd - tnf + 1           # nt = toujours 1 ?
+        for line in file:
+            tnd = scanf.sscanf(line,'%d')
+            tnf = scanf.sscanf(line,'%d')
+            self.nt = tnd - tnf + 1           # nt = toujours 1 ?
 
-            Rxd = scanf.sscanf(file, '%f')
-            Rxf = scanf.sscanf(file, '%f')
+            Rxd = scanf.sscanf(line, '%f')
+            Rxf = scanf.sscanf(line, '%f')
 
-            if nt == 1:
+            if self.nt == 1:
                 dRx = 1
                 if Rxd > Rxf :
                     Rxd = Rxf
                 else:
-                    dRx = (Rxf - Rxd)/ (nt - 1)
+                    dRx = (Rxf - Rxd)/ (self.nt - 1)
 
             Tx = scanf.sscanf(file, '%f')
+            #TODO
+            vect = np.arange(start= Rxd, stop= Rxf)
 
-            if nt > 0:
-                self.Tx_z = np.array([self.Tx_z, Tx*np.ones(1, nt)])
+            if self.nt > 0:
+                self.Tx_z = np.array([self.Tx_z, Tx*np.ones(1, self.nt)])
 
         file.close()
     def readEKKO(self, basename):
         """
+        well, that's about it
         """
+        self.readHD(basename)
+        self.readDT1(basename)
 
     def readHD(self, basename):
         """
@@ -173,48 +208,45 @@ class MogData:
                     if line[i] == '=':
                         ic.append(i)
                     count = len(line)
-                    scanf.sscanf(line[ic[0]+1 : count], '%f')
-                    scanf.sscanf(line[ic[1]+1 : count], '%f')
-                    tRx_z = scanf.sscanf(line[ic[2]+1 : count], '%f')
-            elif "ZOP" or "MOG" in line[1:3]:
+                    tRx_z = re.findall(r"[-+]?\d*\.\d+|\d+", line[ic[2]+1 : count]) # verifier avec Benard , le '\d+.\d+'
+            elif "ZOP" or "MOG" in line[1:3]:                                   # cherche les floats
                 ic = []
                 for i in range(len(line)):
                     if line[i] == '=':
                         ic.append(i)
                     count = len(line)
-                    tTx_z = scanf.sscanf(line[ic[0]+1 : count], '%f')
-                    tRx_z = scanf.sscanf(line[ic[1]+1 : count], '%f')
+                    tTx_z = re.findall(r"[-+]?\d*\.\d+|\d+", line[ic[0]+1 : count])
+                    tRx_z = re.findall(r"[-+]?\d*\.\d+|\d+", line[ic[1]+1 : count])
 
         self.date = file.readline() # pas trop sur du resultat
-
-        tline = file.readline()
-        if isinstance(line, str):
-            if 'NUMBER OF TRACES' not in line:
-                self.ntrace = scanf.sscanf(tline,'%*20c %d')
-            elif 'NUMBER OF PTS/TRC' not in line:
-                self.nptsptrc = scanf.sscanf(tline,'%*20c %d')
-            elif 'TOTAL TIME WINDOW' not in line:
-                nttwin = scanf.sscanf(tline,'%*20c %f')
-            elif 'STEP SIZE USED' not in line:
-                self.rstepsz = scanf.sscanf(tline,'%*20c %f')
-            elif 'POSITION UNITS' not in line:
-                self.cunits = scanf.sscanf(tline,'%*20c %s')
-            elif 'NOMINAL FREQUENCY' not in line:
-                self.rnomfreq = scanf.sscanf(tline,'%*20c %f')
-            elif 'ANTENNA SEPARATION' not in line:
-                rantsep = scanf.sscanf(tline,'%*20c %f')
-            elif 'SURVEY MODE' not in line:
-                self.csurvmod = line[21:]
+        for line in file:
+            if isinstance(line, str):
+                if 'NUMBER OF TRACES' not in line:
+                    self.ntrace = float(re.search('\d+', line).group())          # re.search('\d+', line).group() returns the
+                elif 'NUMBER OF PTS/TRC' not in line:                            # number we are looking for
+                    self.nptsptrc = float(re.search('\d+', line).group())
+                elif 'TOTAL TIME WINDOW' not in line:
+                    nttwin = re.findall(r"[-+]?\d*\.\d+|\d+", line)
+                elif 'STEP SIZE USED' not in line:
+                    self.rstepsz = re.findall(r"[-+]?\d*\.\d+|\d+", line) # re.findall(r"[-+]?\d*\.\d+|\d+", line) returns
+                elif 'POSITION UNITS' not in line:                        # a list which contains al the floats that were
+                    self.cunits = line[20:]                               # found
+                elif 'NOMINAL FREQUENCY' not in line:
+                    self.rnomfreq = re.findall(r"[-+]?\d*\.\d+|\d+", line)
+                elif 'ANTENNA SEPARATION' not in line:
+                    rantsep = re.findall(r"[-+]?\d*\.\d+|\d+", line)
+                elif 'SURVEY MODE' not in line:
+                    self.csurvmod = line[21:]
         file.close()
+
+
         self.timec = nttwin/self.nptsptrc
-        self.timestp = self.timec
+        self.timestp = self.timec*np.arange(self.nptsptrc)
 
-
-
-
-
-
-
+        self.Tx_x = np.zeros(1, self.ntrace)
+        self.Tx_z = tTx_z*np.ones(1, self.ntrace)
+        self.Rx_x = rantsep*np.ones(1, self.ntrace)
+        self.Rx_z = tRx_z + self.rstepsz*np.arange(self.ntrace)
 
     def readDT1(self, basename):
         """
@@ -233,6 +265,15 @@ class MogData:
                 except:
                     raise IOError(" Cannot open DT1 file: {}".format(basename))
 
+        self.rdata = np.array([])
+        for n in range(self.nt):
+            header = np.fromfile(file, dtype= 'float32', count= 25)
+            np.fromfile(file, dtype= 'char', count = 28)
+            be_vector = np.arange(0, np.fromfile(file, dtype='int16',count= header(3))) # est ce que np.fromfile(file, dtype='int16',count= header(3))
+            self.rdata = np.concatenate((self.rdata, be_vector))                        # retourne un chiffre ? j'ai de la difficulté a y croire
+
+        file.close()
+
     def readSEGY(self, basename):
         """
 
@@ -244,6 +285,7 @@ if __name__ == '__main__':
 
     m = MogData()
     m.readRAD('testData/formats/ramac/t0102')
+    #m.readRD3('testData/formats/ramac/t0102')
 
 
 
