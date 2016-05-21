@@ -16,18 +16,13 @@ class MOGUI(QtGui.QWidget):
     def add_MOG(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file')
         self.mogdata.readRAMAC(basename= filename)
+        self.update_Sub_Labels_Checkbox_and_Edits_Widget()
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
-
-    def update_List_Widget(self):
-        self.MOG_list.clear()
-        for mog in self.MOGs:
-            self.MOG_list.addItem(mog.name)
-    #def update_
 
     def rename(self):
         old_name = self.MOG_list.selectedItems()
@@ -37,13 +32,59 @@ class MOGUI(QtGui.QWidget):
                 if self.MOGs[i].name == old_name:
                     self.MOGs[i].name = new_name
                     self.update_List_Widget()
+#TODO:
+    def import_mog(self):
+        pass
+    def merge(self):
+        pass
+    def rawdata(self):
+        pass
+    def trace_zop(self):
+        pass
+    def spectra(self):
+        pass
+    def stats_tt(self):
+        pass
+    def stats_ampl(self):
+        pass
+    def ray_coverage(self):
+        pass
+    def export_tt(self):
+        pass
+    def export_tau(self):
+        pass
+    def prune(self):
+        pass
 
-    def update_Combobox_Widget(self, list):
+
+
+    def update_List_Widget(self):
+        self.MOG_list.clear()
+        for mog in self.MOGs:
+            self.MOG_list.addItem(mog.name)
+
+    def update_Tx_and_Rx_Widget(self, list):
         self.Tx_combo.clear()
         self.Rx_combo.clear()
         for bh in list:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
+
+    def update_Sub_Labels_Checkbox_and_Edits_Widget(self, *args):
+        self.Nominal_Frequency_edit.clear()
+        self.Rx_Offset_edit.clear()
+        self.Tx_Offset_edit.clear()
+        self.Correction_Factor_edit.clear()
+        self.Multiplication_Factor_edit.clear()
+
+
+        self.Nominal_Frequency_edit.setText(self.mogdata.rnomfreq)
+        self.Rx_Offset_edit.setText(self.mogdata.RxOffset)
+        self.Tx_Offset_edit.setText(self.mogdata.TxOffset)
+        #self.Correction_Factor_edit.clear()
+        #self.Multiplication_Factor_edit.clear()
+
+
 
     def initUI(self):
 
@@ -102,14 +143,14 @@ class MOGUI(QtGui.QWidget):
         Date_label                          = MyQLabel('Date:', ha='right')
 
         #--- Edits ---#
-        Air_Shot_Before_edit                = QtGui.QLineEdit()
-        Air_Shot_After_edit                 = QtGui.QLineEdit()
-        Nominal_Frequency_edit              = QtGui.QLineEdit()
-        Rx_Offset_edit                      = QtGui.QLineEdit()
-        Tx_Offset_edit                      = QtGui.QLineEdit()
-        Correction_Factor_edit              = QtGui.QLineEdit()
-        Multiplication_Factor_edit          = QtGui.QLineEdit()
-        Date_edit                           = QtGui.QLineEdit()
+        self.Air_Shot_Before_edit                = QtGui.QLineEdit()
+        self.Air_Shot_After_edit                 = QtGui.QLineEdit()
+        self.Nominal_Frequency_edit              = QtGui.QLineEdit()
+        self.Rx_Offset_edit                      = QtGui.QLineEdit()
+        self.Tx_Offset_edit                      = QtGui.QLineEdit()
+        self.Correction_Factor_edit              = QtGui.QLineEdit()
+        self.Multiplication_Factor_edit          = QtGui.QLineEdit()
+        self.Date_edit                           = QtGui.QLineEdit()
 
 
         #--- Sub Widgets ---#

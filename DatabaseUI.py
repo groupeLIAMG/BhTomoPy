@@ -4,6 +4,7 @@ from BoreholeUI import BoreholeUI
 from ModelUI import ModelUI
 from MogUI import MOGUI
 from InfoUI import InfoUI
+from MogData import MogData
 
 
 class DatabaseUI(QtGui.QWidget):
@@ -15,11 +16,12 @@ class DatabaseUI(QtGui.QWidget):
         self.model = ModelUI()
         self.mog = MOGUI()
         self.info = InfoUI()
+        self.mogdata = MogData()
         self.initUI()
         self.bh.bhupdateSignal.connect(self.update_MogUI)
 
     def update_MogUI(self, list_bh):
-        self.mog.update_Combobox_Widget(list_bh)
+        self.mog.update_Tx_and_Rx_Widget(list_bh)
 
     def initUI(self):
         #--- MenuBar ---#

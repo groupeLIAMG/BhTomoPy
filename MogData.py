@@ -100,17 +100,17 @@ class MogData:
             elif "ANTENNAS:" in line :
                 start, end = re.search('\d+', line).span()
                 self.rnomfreq = float(line[start:end])
-                self.antennas = line[9:]
+                self.antennas = line[9:].strip('\n')
             elif "LAST TRACE" in line:
                 self.ntrace = int(re.search('\d+', line).group())
 
         self.timec = self.timec/1000
         self.timestp = self.timec*np.arange(self.nptsptrc)
-        if not self.synthetique :
-            self.antennas = self.antennas + " - Ramac"
+        if self.synthetique == False :
+          self.antennas = self.antennas + "  - Ramac"
 
         file.close()
-        print(self.nptsptrc)    # these will be deleted
+        print(self.nptsptrc)    # these prints will be deleted
         print(self.timec)
         print(self.synthetique)
         print(self.rnomfreq)
