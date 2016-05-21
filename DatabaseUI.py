@@ -16,8 +16,10 @@ class DatabaseUI(QtGui.QWidget):
         self.mog = MOGUI()
         self.info = InfoUI()
         self.initUI()
+        self.bh.bhupdateSignal.connect(self.update_MogUI)
 
-
+    def update_MogUI(self, list_bh):
+        self.mog.update_Combobox_Widget(list_bh)
 
     def initUI(self):
         #--- MenuBar ---#

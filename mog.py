@@ -128,7 +128,7 @@ class Mog:
         if self.useAirShots == 0:
             t0 = np.zeros(1, ndata)
             return
-        elif before and after == None and self.useAirShots == 1 :
+        elif before == None and after == None and self.useAirShots == 1 :
             t0 = np.zeros(1, ndata)
             raise InterruptedError(" t0 correction not applied;Pick t0 before and t0 after for correction")
 

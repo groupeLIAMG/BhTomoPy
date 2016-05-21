@@ -1,13 +1,22 @@
 import sys
 from PyQt4 import QtGui, QtCore
 from borehole import Borehole, BoreholeFig
+import re
 
 class BoreholeUI(QtGui.QWidget):
+    #------- Signals -------#
+    bhupdateSignal = QtCore.pyqtSignal(list)
+
+
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Borehole")
         self.boreholes = []
         self.initUI()
+
+    def import_bhole(self):
+        self.file_names, self.filter = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, 'Import Borehole', '*.xyz')
+        print(self.file_names)
 
     def add_bhole(self):
         name, ok = QtGui.QInputDialog.getText(self, "borehole creation", 'borehole name')
@@ -22,6 +31,8 @@ class BoreholeUI(QtGui.QWidget):
         self.bh_list.clear()
         for bh in self.boreholes:
             self.bh_list.addItem(bh.name)
+
+        self.bhupdateSignal.emit(self.boreholes)
 
     def update_List_Edits(self):
         ind = self.bh_list.selectedIndexes()
@@ -74,9 +85,6 @@ class BoreholeUI(QtGui.QWidget):
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
-        #------- Widget Link -------#
-        self.bh_Creation      = BH_Creation()
-        self.bh_Removal       = BH_Removal()
 
         #------- Widget Creation -------#
         #--- Buttons Set---#
@@ -128,6 +136,7 @@ class BoreholeUI(QtGui.QWidget):
         #--- Buttons Actions ---#
         btn_Add.clicked.connect(self.add_bhole)
         btn_Remove.clicked.connect(self.del_bhole)
+        btn_Import.clicked.connect(self.import_bhole)
 
 
         #--- sub widgets ---#
@@ -190,48 +199,6 @@ class BoreholeUI(QtGui.QWidget):
         self.setLayout(master_grid)
 
 
-
-class BH_Creation(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(BH_Creation, self).__init__()
-        self.setWindowTitle("Borehole creation")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-    #------- Widget Creation -------#
-    def initUI(self):
-        bh_edit               = QtGui.QLineEdit()
-        bh_label             = QtGui.QLabel("BH Name :")
-        btn_ok                = QtGui.QPushButton("Ok")
-
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(bh_edit, 1, 0)
-        creation_grid.addWidget(btn_ok, 1, 1)
-        creation_grid.addWidget(bh_label, 0, 0)
-        self.setLayout(creation_grid)
-
-
-class BH_Removal(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(BH_Removal, self).__init__()
-        self.setWindowTitle("BH Removal")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-    #------- Widget Creation -------#
-    def initUI(self):
-        model_label             = QtGui.QLabel("BH Name :")
-        model_edit               = QtGui.QLineEdit()
-        btn_ok                = QtGui.QPushButton("Ok")
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(model_label,0, 0 )
-        creation_grid.addWidget(model_edit, 1, 0)
-        creation_grid.addWidget(btn_ok, 1, 1)
-        self.setLayout(creation_grid)
 
 
 if __name__ == '__main__':

@@ -2,17 +2,46 @@
 import sys
 from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
+from MogData import MogData
+from mog import Mog
 
-
-class MOGUI(QtGui.QFrame):
+class MOGUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/MOGs")
+        self.MOGs = []
+        self.mogdata = MogData()
         self.initUI()
+#TODO
+    def add_MOG(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file')
+        self.mogdata.readRAMAC(basename= filename)
 
-    def update_Combobox_Widget(self):
+    def del_MOG(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            del self.MOGs[int(i.row())]
+        self.update_List_Widget()
 
-        for bh in self.BoreholeUI.boreholes:
+    def update_List_Widget(self):
+        self.MOG_list.clear()
+        for mog in self.MOGs:
+            self.MOG_list.addItem(mog.name)
+    #def update_
+
+    def rename(self):
+        old_name = self.MOG_list.selectedItems()
+        new_name, ok = QtGui.QInputDialog.getText(self, "Rename", 'new MOG name')
+        if ok:
+            for i in range(len(self.MOGs)):
+                if self.MOGs[i].name == old_name:
+                    self.MOGs[i].name = new_name
+                    self.update_List_Widget()
+
+    def update_Combobox_Widget(self, list):
+        self.Tx_combo.clear()
+        self.Rx_combo.clear()
+        for bh in list:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
@@ -49,7 +78,7 @@ class MOGUI(QtGui.QFrame):
         btn_Prune                   = QtGui.QPushButton("Prune")
 
         #--- List ---#
-        MOG_list = QtGui.QListWidget()
+        self.MOG_list = QtGui.QListWidget()
 
         #--- combobox ---#
         self.Type_combo = QtGui.QComboBox()
@@ -147,7 +176,7 @@ class MOGUI(QtGui.QFrame):
         sub_MOG_and_List_Grid              = QtGui.QGridLayout()
         sub_MOG_and_List_Grid.addWidget(btn_Add_MOG, 0, 0, 1, 2)
         sub_MOG_and_List_Grid.addWidget(btn_Remove_MOG, 0, 2, 1, 2)
-        sub_MOG_and_List_Grid.addWidget(MOG_list, 1, 0, 1, 4)
+        sub_MOG_and_List_Grid.addWidget(self.MOG_list, 1, 0, 1, 4)
         sub_MOG_and_List_widget.setLayout(sub_MOG_and_List_Grid)
 
         #------- Grid Disposition -------#
