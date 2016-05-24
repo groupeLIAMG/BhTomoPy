@@ -4,8 +4,11 @@ from borehole import Borehole, BoreholeFig
 import re
 
 class BoreholeUI(QtGui.QWidget):
+
     #------- Signals -------#
-    bhupdateSignal = QtCore.pyqtSignal(list)
+
+    bhUpdateSignal = QtCore.pyqtSignal(list)
+    bhInfoSignal = QtCore.pyqtSignal(int)
 
 
     def __init__(self, parent=None):
@@ -16,7 +19,7 @@ class BoreholeUI(QtGui.QWidget):
 
     def import_bhole(self):
         self.file_names, self.filter = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, 'Import Borehole', '*.xyz')
-        print(self.file_names)
+
 
     def add_bhole(self):
         name, ok = QtGui.QInputDialog.getText(self, "borehole creation", 'borehole name')
@@ -31,8 +34,8 @@ class BoreholeUI(QtGui.QWidget):
         self.bh_list.clear()
         for bh in self.boreholes:
             self.bh_list.addItem(bh.name)
-
-        self.bhupdateSignal.emit(self.boreholes)
+        self.bhInfoSignal.emit(len(self.bh_list))
+        self.bhUpdateSignal.emit(self.boreholes)
 
     def update_List_Edits(self):
         ind = self.bh_list.selectedIndexes()

@@ -110,13 +110,13 @@ class MogData:
           self.antennas = self.antennas + "  - Ramac"
 
         file.close()
-        print(self.nptsptrc)    # these prints will be deleted
-        print(self.timec)
-        print(self.synthetique)
-        print(self.rnomfreq)
-        print(self.antennas)
-        print(self.ntrace)
-        print(self.timestp)
+        #print(self.nptsptrc)    # these prints will be deleted
+        #print(self.timec)
+        #print(self.synthetique)
+        #print(self.rnomfreq)
+        #print(self.antennas)
+        #print(self.ntrace)
+        #print(self.timestp)
 
 
     def readRD3(self, basename):
@@ -137,7 +137,7 @@ class MogData:
 
         self.rdata = np.fromfile(file, dtype= 'int16', count= self.nptsptrc*self.ntrace)
         self.rdata.resize((self.nptsptrc, self.ntrace))
-        print(self.rdata)
+        #print(self.rdata)
 
 
     def readTLF(self, basename):
@@ -179,8 +179,8 @@ class MogData:
                 self.Tx_z = np.append(self.Tx_z, (Tx*np.ones(np.abs(nt))))
                 self.Rx_z = np.concatenate((self.Rx_z, vect))
         file.close()
-        print(self.Tx_z)
-        print(self.Rx_z)
+        #print(self.Tx_z)
+        #print(self.Rx_z)
 
 
     def readSEGY(self, basename):

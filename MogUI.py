@@ -4,8 +4,14 @@ from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
 from MogData import MogData
 from mog import Mog
+from unicodedata import *
 
 class MOGUI(QtGui.QWidget):
+
+    mogInfoSignal = QtCore.pyqtSignal(int)
+    ntraceSignal = QtCore.pyqtSignal(int)
+    databaseSignal = QtCore.pyqtSignal(str)
+
     def __init__(self, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/MOGs")
@@ -14,9 +20,14 @@ class MOGUI(QtGui.QWidget):
         self.initUI()
 #TODO
     def add_MOG(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file')
-        self.mogdata.readRAMAC(basename= filename)
+        filename = QtGui.QFileDialog.getOpenFileName(self,'Open File', '')
+        self.MOGs.append(filename)
+        self.update_List_Widget()
+        self.mogdata.readRAD(basename= filename)
         self.update_Sub_Labels_Checkbox_and_Edits_Widget()
+        self.ntraceSignal.emit(self.mogdata.ntrace)
+        print(self.mogdata.ntrace)
+        self.databaseSignal.emit(filename)
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
@@ -61,7 +72,8 @@ class MOGUI(QtGui.QWidget):
     def update_List_Widget(self):
         self.MOG_list.clear()
         for mog in self.MOGs:
-            self.MOG_list.addItem(mog.name)
+            self.MOG_list.addItem(mog)
+        self.mogInfoSignal.emit(len(self.MOG_list))
 
     def update_Tx_and_Rx_Widget(self, list):
         self.Tx_combo.clear()
@@ -78,9 +90,9 @@ class MOGUI(QtGui.QWidget):
         self.Multiplication_Factor_edit.clear()
 
 
-        self.Nominal_Frequency_edit.setText(self.mogdata.rnomfreq)
-        self.Rx_Offset_edit.setText(self.mogdata.RxOffset)
-        self.Tx_Offset_edit.setText(self.mogdata.TxOffset)
+        self.Nominal_Frequency_edit.setText(str(self.mogdata.rnomfreq))
+        self.Rx_Offset_edit.setText(str(self.mogdata.RxOffset))
+        self.Tx_Offset_edit.setText(str(self.mogdata.TxOffset))
         #self.Correction_Factor_edit.clear()
         #self.Multiplication_Factor_edit.clear()
 
@@ -88,6 +100,7 @@ class MOGUI(QtGui.QWidget):
 
     def initUI(self):
 
+        char1 = lookup("GREEK SMALL LETTER TAU")
         #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
             def __init__(self, label, ha='left',  parent=None):
@@ -115,7 +128,7 @@ class MOGUI(QtGui.QWidget):
         btn_Stats_Ampl              = QtGui.QPushButton("Stats Ampl.")
         btn_Ray_Coverage            = QtGui.QPushButton("Ray Coverage")
         btn_Export_tt               = QtGui.QPushButton("Export tt")
-        btn_export_tau              = QtGui.QPushButton("Export tau")
+        btn_export_tau              = QtGui.QPushButton("Export {}".format(char1))
         btn_Prune                   = QtGui.QPushButton("Prune")
 
         #--- List ---#
@@ -152,7 +165,8 @@ class MOGUI(QtGui.QWidget):
         self.Multiplication_Factor_edit          = QtGui.QLineEdit()
         self.Date_edit                           = QtGui.QLineEdit()
 
-
+        #--- Buttons actions ---#
+        btn_Add_MOG.clicked.connect(self.add_MOG)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -167,8 +181,8 @@ class MOGUI(QtGui.QWidget):
         Sub_AirShots_Grid.addWidget(Air_shots_checkbox, 3, 0)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_Before, 4, 0, 1, 2)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_After, 5, 0, 1, 2)
-        Sub_AirShots_Grid.addWidget(Air_Shot_Before_edit, 4, 2, 1, 2)
-        Sub_AirShots_Grid.addWidget(Air_Shot_After_edit, 5, 2, 1, 2)
+        Sub_AirShots_Grid.addWidget(self.Air_Shot_Before_edit, 4, 2, 1, 2)
+        Sub_AirShots_Grid.addWidget(self.Air_Shot_After_edit, 5, 2, 1, 2)
         Sub_AirShots_Widget.setLayout(Sub_AirShots_Grid)
 
 
@@ -181,12 +195,12 @@ class MOGUI(QtGui.QWidget):
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Tx_Offset_label,2, 1)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Multiplication_Factor_label,4, 1)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Date_label,7, 1)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Nominal_Frequency_edit,0, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Rx_Offset_edit,1, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Tx_Offset_edit,2, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Correction_Factor_edit,3, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Multiplication_Factor_edit,4, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Date_edit, 7, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Nominal_Frequency_edit,0, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Rx_Offset_edit,1, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Tx_Offset_edit,2, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Correction_Factor_edit,3, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Multiplication_Factor_edit,4, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Date_edit, 7, 2)
         Sub_Labels_Checkbox_and_Edits_Widget.setLayout(Sub_Labels_Checkbox_and_Edits_Grid)
 
         #- Sub Right Buttons Widget -#

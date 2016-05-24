@@ -8,21 +8,72 @@ class InfoUI(QtGui.QFrame):
         self.setWindowTitle("bh_thomoPy/Info")
         self.initUI()
 
+    #------- Updating the information -------#
+    def update_database(self, name):
+        self.live_database_label.setText(name)
+
+    def update_borehole(self, value):
+        self.num_boreholes_label.setText(str(value))
+
+    def update_mog(self, value):
+        self.num_mogs_label.setText(str(value))
+
+    def update_model(self, value):
+        self.num_models_label.setText(str(value))
+
+    def update_trace(self, value):
+        self.num_traces_label.setText(str(value))
+
+
     def initUI(self):
+
+        white_palette = QtGui.QPalette()
+        white_palette.setColor(QtGui.QPalette.Background, QtCore.Qt.white)
+
+        class  MyQLabel(QtGui.QLabel):
+            def __init__(self, label, ha='left',  parent=None):
+                super(MyQLabel, self).__init__(label,parent)
+                if ha == 'center':
+                    self.setAlignment(QtCore.Qt.AlignCenter)
+                elif ha == 'right':
+                    self.setAlignment(QtCore.Qt.AlignRight)
+                else:
+                    self.setAlignment(QtCore.Qt.AlignLeft)
+
         #--- Widget ---#
-        info = QtGui.QTextEdit("Database")
-        info.setReadOnly(True)
-        #--- GroupBox ---#
+        self.database_label = QtGui.QLabel("Database : ")
+        self.live_database_label = MyQLabel('',ha='right')
+        self.boreholes_label = QtGui.QLabel(" Borehole(s)")
+        self.num_boreholes_label = MyQLabel('',ha='right')
+        self.mogs_label = QtGui.QLabel(" MOG(s)")
+        self.num_mogs_label = MyQLabel('',ha='right')
+        self.models_label = QtGui.QLabel(" Model(s)")
+        self.num_models_label = MyQLabel('',ha='right')
+        self.traces_label = QtGui.QLabel(" Traces")
+        self.num_traces_label = MyQLabel('',ha='right')
 
         #--- Grid ---#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(info , 0, 0)
+        master_grid.addWidget(self.database_label, 0, 0)
+        master_grid.addWidget(self.live_database_label, 0, 1)
+        master_grid.addWidget(self.num_boreholes_label, 2, 0)
+        master_grid.addWidget(self.boreholes_label, 2, 1)
+        master_grid.addWidget(self.num_mogs_label, 3, 0)
+        master_grid.addWidget(self.mogs_label, 3, 1)
+        master_grid.addWidget(self.num_models_label, 4, 0)
+        master_grid.addWidget(self.models_label, 4, 1)
+        master_grid.addWidget(self.num_traces_label, 6, 0)
+        master_grid.addWidget(self.traces_label, 6, 1)
+        master_grid.setAlignment(QtCore.Qt.AlignCenter)
         self.setLayout(master_grid)
+        self.setStyleSheet("background: white")
 
 
 
 
-        print("coucou")
+
+
+
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)

@@ -2,18 +2,39 @@ import sys
 from PyQt4 import QtGui, QtCore
 
 
-class ModelUI(QtGui.QFrame):
+class ModelUI(QtGui.QWidget):
+    #------- Signals Emitted -------#
+    modelInfoSignal = QtCore.pyqtSignal(int)
+
     def __init__(self, parent=None):
         super(ModelUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Models")
+        self.models = []
         self.initUI()
+
+    def add_model(self):
+        name, ok = QtGui.QInputDialog.getText(self, "Model creation", 'Model name')
+        if ok :
+            self.models.append(name)
+        self.update_model_list()
+
+    def del_model(self):
+        ind = self.model_list.selectedIndexes()
+        for i in ind:
+            del self.models[int(i.row())]
+        self.update_model_list()
+
+
+    def update_model_list(self):
+        self.model_list.clear()
+        for model in self.models:
+            self.model_list.addItem(model)
+        self.modelInfoSignal.emit(len(self.model_list)) # we send the information to DatabaseUI
 
     def initUI(self):
 
         #------- Widgets Creation -------#
-        #--- Widget Link ---#
-        self.model_Creation              = Model_Creation()
-        self.model_Removal               = Model_Removal()
+
         #--- Buttons Set ---#
         btn_Add_Model                    = QtGui.QPushButton("Add Model")
         btn_Remove_Model                 = QtGui.QPushButton("Remove Model")
@@ -22,11 +43,12 @@ class ModelUI(QtGui.QFrame):
         btn_Add_MOG                      = QtGui.QPushButton("Add MOG")
         btn_Remove_MOG                   = QtGui.QPushButton("Remove MOG")
         #--- Buttons Actions ---#
-        btn_Add_Model.clicked.connect(self.model_Creation.show)
-        btn_Remove_Model.clicked.connect(self.model_Removal.show)
+        btn_Add_Model.clicked.connect(self.add_model)
+        btn_Remove_Model.clicked.connect(self.del_model)
+
         #--- Lists ---#
         MOG_list                         = QtGui.QListWidget()
-        Model_list                       = QtGui.QListWidget()
+        self.model_list                       = QtGui.QListWidget()
 
         #--- Sub Widgets ---#
         #--- Models Sub Widget ---#
@@ -34,7 +56,7 @@ class ModelUI(QtGui.QFrame):
         Models_Sub_Grid                  = QtGui.QGridLayout()
         Models_Sub_Grid.addWidget(btn_Add_Model, 0, 0, 1, 2)
         Models_Sub_Grid.addWidget(btn_Remove_Model, 0, 2, 1, 2)
-        Models_Sub_Grid.addWidget(Model_list, 1, 0, 1, 4)
+        Models_Sub_Grid.addWidget(self.model_list, 1, 0, 1, 4)
         Models_Sub_Widget.setLayout(Models_Sub_Grid)
 
         #--- Grid Sub Widget ---#
@@ -61,46 +83,6 @@ class ModelUI(QtGui.QFrame):
         master_grid.addWidget(Grid_GroupBox, 1, 0)
         master_grid.addWidget(MOGS_Groupbox, 0, 1 , 2, 1)
         self.setLayout(master_grid)
-
-class Model_Creation(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(Model_Creation, self).__init__()
-        self.setWindowTitle("Model Creation")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-    #------- Widget Creation -------#
-    def initUI(self):
-        model_label              = QtGui.QLabel("Model Name :")
-        model_edit               = QtGui.QLineEdit()
-        btn_ok                   = QtGui.QPushButton("Ok")
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(model_label,0, 0 )
-        creation_grid.addWidget(model_edit, 1, 0)
-        creation_grid.addWidget(btn_ok, 1, 1)
-        self.setLayout(creation_grid)
-
-class Model_Removal(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(Model_Removal, self).__init__()
-        self.setWindowTitle("Model Removal")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-    #------- Widget Creation -------#
-    def initUI(self):
-        model_label              = QtGui.QLabel("Model Name :")
-        model_edit               = QtGui.QLineEdit()
-        btn_ok                   = QtGui.QPushButton("Ok")
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(model_label,0, 0 )
-        creation_grid.addWidget(model_edit, 1, 0)
-        creation_grid.addWidget(btn_ok, 1, 1)
-        self.setLayout(creation_grid)
 
 
 if __name__ == '__main__':

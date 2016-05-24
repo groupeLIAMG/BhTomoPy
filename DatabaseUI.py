@@ -18,13 +18,36 @@ class DatabaseUI(QtGui.QWidget):
         self.info = InfoUI()
         self.mogdata = MogData()
         self.initUI()
-        self.bh.bhupdateSignal.connect(self.update_MogUI)
+        self.bh.bhUpdateSignal.connect(self.update_MogUI)
+        self.bh.bhInfoSignal.connect(self.update_borehole_info)
+        self.mog.mogInfoSignal.connect(self.update_mog_info)
+        self.mog.ntraceSignal.connect(self.update_trace_info)
+        self.mog.databaseSignal.connect(self.update_database_info)
+        self.model.modelInfoSignal.connect(self.update_model_info)
 
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
 
+    def update_database_info(self, name):
+        self.info.update_database(name)
+
+    def update_borehole_info(self, num):
+        self.info.update_borehole(num)
+
+    def update_mog_info(self, num):
+        self.info.update_mog(num)
+
+    def update_model_info(self, num):
+        self.info.update_model(num)
+
+    def update_trace_info(self, num):
+        self.info.update_trace(num)
+
+
     def initUI(self):
-        #--- MenuBar ---#
+
+        white_palette = QtGui.QPalette()
+        white_palette.setColor(QtGui.QPalette.Background, QtCore.Qt.white)
 
         #--- GroupBoxes ---#
 
@@ -52,6 +75,8 @@ class DatabaseUI(QtGui.QWidget):
         Info_Sub_Grid.addWidget(self.info)
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
+
+
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(bh_GroupBox, 0, 0)
@@ -59,6 +84,7 @@ class DatabaseUI(QtGui.QWidget):
         master_grid.addWidget(Models_GroupBox, 1, 0)
         master_grid.addWidget(Info_GroupBox, 1, 1)
         self.setLayout(master_grid)
+
 
 if __name__ == '__main__':
 
