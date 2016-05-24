@@ -18,16 +18,35 @@ class MOGUI(QtGui.QWidget):
         self.MOGs = []
         self.mogdata = MogData()
         self.initUI()
-#TODO
+
     def add_MOG(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self,'Open File', '')
-        self.MOGs.append(filename)
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+        rname = filename.split('/')  # the split method gives us back a list which contains al the caracter that were
+        rname = rname[-1]            # separated by / and the name of file (i.e. rname) is the last item of this list
+
+        # Conditions to get the name of the file itself in order to put it in our MOG_list
+        if ".rad" in rname:
+            rname = rname.strip(".rad")
+        if ".RAD" in rname:
+            rname = rname.strip(".RAD")
+        if ".rd3" in rname:
+            rname = rname.strip(".rd3")
+        if ".RD3" in rname:
+            rname = rname.strip(".RD3")
+        if ".tlf" in rname:
+            rname = rname.strip(".tlf")
+        if ".TLF" in rname:
+            rname =rname.strip(".TLF")
+
+        # Conditions to get the path of the file itself in order to execute it
+        if ".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower():
+            basename = filename[:-4]
+
+        self.MOGs.append(rname)
         self.update_List_Widget()
-        self.mogdata.readRAD(basename= filename)
+        self.mogdata.readRAMAC(basename)
         self.update_Sub_Labels_Checkbox_and_Edits_Widget()
         self.ntraceSignal.emit(self.mogdata.ntrace)
-        print(self.mogdata.ntrace)
-        self.databaseSignal.emit(filename)
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
@@ -36,13 +55,12 @@ class MOGUI(QtGui.QWidget):
         self.update_List_Widget()
 
     def rename(self):
-        old_name = self.MOG_list.selectedItems()
+        ind = self.MOG_list.selectedIndexes()
         new_name, ok = QtGui.QInputDialog.getText(self, "Rename", 'new MOG name')
         if ok:
-            for i in range(len(self.MOGs)):
-                if self.MOGs[i].name == old_name:
-                    self.MOGs[i].name = new_name
-                    self.update_List_Widget()
+            for i in ind:
+                self.MOGs[int(i.row())] = new_name
+        self.update_List_Widget()
 #TODO:
     def import_mog(self):
         pass
@@ -73,7 +91,9 @@ class MOGUI(QtGui.QWidget):
         self.MOG_list.clear()
         for mog in self.MOGs:
             self.MOG_list.addItem(mog)
+            self.databaseSignal.emit(mog)
         self.mogInfoSignal.emit(len(self.MOG_list))
+
 
     def update_Tx_and_Rx_Widget(self, list):
         self.Tx_combo.clear()
@@ -167,6 +187,8 @@ class MOGUI(QtGui.QWidget):
 
         #--- Buttons actions ---#
         btn_Add_MOG.clicked.connect(self.add_MOG)
+        btn_Rename.clicked.connect(self.rename)
+        btn_Remove_MOG.clicked.connect(self.del_MOG)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#

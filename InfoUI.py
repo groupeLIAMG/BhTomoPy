@@ -27,9 +27,6 @@ class InfoUI(QtGui.QFrame):
 
     def initUI(self):
 
-        white_palette = QtGui.QPalette()
-        white_palette.setColor(QtGui.QPalette.Background, QtCore.Qt.white)
-
         class  MyQLabel(QtGui.QLabel):
             def __init__(self, label, ha='left',  parent=None):
                 super(MyQLabel, self).__init__(label,parent)
@@ -42,7 +39,7 @@ class InfoUI(QtGui.QFrame):
 
         #--- Widget ---#
         self.database_label = QtGui.QLabel("Database : ")
-        self.live_database_label = MyQLabel('',ha='right')
+        self.live_database_label = MyQLabel('',ha='left')
         self.boreholes_label = QtGui.QLabel(" Borehole(s)")
         self.num_boreholes_label = MyQLabel('',ha='right')
         self.mogs_label = QtGui.QLabel(" MOG(s)")

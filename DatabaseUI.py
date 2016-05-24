@@ -76,7 +76,7 @@ class DatabaseUI(QtGui.QWidget):
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
 
-
+#TODO: refaire les dimension( mog groupbox occupe 2 colonnes meme chose pour models
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(bh_GroupBox, 0, 0)

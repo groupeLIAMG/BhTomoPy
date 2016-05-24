@@ -49,6 +49,7 @@ class MogData:
         self.RxOffset = 0
 
         if not self.synthetique:
+
             if self.rnomfreq == 100.0:
                 self.TxOffset = 0.665
                 self.RxOffset = 0.665
@@ -58,10 +59,10 @@ class MogData:
 
         self.Tx_z = self.Tx_z*np.arange(self.ntrace)
         self.Rx_z = self.Rx_z*np.arange(self.ntrace)
-        self.Tx_y = np.zeros(1, self.ntrace)
-        self.Rx_y = np.zeros(1, self.ntrace)
-        self.Tx_x = np.zeros(1, self.ntrace)
-        self.Rx_x = np.zeros(1, self.ntrace)
+        self.Tx_y = np.zeros((1, self.ntrace))
+        self.Rx_y = np.zeros((1, self.ntrace))
+        self.Tx_x = np.zeros((1, self.ntrace))
+        self.Rx_x = np.zeros((1, self.ntrace))
 
 
     def readRAD(self, basename):
@@ -113,7 +114,7 @@ class MogData:
         #print(self.nptsptrc)    # these prints will be deleted
         #print(self.timec)
         #print(self.synthetique)
-        #print(self.rnomfreq)
+        print(self.rnomfreq)
         #print(self.antennas)
         #print(self.ntrace)
         #print(self.timestp)
@@ -193,9 +194,9 @@ class MogData:
 if __name__ == '__main__':
 
     m = MogData()
-    m.readRAD('testData/formats/ramac/t0102')
-    m.readRD3('testData/formats/ramac/t0102')
-    m.readTLF('testData/formats/ramac/t0102')
-
+    #m.readRAD('testData/formats/ramac/t0102')
+    #m.readRD3('testData/formats/ramac/t0102')
+    #m.readTLF('testData/formats/ramac/t0102')
+    m.readRAMAC('testData/formats/ramac/t0102')
 
 
