@@ -1,8 +1,11 @@
 import sys
 from PyQt4 import QtGui, QtCore
-from borehole import Borehole, BoreholeFig
+from borehole import Borehole
 import re
 import numpy as np
+import matplotlib as mpl
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+from mpl_toolkits.mplot3d import axes3d
 
 class BoreholeUI(QtGui.QWidget):
 
@@ -19,24 +22,22 @@ class BoreholeUI(QtGui.QWidget):
         self.initUI()
 
     def import_bhole(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Import Borehole')
-
-        rname = filename.split('/')
-        rname = rname[-1]
-        rname = rname.strip('.xyz')
-        bh = Borehole(str(rname))
-        bh.fdata = np.loadtxt(filename)
-        bh.X = bh.fdata[0,0]
-        bh.Y = bh.fdata[0,1]
-        bh.Z = bh.fdata[0,2]
-        bh.Xmax = bh.fdata[-1,0]
-        bh.Ymax = bh.fdata[-1,1]
-        bh.Zmax = bh.fdata[-1,2]
+        filename          = QtGui.QFileDialog.getOpenFileName(self, 'Import Borehole')
+        rname             = filename.split('/')
+        rname             = rname[-1]
+        rname             = rname.strip('.xyz')
+        bh                = Borehole(str(rname))
+        bh.fdata          = np.loadtxt(filename)
+        bh.X              = bh.fdata[0,0]
+        bh.Y              = bh.fdata[0,1]
+        bh.Z              = bh.fdata[0,2]
+        bh.Xmax           = bh.fdata[-1,0]
+        bh.Ymax           = bh.fdata[-1,1]
+        bh.Zmax           = bh.fdata[-1,2]
         self.boreholes.append(bh)
         self.update_List_Widget()
         self.bh_list.setCurrentRow(len(self.boreholes) - 1)
         self.update_List_Edits()
-
 
 
     def add_bhole(self):
@@ -47,13 +48,13 @@ class BoreholeUI(QtGui.QWidget):
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
 
-
     def update_List_Widget(self):
         self.bh_list.clear()
         for bh in self.boreholes:
             self.bh_list.addItem(bh.name)
         self.bhInfoSignal.emit(len(self.bh_list))
         self.bhUpdateSignal.emit(self.boreholes)
+
 
     def update_List_Edits(self):
         ind = self.bh_list.selectedIndexes()
@@ -79,21 +80,85 @@ class BoreholeUI(QtGui.QWidget):
     def update_bhole_data(self):
         ind = self.bh_list.selectedIndexes()
         for i in ind :
-            bh         = self.boreholes[i.row()]
-            bh.X       = float(self.X_edit.text())
-            bh.Y       = float(self.Y_edit.text())
-            bh.Z       = float(self.Z_edit.text())
-            bh.Xmax    = float(self.Xmax_edit.text())
-            bh.Ymax    = float(self.Ymax_edit.text())
-            bh.Zmax    = float(self.Zmax_edit.text())
-            bh.Z_surf  = float(self.Z_surf_edit.text())
-            bh.Z_water = float(self.Z_water_edit.text())
-            bh.diam    = float(self.Diam_edit.text())
+            bh                = self.boreholes[i.row()]
+            bh.X              = float(self.X_edit.text())
+            bh.Y              = float(self.Y_edit.text())
+            bh.Z              = float(self.Z_edit.text())
+            bh.Xmax           = float(self.Xmax_edit.text())
+            bh.Ymax           = float(self.Ymax_edit.text())
+            bh.Zmax           = float(self.Zmax_edit.text())
+            bh.Z_surf         = float(self.Z_surf_edit.text())
+            bh.Z_water        = float(self.Z_water_edit.text())
+            bh.diam           = float(self.Diam_edit.text())
+            bh.fdata[0,0]     = bh.X
+            bh.fdata[0,1]     = bh.Y
+            bh.fdata[0,2]     = bh.Z
+            bh.fdata[-1,0]    = bh.Xmax
+            bh.fdata[-1,1]    = bh.Ymax
+            bh.fdata[-1,2]    = bh.Zmax
+
+    def plot(self):
+        self.bholeFig = BoreholeFig()
+        self.bholeFig.plot_bholes(self.boreholes)
+        self.bholeFig.show()
+
+    def attenuation_constraints(self):
+        ind = self.bh_list.selectedIndexes()
+        acont = Cont()
+        for i in ind:
+            filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+            if ".con" in filename:
+                bh = self.boreholes[i.row()]
+                cont = np.loadtxt(filename)
+
+                acont.x, acont.y, acont.z, c = bh.project(bh.fdata, cont[:, 0])
+
+                acont.x = acont.x.flatten()
+                acont.y = acont.y.flatten()
+                acont.z = acont.z.flatten()
+                acont.valeur = cont[:, 1]
+
+                if  np.size(cont, axis= 1) == 3:
+                     acont.variance = cont[:,2]
+                else:
+                    acont.variance = np.zeros(len(cont[:,1]))
+
+                bh.acont = acont
+            else:
+                raise IOError("the file's extension must be *.con")
+
+    def slowness_constraints(self):
+        ind = self.bh_list.selectedIndexes()
+        scont = Cont()
+        for i in ind:
+            filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+            if ".con" in filename:
+                bh = self.boreholes[i.row()]
+                cont = np.loadtxt(filename)
+
+                scont.x, scont.y, scont.z, c = bh.project(bh.fdata, cont[:, 0])
+
+                scont.x = scont.x.flatten()
+                scont.y = scont.y.flatten()
+                scont.z = scont.z.flatten()
+                scont.valeur = 1/cont[:, 1]
+
+                if  np.size(cont, axis= 1) == 3:
+                     scont.variance = cont[:,2]/(cont[:,1]**4)
+                else:
+                    scont.variance = np.zeros(len(cont[:,1]))
+
+                bh.scont = scont
+                print(bh.scont.x)
+                print(bh.scont.y)
+                print(bh.scont.z)
+                print(bh.scont.valeur)
+                print(bh.scont.variance)
+
+            else:
+                raise IOError("the file's extension must be *.con")
 
     def initUI(self):
-
-        #------ Fig Plot -----#
-        self.bholeFig = BoreholeFig()
 
         #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
@@ -158,7 +223,9 @@ class BoreholeUI(QtGui.QWidget):
         btn_Add.clicked.connect(self.add_bhole)
         btn_Remove.clicked.connect(self.del_bhole)
         btn_Import.clicked.connect(self.import_bhole)
-
+        btn_Plot.clicked.connect(self.plot)
+        btn_Constraints_atten.clicked.connect(self.attenuation_constraints)
+        btn_Constraints_veloc.clicked.connect(self.slowness_constraints)
 
         #--- sub widgets ---#
         #--- Diam ---#
@@ -219,7 +286,42 @@ class BoreholeUI(QtGui.QWidget):
         #------- set Layout -------#
         self.setLayout(master_grid)
 
+class BoreholeFig(FigureCanvasQTAgg):
 
+
+    def __init__(self):
+
+        fig_width, fig_height = 6, 8
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        super(BoreholeFig, self).__init__(fig)
+
+        self.initFig()
+
+
+    def initFig(self):
+        ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+        ax.set_axisbelow(True)
+
+
+    def plot_bholes(self, bhole_list):
+        ax = self.figure.axes[0]
+        ax.cla()
+        for bhole in bhole_list:
+            ax.plot(bhole.fdata[:,0] ,bhole.fdata[:,1],bhole.fdata[:, 2], label=bhole.name)
+
+        l = ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
+                    borderpad=0)
+        l.draw_frame(False)
+
+        self.draw()
+
+class Cont:
+    def __init__(self):
+        self.x = np.array([])
+        self.y = np.array([])
+        self.z = np.array([])
+        self.valeur = np.array([])
+        self.variance = np.array([])
 
 
 if __name__ == '__main__':

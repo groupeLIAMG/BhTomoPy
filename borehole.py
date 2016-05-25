@@ -2,9 +2,6 @@
 import numpy as np
 import matplotlib as mpl
 mpl.rcParams['backend.qt4']='PyQt4'
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-from mpl_toolkits.mplot3d import axes3d
-
 
 """
 Copyright 2016 Bernard Giroux
@@ -32,7 +29,7 @@ class Borehole:
     """
 
     def __init__(self, name=None,X = 0.0, Y = 0.0, Z = 0.0, Xmax = 0.0, Ymax = 0.0, Zmax = 0.0, Z_surf = 0.0, Z_water = 0.0,
-                 diam = 0.0, scont = np.array([]), acont = np.array([]),fdata = np.array([[0, 0, 0], [0, 0, 0]])):
+                 diam = 0.0, scont = np.array([]), acont = np.array([0, 0, 0]),fdata = np.array([[0, 0, 0], [0, 0, 0]])):
         """Attributes:
         name: name of the borehole(BH)
         X, Y and Z: the BH's top cartesian coordinates
@@ -268,37 +265,12 @@ class Borehole:
 
             #We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
             # the closest upper point's coordinates
-        return x,y,z,c
+        return x, y, z, c
 
 
 
 
-class BoreholeFig(FigureCanvasQTAgg):
 
-    def __init__(self):
-
-        fig_width, fig_height = 6, 8
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
-
-        super(BoreholeFig, self).__init__(fig)
-
-        self.initFig()
-
-    def initFig(self):
-        ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
-        ax.set_axisbelow(True)
-
-    def plot_bholes(self, boreholes):
-        ax = self.figure.axes[0]
-        ax.cla()
-        for bhole in boreholes:
-            ax.plot(bhole.X, bhole.Y, bhole.Z, label=bhole.name)
-
-        l = ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
-                    borderpad=0)
-        l.draw_frame(False)
-
-        self.draw()
 
 
 
@@ -308,11 +280,6 @@ if __name__ == '__main__':
     bh1 = Borehole('BH1',0.0, 0.0, 0.0, 4.0, 4.0, 4.0)
     bh1.fdata = fdatatest
     x,y,z,c = Borehole.project(fdatatest,ldepthtest)
-    #BoreholeSetup.add_bhole(bh1)
-    #print(BoreholeSetup.bholes)
-    print(bh1.X)
-    print(bh1.name)
-    print(bh1.fdata.shape)
     print(x)
     print(y)
     print(z)
