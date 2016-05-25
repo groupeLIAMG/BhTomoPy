@@ -2,6 +2,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 from borehole import Borehole, BoreholeFig
 import re
+import numpy as np
 
 class BoreholeUI(QtGui.QWidget):
 
@@ -18,7 +19,24 @@ class BoreholeUI(QtGui.QWidget):
         self.initUI()
 
     def import_bhole(self):
-        self.file_names, self.filter = QtGui.QFileDialog.getOpenFileNamesAndFilter(self, 'Import Borehole', '*.xyz')
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Import Borehole')
+
+        rname = filename.split('/')
+        rname = rname[-1]
+        rname = rname.strip('.xyz')
+        bh = Borehole(str(rname))
+        bh.fdata = np.loadtxt(filename)
+        bh.X = bh.fdata[0,0]
+        bh.Y = bh.fdata[0,1]
+        bh.Z = bh.fdata[0,2]
+        bh.Xmax = bh.fdata[-1,0]
+        bh.Ymax = bh.fdata[-1,1]
+        bh.Zmax = bh.fdata[-1,2]
+        self.boreholes.append(bh)
+        self.update_List_Widget()
+        self.bh_list.setCurrentRow(len(self.boreholes) - 1)
+        self.update_List_Edits()
+
 
 
     def add_bhole(self):
