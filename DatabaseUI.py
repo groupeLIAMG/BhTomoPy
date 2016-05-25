@@ -18,6 +18,10 @@ class DatabaseUI(QtGui.QWidget):
         self.info = InfoUI()
         self.mogdata = MogData()
         self.initUI()
+
+        # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
+        # modules in order to update them
+
         self.bh.bhUpdateSignal.connect(self.update_MogUI)
         self.bh.bhInfoSignal.connect(self.update_borehole_info)
         self.mog.mogInfoSignal.connect(self.update_mog_info)

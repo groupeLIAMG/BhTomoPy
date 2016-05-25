@@ -25,28 +25,39 @@ class MOGUI(QtGui.QWidget):
         rname = rname[-1]            # separated by / and the name of file (i.e. rname) is the last item of this list
 
         # Conditions to get the name of the file itself in order to put it in our MOG_list
-        if ".rad" in rname:
-            rname = rname.strip(".rad")
-        if ".RAD" in rname:
-            rname = rname.strip(".RAD")
-        if ".rd3" in rname:
-            rname = rname.strip(".rd3")
-        if ".RD3" in rname:
-            rname = rname.strip(".RD3")
-        if ".tlf" in rname:
-            rname = rname.strip(".tlf")
-        if ".TLF" in rname:
-            rname =rname.strip(".TLF")
+        if ".rad" in rname.lower() or ".rd3" in rname.lower() or ".tlf" in rname.lower():
+            rname = rname[:-4]
 
         # Conditions to get the path of the file itself in order to execute it
         if ".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower():
             basename = filename[:-4]
-
-        self.MOGs.append(rname)
+        mogd = MogData(str(rname))
+        self.MOGs.append(mogd)
         self.update_List_Widget()
-        self.mogdata.readRAMAC(basename)
-        self.update_Sub_Labels_Checkbox_and_Edits_Widget()
-        self.ntraceSignal.emit(self.mogdata.ntrace)
+        mogd.readRAMAC(basename)
+        self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
+        self.update_edits()
+
+    def update_edits(self):
+        """
+        this funstion updates the info either in the  MOG's edits or in the info's labels
+
+        """
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            mogd = self.MOGs[i.row()]
+            self.Rx_Offset_edit.clear()
+            self.Tx_Offset_edit.clear()
+            self.Correction_Factor_edit.clear()
+            self.Multiplication_Factor_edit.clear()
+            self.Nominal_Frequency_edit.clear()
+
+            self.Nominal_Frequency_edit.setText(str(mogd.rnomfreq))
+            self.Rx_Offset_edit.setText(str(mogd.RxOffset))
+            self.Tx_Offset_edit.setText(str(mogd.TxOffset))
+
+            self.ntraceSignal.emit(mogd.ntrace)
+            self.databaseSignal.emit(mogd.name)
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
@@ -90,8 +101,8 @@ class MOGUI(QtGui.QWidget):
     def update_List_Widget(self):
         self.MOG_list.clear()
         for mog in self.MOGs:
-            self.MOG_list.addItem(mog)
-            self.databaseSignal.emit(mog)
+            self.MOG_list.addItem(mog.name)
+
         self.mogInfoSignal.emit(len(self.MOG_list))
 
 
@@ -102,19 +113,6 @@ class MOGUI(QtGui.QWidget):
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
-    def update_Sub_Labels_Checkbox_and_Edits_Widget(self, *args):
-        self.Nominal_Frequency_edit.clear()
-        self.Rx_Offset_edit.clear()
-        self.Tx_Offset_edit.clear()
-        self.Correction_Factor_edit.clear()
-        self.Multiplication_Factor_edit.clear()
-
-
-        self.Nominal_Frequency_edit.setText(str(self.mogdata.rnomfreq))
-        self.Rx_Offset_edit.setText(str(self.mogdata.RxOffset))
-        self.Tx_Offset_edit.setText(str(self.mogdata.TxOffset))
-        #self.Correction_Factor_edit.clear()
-        #self.Multiplication_Factor_edit.clear()
 
 
 
@@ -153,6 +151,8 @@ class MOGUI(QtGui.QWidget):
 
         #--- List ---#
         self.MOG_list = QtGui.QListWidget()
+        #--- List Actions ---#
+        self.MOG_list.itemSelectionChanged.connect(self.update_edits)
 
         #--- combobox ---#
         self.Type_combo = QtGui.QComboBox()

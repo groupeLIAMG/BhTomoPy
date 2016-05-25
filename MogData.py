@@ -32,7 +32,7 @@ class MogData:
         self.RxOffset     = 0       # length of he receptor which is above the surface
         self.comment      = ''      # is defined by the presence of any comment in the file
         self.date         = ''      # the date of the data sample
-
+        self.name         = name
     def readRAMAC(self, basename):
         """
         load data in Malå RAMAC format
