@@ -263,6 +263,7 @@ class MOGUI(QtGui.QWidget):
         master_grid.addWidget(sub_right_buttons_widget, 0, 1)
         master_grid.addWidget(Sub_Labels_Checkbox_and_Edits_Widget, 1, 1)
         master_grid.addWidget(Sub_AirShots_Widget, 1, 0)
+        master_grid.setColumnStretch(1, 300)
         self.setLayout(master_grid)
 
 

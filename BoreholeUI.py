@@ -206,6 +206,12 @@ class BoreholeUI(QtGui.QWidget):
         self.Z_water_edit             = QtGui.QLineEdit()
         self.Diam_edit                = QtGui.QLineEdit()
 
+        #--- Edits Settings ---#
+        self.Xmax_edit.setFixedSize(150, 20)
+        self.Ymax_edit.setFixedSize(150, 20)
+        self.Zmax_edit.setFixedSize(150, 20)
+        self.Diam_edit.setFixedSize(90, 20)
+
         #--- List Actions ---#
         self.bh_list.itemSelectionChanged.connect(self.update_List_Edits)
         #--- Edits Actions ---#
@@ -236,6 +242,28 @@ class BoreholeUI(QtGui.QWidget):
         sub_Diam_Grid.setContentsMargins(0, 0, 0, 0)
         sub_Diam_widget.setLayout(sub_Diam_Grid)
 
+        #--- Edits and Labels SubWidget ---#
+        sub_E_and_L_widget          = QtGui.QWidget()
+        sub_E_and_L_grid            = QtGui.QGridLayout()
+        sub_E_and_L_grid.addWidget(Coord_label, 0, 0)
+        sub_E_and_L_grid.addWidget(Collar_label, 0, 1)
+        sub_E_and_L_grid.addWidget(Bottom_label, 0, 2)
+        sub_E_and_L_grid.addWidget(X_label, 1, 0)
+        sub_E_and_L_grid.addWidget(self.X_edit, 1, 1)
+        sub_E_and_L_grid.addWidget(self.Xmax_edit, 1, 2)
+        sub_E_and_L_grid.addWidget(Y_label, 2, 0)
+        sub_E_and_L_grid.addWidget(self.Y_edit, 2, 1)
+        sub_E_and_L_grid.addWidget(self.Ymax_edit, 2, 2)
+        sub_E_and_L_grid.addWidget(Elev_label, 3, 0)
+        sub_E_and_L_grid.addWidget(self.Z_edit, 3, 1)
+        sub_E_and_L_grid.addWidget(self.Zmax_edit, 3, 2)
+        sub_E_and_L_grid.addWidget(Elev_surf_label, 4, 0)
+        sub_E_and_L_grid.addWidget(self.Z_surf_edit, 4, 1)
+        sub_E_and_L_grid.addWidget(Elev_water_label, 5, 0)
+        sub_E_and_L_grid.addWidget(self.Z_water_edit, 5, 1)
+        sub_E_and_L_grid.addWidget(sub_Diam_widget, 5, 2)
+        sub_E_and_L_widget.setLayout(sub_E_and_L_grid)
+
         #--- Upper Buttons ---#
         sub_upper_buttons_widget = QtGui.QWidget()
         sub_upper_buttons_Grid   = QtGui.QGridLayout()
@@ -243,45 +271,23 @@ class BoreholeUI(QtGui.QWidget):
         sub_upper_buttons_Grid.addWidget(btn_Remove, 0, 1)
         sub_upper_buttons_Grid.addWidget(btn_Import, 0, 2)
         sub_upper_buttons_Grid.addWidget(btn_Plot, 0, 3)
+        sub_upper_buttons_Grid.setContentsMargins(0, 0, 0, 0)
         sub_upper_buttons_widget.setLayout(sub_upper_buttons_Grid)
+
+        #--- Lower Buttons ---#
+        sub_lower_buttons_widget = QtGui.QWidget()
+        sub_lower_buttons_Grid   = QtGui.QGridLayout()
+        sub_lower_buttons_Grid.addWidget(btn_Constraints_veloc, 0, 0)
+        sub_lower_buttons_Grid.addWidget(btn_Constraints_atten, 0, 1)
+        sub_lower_buttons_Grid.setContentsMargins(0, 0, 0, 0)
+        sub_lower_buttons_widget.setLayout(sub_lower_buttons_Grid)
 
         #------- Grid Disposition -------#
         master_grid     = QtGui.QGridLayout()
-
-        #--- Buttons Disposition ---#
-        master_grid.addWidget(sub_upper_buttons_widget, 0, 0, 1, 4)
-        master_grid.addWidget(btn_Constraints_veloc, 9, 0, 1, 2)
-        master_grid.addWidget(btn_Constraints_atten, 9, 2, 1, 2)
-
-        #--- List Disposition ---#
-        master_grid.addWidget(self.bh_list, 2, 0, 1, 4)
-
-        #--- Labels Disposition ---#
-        master_grid.addWidget(Coord_label, 3, 0)
-        master_grid.addWidget(Collar_label, 3, 1)
-        master_grid.addWidget(Bottom_label, 3, 2)
-        master_grid.addWidget(X_label, 4, 0)
-        master_grid.addWidget(Y_label, 5, 0)
-        master_grid.addWidget(Elev_label, 6, 0)
-        master_grid.addWidget(Elev_surf_label, 7, 0)
-        master_grid.addWidget(Elev_water_label, 8, 0)
-
-        #--- Edits Disposition ---#
-        master_grid.addWidget(self.X_edit, 4, 1)
-        master_grid.addWidget(self.Y_edit, 5, 1)
-        master_grid.addWidget(self.Z_edit, 6, 1)
-        master_grid.addWidget(self.Xmax_edit, 4, 2)
-        master_grid.addWidget(self.Ymax_edit, 5, 2)
-        master_grid.addWidget(self.Zmax_edit, 6, 2)
-        master_grid.addWidget(self.Z_surf_edit, 7, 1)
-        master_grid.addWidget(self.Z_water_edit, 8, 1)
-
-        #--- Others ---#
-        master_grid.addWidget(sub_Diam_widget, 8, 2)
-
-        #------- Grid settings -------#
-        master_grid.setColumnStretch(3, 100)
-        master_grid.setRowStretch(2, 100)
+        master_grid.addWidget(sub_upper_buttons_widget, 0, 0)
+        master_grid.addWidget(self.bh_list, 1, 0)
+        master_grid.addWidget(sub_E_and_L_widget, 2, 0)
+        master_grid.addWidget(sub_lower_buttons_widget, 3, 0)
 
         #------- set Layout -------#
         self.setLayout(master_grid)

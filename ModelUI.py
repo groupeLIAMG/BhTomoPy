@@ -82,6 +82,7 @@ class ModelUI(QtGui.QWidget):
         master_grid.addWidget(Models_Sub_Widget, 0, 0)
         master_grid.addWidget(Grid_GroupBox, 1, 0)
         master_grid.addWidget(MOGS_Groupbox, 0, 1 , 2, 1)
+        master_grid.setColumnStretch(1, 100)
         self.setLayout(master_grid)
 
 

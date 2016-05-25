@@ -84,9 +84,9 @@ class DatabaseUI(QtGui.QWidget):
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(bh_GroupBox, 0, 0)
-        master_grid.addWidget(MOGs_GroupBox, 0, 1)
-        master_grid.addWidget(Models_GroupBox, 1, 0)
-        master_grid.addWidget(Info_GroupBox, 1, 1)
+        master_grid.addWidget(MOGs_GroupBox, 0, 1, 1, 2)
+        master_grid.addWidget(Models_GroupBox, 1, 0, 1, 2)
+        master_grid.addWidget(Info_GroupBox, 1, 2)
         self.setLayout(master_grid)
 
 
