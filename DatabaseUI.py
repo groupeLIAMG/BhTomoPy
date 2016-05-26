@@ -48,6 +48,8 @@ class DatabaseUI(QtGui.QWidget):
         self.info.update_trace(num)
 
 
+
+
     def initUI(self):
 
         white_palette = QtGui.QPalette()

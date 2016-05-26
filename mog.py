@@ -27,7 +27,12 @@ class AirShots:
         self.name = name
         self.tt = np.array([])     # traveltime vector
         self.et = np.array([])     # traveltime standard vector deviation
-        self.data = None
+        self.data = MogData()
+        self.d_TxRx = 0
+        self.fac_dt = 0
+        self.ing = 0               #à vérifier avec Bernard
+        self.method = 0
+
 
     @property
     def name(self):

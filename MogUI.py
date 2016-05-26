@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 import sys
+import os
 from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
 from MogData import MogData
-from mog import Mog
+from mog import Mog, AirShots
 from unicodedata import *
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import re
 
 class MOGUI(QtGui.QWidget):
 
@@ -16,11 +18,13 @@ class MOGUI(QtGui.QWidget):
     ntraceSignal = QtCore.pyqtSignal(int)
     databaseSignal = QtCore.pyqtSignal(str)
 
+
     def __init__(self, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/MOGs")
         self.MOGs = []
         self.mogdata = MogData()
+        self.mog = Mog()
         self.initUI()
 
     def add_MOG(self):
@@ -84,18 +88,58 @@ class MOGUI(QtGui.QWidget):
 
 
     def airBefore(self, *args):
+        old_rep = os.getcwd()
+        if len(self.mogdata.data_rep) != 0 :
+            os.chdir(self.mogdata.data_rep)
+
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
         if not filename:
             return
         else:
             ind = self.MOG_list.selectedIndexes()
             for i in ind:
-                name = filename[:-4]
+                basename = filename[:-4]
+                rname = filename.split('/')
+                rname = rname[-1]
                 found = False
 
                 for n in range(len(self.air)):
-                    if str(name) in str(self.air[n].name):  # self.air représente une instance de la Classe AirShots?
-                        self.MOGs[i.row()]
+                    if str(basename) in str(self.air[n].name):  # self.air représente une instance de la Classe AirShots?
+                        self.MOGs[i.row()].av = n               # étant donné qu'on le définit plus bas, quest ce que ca implique ?
+                        found = True
+                        break
+
+                if not found:
+                    n = len(self.air) + 1
+
+                    data = MogData()
+                    data.readRAMAC(basename)
+
+                    distance, ok = QtGui.QInputDialog.getItem(self, "Distance", 'Enter distance between Tx and Rx')
+                    distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
+
+                    if len(distance_list) > 1:
+                        if len(distance_list)!= data.ntrace:
+                            raise ValueError(' Number of positions inconsistent with number of traces')
+
+                    self.air[n] = AirShots(str(rname))
+                    self.air[n].data = data
+                    self.air[n].tt = -1* np.ones(1, data.ntrace)
+                    self.air[n].et = -1* np.ones(1, data.ntrace)
+                    self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
+                    self.air[n].d_TxRx = distance_list
+                    self.air[n].fac_dt = 1
+                    self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
+
+                    if len(distance_list) == 1:
+                        self.air[n].method ='fixed_antenna'
+                    else:
+                        self.air[n].method ='walkaway'
+                    self.Air_Shot_Before_edit.setText(self.air[n].name)
+
+
+
+
 
 
 #TODO:
