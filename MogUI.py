@@ -93,6 +93,7 @@ class MOGUI(QtGui.QWidget):
             os.chdir(self.mogdata.data_rep)
 
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
+        os.chdir(old_rep)
         if not filename:
             return
         else:
@@ -136,6 +137,58 @@ class MOGUI(QtGui.QWidget):
                     else:
                         self.air[n].method ='walkaway'
                     self.Air_Shot_Before_edit.setText(self.air[n].name)
+
+
+    def airAfter(self, *args):
+        old_rep = os.getcwd()
+        if len(self.mogdata.data_rep) != 0 :
+            os.chdir(self.mogdata.data_rep)
+
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
+        os.chdir(old_rep)
+        if not filename:
+            return
+        else:
+            ind = self.MOG_list.selectedIndexes()
+            for i in ind:
+                basename = filename[:-4]
+                rname = filename.split('/')
+                rname = rname[-1]
+                found = False
+
+                for n in range(len(self.air)):
+                    if str(basename) in str(self.air[n].name):  # self.air représente une instance de la Classe AirShots?
+                        self.MOGs[i.row()].ap = n               # étant donné qu'on le définit plus bas, quest ce que ca implique ?
+                        found = True
+                        break
+
+                if not found:
+                    n = len(self.air) + 1
+
+                    data = MogData()
+                    data.readRAMAC(basename)
+
+                    distance, ok = QtGui.QInputDialog.getItem(self, "Distance", 'Enter distance between Tx and Rx')
+                    distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
+
+                    if len(distance_list) > 1:
+                        if len(distance_list)!= data.ntrace:
+                            raise ValueError(' Number of positions inconsistent with number of traces')
+
+                    self.air[n] = AirShots(str(rname))
+                    self.air[n].data = data
+                    self.air[n].tt = -1* np.ones(1, data.ntrace)
+                    self.air[n].et = -1* np.ones(1, data.ntrace)
+                    self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
+                    self.air[n].d_TxRx = distance_list
+                    self.air[n].fac_dt = 1
+                    self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
+
+                    if len(distance_list) == 1:
+                        self.air[n].method ='fixed_antenna'
+                    else:
+                        self.air[n].method ='walkaway'
+                    self.Air_Shot_After_edit.setText(self.air[n].name)
 
 
 

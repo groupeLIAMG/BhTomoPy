@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogData.py" afterPath="$PROJECT_DIR$/MogData.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -40,11 +37,11 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7191781">
-              <caret line="138" column="0" selection-start-line="138" selection-start-column="0" selection-end-line="138" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.64041096">
+              <caret line="163" column="0" selection-start-line="163" selection-start-column="0" selection-end-line="163" selection-end-column="0" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
-                <element signature="e#6838#7233#0" expanded="false" />
+                <element signature="e#9100#9495#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -648,7 +645,13 @@
       <option name="project" value="LOCAL" />
       <updated>1464293495973</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="implémentation de la fonction airBefore dans MogUI">
+      <created>1464297126802</created>
+      <option name="number" value="00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1464297126802</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -742,7 +745,8 @@
     <MESSAGE value="class boreholeUI version beta" />
     <MESSAGE value="RawData fonctionnel" />
     <MESSAGE value="Restructuration de l'importation des Mogs: la self.MOG_list prends maintenant des instances de Mog et non de MogData" />
-    <option name="LAST_COMMIT_MESSAGE" value="Restructuration de l'importation des Mogs: la self.MOG_list prends maintenant des instances de Mog et non de MogData" />
+    <MESSAGE value="implémentation de la fonction airBefore dans MogUI" />
+    <option name="LAST_COMMIT_MESSAGE" value="implémentation de la fonction airBefore dans MogUI" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -791,7 +795,7 @@
           <caret line="84" column="51" selection-start-line="84" selection-start-column="51" selection-end-line="84" selection-end-column="51" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
-            <element signature="e#6838#7233#0" expanded="false" />
+            <element signature="e#9100#9495#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -872,7 +876,7 @@
           <caret line="11" column="4" selection-start-line="11" selection-start-column="4" selection-end-line="11" selection-end-column="21" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
-            <element signature="e#6838#7233#0" expanded="false" />
+            <element signature="e#9100#9495#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1279,11 +1283,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7191781">
-          <caret line="138" column="0" selection-start-line="138" selection-start-column="0" selection-end-line="138" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.64041096">
+          <caret line="163" column="0" selection-start-line="163" selection-start-column="0" selection-end-line="163" selection-end-column="0" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
-            <element signature="e#6838#7233#0" expanded="false" />
+            <element signature="e#9100#9495#0" expanded="false" />
           </folding>
         </state>
       </provider>
