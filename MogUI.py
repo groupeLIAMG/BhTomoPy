@@ -5,7 +5,9 @@ from BoreholeUI import BoreholeUI
 from MogData import MogData
 from mog import Mog
 from unicodedata import *
-
+import matplotlib as mpl
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+import numpy as np
 class MOGUI(QtGui.QWidget):
 
     mogInfoSignal = QtCore.pyqtSignal(int)
@@ -21,6 +23,11 @@ class MOGUI(QtGui.QWidget):
 
     def add_MOG(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+
+        if filename:
+            self.load_file_MOG(filename)
+
+    def load_file_MOG(self, filename):
         rname = filename.split('/')  # the split method gives us back a list which contains al the caracter that were
         rname = rname[-1]            # separated by / and the name of file (i.e. rname) is the last item of this list
 
@@ -113,11 +120,23 @@ class MOGUI(QtGui.QWidget):
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
+    def plot_rawdata(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            self.rawdataFig.plot_raw_data(self.MOGs[i.row()])
+            print(max((self.MOGs[i.row()].rdata).flatten()))
 
+            self.rawdatamanager.show()
 
 
     def initUI(self):
-
+        self.rawdataFig = RawDataFig()
+        self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
+        self.rawdatamanager = QtGui.QWidget()
+        rawdatamanagergrid = QtGui.QGridLayout()
+        rawdatamanagergrid.addWidget(self.rawdatatool, 0, 0)
+        rawdatamanagergrid.addWidget(self.rawdataFig, 1, 0)
+        self.rawdatamanager.setLayout(rawdatamanagergrid)
         char1 = lookup("GREEK SMALL LETTER TAU")
         #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
@@ -189,6 +208,7 @@ class MOGUI(QtGui.QWidget):
         btn_Add_MOG.clicked.connect(self.add_MOG)
         btn_Rename.clicked.connect(self.rename)
         btn_Remove_MOG.clicked.connect(self.del_MOG)
+        btn_Raw_Data.clicked.connect(self.plot_rawdata)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -266,6 +286,38 @@ class MOGUI(QtGui.QWidget):
         master_grid.setColumnStretch(1, 300)
         self.setLayout(master_grid)
 
+class RawDataFig(FigureCanvasQTAgg):
+
+    def __init__(self):
+        fig = mpl.figure.Figure(facecolor='white')
+        super(RawDataFig, self).__init__(fig)
+        self.initFig()
+
+
+    def initFig(self):
+        ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
+
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+        divider = make_axes_locatable(ax)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
+        ax.set_axisbelow(True)
+
+
+    def plot_raw_data(self, mogd):
+        ax1 = self.figure.axes[0]
+        ax2 = self.figure.axes[1]
+        ax1.cla()
+        ax2.cla()
+        mpl.axes.Axes.set_xlabel(ax1, 'Trace No')
+        mpl.axes.Axes.set_ylabel(ax1, 'Time units[{}]'.format(mogd.tunits))
+        cmax = np.abs(max(mogd.rdata.flatten()))
+        h = ax1.imshow(mogd.rdata,cmap='seismic', interpolation='none',aspect= 'auto', vmin= -cmax, vmax= cmax  )
+
+        mpl.colorbar.Colorbar(ax2, h)
+
+        self.draw()
+
 
 
 
@@ -276,7 +328,10 @@ if __name__ == '__main__':
 
 
     MOGUI_ui = MOGUI()
-    MOGUI_ui.show()
+    #MOGUI_ui.show()
+
+    MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
+    MOGUI_ui.plot_rawdata()
 
 
     sys.exit(app.exec_())

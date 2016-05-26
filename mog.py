@@ -50,6 +50,8 @@ class AirShots:
         else:
             raise TypeError("Please enter valid data of type MogData")
 
+        self.initialize()
+
     def initialize(self):
         if self.data == None :
             return self.data
@@ -131,7 +133,6 @@ class Mog:
         elif before == None and after == None and self.useAirShots == 1 :
             t0 = np.zeros(1, ndata)
             raise InterruptedError(" t0 correction not applied;Pick t0 before and t0 after for correction")
-
 
         v_air = 0.2998
         t0av = np.array([])

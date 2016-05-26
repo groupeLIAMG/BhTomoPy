@@ -137,8 +137,8 @@ class MogData:
                     raise IOError(" Cannot open RD3 file: {}".format(basename))
 
         self.rdata = np.fromfile(file, dtype= 'int16', count= self.nptsptrc*self.ntrace)
-        self.rdata.resize((self.nptsptrc, self.ntrace))
-        #print(self.rdata)
+        self.rdata.resize((self.ntrace, self.nptsptrc))
+        self.rdata = self.rdata.T
 
 
     def readTLF(self, basename):

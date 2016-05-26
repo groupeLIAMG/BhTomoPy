@@ -207,9 +207,7 @@ class BoreholeUI(QtGui.QWidget):
         self.Diam_edit                = QtGui.QLineEdit()
 
         #--- Edits Settings ---#
-        self.Xmax_edit.setFixedSize(150, 20)
-        self.Ymax_edit.setFixedSize(150, 20)
-        self.Zmax_edit.setFixedSize(150, 20)
+
         self.Diam_edit.setFixedSize(90, 20)
 
         #--- List Actions ---#
@@ -240,6 +238,7 @@ class BoreholeUI(QtGui.QWidget):
         sub_Diam_Grid.addWidget(Diam_label, 0, 0)
         sub_Diam_Grid.addWidget(self.Diam_edit, 0, 1)
         sub_Diam_Grid.setContentsMargins(0, 0, 0, 0)
+        sub_Diam_Grid.setAlignment(QtCore.Qt.AlignLeft)
         sub_Diam_widget.setLayout(sub_Diam_Grid)
 
         #--- Edits and Labels SubWidget ---#
@@ -261,7 +260,6 @@ class BoreholeUI(QtGui.QWidget):
         sub_E_and_L_grid.addWidget(self.Z_surf_edit, 4, 1)
         sub_E_and_L_grid.addWidget(Elev_water_label, 5, 0)
         sub_E_and_L_grid.addWidget(self.Z_water_edit, 5, 1)
-        sub_E_and_L_grid.addWidget(sub_Diam_widget, 5, 2)
         sub_E_and_L_widget.setLayout(sub_E_and_L_grid)
 
         #--- Upper Buttons ---#
@@ -287,7 +285,8 @@ class BoreholeUI(QtGui.QWidget):
         master_grid.addWidget(sub_upper_buttons_widget, 0, 0)
         master_grid.addWidget(self.bh_list, 1, 0)
         master_grid.addWidget(sub_E_and_L_widget, 2, 0)
-        master_grid.addWidget(sub_lower_buttons_widget, 3, 0)
+        master_grid.addWidget(sub_Diam_widget, 3, 0)
+        master_grid.addWidget(sub_lower_buttons_widget, 4, 0)
 
         #------- set Layout -------#
         self.setLayout(master_grid)
