@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2016 Bernard Giroux
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -61,11 +61,10 @@ class AirShots:
 
 
 class Mog:
-    def __init__(self, name=None, date=None):
+    def __init__(self, name=None):
         self.pruneParams              = PruneParams()
         self.name                     = name
-        self.date                     = date
-        self.data                     = None
+        self.data                     = MogData()
         self.av                       = np.array([])
         self.ap                       = np.array([])
         self.Tx                       = 1
@@ -209,6 +208,8 @@ class Mog:
             else:
                 airBefore = air(self.av)
                 airAfter = air(self.ap)
+
+
 
 class PruneParams:
     def __init__(self):

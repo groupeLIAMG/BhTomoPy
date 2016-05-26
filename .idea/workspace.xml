@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BoreholeUI.py" afterPath="$PROJECT_DIR$/BoreholeUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogData.py" afterPath="$PROJECT_DIR$/MogData.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
@@ -27,25 +25,14 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="BoreholeUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
+      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="106" column="22" selection-start-line="106" selection-start-column="22" selection-end-line="106" selection-end-column="22" />
+            <state vertical-scroll-proportion="0.35234898">
+              <caret line="68" column="45" selection-start-line="68" selection-start-column="45" selection-end-line="68" selection-end-column="45" />
               <folding>
-                <element signature="e#0#10#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MogData.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/MogData.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="140" column="33" selection-start-line="140" selection-start-column="33" selection-end-line="140" selection-end-column="33" />
-              <folding>
-                <element signature="e#24#36#0" expanded="true" />
+                <element signature="e#24#34#0" expanded="true" />
+                <element signature="e#5103#5498#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -55,7 +42,7 @@
         <entry file="file://$PROJECT_DIR$/mog.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="142" column="20" selection-start-line="142" selection-start-column="20" selection-end-line="142" selection-end-column="20" />
+              <caret line="66" column="48" selection-start-line="66" selection-start-column="48" selection-end-line="66" selection-end-column="48" />
               <folding />
             </state>
           </provider>
@@ -65,9 +52,8 @@
         <entry file="file://$PROJECT_DIR$/borehole.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="31" column="76" selection-start-line="31" selection-start-column="76" selection-end-line="31" selection-end-column="76" />
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="23" />
               <folding>
-                <element signature="e#24#42#0" expanded="true" />
                 <element signature="e#1880#1898#0" expanded="false" />
                 <element signature="e#1951#2090#0" expanded="false" />
                 <element signature="e#2366#2381#0" expanded="false" />
@@ -87,54 +73,6 @@
                 <element signature="e#4174#4192#0" expanded="false" />
                 <element signature="e#4245#4778#0" expanded="false" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="InfoUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/InfoUI.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="23" column="34" selection-start-line="23" selection-start-column="34" selection-end-line="23" selection-end-column="34" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="89" column="35" selection-start-line="89" selection-start-column="35" selection-end-line="89" selection-end-column="35" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/MogUI.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.44295302">
-              <caret line="297" column="45" selection-start-line="297" selection-start-column="45" selection-end-line="297" selection-end-column="45" />
-              <folding>
-                <element signature="e#1#11#0" expanded="true" />
-                <element signature="e#4051#12715#0" expanded="false" />
-                <element signature="e#4565#4960#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ModelUI.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="84" column="38" selection-start-line="84" selection-start-column="38" selection-end-line="84" selection-end-column="38" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -176,9 +114,9 @@
         <option value="$PROJECT_DIR$/ModelUI.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
         <option value="$PROJECT_DIR$/BoreholeUI.py" />
-        <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/MogData.py" />
         <option value="$PROJECT_DIR$/mpl_exemple.py" />
+        <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
       </list>
     </option>
@@ -654,7 +592,13 @@
       <option name="project" value="LOCAL" />
       <updated>1464207864954</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="RawData fonctionnel">
+      <created>1464289051817</created>
+      <option name="number" value="00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1464289051817</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -672,6 +616,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19494048" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5029762" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
@@ -682,7 +627,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3872549" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -746,7 +690,8 @@
     <MESSAGE value="Actualisation du module Info en fonction du MOG sélectionné dans la MOG_list" />
     <MESSAGE value="btn import fonctionnel dans boreholeUI" />
     <MESSAGE value="class boreholeUI version beta" />
-    <option name="LAST_COMMIT_MESSAGE" value="class boreholeUI version beta" />
+    <MESSAGE value="RawData fonctionnel" />
+    <option name="LAST_COMMIT_MESSAGE" value="RawData fonctionnel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -784,7 +729,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -794,9 +739,8 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="84" column="51" selection-start-line="84" selection-start-column="51" selection-end-line="84" selection-end-column="51" />
           <folding>
-            <element signature="e#1#11#0" expanded="true" />
-            <element signature="e#4051#12715#0" expanded="false" />
-            <element signature="e#4565#4960#0" expanded="false" />
+            <element signature="e#24#34#0" expanded="true" />
+            <element signature="e#5103#5498#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -813,7 +757,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="293" column="0" selection-start-line="293" selection-start-column="0" selection-end-line="293" selection-end-column="0" />
           <folding>
-            <element signature="e#24#42#0" expanded="true" />
+            <element signature="e#24#42#0" expanded="false" />
             <element signature="e#1880#1898#0" expanded="false" />
             <element signature="e#1951#2090#0" expanded="false" />
             <element signature="e#2366#2381#0" expanded="false" />
@@ -856,7 +800,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -866,7 +810,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="27" column="40" selection-start-line="27" selection-start-column="40" selection-end-line="27" selection-end-column="40" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -876,9 +820,8 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="11" column="4" selection-start-line="11" selection-start-column="4" selection-end-line="11" selection-end-column="21" />
           <folding>
-            <element signature="e#1#11#0" expanded="true" />
-            <element signature="e#4051#12715#0" expanded="false" />
-            <element signature="e#4565#4960#0" expanded="false" />
+            <element signature="e#24#34#0" expanded="true" />
+            <element signature="e#5103#5498#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -896,7 +839,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="32" selection-end-column="25" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -913,7 +856,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#24#42#0" expanded="true" />
+            <element signature="e#24#42#0" expanded="false" />
             <element signature="e#1880#1898#0" expanded="false" />
             <element signature="e#1951#2090#0" expanded="false" />
             <element signature="e#2366#2381#0" expanded="false" />
@@ -941,7 +884,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="275" column="34" selection-start-line="275" selection-start-column="34" selection-end-line="275" selection-end-column="34" />
           <folding>
-            <element signature="e#24#42#0" expanded="true" />
+            <element signature="e#24#42#0" expanded="false" />
             <element signature="e#1880#1898#0" expanded="false" />
             <element signature="e#1951#2090#0" expanded="false" />
             <element signature="e#2366#2381#0" expanded="false" />
@@ -983,7 +926,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#24#42#0" expanded="true" />
+            <element signature="e#24#42#0" expanded="false" />
             <element signature="e#1880#1898#0" expanded="false" />
             <element signature="e#1951#2090#0" expanded="false" />
             <element signature="e#2366#2381#0" expanded="false" />
@@ -1011,7 +954,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#24#42#0" expanded="true" />
+            <element signature="e#24#42#0" expanded="false" />
             <element signature="e#1880#1898#0" expanded="false" />
             <element signature="e#1951#2090#0" expanded="false" />
             <element signature="e#2366#2381#0" expanded="false" />
@@ -1154,16 +1097,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/InfoUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="34" selection-start-line="23" selection-start-column="34" selection-end-line="23" selection-end-column="34" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Desktop/BhTomoPyJS/borehole.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1178,56 +1111,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/borehole.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="31" column="76" selection-start-line="31" selection-start-column="76" selection-end-line="31" selection-end-column="76" />
-          <folding>
-            <element signature="e#24#42#0" expanded="true" />
-            <element signature="e#1880#1898#0" expanded="false" />
-            <element signature="e#1951#2090#0" expanded="false" />
-            <element signature="e#2366#2381#0" expanded="false" />
-            <element signature="e#2425#2560#0" expanded="false" />
-            <element signature="e#2601#2616#0" expanded="false" />
-            <element signature="e#2660#2795#0" expanded="false" />
-            <element signature="e#2839#2857#0" expanded="false" />
-            <element signature="e#2910#3054#0" expanded="false" />
-            <element signature="e#3098#3116#0" expanded="false" />
-            <element signature="e#3169#3313#0" expanded="false" />
-            <element signature="e#3357#3375#0" expanded="false" />
-            <element signature="e#3428#3572#0" expanded="false" />
-            <element signature="e#3618#3638#0" expanded="false" />
-            <element signature="e#3697#3847#0" expanded="false" />
-            <element signature="e#3894#3915#0" expanded="false" />
-            <element signature="e#3977#4130#0" expanded="false" />
-            <element signature="e#4174#4192#0" expanded="false" />
-            <element signature="e#4245#4778#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ModelUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="84" column="38" selection-start-line="84" selection-start-column="38" selection-end-line="84" selection-end-column="38" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="89" column="35" selection-start-line="89" selection-start-column="35" selection-end-line="89" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="142" column="20" selection-start-line="142" selection-start-column="20" selection-end-line="142" selection-end-column="20" />
           <folding />
         </state>
       </provider>
@@ -1261,7 +1148,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="106" column="22" selection-start-line="106" selection-start-column="22" selection-end-line="106" selection-end-column="22" />
           <folding>
-            <element signature="e#0#10#0" expanded="true" />
+            <element signature="e#0#10#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1286,14 +1173,68 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/InfoUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="23" column="34" selection-start-line="23" selection-start-column="34" selection-end-line="23" selection-end-column="34" />
+          <folding>
+            <element signature="e#0#10#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.73458904">
+          <caret line="89" column="35" selection-start-line="89" selection-start-column="35" selection-end-line="89" selection-end-column="35" />
+          <folding>
+            <element signature="e#0#10#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/borehole.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="23" />
+          <folding>
+            <element signature="e#1880#1898#0" expanded="false" />
+            <element signature="e#1951#2090#0" expanded="false" />
+            <element signature="e#2366#2381#0" expanded="false" />
+            <element signature="e#2425#2560#0" expanded="false" />
+            <element signature="e#2601#2616#0" expanded="false" />
+            <element signature="e#2660#2795#0" expanded="false" />
+            <element signature="e#2839#2857#0" expanded="false" />
+            <element signature="e#2910#3054#0" expanded="false" />
+            <element signature="e#3098#3116#0" expanded="false" />
+            <element signature="e#3169#3313#0" expanded="false" />
+            <element signature="e#3357#3375#0" expanded="false" />
+            <element signature="e#3428#3572#0" expanded="false" />
+            <element signature="e#3618#3638#0" expanded="false" />
+            <element signature="e#3697#3847#0" expanded="false" />
+            <element signature="e#3894#3915#0" expanded="false" />
+            <element signature="e#3977#4130#0" expanded="false" />
+            <element signature="e#4174#4192#0" expanded="false" />
+            <element signature="e#4245#4778#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="66" column="48" selection-start-line="66" selection-start-column="48" selection-end-line="66" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.44295302">
-          <caret line="297" column="45" selection-start-line="297" selection-start-column="45" selection-end-line="297" selection-end-column="45" />
+        <state vertical-scroll-proportion="0.35234898">
+          <caret line="68" column="45" selection-start-line="68" selection-start-column="45" selection-end-line="68" selection-end-column="45" />
           <folding>
-            <element signature="e#1#11#0" expanded="true" />
-            <element signature="e#4051#12715#0" expanded="false" />
-            <element signature="e#4565#4960#0" expanded="false" />
+            <element signature="e#24#34#0" expanded="true" />
+            <element signature="e#5103#5498#0" expanded="false" />
           </folding>
         </state>
       </provider>

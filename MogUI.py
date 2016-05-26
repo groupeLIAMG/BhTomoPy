@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 import sys
 from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
@@ -8,6 +8,8 @@ from unicodedata import *
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 class MOGUI(QtGui.QWidget):
 
     mogInfoSignal = QtCore.pyqtSignal(int)
@@ -38,10 +40,10 @@ class MOGUI(QtGui.QWidget):
         # Conditions to get the path of the file itself in order to execute it
         if ".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower():
             basename = filename[:-4]
-        mogd = MogData(str(rname))
-        self.MOGs.append(mogd)
+        mog = Mog(str(rname))
+        self.MOGs.append(mog)
         self.update_List_Widget()
-        mogd.readRAMAC(basename)
+        mog.data.readRAMAC(basename)
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
         self.update_edits()
 
@@ -52,19 +54,19 @@ class MOGUI(QtGui.QWidget):
         """
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            mogd = self.MOGs[i.row()]
+            mog = self.MOGs[i.row()]
             self.Rx_Offset_edit.clear()
             self.Tx_Offset_edit.clear()
             self.Correction_Factor_edit.clear()
             self.Multiplication_Factor_edit.clear()
             self.Nominal_Frequency_edit.clear()
 
-            self.Nominal_Frequency_edit.setText(str(mogd.rnomfreq))
-            self.Rx_Offset_edit.setText(str(mogd.RxOffset))
-            self.Tx_Offset_edit.setText(str(mogd.TxOffset))
+            self.Nominal_Frequency_edit.setText(str(mog.data.rnomfreq))
+            self.Rx_Offset_edit.setText(str(mog.data.RxOffset))
+            self.Tx_Offset_edit.setText(str(mog.data.TxOffset))
 
-            self.ntraceSignal.emit(mogd.ntrace)
-            self.databaseSignal.emit(mogd.name)
+            self.ntraceSignal.emit(mog.data.ntrace)
+            self.databaseSignal.emit(mog.data.name)
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
@@ -79,12 +81,27 @@ class MOGUI(QtGui.QWidget):
             for i in ind:
                 self.MOGs[int(i.row())] = new_name
         self.update_List_Widget()
+
+
+    def airBefore(self, *args):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
+        if not filename:
+            return
+        else:
+            ind = self.MOG_list.selectedIndexes()
+            for i in ind:
+                name = filename[:-4]
+                found = False
+
+                for n in range(len(self.air)):
+                    if str(name) in str(self.air[n].name):  # self.air représente une instance de la Classe AirShots?
+                        self.MOGs[i.row()]
+
+
 #TODO:
     def import_mog(self):
         pass
     def merge(self):
-        pass
-    def rawdata(self):
         pass
     def trace_zop(self):
         pass
@@ -124,8 +141,6 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             self.rawdataFig.plot_raw_data(self.MOGs[i.row()])
-            print(max((self.MOGs[i.row()].rdata).flatten()))
-
             self.rawdatamanager.show()
 
 
@@ -296,9 +311,6 @@ class RawDataFig(FigureCanvasQTAgg):
 
     def initFig(self):
         ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
-
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
-
         divider = make_axes_locatable(ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
         ax.set_axisbelow(True)
@@ -313,7 +325,6 @@ class RawDataFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(ax1, 'Time units[{}]'.format(mogd.tunits))
         cmax = np.abs(max(mogd.rdata.flatten()))
         h = ax1.imshow(mogd.rdata,cmap='seismic', interpolation='none',aspect= 'auto', vmin= -cmax, vmax= cmax  )
-
         mpl.colorbar.Colorbar(ax2, h)
 
         self.draw()
@@ -328,10 +339,10 @@ if __name__ == '__main__':
 
 
     MOGUI_ui = MOGUI()
-    #MOGUI_ui.show()
+    MOGUI_ui.show()
 
-    MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
-    MOGUI_ui.plot_rawdata()
+    #MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
+    #MOGUI_ui.plot_rawdata()
 
 
     sys.exit(app.exec_())
