@@ -54,7 +54,7 @@ class MOGUI(QtGui.QWidget):
         self.update_List_Widget()
         mog.data.readRAMAC(basename)
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
-        self.update_spectra_Tx_num_combo()
+        self.update_spectra_Tx_num_list()
         self.update_spectra_Tx_elev_value_label()
         self.update_edits()
 
@@ -227,7 +227,7 @@ class MOGUI(QtGui.QWidget):
     def prune(self):
         pass
 
-    def update_spectra_Tx_num_combo(self):
+    def update_spectra_Tx_num_list(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
         self.Tx_num_list.clear()
@@ -242,6 +242,22 @@ class MOGUI(QtGui.QWidget):
         for j in ind:
             self.Tx_elev_value_label.setText(str((list(mog.data.Tx_z))[j.row()]))
 
+    def search_Tx_elev(self):
+        if self.search_combo.currentText() == 'Search with Elevation':
+            item = float(self.search_elev_edit.text())
+            ind = self.MOG_list.selectedIndexes()
+            for i in range(len(self.MOGs[ind[0].row()].data.Tx_z)):
+                if self.MOGs[ind[0].row()].data.Tx_z[i] == item:
+                    self.Tx_num_list.setCurrentRow(i)
+                else:
+                    idx = np.argmin((np.abs(self.MOGs[ind[0].row()].data.Tx_z-item)))
+                    self.Tx_num_list.setCurrentRow(idx)
+                self.update_spectra_Tx_elev_value_label()
+        elif self.search_combo.currentText() == 'Search with Number':
+            item = float(self.search_elev_edit.text())
+            self.Tx_num_list.setCurrentRow(item)
+
+
     def update_List_Widget(self):
         self.MOG_list.clear()
         for mog in self.MOGs:
@@ -254,8 +270,6 @@ class MOGUI(QtGui.QWidget):
         for bh in list:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
-
-
 
     def plot_rawdata(self):
         ind = self.MOG_list.selectedIndexes()
@@ -308,15 +322,20 @@ class MOGUI(QtGui.QWidget):
         self.f_max_edit = QtGui.QLineEdit()
         self.f_min_edit = QtGui.QLineEdit()
         self.f_maxi_edit = QtGui.QLineEdit()
+        self.search_elev_edit = QtGui.QLineEdit()
         #- Edits disposition -#
-        self.f_max_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.search_elev_edit.editingFinished.connect(self.search_Tx_elev)
+        self.search_elev_edit.setFixedWidth(100)
         #- Comboboxes -#
         self.Tx_num_combo = QtGui.QComboBox()
+        self.search_combo = QtGui.QComboBox()
         self.psd_combo = QtGui.QComboBox()
         self.snr_combo = QtGui.QComboBox()
 
-        #- Combobox action-#
-        #self.Tx_num_combo.currentIndexChanged.connect(self.update_spectra_Tx_elev_value_label)
+        #- Combobox Items -#
+        self.search_combo.addItem('Search with Elevation')
+        self.search_combo.addItem('Search with Number')
+
 
         #- List Widget -#
         self.Tx_num_list = QtGui.QListWidget()
@@ -335,10 +354,18 @@ class MOGUI(QtGui.QWidget):
         sub_elev_grid.setContentsMargins(0, 0, 0, 0)
         sub_elev_widget.setLayout(sub_elev_grid)
 
+        #- list top SubWidget -#
+        sub_Tx_widget = QtGui.QWidget()
+        sub_Tx_grid = QtGui.QGridLayout()
+        sub_Tx_grid.addWidget(Tx_num_label, 0, 0)
+        sub_Tx_grid.addWidget(self.search_combo, 0, 1)
+        sub_Tx_grid.addWidget(self.search_elev_edit, 1, 1)
+        sub_Tx_widget.setLayout(sub_Tx_grid)
+
         #- first SubWidget -#
         sub_first_widget            = QtGui.QWidget()
         sub_first_grid              = QtGui.QGridLayout()
-        sub_first_grid.addWidget(Tx_num_label, 0, 0)
+        sub_first_grid.addWidget(sub_Tx_widget, 0, 0)
         sub_first_grid.addWidget(self.Tx_num_list, 1, 0)
         sub_first_grid.addWidget(sub_elev_widget, 2, 0)
         sub_first_grid.addWidget(psd_label, 5, 0)
@@ -586,10 +613,10 @@ if __name__ == '__main__':
 
 
     MOGUI_ui = MOGUI()
-    MOGUI_ui.show()
+    #MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
-    #MOGUI_ui.plot_spectra()
+    MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
 
 
