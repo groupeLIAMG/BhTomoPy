@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogData.py" afterPath="$PROJECT_DIR$/MogData.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -658,7 +655,13 @@
       <option name="project" value="LOCAL" />
       <updated>1464297853898</updated>
     </task>
-    <option name="localTasksCounter" value="33" />
+    <task id="LOCAL-00033" summary="air before, air after, squellete de spectra">
+      <created>1464358486935</created>
+      <option name="number" value="00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1464358486935</updated>
+    </task>
+    <option name="localTasksCounter" value="34" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -728,7 +731,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="vérification attributs Borehole" />
     <MESSAGE value="Borehole avec fonction project et commentaires sur l'ensemble de la classe" />
     <MESSAGE value="borehole, airshots et mog" />
     <MESSAGE value="Ajout des modules BoreholeUI2, MOGUI et ModelUI" />
@@ -753,7 +755,8 @@
     <MESSAGE value="Restructuration de l'importation des Mogs: la self.MOG_list prends maintenant des instances de Mog et non de MogData" />
     <MESSAGE value="implémentation de la fonction airBefore dans MogUI" />
     <MESSAGE value="implémentation de la fonction airAfter dans MogUI" />
-    <option name="LAST_COMMIT_MESSAGE" value="implémentation de la fonction airAfter dans MogUI" />
+    <MESSAGE value="air before, air after, squellete de spectra" />
+    <option name="LAST_COMMIT_MESSAGE" value="air before, air after, squellete de spectra" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
