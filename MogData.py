@@ -34,7 +34,6 @@ class MogData:
         self.comment      = ''      # is defined by the presence of any comment in the file
         self.date         = ''      # the date of the data sample
         self.name         = name
-        self.data_rep     = ''
 
     def readRAMAC(self, basename):
         """
@@ -48,9 +47,8 @@ class MogData:
         self.readRD3(basename)
         self.readTLF(basename)
 
-        for rep in basename.split('/')[:-1]:
-            self.data_rep = self.data_rep + rep + '/'
-        self.data_rep = self.data_rep[:-1]
+
+
 
         self.TxOffset = 0
         self.RxOffset = 0
@@ -121,7 +119,7 @@ class MogData:
         #print(self.nptsptrc)    # these prints will be deleted
         #print(self.timec)
         #print(self.synthetique)
-        print(self.rnomfreq)
+        #print(self.rnomfreq)
         #print(self.antennas)
         #print(self.ntrace)
         #print(self.timestp)

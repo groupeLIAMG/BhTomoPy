@@ -23,8 +23,8 @@ class MOGUI(QtGui.QWidget):
         super(MOGUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/MOGs")
         self.MOGs = []
-        self.mogdata = MogData()
-        self.mog = Mog()
+        self.air = []
+        self.data_rep = ''
         self.initUI()
 
     def add_MOG(self):
@@ -44,7 +44,12 @@ class MOGUI(QtGui.QWidget):
         # Conditions to get the path of the file itself in order to execute it
         if ".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower():
             basename = filename[:-4]
-        mog = Mog(str(rname))
+
+        for rep in basename.split('/')[:-1]:
+            self.data_rep = self.data_rep + rep + '/'
+        self.data_rep = self.data_rep[:-1]
+
+        mog = Mog(rname)
         self.MOGs.append(mog)
         self.update_List_Widget()
         mog.data.readRAMAC(basename)
@@ -53,7 +58,7 @@ class MOGUI(QtGui.QWidget):
 
     def update_edits(self):
         """
-        this funstion updates the info either in the  MOG's edits or in the info's labels
+        this function updates the info either in the  MOG's edits or in the info's labels
 
         """
         ind = self.MOG_list.selectedIndexes()
@@ -87,11 +92,11 @@ class MOGUI(QtGui.QWidget):
         self.update_List_Widget()
 
 
-    def airBefore(self, *args):
-        old_rep = os.getcwd()
-        if len(self.mogdata.data_rep) != 0 :
-            os.chdir(self.mogdata.data_rep)
-
+    def airBefore(self):
+        old_rep = os.getcwd()               # this operation gets the first directory
+        mog = Mog()
+        if len(self.data_rep) != 0 :
+            os.chdir(self.data_rep) # if one already have uploaded a file, the next time will be at the same path
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
         os.chdir(old_rep)
         if not filename:
@@ -102,15 +107,15 @@ class MOGUI(QtGui.QWidget):
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
-                found = False
+                #found = False
 
                 for n in range(len(self.air)):
                     if str(basename) in str(self.air[n].name):  # self.air représente une instance de la Classe AirShots?
                         self.MOGs[i.row()].av = n               # étant donné qu'on le définit plus bas, quest ce que ca implique ?
-                        found = True
+                        #found = True
                         break
-
-                if not found:
+                else:
+                #if not found:
                     n = len(self.air) + 1
 
                     data = MogData()
@@ -139,7 +144,7 @@ class MOGUI(QtGui.QWidget):
                     self.Air_Shot_Before_edit.setText(self.air[n].name)
 
 
-    def airAfter(self, *args):
+    def airAfter(self):
         old_rep = os.getcwd()
         if len(self.mogdata.data_rep) != 0 :
             os.chdir(self.mogdata.data_rep)
@@ -237,18 +242,22 @@ class MOGUI(QtGui.QWidget):
     def plot_rawdata(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            self.rawdataFig.plot_raw_data(self.MOGs[i.row()])
+            self.rawdataFig.plot_raw_data(self.MOGs[i.row()].data)
             self.rawdatamanager.show()
 
+    def plot_spectra(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            self.spectraFig.plot_spectra(self.MOGs[i.row()].data)
+            self.spectramanager.show()
 
     def initUI(self):
-        self.rawdataFig = RawDataFig()
-        self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
-        self.rawdatamanager = QtGui.QWidget()
-        rawdatamanagergrid = QtGui.QGridLayout()
-        rawdatamanagergrid.addWidget(self.rawdatatool, 0, 0)
-        rawdatamanagergrid.addWidget(self.rawdataFig, 1, 0)
-        self.rawdatamanager.setLayout(rawdatamanagergrid)
+
+
+
+
+
+
         char1 = lookup("GREEK SMALL LETTER TAU")
         #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
@@ -260,6 +269,98 @@ class MOGUI(QtGui.QWidget):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
+
+        #------ Creation of the Manager for the raw Data figure -------#
+        self.rawdataFig = RawDataFig()
+        self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
+        self.rawdatamanager = QtGui.QWidget()
+        rawdatamanagergrid = QtGui.QGridLayout()
+        rawdatamanagergrid.addWidget(self.rawdatatool, 0, 0)
+        rawdatamanagergrid.addWidget(self.rawdataFig, 1, 0)
+        self.rawdatamanager.setLayout(rawdatamanagergrid)
+
+
+        #--- Widgets in Spectra ---#
+        #- Labels -#
+        Tx_num_label = MyQLabel(('Tx Number'), ha='center')
+        Tx_elev_label = QtGui.QLabel('Tx elevation: ')
+        self.Tx_elev_value_label = QtGui.QLabel('')
+        psd_label = MyQLabel(('PSD Estimation Method'), ha= 'center')
+        f_max_label = MyQLabel(('F Max'), ha='center')
+        snr_label = MyQLabel(('SNR Scale'), ha='center')
+        f_min_label = MyQLabel(('F Max'), ha='right')
+        f_maxi_label = MyQLabel(('F Max'), ha='right')
+
+        #- Edits -#
+        self.f_max_edit = QtGui.QLineEdit()
+        self.f_min_edit = QtGui.QLineEdit()
+        self.f_maxi_edit = QtGui.QLineEdit()
+        #- Edits disposition -#
+        self.f_max_edit.setAlignment(QtCore.Qt.AlignCenter)
+        #- Comboboxes -#
+        self.Tx_num_combo = QtGui.QComboBox()
+        self.psd_combo = QtGui.QComboBox()
+        self.snr_combo = QtGui.QComboBox()
+
+        #- Checkboxes -#
+        self.filter_check = QtGui.QCheckBox('Apply Low Pass Filter')
+        self.compute_check = QtGui.QCheckBox('Compute & Show')
+
+        #- elevation SubWidget -#
+        sub_elev_widget = QtGui.QWidget()
+        sub_elev_grid = QtGui.QGridLayout()
+        sub_elev_grid.addWidget(Tx_elev_label, 0, 0)
+        sub_elev_grid.addWidget(self.Tx_elev_value_label, 0, 1)
+        sub_elev_grid.setContentsMargins(0, 0, 0, 0)
+        sub_elev_widget.setLayout(sub_elev_grid)
+
+        #- first SubWidget -#
+        sub_first_widget            = QtGui.QWidget()
+        sub_first_grid              = QtGui.QGridLayout()
+        sub_first_grid.addWidget(Tx_num_label, 0, 0)
+        sub_first_grid.addWidget(self.Tx_num_combo, 1, 0)
+        sub_first_grid.addWidget(sub_elev_widget, 2, 0)
+        sub_first_grid.addWidget(psd_label, 5, 0)
+        sub_first_grid.addWidget(self.psd_combo, 6, 0)
+        sub_first_grid.addWidget(f_max_label, 8, 0)
+        sub_first_grid.addWidget(self.f_max_edit, 9, 0)
+        sub_first_grid.addWidget(snr_label, 11, 0)
+        sub_first_grid.addWidget(self.snr_combo, 12, 0)
+        sub_first_grid.addWidget(self.filter_check, 13, 0)
+        sub_first_widget.setLayout(sub_first_grid)
+
+
+        #- Dominant frequency Groupbox -#
+        dominant_frequency_GroupBox =  QtGui.QGroupBox("Dominant Frequency")
+        dominant_frequency_Grid     = QtGui.QGridLayout()
+        dominant_frequency_Grid.addWidget(f_min_label, 0, 0)
+        dominant_frequency_Grid.addWidget(self.f_min_edit, 0, 1)
+        dominant_frequency_Grid.addWidget(f_maxi_label, 1, 0)
+        dominant_frequency_Grid.addWidget(self.f_maxi_edit, 1, 1)
+        dominant_frequency_Grid.addWidget(self.compute_check, 2, 0)
+        dominant_frequency_GroupBox.setLayout(dominant_frequency_Grid)
+
+        #- Total Subwidget -#
+        sub_total_widget = QtGui.QWidget()
+        sub_total_grid = QtGui.QGridLayout()
+        sub_total_grid.addWidget(sub_first_widget, 0, 0)
+        sub_total_grid.addWidget(dominant_frequency_GroupBox, 2, 0)
+        sub_total_grid.setRowStretch(1, 100)
+        sub_total_widget.setLayout(sub_total_grid)
+
+
+        #------ Creation of the Manager for the Spectra figure -------#
+
+        self.spectraFig = SpectraFig()
+        self.spectratool = NavigationToolbar2QT(self.spectraFig, self)
+        self.spectramanager = QtGui.QWidget()
+        spectramanagergrid = QtGui.QGridLayout()
+        spectramanagergrid.addWidget(self.spectratool, 0, 0)
+        spectramanagergrid.addWidget(self.spectraFig, 1, 0, 1, 6)
+        spectramanagergrid.addWidget(sub_total_widget, 1, 6)
+        spectramanagergrid.setColumnStretch(1, 100)
+        self.spectramanager.setLayout(spectramanagergrid)
+
 
         #------- Widgets Creation -------#
         #--- Buttons Set ---#
@@ -321,6 +422,8 @@ class MOGUI(QtGui.QWidget):
         btn_Rename.clicked.connect(self.rename)
         btn_Remove_MOG.clicked.connect(self.del_MOG)
         btn_Raw_Data.clicked.connect(self.plot_rawdata)
+        btn_Spectra.clicked.connect(self.plot_spectra)
+        btn_Air_Shot_Before.clicked.connect(self.airBefore)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -413,6 +516,7 @@ class RawDataFig(FigureCanvasQTAgg):
         ax.set_axisbelow(True)
 
 
+
     def plot_raw_data(self, mogd):
         ax1 = self.figure.axes[0]
         ax2 = self.figure.axes[1]
@@ -426,7 +530,32 @@ class RawDataFig(FigureCanvasQTAgg):
 
         self.draw()
 
+class SpectraFig(FigureCanvasQTAgg):
+    def __init__(self):
+        fig = mpl.figure.Figure(facecolor= 'white')
+        super(SpectraFig, self).__init__(fig)
+        self.initFig()
 
+    def initFig(self):
+        ax1 = self.figure.add_axes([0.08, 0.06, 0.3, 0.9])
+        ax2 = self.figure.add_axes([0.42, 0.06, 0.3, 0.9])
+        ax3 = self.figure.add_axes([0.78, 0.06, 0.2, 0.9])
+        ax1.set_axisbelow(True)
+    def plot_spectra(self, mogd):
+        ax1 = self.figure.axes[0]
+        ax2 = self.figure.axes[1]
+        ax3 = self.figure.axes[2]
+        ax1.cla()
+        ax2.cla()
+        ax3.cla()
+
+        mpl.axes.Axes.set_title(ax1, 'Normalized amplitude')
+        mpl.axes.Axes.set_title(ax2, 'Log Power spectra')
+        mpl.axes.Axes.set_title(ax3, 'Signal-to-Noise Ratio')
+        mpl.axes.Axes.set_xlabel(ax1, ' Time [{}]'.format(mogd.tunits))
+        mpl.axes.Axes.set_ylabel(ax1, 'Rx elevation [{}]'.format(mogd.cunits))
+        mpl.axes.Axes.set_xlabel(ax2, 'Frequency [MHz]')
+        mpl.axes.Axes.set_xlabel(ax3, 'SNR')
 
 
 
@@ -438,7 +567,8 @@ if __name__ == '__main__':
     MOGUI_ui = MOGUI()
     MOGUI_ui.show()
 
-    #MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
+    MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
+    #MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
 
 

@@ -66,7 +66,7 @@ class AirShots:
 
 
 class Mog:
-    def __init__(self, name=None):
+    def __init__(self, name= ''):
         self.pruneParams              = PruneParams()
         self.name                     = name
         self.data                     = MogData()
