@@ -54,6 +54,8 @@ class MOGUI(QtGui.QWidget):
         self.update_List_Widget()
         mog.data.readRAMAC(basename)
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
+        self.update_spectra_Tx_num_combo()
+        self.update_spectra_Tx_elev_value_label()
         self.update_edits()
 
     def update_edits(self):
@@ -196,7 +198,11 @@ class MOGUI(QtGui.QWidget):
                     self.Air_Shot_After_edit.setText(self.air[n].name)
 
 
+    def spectra(self, mog):
 
+        dt = mog.data.timec * mog.fac_dt
+        Tx = mog.data.Tx_z
+        #ind = Tx[]
 
 
 
@@ -207,8 +213,7 @@ class MOGUI(QtGui.QWidget):
         pass
     def trace_zop(self):
         pass
-    def spectra(self):
-        pass
+
     def stats_tt(self):
         pass
     def stats_ampl(self):
@@ -222,15 +227,26 @@ class MOGUI(QtGui.QWidget):
     def prune(self):
         pass
 
+    def update_spectra_Tx_num_combo(self):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+        self.Tx_num_list.clear()
+        for Tx in range(len(mog.data.Tx_z)+1):
+            self.Tx_num_list.addItem(str(Tx))
 
+    def update_spectra_Tx_elev_value_label(self):
+        ind1 = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind1[0].row()]
+        self.Tx_elev_value_label.clear()
+        ind = self.Tx_num_list.selectedIndexes()
+        for j in ind:
+            self.Tx_elev_value_label.setText(str((list(mog.data.Tx_z))[j.row()]))
 
     def update_List_Widget(self):
         self.MOG_list.clear()
         for mog in self.MOGs:
             self.MOG_list.addItem(mog.name)
-
         self.mogInfoSignal.emit(len(self.MOG_list))
-
 
     def update_Tx_and_Rx_Widget(self, list):
         self.Tx_combo.clear()
@@ -238,6 +254,8 @@ class MOGUI(QtGui.QWidget):
         for bh in list:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
+
+
 
     def plot_rawdata(self):
         ind = self.MOG_list.selectedIndexes()
@@ -252,11 +270,6 @@ class MOGUI(QtGui.QWidget):
             self.spectramanager.show()
 
     def initUI(self):
-
-
-
-
-
 
         char1 = lookup("GREEK SMALL LETTER TAU")
         #--- Class For Alignment ---#
@@ -302,6 +315,14 @@ class MOGUI(QtGui.QWidget):
         self.psd_combo = QtGui.QComboBox()
         self.snr_combo = QtGui.QComboBox()
 
+        #- Combobox action-#
+        #self.Tx_num_combo.currentIndexChanged.connect(self.update_spectra_Tx_elev_value_label)
+
+        #- List Widget -#
+        self.Tx_num_list = QtGui.QListWidget()
+
+        self.Tx_num_list.itemSelectionChanged.connect(self.update_spectra_Tx_elev_value_label)
+
         #- Checkboxes -#
         self.filter_check = QtGui.QCheckBox('Apply Low Pass Filter')
         self.compute_check = QtGui.QCheckBox('Compute & Show')
@@ -318,7 +339,7 @@ class MOGUI(QtGui.QWidget):
         sub_first_widget            = QtGui.QWidget()
         sub_first_grid              = QtGui.QGridLayout()
         sub_first_grid.addWidget(Tx_num_label, 0, 0)
-        sub_first_grid.addWidget(self.Tx_num_combo, 1, 0)
+        sub_first_grid.addWidget(self.Tx_num_list, 1, 0)
         sub_first_grid.addWidget(sub_elev_widget, 2, 0)
         sub_first_grid.addWidget(psd_label, 5, 0)
         sub_first_grid.addWidget(self.psd_combo, 6, 0)
@@ -540,6 +561,7 @@ class SpectraFig(FigureCanvasQTAgg):
         ax1 = self.figure.add_axes([0.08, 0.06, 0.3, 0.9])
         ax2 = self.figure.add_axes([0.42, 0.06, 0.3, 0.9])
         ax3 = self.figure.add_axes([0.78, 0.06, 0.2, 0.9])
+        ax1.yaxis.set_ticks_position('left')
         ax1.set_axisbelow(True)
     def plot_spectra(self, mogd):
         ax1 = self.figure.axes[0]
@@ -548,7 +570,6 @@ class SpectraFig(FigureCanvasQTAgg):
         ax1.cla()
         ax2.cla()
         ax3.cla()
-
         mpl.axes.Axes.set_title(ax1, 'Normalized amplitude')
         mpl.axes.Axes.set_title(ax2, 'Log Power spectra')
         mpl.axes.Axes.set_title(ax3, 'Signal-to-Noise Ratio')

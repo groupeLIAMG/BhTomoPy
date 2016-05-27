@@ -28,6 +28,12 @@ class DatabaseUI(QtGui.QWidget):
         self.mog.ntraceSignal.connect(self.update_trace_info)
         self.mog.databaseSignal.connect(self.update_database_info)
         self.model.modelInfoSignal.connect(self.update_model_info)
+        self.mogdata.Tx_zSignal.connect(self.update_spectra)
+
+    def update_spectra(self, Tx_list):
+        self.mog.update_spectra_Tx_num_combo(Tx_list)
+        self.mog.update_spectra_Tx_elev_value_label(Tx_list)
+
 
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
@@ -82,7 +88,6 @@ class DatabaseUI(QtGui.QWidget):
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
 
-#TODO: refaire les dimension( mog groupbox occupe 2 colonnes meme chose pour models
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(bh_GroupBox, 0, 0)

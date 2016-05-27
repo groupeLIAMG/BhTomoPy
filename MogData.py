@@ -2,13 +2,17 @@
 import scanf
 import re
 import numpy as np
-from os.path import getsize
+from PyQt4 import QtCore
+
 
 
 class MogData:
     """
     Class to hold multi-offset gather (mog) data
     """
+
+    Tx_zSignal = QtCore.pyqtSignal(list)
+
     def __init__(self, name=None, date=None):
         self.ntrace       = 0       # number of traces
         self.nptsptrc     = 0       # number of points per trace
@@ -47,9 +51,6 @@ class MogData:
         self.readRD3(basename)
         self.readTLF(basename)
 
-
-
-
         self.TxOffset = 0
         self.RxOffset = 0
 
@@ -68,6 +69,10 @@ class MogData:
         self.Rx_y = np.zeros((1, self.ntrace))
         self.Tx_x = np.zeros((1, self.ntrace))
         self.Rx_x = np.zeros((1, self.ntrace))
+
+        #for i in self.Tx_z:
+         #   print(i)
+
 
 
     def readRAD(self, basename):
