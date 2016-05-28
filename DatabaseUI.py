@@ -28,7 +28,7 @@ class DatabaseUI(QtGui.QWidget):
         self.mog.ntraceSignal.connect(self.update_trace_info)
         self.mog.databaseSignal.connect(self.update_database_info)
         self.model.modelInfoSignal.connect(self.update_model_info)
-        self.mogdata.Tx_zSignal.connect(self.update_spectra)
+
 
     def update_spectra(self, Tx_list):
         self.mog.update_spectra_Tx_num_combo(Tx_list)

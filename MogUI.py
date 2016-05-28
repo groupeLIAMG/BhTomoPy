@@ -27,6 +27,7 @@ class MOGUI(QtGui.QWidget):
         self.data_rep = ''
         self.initUI()
 
+
     def add_MOG(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
 
@@ -249,13 +250,23 @@ class MOGUI(QtGui.QWidget):
             for i in range(len(self.MOGs[ind[0].row()].data.Tx_z)):
                 if self.MOGs[ind[0].row()].data.Tx_z[i] == item:
                     self.Tx_num_list.setCurrentRow(i)
-                else:
+                elif item not in self.MOGs[ind[0].row()].data.Tx_z:
                     idx = np.argmin((np.abs(self.MOGs[ind[0].row()].data.Tx_z-item)))
                     self.Tx_num_list.setCurrentRow(idx)
+                    green = QtGui.QPalette()
+                    green.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
+                    self.info_label.setText('{} is not a value in this data, {} was the closest'.format(item, np.around(self.MOGs[ind[0].row()].data.Tx_z[idx], decimals=1 )))
+                    self.info_label.setPalette(green)
                 self.update_spectra_Tx_elev_value_label()
         elif self.search_combo.currentText() == 'Search with Number':
             item = float(self.search_elev_edit.text())
-            self.Tx_num_list.setCurrentRow(item)
+            if item in range(len(self.Tx_num_list)):
+                self.Tx_num_list.setCurrentRow(item)
+            else:
+                red = QtGui.QPalette()
+                red.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
+                self.info_label.setText('This data contains only {} traces, {} is out of range'.format(len(self.Tx_num_list) -1, int(item)))
+                self.info_label.setPalette(red)
 
 
     def update_List_Widget(self):
@@ -284,6 +295,9 @@ class MOGUI(QtGui.QWidget):
             self.spectramanager.show()
 
     def initUI(self):
+
+
+
 
         char1 = lookup("GREEK SMALL LETTER TAU")
         #--- Class For Alignment ---#
@@ -317,6 +331,7 @@ class MOGUI(QtGui.QWidget):
         snr_label = MyQLabel(('SNR Scale'), ha='center')
         f_min_label = MyQLabel(('F Max'), ha='right')
         f_maxi_label = MyQLabel(('F Max'), ha='right')
+        self.info_label = MyQLabel((''), ha= 'center')
 
         #- Edits -#
         self.f_max_edit = QtGui.QLineEdit()
@@ -339,7 +354,6 @@ class MOGUI(QtGui.QWidget):
 
         #- List Widget -#
         self.Tx_num_list = QtGui.QListWidget()
-
         self.Tx_num_list.itemSelectionChanged.connect(self.update_spectra_Tx_elev_value_label)
 
         #- Checkboxes -#
@@ -404,6 +418,7 @@ class MOGUI(QtGui.QWidget):
         self.spectramanager = QtGui.QWidget()
         spectramanagergrid = QtGui.QGridLayout()
         spectramanagergrid.addWidget(self.spectratool, 0, 0)
+        spectramanagergrid.addWidget(self.info_label, 0, 6)
         spectramanagergrid.addWidget(self.spectraFig, 1, 0, 1, 6)
         spectramanagergrid.addWidget(sub_total_widget, 1, 6)
         spectramanagergrid.setColumnStretch(1, 100)
@@ -616,7 +631,7 @@ if __name__ == '__main__':
     #MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
-    MOGUI_ui.plot_spectra()
+    #MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
 
 
