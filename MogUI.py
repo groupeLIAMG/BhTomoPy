@@ -96,7 +96,7 @@ class MOGUI(QtGui.QWidget):
 
 
     def airBefore(self):
-        old_rep = os.getcwd()               # this operation gets the first directory
+        old_rep = os.getcwd()       # this operation gets the first directory
         mog = Mog()
         if len(self.data_rep) != 0 :
             os.chdir(self.data_rep) # if one already have uploaded a file, the next time will be at the same path
@@ -110,41 +110,45 @@ class MOGUI(QtGui.QWidget):
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
-                #found = False
+                found = False
 
                 for n in range(len(self.air)):
-                    if str(basename) in str(self.air[n].name):  # self.air représente une instance de la Classe AirShots?
-                        self.MOGs[i.row()].av = n               # étant donné qu'on le définit plus bas, quest ce que ca implique ?
-                        #found = True
+                    if str(basename) in str(self.air[n].name):
+                        self.MOGs[i.row()].av = n
+                        found = True
                         break
-                else:
-                #if not found:
-                    n = len(self.air) + 1
+
+                if not found:
+                    n = len(self.air)
+                    print(n)
+                    print(self.air)
 
                     data = MogData()
                     data.readRAMAC(basename)
+                    print(data.ntrace)
 
-                    distance, ok = QtGui.QInputDialog.getItem(self, "Distance", 'Enter distance between Tx and Rx')
-                    distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
+                    distance, ok = QtGui.QInputDialog.getText(self, 'Aishots Before', 'Distance between Tx and Rx :')
+                    if ok :
+                        distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
 
-                    if len(distance_list) > 1:
-                        if len(distance_list)!= data.ntrace:
-                            raise ValueError(' Number of positions inconsistent with number of traces')
+                        if len(distance_list) > 1:
+                            if len(distance_list)!= data.ntrace:
+                                raise ValueError(' Number of positions inconsistent with number of traces')
 
-                    self.air[n] = AirShots(str(rname))
-                    self.air[n].data = data
-                    self.air[n].tt = -1* np.ones(1, data.ntrace)
-                    self.air[n].et = -1* np.ones(1, data.ntrace)
-                    self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
-                    self.air[n].d_TxRx = distance_list
-                    self.air[n].fac_dt = 1
-                    self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
+                        self.air.append(AirShots(str(rname)))
+                        self.air[n].data = data
+                        self.air[n].tt = -1* np.ones((1, data.ntrace))
+                        self.air[n].et = -1* np.ones((1, data.ntrace))
+                        self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
+                        self.air[n].d_TxRx = distance_list
+                        self.air[n].fac_dt = 1
+                        self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
 
-                    if len(distance_list) == 1:
-                        self.air[n].method ='fixed_antenna'
-                    else:
-                        self.air[n].method ='walkaway'
-                    self.Air_Shot_Before_edit.setText(self.air[n].name)
+                        if len(distance_list) == 1:
+                            self.air[n].method ='fixed_antenna'
+                        else:
+                            self.air[n].method ='walkaway'
+                        self.Air_Shot_Before_edit.setText(self.air[n].name[:-4])
 
 
     def airAfter(self):
@@ -165,8 +169,8 @@ class MOGUI(QtGui.QWidget):
                 found = False
 
                 for n in range(len(self.air)):
-                    if str(basename) in str(self.air[n].name):  # self.air représente une instance de la Classe AirShots?
-                        self.MOGs[i.row()].ap = n               # étant donné qu'on le définit plus bas, quest ce que ca implique ?
+                    if str(basename) in str(self.air[n].name):
+                        self.MOGs[i.row()].ap = n
                         found = True
                         break
 
@@ -176,34 +180,68 @@ class MOGUI(QtGui.QWidget):
                     data = MogData()
                     data.readRAMAC(basename)
 
-                    distance, ok = QtGui.QInputDialog.getItem(self, "Distance", 'Enter distance between Tx and Rx')
-                    distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
+                    distance, ok = QtGui.QInputDialog.getText(self, "Distance", 'Enter distance between Tx and Rx')
+                    if ok:
+                        distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
 
-                    if len(distance_list) > 1:
-                        if len(distance_list)!= data.ntrace:
-                            raise ValueError(' Number of positions inconsistent with number of traces')
+                        if len(distance_list) > 1:
+                            if len(distance_list)!= data.ntrace:
+                                raise ValueError(' Number of positions inconsistent with number of traces')
 
-                    self.air[n] = AirShots(str(rname))
-                    self.air[n].data = data
-                    self.air[n].tt = -1* np.ones(1, data.ntrace)
-                    self.air[n].et = -1* np.ones(1, data.ntrace)
-                    self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
-                    self.air[n].d_TxRx = distance_list
-                    self.air[n].fac_dt = 1
-                    self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
+                        self.air[n] = AirShots(str(rname))
+                        self.air[n].data = data
+                        self.air[n].tt = -1* np.ones((1, data.ntrace))
+                        self.air[n].et = -1* np.ones((1, data.ntrace))
+                        self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
+                        self.air[n].d_TxRx = distance_list
+                        self.air[n].fac_dt = 1
+                        self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
 
-                    if len(distance_list) == 1:
-                        self.air[n].method ='fixed_antenna'
-                    else:
-                        self.air[n].method ='walkaway'
-                    self.Air_Shot_After_edit.setText(self.air[n].name)
+                        if len(distance_list) == 1:
+                            self.air[n].method ='fixed_antenna'
+                        else:
+                            self.air[n].method ='walkaway'
+                        self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
 
 
     def spectra(self, mog):
+        Amax = max(mog.data.rdata.flatten())
+        normalised_rdata = mog.data.rdata/Amax
+
+        n = self.Tx_num_list.selectedIndexes()
 
         dt = mog.data.timec * mog.fac_dt
         Tx = mog.data.Tx_z
-        #ind = Tx[]
+
+        ind = Tx[n]
+
+        traces = normalised_rdata[:, ind]
+
+        nfft = 'TODO'
+
+        fac_f = 1.0
+        fac_t = 1.0
+
+        if 'ns' in mog.data.tunits:
+            # if the time units are in nanoseconds, the antenna's nominal frenquency is in MHz
+            fac_f = 10**6
+            fac_t = 10**-9
+
+        elif 'ms' in mog.data.tunits:
+            # if the time units are in miliseconds, we assume the dominant frequency to be in kHz
+            fac_f = 10**3
+            fac_t = 10**-3
+            self.info_label.setText("Assuming Tx's nominal frequency is in kHz")
+
+        else:
+            self.info_label.setText("Assuming Tx's nominal frequency is in kHz \n and the time step in seconds")
+
+        f0 = mog.data.rnomfreq * fac_f
+        dt = dt * fac_t
+        Fs = 1/dt
+
+        # Noise on the last 20 ns
+        win_snr = np.round(20/mog.data.timec)
 
 
 
@@ -255,7 +293,7 @@ class MOGUI(QtGui.QWidget):
                     self.Tx_num_list.setCurrentRow(idx)
                     green = QtGui.QPalette()
                     green.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
-                    self.info_label.setText('{} is not a value in this data, {} was the closest'.format(item, np.around(self.MOGs[ind[0].row()].data.Tx_z[idx], decimals=1 )))
+                    self.info_label.setText('{} is not a value in this data, {} is the closest'.format(item, np.around(self.MOGs[ind[0].row()].data.Tx_z[idx], decimals=1 )))
                     self.info_label.setPalette(green)
                 self.update_spectra_Tx_elev_value_label()
         elif self.search_combo.currentText() == 'Search with Number':
@@ -296,9 +334,6 @@ class MOGUI(QtGui.QWidget):
 
     def initUI(self):
 
-
-
-
         char1 = lookup("GREEK SMALL LETTER TAU")
         #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
@@ -331,6 +366,7 @@ class MOGUI(QtGui.QWidget):
         snr_label = MyQLabel(('SNR Scale'), ha='center')
         f_min_label = MyQLabel(('F Max'), ha='right')
         f_maxi_label = MyQLabel(('F Max'), ha='right')
+        self.search_info_label = MyQLabel((''), ha= 'center')
         self.info_label = MyQLabel((''), ha= 'center')
 
         #- Edits -#
@@ -418,7 +454,8 @@ class MOGUI(QtGui.QWidget):
         self.spectramanager = QtGui.QWidget()
         spectramanagergrid = QtGui.QGridLayout()
         spectramanagergrid.addWidget(self.spectratool, 0, 0)
-        spectramanagergrid.addWidget(self.info_label, 0, 6)
+        spectramanagergrid.addWidget(self.info_label, 0, 2)
+        spectramanagergrid.addWidget(self.search_info_label, 0, 6)
         spectramanagergrid.addWidget(self.spectraFig, 1, 0, 1, 6)
         spectramanagergrid.addWidget(sub_total_widget, 1, 6)
         spectramanagergrid.setColumnStretch(1, 100)
@@ -629,9 +666,9 @@ if __name__ == '__main__':
 
 
     MOGUI_ui = MOGUI()
-    MOGUI_ui.show()
+    #MOGUI_ui.show()
 
-    MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
+    MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
     MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
 

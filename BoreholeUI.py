@@ -11,17 +11,22 @@ class BoreholeUI(QtGui.QWidget):
 
     #------- Signals -------#
 
-    bhUpdateSignal = QtCore.pyqtSignal(list)
-    bhInfoSignal = QtCore.pyqtSignal(int)
+    bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the informaion to update the Tx and Rx comboboxes in MogUI
+    bhInfoSignal = QtCore.pyqtSignal(int)     #this signal sends the information to update the number of borholes in infoUI
 
 
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Borehole")
-        self.boreholes = []
+        self.boreholes = []   # we initialize a list which will contain instances of Borehole class
         self.initUI()
 
     def import_bhole(self):
+        """
+        This method opens a QFileDialog, takes the name that the user as selected, updates the borehole's informations
+        and then shows its name in the bh_list
+
+        """
         filename          = QtGui.QFileDialog.getOpenFileName(self, 'Import Borehole')
         rname             = filename.split('/')
         rname             = rname[-1]
@@ -41,7 +46,11 @@ class BoreholeUI(QtGui.QWidget):
 
 
     def add_bhole(self):
-        name, ok = QtGui.QInputDialog.getText(self, "borehole creation", 'borehole name')
+        """
+        This method will create an instance of the Borehole class and initialize it, while showing the value of all its
+        attributes in the coordinates edits
+        """
+        name, ok = QtGui.QInputDialog.getText(self, "Borehole creation", "Borehole's name")
         if ok :
             self.boreholes.append(Borehole(str(name)))
             self.update_List_Widget()
@@ -49,6 +58,10 @@ class BoreholeUI(QtGui.QWidget):
             self.update_List_Edits()
 
     def update_List_Widget(self):
+        """
+        Updates the information in the bh_list, then emits the instances contained in boreholes and the
+        lenght of bh_list to DatabaseUI
+        """
         self.bh_list.clear()
         for bh in self.boreholes:
             self.bh_list.addItem(bh.name)
@@ -57,8 +70,11 @@ class BoreholeUI(QtGui.QWidget):
 
 
     def update_List_Edits(self):
+        """
+        Updates the coordinates edits information with the attributes of the Borehole class instance
+        """
         ind = self.bh_list.selectedIndexes()
-        for i in ind :
+        for i in ind:
             bh = self.boreholes[i.row()]
             self.X_edit.setText(str(bh.X))
             self.Y_edit.setText(str(bh.Y))
@@ -72,14 +88,20 @@ class BoreholeUI(QtGui.QWidget):
 
 
     def del_bhole(self):
+        """
+        Deletes a borehole instance from boreholes
+        """
         ind = self.bh_list.selectedIndexes()
         for i in ind:
             del self.boreholes[int(i.row())]
         self.update_List_Widget()
 
     def update_bhole_data(self):
+        """
+        Updates the borehole's attributes by getting the text in the coordinates edits
+        """
         ind = self.bh_list.selectedIndexes()
-        for i in ind :
+        for i in ind:
             bh                = self.boreholes[i.row()]
             bh.X              = float(self.X_edit.text())
             bh.Y              = float(self.Y_edit.text())
@@ -98,11 +120,19 @@ class BoreholeUI(QtGui.QWidget):
             bh.fdata[-1,2]    = bh.Zmax
 
     def plot(self):
+        """
+        Plots the all the Borehole instance in boreholes
+        """
         self.bholeFig = BoreholeFig()
         self.bholeFig.plot_bholes(self.boreholes)
         self.bholeFig.show()
 
     def attenuation_constraints(self):
+        """
+        Knowing the values of attenuation depending on elevation, we can define the attenuation on the borehole's trajectory
+        with the project method and then associate an exactitude value (covariance) to each of them if it is given in the *.con file.
+        We then associate the Cont instance to the borehole's acont attribute
+        """
         ind = self.bh_list.selectedIndexes()
         acont = Cont()
         for i in ind:
@@ -128,6 +158,9 @@ class BoreholeUI(QtGui.QWidget):
                 raise IOError("the file's extension must be *.con")
 
     def slowness_constraints(self):
+        """
+        Practically the same method as attenuation_constraints but reversed
+        """
         ind = self.bh_list.selectedIndexes()
         scont = Cont()
         for i in ind:
@@ -144,16 +177,12 @@ class BoreholeUI(QtGui.QWidget):
                 scont.valeur = 1/cont[:, 1]
 
                 if  np.size(cont, axis= 1) == 3:
+                    # inversion of a random variable http://math.stackexchange.com/questions/269216/inverse-of-random-variable
                      scont.variance = cont[:,2]/(cont[:,1]**4)
                 else:
                     scont.variance = np.zeros(len(cont[:,1]))
 
                 bh.scont = scont
-                print(bh.scont.x)
-                print(bh.scont.y)
-                print(bh.scont.z)
-                print(bh.scont.valeur)
-                print(bh.scont.variance)
 
             else:
                 raise IOError("the file's extension must be *.con")
@@ -174,12 +203,12 @@ class BoreholeUI(QtGui.QWidget):
 
         #------- Widget Creation -------#
         #--- Buttons Set---#
-        btn_Add               = QtGui.QPushButton("Add")
-        btn_Remove            = QtGui.QPushButton("Remove")
-        btn_Import            = QtGui.QPushButton("Import")
-        btn_Plot              = QtGui.QPushButton("Plot")
-        btn_Constraints_veloc = QtGui.QPushButton("Constraints Veloc.")
-        btn_Constraints_atten = QtGui.QPushButton("Constraints Atten.")
+        btn_Add                  = QtGui.QPushButton("Add")
+        btn_Remove               = QtGui.QPushButton("Remove")
+        btn_Import               = QtGui.QPushButton("Import")
+        btn_Plot                 = QtGui.QPushButton("Plot")
+        btn_Constraints_veloc    = QtGui.QPushButton("Constraints Veloc.")
+        btn_Constraints_atten    = QtGui.QPushButton("Constraints Atten.")
 
          #--- list ---#
         self.bh_list             = QtGui.QListWidget()
@@ -196,15 +225,15 @@ class BoreholeUI(QtGui.QWidget):
         Diam_label               = MyQLabel('Diameter:', ha='right')
 
         #--- Edits ---#
-        self.X_edit                   = QtGui.QLineEdit()
-        self.Y_edit                   = QtGui.QLineEdit()
-        self.Z_edit                   = QtGui.QLineEdit()
-        self.Xmax_edit                = QtGui.QLineEdit()
-        self.Ymax_edit                = QtGui.QLineEdit()
-        self.Zmax_edit                = QtGui.QLineEdit()
-        self.Z_surf_edit              = QtGui.QLineEdit()
-        self.Z_water_edit             = QtGui.QLineEdit()
-        self.Diam_edit                = QtGui.QLineEdit()
+        self.X_edit              = QtGui.QLineEdit()
+        self.Y_edit              = QtGui.QLineEdit()
+        self.Z_edit              = QtGui.QLineEdit()
+        self.Xmax_edit           = QtGui.QLineEdit()
+        self.Ymax_edit           = QtGui.QLineEdit()
+        self.Zmax_edit           = QtGui.QLineEdit()
+        self.Z_surf_edit         = QtGui.QLineEdit()
+        self.Z_water_edit        = QtGui.QLineEdit()
+        self.Diam_edit           = QtGui.QLineEdit()
 
         #--- Edits Settings ---#
 
@@ -212,6 +241,7 @@ class BoreholeUI(QtGui.QWidget):
 
         #--- List Actions ---#
         self.bh_list.itemSelectionChanged.connect(self.update_List_Edits)
+
         #--- Edits Actions ---#
         self.X_edit.editingFinished.connect(self.update_bhole_data)
         self.Y_edit.editingFinished.connect(self.update_bhole_data)
@@ -295,6 +325,9 @@ class BoreholeFig(FigureCanvasQTAgg):
 
 
     def __init__(self):
+        """
+        Here we create a 3d figure in which we will plot the Borehole instances trajectory(i.e. their respective fdata)
+        """
 
         fig_width, fig_height = 6, 8
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
@@ -321,6 +354,10 @@ class BoreholeFig(FigureCanvasQTAgg):
         self.draw()
 
 class Cont:
+    """
+    This class represents either the slowness constraints(i.e. bh.scont) or the attenuation constraints(i.e. bh.acont).
+    We created a class for Cont because it as its own attributes.
+    """
     def __init__(self):
         self.x = np.array([])
         self.y = np.array([])
