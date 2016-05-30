@@ -605,6 +605,7 @@ class SpectraFig(FigureCanvasQTAgg):
         ax3 = self.figure.add_axes([0.78, 0.06, 0.2, 0.9])
         ax1.yaxis.set_ticks_position('left')
         ax1.set_axisbelow(True)
+
     def plot_spectra(self, mogd):
         ax1 = self.figure.axes[0]
         ax2 = self.figure.axes[1]
@@ -628,10 +629,10 @@ if __name__ == '__main__':
 
 
     MOGUI_ui = MOGUI()
-    #MOGUI_ui.show()
+    MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0102.rad')
-    #MOGUI_ui.plot_spectra()
+    MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
 
 
