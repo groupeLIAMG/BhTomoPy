@@ -24,42 +24,26 @@ from MogData import MogData
 
 class AirShots:
     def __init__(self, name=None):
+        self.mog = Mog()
         self.name = name
         self.tt = np.array([])     # traveltime vector
         self.et = np.array([])     # traveltime standard vector deviation
         self.data = MogData()      # MogData instance
         self.d_TxRx = 0            # Distance between Tx and Rx
         self.fac_dt = 0            #
-        self.ing = 0               #à vérifier avec Bernard
+        self.ing = 0               #à vérifier avec Bernard (ing et method)
         self.method = 0
 
-
-    @property
-    def name(self):
-        return self.__name
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self.__name = str(name)
-        else:
-            raise TypeError("Please enter a valid borehole name(i.e. a str)")
-
-    @property
-    def data(self):
-        return self.__data
-    @data.setter
-    def data(self,data):
-        if isinstance(data, MogData):
-            self.__data = data
-            self.initialize()
-        else:
-            raise TypeError("Please enter valid data of type MogData")
 
         self.initialize()
 
     def initialize(self):
-        if self.data == None :
-            return self.data
+        """
+        We initialize two vectors(i.e. self.tt and self.et) which have a value of -1 for each trace and a vector(i.e. self.tt_done)
+        which as a false value for each trace until one actually arrives to the receptor
+        """
+        if self.mog.data == None :
+            return self.mog.data
         self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
         self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
@@ -68,10 +52,10 @@ class AirShots:
 class Mog:
     def __init__(self, name= ''):
         self.pruneParams              = PruneParams()
-        self.name                     = name
-        self.data                     = MogData()
-        self.av                       = np.array([])
-        self.ap                       = np.array([])
+        self.name                     = name          # Name of the multi offset-gather
+        self.data                     = MogData()     # Instance of Mogdata
+        self.av                       = np.array([])  # Air shot before
+        self.ap                       = np.array([])  # Airshot after
         self.Tx                       = 1
         self.Rx                       = 1
         self.tau_params               = np.array([])
@@ -94,17 +78,17 @@ class Mog:
         self.ID                       = Mog.getID()
 
     def initialize(self):
-        if self.data == None: #rempace le isempty de matlab
+        if self.data == None:
             return
         self.date                     = self.data.date
         self.tt                       = -1*np.ones((1,self.data.ntrace), dtype= float)
         self.et                       = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tt_done                  = -1*np.zeros((1, self.data.ntrace), dtype = bool)
+        self.tt_done                  = np.zeros((1, self.data.ntrace), dtype = bool)
         if self.data.tdata == None:
             self.ttTx                 = np.array([])
             self.ttTx_done            = np.array([])
         else:
-            self.amp_tmin             = -1*np.ones((1,self.data.ntrace), dtype= float)
+            self.amp_tmin             = -1*np.ones((1,self.data.ntrace), dtype= float)   # à Définir avec Bernard
             self.amp_tmax             = -1*np.ones((1,self.data.ntrace), dtype= float)
             self.amp_done             = np.zeros((1,self.data.ntrace), dtype= bool)
             self.App                  = np.zeros((1,self.data.ntrace), dtype= float)
@@ -124,6 +108,12 @@ class Mog:
             self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]))
 #TODO:
     def correction_t0(self, ndata, air_before, air_after, *args):
+        """
+        :param ndata:
+        :param air_before: instance of class Airshots
+        :param air_after: instance of class Airshots
+        :return:
+        """
         nargin = len(args)
         if nargin >= 4 :
             show = args[1]
@@ -132,55 +122,50 @@ class Mog:
         fac_dt_av = 1
         fac_dt_ap = 1
         if self.useAirShots == 0:
-            t0 = np.zeros(1, ndata)
+            t0 = np.zeros((1, ndata))
             return
         elif air_before == None and air_after == None and self.useAirShots == 1 :
-            t0 = np.zeros(1, ndata)
+            t0 = np.zeros((1, ndata))
             raise InterruptedError(" t0 correction not applied;Pick t0 before and t0 after for correction")
 
         v_air = 0.2998
         t0av = np.array([])
         t0ap = np.array([])
 
-        if before == None :
-            if 'fixed_antenna' in before:  #que signifie before.method dans matlab?
+        if air_before == None :
+            if 'fixed_antenna' in air_before.method:
+                pass
+            if 'walkaway' in air_before.method:
                 pass
 
+    @staticmethod
+    def load_self(mog):
+        Mog.getID(mog.ID)
+    @staticmethod
+    def get_t0_fixed(shot, v):
+        times = shot.tt # à vérifier
+        std_times = shot.et
+        ind = []
+        for i in range(len(times.flatten())):
+            if times[i] != -1:
+                ind.append(i)
+        minus_ind = np.transpose(np.nonzero(std_times))
 
-
-
-
-
-    # vérification d'entrées
-    @property
-    def name(self):
-        return self.__name
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self.__name = str(name)
+        if len(minus_ind) == 0:
+            times = np.mean(times[ind])
         else:
-            raise TypeError("Please enter a valid borehole name(i.e. a str)")
+            std_tot = 0
+            for i in ind:
+                std_tot = std_tot + std_times[i]
+            times = sum(times[ind]*std_times[ind]/std_tot)
 
-    @property
-    def date(self):
-        return self.__date
-    @date.setter
-    def date(self, date):
-        if isinstance(date, str):
-            self.__date = date
-        else:
-            raise TypeError("please enter a valid date")
+        t0 = times - shot.d_TxRx/v
 
-    @property
-    def data(self):
-        return self.__data
-    @data.setter
-    def data(self,data):
-        if isinstance(data, MogData):
-            self.__data = data
-        else:
-            raise TypeError("Please enter valid data of type MogData")
+
+
+
+
+
 
     @staticmethod
     def getID(*args):
