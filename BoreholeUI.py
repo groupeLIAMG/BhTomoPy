@@ -6,11 +6,12 @@ import numpy as np
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
+import time
 
 class BoreholeUI(QtGui.QWidget):
 
     #------- Signals -------#
-
+    bhlogSignal = QtCore.pyqtSignal(str)
     bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the informaion to update the Tx and Rx comboboxes in MogUI
     bhInfoSignal = QtCore.pyqtSignal(int)     #this signal sends the information to update the number of borholes in infoUI
 
@@ -20,6 +21,7 @@ class BoreholeUI(QtGui.QWidget):
         self.setWindowTitle("bh_thomoPy/Borehole")
         self.boreholes = []   # we initialize a list which will contain instances of Borehole class
         self.initUI()
+        self.actual_time = time.asctime()[11:16]
 
     def import_bhole(self):
         """
@@ -43,6 +45,7 @@ class BoreholeUI(QtGui.QWidget):
         self.update_List_Widget()
         self.bh_list.setCurrentRow(len(self.boreholes) - 1)
         self.update_List_Edits()
+        self.bhlogSignal.emit("{}.xyz as been loaded succesfully".format(rname))
 
 
     def add_bhole(self):
@@ -56,6 +59,7 @@ class BoreholeUI(QtGui.QWidget):
             self.update_List_Widget()
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
+            self.bhlogSignal.emit("{} borehole as been added sucesfully".format(name))
 
     def update_List_Widget(self):
         """
@@ -93,7 +97,9 @@ class BoreholeUI(QtGui.QWidget):
         """
         ind = self.bh_list.selectedIndexes()
         for i in ind:
+            self.bhlogSignal.emit("{} as been deleted".format(self.boreholes[i].name))
             del self.boreholes[int(i.row())]
+
         self.update_List_Widget()
 
     def update_bhole_data(self):
@@ -125,7 +131,11 @@ class BoreholeUI(QtGui.QWidget):
         """
         self.bholeFig = BoreholeFig()
         self.bholeFig.plot_bholes(self.boreholes)
+
+        for bh in self.boreholes:
+            self.bhlogSignal.emit("{} have been plotted".format(bh.name))
         self.bholeFig.show()
+
 
     def attenuation_constraints(self):
         """
@@ -137,6 +147,9 @@ class BoreholeUI(QtGui.QWidget):
         acont = Cont()
         for i in ind:
             filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
+            rname = filename.split('/')
+            rname = rname[-1]
+            rname = rname[:-4]
             if ".con" in filename:
                 bh = self.boreholes[i.row()]
                 cont = np.loadtxt(filename)
@@ -154,8 +167,11 @@ class BoreholeUI(QtGui.QWidget):
                     acont.variance = np.zeros(len(cont[:,1]))
 
                 bh.acont = acont
+                self.bhlogSignal.emit("{} Attenuation Constraints have been applied to Borehole {} ".format(rname, bh.name))
             else:
-                raise IOError("the file's extension must be *.con")
+                self.bhlogSignal.emit("Error: the file's extension must be *.con")
+                break
+
 
     def slowness_constraints(self):
         """
@@ -317,6 +333,7 @@ class BoreholeUI(QtGui.QWidget):
         master_grid.addWidget(sub_E_and_L_widget, 2, 0)
         master_grid.addWidget(sub_Diam_widget, 3, 0)
         master_grid.addWidget(sub_lower_buttons_widget, 4, 0)
+        master_grid.setContentsMargins(0, 0, 0, 0)
 
         #------- set Layout -------#
         self.setLayout(master_grid)
@@ -332,7 +349,6 @@ class BoreholeFig(FigureCanvasQTAgg):
         fig_width, fig_height = 6, 8
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(BoreholeFig, self).__init__(fig)
-
         self.initFig()
 
 

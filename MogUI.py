@@ -17,6 +17,7 @@ class MOGUI(QtGui.QWidget):
     mogInfoSignal = QtCore.pyqtSignal(int)
     ntraceSignal = QtCore.pyqtSignal(int)
     databaseSignal = QtCore.pyqtSignal(str)
+    moglogSignal = QtCore.pyqtSignal(str)
 
 
     def __init__(self, parent=None):
@@ -46,6 +47,10 @@ class MOGUI(QtGui.QWidget):
         if ".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower():
             basename = filename[:-4]
 
+        else:
+            self.moglogSignal.emit("Error: MOG file must have either *.rad, *.rd3 or *.tlf extension")
+            return
+
         for rep in basename.split('/')[:-1]:
             self.data_rep = self.data_rep + rep + '/'
         self.data_rep = self.data_rep[:-1]
@@ -58,6 +63,7 @@ class MOGUI(QtGui.QWidget):
         self.update_spectra_Tx_num_list()
         self.update_spectra_Tx_elev_value_label()
         self.update_edits()
+        self.moglogSignal.emit("{} Multi Offset-Gather as been loaded succesfully".format(rname))
 
     def update_edits(self):
         """
@@ -83,6 +89,7 @@ class MOGUI(QtGui.QWidget):
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
+            self.moglogSignal.emit("MOG {} as been deleted".format(self.MOGs[int(i.row())].name))
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
 
@@ -91,13 +98,13 @@ class MOGUI(QtGui.QWidget):
         new_name, ok = QtGui.QInputDialog.getText(self, "Rename", 'new MOG name')
         if ok:
             for i in ind:
+                self.moglogSignal.emit("MOG {} is now {}".format(self.MOGs[int(i.row())].name, new_name))
                 self.MOGs[int(i.row())] = new_name
         self.update_List_Widget()
 
 
     def airBefore(self):
         old_rep = os.getcwd()       # this operation gets the first directory
-        mog = Mog()
         if len(self.data_rep) != 0 :
             os.chdir(self.data_rep) # if one already have uploaded a file, the next time will be at the same path
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
@@ -133,7 +140,8 @@ class MOGUI(QtGui.QWidget):
 
                         if len(distance_list) > 1:
                             if len(distance_list)!= data.ntrace:
-                                raise ValueError(' Number of positions inconsistent with number of traces')
+                                self.moglogSignal.emit('Error : Number of positions inconsistent with number of traces')
+                                return
 
                         self.air.append(AirShots(str(rname)))
                         self.air[n].data = data
@@ -186,7 +194,8 @@ class MOGUI(QtGui.QWidget):
 
                         if len(distance_list) > 1:
                             if len(distance_list)!= data.ntrace:
-                                raise ValueError(' Number of positions inconsistent with number of traces')
+                                self.moglogSignal.emit('Error : Number of positions inconsistent with number of traces')
+                                return
 
                         self.air[n] = AirShots(str(rname))
                         self.air[n].data = data
@@ -324,13 +333,15 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             self.rawdataFig.plot_raw_data(self.MOGs[i.row()].data)
+            self.moglogSignal.emit(" MOG {}'s Raw Data as been plotted ". format(self.MOGs[i.row()].name))
             self.rawdatamanager.show()
 
     def plot_spectra(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             self.spectraFig.plot_spectra(self.MOGs[i.row()].data)
-            self.spectramanager.show()
+            self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
+            self.spectramanager.showMaximized()
 
     def initUI(self):
 
@@ -599,6 +610,7 @@ class MOGUI(QtGui.QWidget):
         master_grid.addWidget(Sub_Labels_Checkbox_and_Edits_Widget, 1, 1)
         master_grid.addWidget(Sub_AirShots_Widget, 1, 0)
         master_grid.setColumnStretch(1, 300)
+        master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
 
 class RawDataFig(FigureCanvasQTAgg):

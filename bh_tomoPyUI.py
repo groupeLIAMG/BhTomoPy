@@ -6,7 +6,8 @@ from covarUI import CovarUI
 from inversionUI import InversionUI
 from interpUI import InterpretationUI
 
-class Bh_ThomoPyUI(QtGui.QFrame):
+class Bh_ThomoPyUI(QtGui.QWidget):
+
     def __init__(self, parent=None):
         super(Bh_ThomoPyUI, self).__init__()
         self.setWindowTitle("bh_thomoPy")
@@ -66,10 +67,12 @@ class Bh_ThomoPyUI(QtGui.QFrame):
 
 
 class Database_Pop(QtGui.QWidget):
+    databaseSignal = QtCore.pyqtSignal(str)
     def __init__(self, parent=None):
         super(Database_Pop, self).__init__()
         self.setWindowTitle("Bh_thomoPy/Database")
         self.setWindowFlags(QtCore.Qt.Window)
+        self.databaseSignal.emit("Welcome to Bh_thomoPy's Database module")
         self.initUI()
 
         #------- Widget Creation -------#
