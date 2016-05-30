@@ -4,7 +4,7 @@ import matplotlib as mpl
 mpl.rcParams['backend.qt4']='PyQt4'
 
 """
-Copyright 2016 Bernard Giroux
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -28,167 +28,21 @@ class Borehole:
     Class to hold borehole data
     """
 
-    def __init__(self, name=None,X = 0.0, Y = 0.0, Z = 0.0, Xmax = 0.0, Ymax = 0.0, Zmax = 0.0, Z_surf = 0.0, Z_water = 0.0,
-                 diam = 0.0, scont = np.array([]), acont = np.array([0, 0, 0]),fdata = np.array([[0, 0, 0], [0, 0, 0]])):
-        """Attributes:
-        name: name of the borehole(BH)
-        X, Y and Z: the BH's top cartesian coordinates
-        Xmax, Ymax and Zmax : the BH's bottom cartesian coordinates
-        Z_surf:
-        Z_water: elevation of the water table
-        diam: the BH's diameter
-        scont:
-        acont:
-        fdata: the BH's trajectory's coordinates discrete evolution"""
+    def __init__(self, name=''):
 
-        self.name = name
-        self.X = X
-        self.Y = Y
-        self.Z = Z
-        self.Xmax = Xmax
-        self.Ymax = Ymax
-        self.Zmax = Zmax
-        self.Z_surf = Z_surf
-        self.Z_water = Z_water
-        self.diam = diam
-        self.scont = scont
-        self.acont = acont
-        self.fdata = fdata
-
-
-    @property
-    def name(self):
-        return self.__name
-
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self.__name = name
-        else:
-            raise TypeError("Please enter a valid name of type str")
-
-    @property
-    def X(self):
-        return self.__X
-
-    @X.setter
-    def X(self, X):
-        if isinstance(X, float or int):
-            self.__X = X
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def Y(self):
-        return self.__Y
-
-    @Y.setter
-    def Y(self, Y):
-        if isinstance(Y, float or int):
-            self.__Y = Y
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def Z(self):
-        return self.__Z
-
-    @Z.setter
-    def Z(self, Z):
-        if isinstance(Z, float or int):
-            self.__Z = Z
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def Xmax(self):
-        return self.__Xmax
-
-    @Xmax.setter
-    def Xmax(self, Xmax):
-        if isinstance(Xmax, float or int):
-            self.__Xmax = Xmax
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def Ymax(self):
-        return self.__Ymax
-
-    @Ymax.setter
-    def Ymax(self, Ymax):
-        if isinstance(Ymax, float or int):
-            self.__Ymax = Ymax
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def Zmax(self):
-        return self.__Zmax
-
-    @Zmax.setter
-    def Zmax(self, Zmax):
-        if isinstance(Zmax, float or int):
-            self.__Zmax = Zmax
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def Z_surf(self):
-        return self.__Z_surf
-
-    @Z_surf.setter
-    def Z_surf(self, Z_surf):
-        if isinstance(Z_surf, float or int):
-            self.__Z_surf = Z_surf
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def Z_water(self):
-        return self.__Z_water
-
-    @Z_water.setter
-    def Z_water(self, Z_water):
-        if isinstance(Z_water, float or int):
-            self.__Z_water = Z_water
-        else:
-            raise TypeError("Please enter a numeric coordinate")
-
-    @property
-    def diam(self):
-        return self.__diam
-
-    @diam.setter
-    def diam(self, diam):
-        if isinstance(diam, float or int):
-            self.__diam = diam
-        else:
-            raise TypeError("Please enter a numeric diameter")
-
-        # As you see, we set the @property and @something.setter to be able the either get the information from one attribute of the Borehole class
-        # or to change its value while verifying if the new value respects the criteria to be valid simply by calling Borehole.something. This
-        # will help one who wants to get access to this data, by shorting the syntax of the script
-
-    @property
-    def fdata(self):
-        return self.__fdata
-
-    @fdata.setter
-    def fdata(self, fdata):
-        l = fdata.shape
-        if len(l) == 2:
-            if l[1] == 3:
-                # We only verify the column index of the matrix to be sure the number of dimensions is 3
-                # We don't need to verifiy the line index because only the physical dimensions are in need to be restrained
-                # not the lenght of the trajectory
-                self.__fdata = fdata
-            else:
-                raise TypeError("Please enter a [n,3] fdata matrix")
-        else:
-            raise TypeError("Please enter a [n,3] fdata matrix")
-        #else:
-            #raise TypeError("Please enter a [n,3] fdata matrix")
+        self.name      = name           # name of the borehole(BH)
+        self.X         = 0.0            # X, Y and Z: the BH's top cartesian coordinates
+        self.Y         = 0.0
+        self.Z         = 0.0
+        self.Xmax      = 0.0            # Xmax, Ymax and Zmax : the BH's bottom cartesian coordinates
+        self.Ymax      = 0.0
+        self.Zmax      = 0.0
+        self.Z_surf    = 0.0            # BH's surface height
+        self.Z_water   = 0.0            # Elevation of the water table
+        self.diam      = 0.0            # BH's diameter
+        self.scont     = np.array([])   # Matrix containing the slowness for each point of the BH's trajectory
+        self.acont     = np.array([])   # Matrix containing the attenuation for each point of the BH's trajectory
+        self.fdata     = np.array([[0, 0, 0], [0, 0, 0]])    # Matrix containing the BH's trajectory in space
 
     @staticmethod
     def project(fdata, ldepth):
@@ -266,13 +120,6 @@ class Borehole:
             #We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
             # the closest upper point's coordinates
         return x, y, z, c
-
-
-
-
-
-
-
 
 if __name__ == '__main__':
     fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])

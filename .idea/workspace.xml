@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="amélioration fonction search">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BoreholeUI.py" afterPath="$PROJECT_DIR$/BoreholeUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
+    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/borehole.py" afterPath="$PROJECT_DIR$/borehole.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -35,11 +35,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="2.0273972">
-              <caret line="244" column="8" selection-start-line="244" selection-start-column="8" selection-end-line="244" selection-end-column="8" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="244" column="0" selection-start-line="244" selection-start-column="0" selection-end-line="244" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -111,37 +111,18 @@
         <entry file="file://$PROJECT_DIR$/mog.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="176" column="0" selection-start-line="176" selection-start-column="0" selection-end-line="176" selection-end-column="0" />
+              <caret line="129" column="13" selection-start-line="129" selection-start-column="13" selection-end-line="129" selection-end-column="13" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="borehole.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="borehole.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/borehole.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="23" />
-              <folding>
-                <element signature="e#1880#1898#0" expanded="false" />
-                <element signature="e#1951#2090#0" expanded="false" />
-                <element signature="e#2366#2381#0" expanded="false" />
-                <element signature="e#2425#2560#0" expanded="false" />
-                <element signature="e#2601#2616#0" expanded="false" />
-                <element signature="e#2660#2795#0" expanded="false" />
-                <element signature="e#2839#2857#0" expanded="false" />
-                <element signature="e#2910#3054#0" expanded="false" />
-                <element signature="e#3098#3116#0" expanded="false" />
-                <element signature="e#3169#3313#0" expanded="false" />
-                <element signature="e#3357#3375#0" expanded="false" />
-                <element signature="e#3428#3572#0" expanded="false" />
-                <element signature="e#3618#3638#0" expanded="false" />
-                <element signature="e#3697#3847#0" expanded="false" />
-                <element signature="e#3894#3915#0" expanded="false" />
-                <element signature="e#3977#4130#0" expanded="false" />
-                <element signature="e#4174#4192#0" expanded="false" />
-                <element signature="e#4245#4778#0" expanded="false" />
-              </folding>
+            <state vertical-scroll-proportion="0.12842466">
+              <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -177,16 +158,16 @@
         <option value="$PROJECT_DIR$/scanf.py" />
         <option value="$USER_HOME$/Downloads/exemple_signaux.py" />
         <option value="$PROJECT_DIR$/InfoUI.py" />
-        <option value="$PROJECT_DIR$/borehole.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
         <option value="$PROJECT_DIR$/mpl_exemple.py" />
-        <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
         <option value="$PROJECT_DIR$/MogData.py" />
         <option value="$PROJECT_DIR$/covarUI.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/BoreholeUI.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
+        <option value="$PROJECT_DIR$/mog.py" />
+        <option value="$PROJECT_DIR$/borehole.py" />
       </list>
     </option>
   </component>
@@ -747,7 +728,13 @@
       <option name="project" value="LOCAL" />
       <updated>1464611575031</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="Début de la fonction spectra et intégralité de BoreholeUI commenté">
+      <created>1464621093704</created>
+      <option name="number" value="00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1464621093704</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="TodoView" selected-index="4">
@@ -796,7 +783,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Ajout menu BH TOMO" />
     <MESSAGE value="Ajout de différentes compsantes dans l'UI , dans borehole et dans mog" />
     <MESSAGE value="Ajout de manual_ttUI et de covarUI, les deuxieme et troisieme boutons de l'interface initiale" />
     <MESSAGE value="Ajustement des dimensions lors de l'agrandissement des trois module interpUI, inversionUI et manual_ttUI. Ajout des lettres grecs dans le combobox de Physical property" />
@@ -821,7 +807,8 @@
     <MESSAGE value="Nouvelle fonction search pour le module Spectra" />
     <MESSAGE value="fonction search produit un label qui donne de l'information" />
     <MESSAGE value="amélioration fonction search" />
-    <option name="LAST_COMMIT_MESSAGE" value="amélioration fonction search" />
+    <MESSAGE value="Début de la fonction spectra et intégralité de BoreholeUI commenté" />
+    <option name="LAST_COMMIT_MESSAGE" value="Début de la fonction spectra et intégralité de BoreholeUI commenté" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -832,7 +819,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="27" />
+      <option name="time" value="28" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -882,26 +869,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="293" column="0" selection-start-line="293" selection-start-column="0" selection-end-line="293" selection-end-column="0" />
-          <folding>
-            <element signature="e#1880#1898#0" expanded="false" />
-            <element signature="e#1951#2090#0" expanded="false" />
-            <element signature="e#2366#2381#0" expanded="false" />
-            <element signature="e#2425#2560#0" expanded="false" />
-            <element signature="e#2601#2616#0" expanded="false" />
-            <element signature="e#2660#2795#0" expanded="false" />
-            <element signature="e#2839#2857#0" expanded="false" />
-            <element signature="e#2910#3054#0" expanded="false" />
-            <element signature="e#3098#3116#0" expanded="false" />
-            <element signature="e#3169#3313#0" expanded="false" />
-            <element signature="e#3357#3375#0" expanded="false" />
-            <element signature="e#3428#3572#0" expanded="false" />
-            <element signature="e#3618#3638#0" expanded="false" />
-            <element signature="e#3697#3847#0" expanded="false" />
-            <element signature="e#3894#3915#0" expanded="false" />
-            <element signature="e#3977#4130#0" expanded="false" />
-            <element signature="e#4174#4192#0" expanded="false" />
-            <element signature="e#4245#4778#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -971,26 +939,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#1880#1898#0" expanded="false" />
-            <element signature="e#1951#2090#0" expanded="false" />
-            <element signature="e#2366#2381#0" expanded="false" />
-            <element signature="e#2425#2560#0" expanded="false" />
-            <element signature="e#2601#2616#0" expanded="false" />
-            <element signature="e#2660#2795#0" expanded="false" />
-            <element signature="e#2839#2857#0" expanded="false" />
-            <element signature="e#2910#3054#0" expanded="false" />
-            <element signature="e#3098#3116#0" expanded="false" />
-            <element signature="e#3169#3313#0" expanded="false" />
-            <element signature="e#3357#3375#0" expanded="false" />
-            <element signature="e#3428#3572#0" expanded="false" />
-            <element signature="e#3618#3638#0" expanded="false" />
-            <element signature="e#3697#3847#0" expanded="false" />
-            <element signature="e#3894#3915#0" expanded="false" />
-            <element signature="e#3977#4130#0" expanded="false" />
-            <element signature="e#4174#4192#0" expanded="false" />
-            <element signature="e#4245#4778#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -998,26 +947,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="275" column="34" selection-start-line="275" selection-start-column="34" selection-end-line="275" selection-end-column="34" />
-          <folding>
-            <element signature="e#1880#1898#0" expanded="false" />
-            <element signature="e#1951#2090#0" expanded="false" />
-            <element signature="e#2366#2381#0" expanded="false" />
-            <element signature="e#2425#2560#0" expanded="false" />
-            <element signature="e#2601#2616#0" expanded="false" />
-            <element signature="e#2660#2795#0" expanded="false" />
-            <element signature="e#2839#2857#0" expanded="false" />
-            <element signature="e#2910#3054#0" expanded="false" />
-            <element signature="e#3098#3116#0" expanded="false" />
-            <element signature="e#3169#3313#0" expanded="false" />
-            <element signature="e#3357#3375#0" expanded="false" />
-            <element signature="e#3428#3572#0" expanded="false" />
-            <element signature="e#3618#3638#0" expanded="false" />
-            <element signature="e#3697#3847#0" expanded="false" />
-            <element signature="e#3894#3915#0" expanded="false" />
-            <element signature="e#3977#4130#0" expanded="false" />
-            <element signature="e#4174#4192#0" expanded="false" />
-            <element signature="e#4245#4778#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1039,26 +969,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#1880#1898#0" expanded="false" />
-            <element signature="e#1951#2090#0" expanded="false" />
-            <element signature="e#2366#2381#0" expanded="false" />
-            <element signature="e#2425#2560#0" expanded="false" />
-            <element signature="e#2601#2616#0" expanded="false" />
-            <element signature="e#2660#2795#0" expanded="false" />
-            <element signature="e#2839#2857#0" expanded="false" />
-            <element signature="e#2910#3054#0" expanded="false" />
-            <element signature="e#3098#3116#0" expanded="false" />
-            <element signature="e#3169#3313#0" expanded="false" />
-            <element signature="e#3357#3375#0" expanded="false" />
-            <element signature="e#3428#3572#0" expanded="false" />
-            <element signature="e#3618#3638#0" expanded="false" />
-            <element signature="e#3697#3847#0" expanded="false" />
-            <element signature="e#3894#3915#0" expanded="false" />
-            <element signature="e#3977#4130#0" expanded="false" />
-            <element signature="e#4174#4192#0" expanded="false" />
-            <element signature="e#4245#4778#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1066,26 +977,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#1880#1898#0" expanded="false" />
-            <element signature="e#1951#2090#0" expanded="false" />
-            <element signature="e#2366#2381#0" expanded="false" />
-            <element signature="e#2425#2560#0" expanded="false" />
-            <element signature="e#2601#2616#0" expanded="false" />
-            <element signature="e#2660#2795#0" expanded="false" />
-            <element signature="e#2839#2857#0" expanded="false" />
-            <element signature="e#2910#3054#0" expanded="false" />
-            <element signature="e#3098#3116#0" expanded="false" />
-            <element signature="e#3169#3313#0" expanded="false" />
-            <element signature="e#3357#3375#0" expanded="false" />
-            <element signature="e#3428#3572#0" expanded="false" />
-            <element signature="e#3618#3638#0" expanded="false" />
-            <element signature="e#3697#3847#0" expanded="false" />
-            <element signature="e#3894#3915#0" expanded="false" />
-            <element signature="e#3977#4130#0" expanded="false" />
-            <element signature="e#4174#4192#0" expanded="false" />
-            <element signature="e#4245#4778#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1237,33 +1129,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/borehole.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="23" />
-          <folding>
-            <element signature="e#1880#1898#0" expanded="false" />
-            <element signature="e#1951#2090#0" expanded="false" />
-            <element signature="e#2366#2381#0" expanded="false" />
-            <element signature="e#2425#2560#0" expanded="false" />
-            <element signature="e#2601#2616#0" expanded="false" />
-            <element signature="e#2660#2795#0" expanded="false" />
-            <element signature="e#2839#2857#0" expanded="false" />
-            <element signature="e#2910#3054#0" expanded="false" />
-            <element signature="e#3098#3116#0" expanded="false" />
-            <element signature="e#3169#3313#0" expanded="false" />
-            <element signature="e#3357#3375#0" expanded="false" />
-            <element signature="e#3428#3572#0" expanded="false" />
-            <element signature="e#3618#3638#0" expanded="false" />
-            <element signature="e#3697#3847#0" expanded="false" />
-            <element signature="e#3894#3915#0" expanded="false" />
-            <element signature="e#3977#4130#0" expanded="false" />
-            <element signature="e#4174#4192#0" expanded="false" />
-            <element signature="e#4245#4778#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/InfoUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1306,10 +1171,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mog.py">
+    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="176" column="0" selection-start-line="176" selection-start-column="0" selection-end-line="176" selection-end-column="0" />
+          <caret line="205" column="33" selection-start-line="205" selection-start-column="33" selection-end-line="205" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MogUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="244" column="0" selection-start-line="244" selection-start-column="0" selection-end-line="244" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1322,18 +1195,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
+    <entry file="file://$PROJECT_DIR$/mog.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="205" column="33" selection-start-line="205" selection-start-column="33" selection-end-line="205" selection-end-column="33" />
+          <caret line="129" column="13" selection-start-line="129" selection-start-column="13" selection-end-line="129" selection-end-column="13" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MogUI.py">
+    <entry file="file://$PROJECT_DIR$/borehole.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.0273972">
-          <caret line="244" column="8" selection-start-line="244" selection-start-column="8" selection-end-line="244" selection-end-column="8" />
+        <state vertical-scroll-proportion="0.12842466">
+          <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
           <folding />
         </state>
       </provider>

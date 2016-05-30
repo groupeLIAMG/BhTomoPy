@@ -27,9 +27,9 @@ class AirShots:
         self.name = name
         self.tt = np.array([])     # traveltime vector
         self.et = np.array([])     # traveltime standard vector deviation
-        self.data = MogData()
-        self.d_TxRx = 0
-        self.fac_dt = 0
+        self.data = MogData()      # MogData instance
+        self.d_TxRx = 0            # Distance between Tx and Rx
+        self.fac_dt = 0            #
         self.ing = 0               #à vérifier avec Bernard
         self.method = 0
 
@@ -123,7 +123,7 @@ class Mog:
             self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]))
             self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]))
 #TODO:
-    def correction_t0(self, ndata, before, after, *args):
+    def correction_t0(self, ndata, air_before, air_after, *args):
         nargin = len(args)
         if nargin >= 4 :
             show = args[1]
@@ -134,7 +134,7 @@ class Mog:
         if self.useAirShots == 0:
             t0 = np.zeros(1, ndata)
             return
-        elif before == None and after == None and self.useAirShots == 1 :
+        elif air_before == None and air_after == None and self.useAirShots == 1 :
             t0 = np.zeros(1, ndata)
             raise InterruptedError(" t0 correction not applied;Pick t0 before and t0 after for correction")
 
