@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from PyQt4 import QtGui, QtCore
 import matplotlib as mpl
@@ -12,6 +13,8 @@ class ManualttUI(QtGui.QFrame):
         self.initUI()
 
     def initUI(self):
+        blue_palette = QtGui.QPalette()
+        blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
 
         #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
@@ -38,9 +41,11 @@ class ManualttUI(QtGui.QFrame):
         uppermanagergrid = QtGui.QGridLayout()
         uppermanagergrid.addWidget(self.uppertool, 0, 0)
         uppermanagergrid.addWidget(self.upperFig, 1, 0)
+        uppermanagergrid.setContentsMargins(0, 0, 0, 0)
+        uppermanagergrid.setVerticalSpacing(3)
         self.uppermanager.setLayout(uppermanagergrid)
         #------- Widgets Creation -------#
-        #--- Buttons Set ---#
+        #--- Buttons ---#
         btn_Prev = QtGui.QPushButton("Previous Trace")
         btn_Next = QtGui.QPushButton("Next Trace")
         btn_Next_Pick = QtGui.QPushButton("Next Trace to Pick")
@@ -55,6 +60,37 @@ class ManualttUI(QtGui.QFrame):
         t_max_label = MyQLabel("t max", ha= 'center')
         A_min_label = MyQLabel("A min", ha= 'center')
         A_max_label = MyQLabel("A max", ha= 'center')
+        position_label = MyQLabel(("Position Tx--Rx"), ha='center')
+        x_label = MyQLabel(("x"), ha= 'center')
+        y_label = MyQLabel(("y"), ha= 'center')
+        z_label = MyQLabel(("z"), ha= 'center')
+        Tx_label = MyQLabel(("Tx:"), ha= 'right')
+        Rx_label = MyQLabel(("Rx:"), ha= 'right')
+        self.xTx_label = MyQLabel((""), ha= 'right')
+        self.yTx_label = MyQLabel((""), ha= 'right')
+        self.zTx_label = MyQLabel((""), ha= 'right')
+        self.xRx_label = MyQLabel((""), ha= 'right')
+        self.yRx_label = MyQLabel((""), ha= 'right')
+        self.zRx_label = MyQLabel((""), ha= 'right')
+        self.ntrace_label = MyQLabel((""), ha= 'right')
+        trace_label = MyQLabel(("traces"), ha= 'left')
+        picked_label = MyQLabel(("Picked Time:"), ha= 'right')
+        self.time = QtGui.QLabel("")
+        incertitude_label = QtGui.QLabel("±")
+        self.incertitude_value_label = QtGui.QLabel("")
+
+        #-- Setting Labels color ---#
+        picked_label.setPalette(blue_palette)
+        self.time.setPalette(blue_palette)
+        incertitude_label.setPalette(blue_palette)
+        self.incertitude_value_label.setPalette(blue_palette)
+
+        #--- Menubar ---#
+        self.tool = QtGui.QMenuBar()
+        self.tool.addAction('Open Main Data File')
+        self.tool.addAction('Save')
+        self.tool.addAction('Import')
+
         #--- Edits ---#
         Tnum_Edit = QtGui.QLineEdit()
         Tnum_Edit.setFixedWidth(100)
@@ -100,6 +136,36 @@ class ManualttUI(QtGui.QFrame):
         pick_combo.addItem("Simple Picking")
 
         #------- subWidgets -------#
+        #--- Info Subwidget ---#
+        Sub_Info_widget = QtGui.QWidget()
+        Sub_Info_grid = QtGui.QGridLayout()
+        Sub_Info_grid.addWidget(position_label, 0, 1, 1, 3)
+        Sub_Info_grid.addWidget(x_label, 2, 1)
+        Sub_Info_grid.addWidget(y_label, 2, 2)
+        Sub_Info_grid.addWidget(z_label, 2, 3)
+        Sub_Info_grid.addWidget(Tx_label, 3, 0)
+        Sub_Info_grid.addWidget(self.xTx_label, 3, 1)
+        Sub_Info_grid.addWidget(self.yTx_label, 3, 2)
+        Sub_Info_grid.addWidget(self.zTx_label, 3, 3)
+        Sub_Info_grid.addWidget(Rx_label, 4, 0)
+        Sub_Info_grid.addWidget(self.xRx_label, 4, 1)
+        Sub_Info_grid.addWidget(self.yRx_label, 4, 2)
+        Sub_Info_grid.addWidget(self.zRx_label, 4, 3)
+        Sub_Info_grid.addWidget(self.ntrace_label, 5, 1)
+        Sub_Info_grid.addWidget(trace_label, 5, 2)
+        Sub_Info_widget.setLayout(Sub_Info_grid)
+        Sub_Info_widget.setStyleSheet("background: white")
+
+        #--- Picked Time SubWidget ---#
+        Sub_picked_widget = QtGui.QWidget()
+        Sub_picked_grid = QtGui.QGridLayout()
+        Sub_picked_grid.addWidget(picked_label, 0, 0)
+        Sub_picked_grid.addWidget(self.time, 0, 1)
+        Sub_picked_grid.addWidget(incertitude_label, 0, 2)
+        Sub_picked_grid.addWidget(self.incertitude_value_label, 0, 3)
+        Sub_picked_widget.setLayout(Sub_picked_grid)
+        Sub_picked_widget.setStyleSheet(" Background: white ")
+
         #--- Trace Subwidget ---#
         Sub_Trace_Widget = QtGui.QWidget()
         Sub_Trace_Grid = QtGui.QGridLayout()
@@ -110,8 +176,8 @@ class ManualttUI(QtGui.QFrame):
         #--- Left Part SubWidget ---#
         Sub_left_Part_Widget = QtGui.QWidget()
         Sub_left_Part_Grid = QtGui.QGridLayout()
-        Sub_left_Part_Grid.addWidget(info_Tedit, 0, 0)
-        Sub_left_Part_Grid.addWidget(PTime_Tedit, 1, 0)
+        Sub_left_Part_Grid.addWidget(Sub_Info_widget, 0, 0)
+        Sub_left_Part_Grid.addWidget(Sub_picked_widget, 1, 0)
         Sub_left_Part_Grid.addWidget(Sub_Trace_Widget, 2, 0)
         Sub_left_Part_Grid.addWidget(btn_Prev, 3, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(btn_Next, 3, 0, 1, 2)
@@ -191,11 +257,14 @@ class ManualttUI(QtGui.QFrame):
 
         #--- Master Grid Disposition ---#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(self.uppermanager, 0, 0, 1, 3)
-        master_grid.addWidget(self.lowermanager, 1, 0, 1, 2)
-        master_grid.addWidget(Control_Center_GroupBox, 1, 2)
+        master_grid.addWidget(self.tool, 0, 0, 1, 3)
+        master_grid.addWidget(self.uppermanager, 1, 0, 1, 3)
+        master_grid.addWidget(self.lowermanager, 2, 0, 1, 2)
+        master_grid.addWidget(Control_Center_GroupBox, 2, 2)
         master_grid.setRowStretch(1, 100)
         master_grid.setColumnStretch(1, 100)
+        master_grid.setContentsMargins(0, 0, 0, 0)
+        master_grid.setVerticalSpacing(0)
         self.setLayout(master_grid)
 
 class UpperFig(FigureCanvasQTAgg):
@@ -206,9 +275,15 @@ class UpperFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        ax = self.figure.add_axes([0.4, 0.1, 0.3, 0.85])
+        ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
+
+    def plot_amplitude(self, mogd):
+        ax = self.figure.axes[0]
+        ax.cla()
+        mpl.axes.Axes.set_xlabel(ax, ' Time [{}]'.format(mogd.tunits))
+        mpl.axes.Axes.set_ylabel(ax, 'Amplitude')
 
 class LowerFig(FigureCanvasQTAgg):
     def __init__(self):
@@ -222,6 +297,11 @@ class LowerFig(FigureCanvasQTAgg):
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
 
+    def plot_trace_data(self, mogd):
+        ax = self.figure.axes[0]
+        ax.cla()
+        mpl.axes.Axes.set_ylabel(ax, 'Time [{}]'.format(mogd.tunits))
+        mpl.axes.Axes.set_xlabel(ax, 'Trace No')
 
 
 

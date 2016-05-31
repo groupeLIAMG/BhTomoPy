@@ -86,11 +86,6 @@ class DatabaseUI(QtGui.QWidget):
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
 
-
-
-
-
-
     def show(self):
         super(DatabaseUI, self).show()
 
