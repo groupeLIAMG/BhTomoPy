@@ -10,6 +10,7 @@ class ManualttUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(ManualttUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Manual Traveltime Picking")
+        self.openmain = OpenMainData()
         self.initUI()
 
     def initUI(self):
@@ -85,9 +86,12 @@ class ManualttUI(QtGui.QFrame):
         incertitude_label.setPalette(blue_palette)
         self.incertitude_value_label.setPalette(blue_palette)
 
-        #--- Menubar ---#
-        self.tool = QtGui.QMenuBar()
-        self.tool.addAction('Open Main Data File')
+        #--- Actions ---#
+        openAction = QtGui.QAction(' Open main data file', self)
+        openAction.triggered.connect(self.openmain.show)
+        #--- ToolBar ---#
+        self.tool = QtGui.QToolBar()
+        self.tool.addAction(openAction)
         self.tool.addAction('Save')
         self.tool.addAction('Import')
 
@@ -265,6 +269,50 @@ class ManualttUI(QtGui.QFrame):
         master_grid.setColumnStretch(1, 100)
         master_grid.setContentsMargins(0, 0, 0, 0)
         master_grid.setVerticalSpacing(0)
+        self.setLayout(master_grid)
+
+
+class OpenMainData(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(OpenMainData, self).__init__()
+        self.setWindowTitle("bh_thomoPy/Info")
+        self.database_list = []
+        self.initUI()
+
+    def open_database(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+        if filename:
+            rname = filename.split('/')
+            rname = rname[-1]
+            rname = rname[:-4]
+
+
+
+
+    def initUI(self):
+
+        #-------  Widgets --------#
+        #--- Edit ---#
+        self.database_edit = QtGui.QLineEdit()
+        #- Edit Action -#
+        self.database_edit.setReadOnly(True)
+        #--- Buttons ---#
+        self.btn_database = QtGui.QPushButton('Choose Database')
+        self.btn_ok = QtGui.QPushButton('Ok')
+        self.btn_cancel = QtGui.QPushButton('Cancel')
+
+        #- Buttons' Actions -#
+        self.btn_cancel.clicked.connect(self.close)
+
+        #--- Combobox ---#
+        self.mog_combo = QtGui.QComboBox()
+
+        master_grid = QtGui.QGridLayout()
+        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
+        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
+        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
+        master_grid.addWidget(self.btn_ok, 3, 0)
+        master_grid.addWidget(self.btn_cancel, 3 ,1)
         self.setLayout(master_grid)
 
 class UpperFig(FigureCanvasQTAgg):

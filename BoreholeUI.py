@@ -1,7 +1,7 @@
 import sys
 from PyQt4 import QtGui, QtCore
 from borehole import Borehole
-import re
+from database import Database
 import numpy as np
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
@@ -20,8 +20,14 @@ class BoreholeUI(QtGui.QWidget):
         super(BoreholeUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Borehole")
         self.boreholes = []   # we initialize a list which will contain instances of Borehole class
+        self.db = Database()
         self.initUI()
         self.actual_time = time.asctime()[11:16]
+
+    def update_database(self):
+        self.db.db_Borehole_list.clear()
+        for bh in self.boreholes:
+            self.db.db_Borehole_list.append(bh)
 
     def import_bhole(self):
         """
@@ -47,6 +53,7 @@ class BoreholeUI(QtGui.QWidget):
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
             self.bhlogSignal.emit("{}.xyz as been loaded succesfully".format(rname))
+            self.update_database()
 
 
     def add_bhole(self):
@@ -61,6 +68,7 @@ class BoreholeUI(QtGui.QWidget):
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
             self.bhlogSignal.emit("{} borehole as been added sucesfully".format(name))
+            self.update_database()
 
     def update_List_Widget(self):
         """
@@ -102,6 +110,7 @@ class BoreholeUI(QtGui.QWidget):
             del self.boreholes[int(i.row())]
 
         self.update_List_Widget()
+        self.update_database()
 
     def update_bhole_data(self):
         """
@@ -126,6 +135,7 @@ class BoreholeUI(QtGui.QWidget):
             bh.fdata[-1,1]    = bh.Ymax
             bh.fdata[-1,2]    = bh.Zmax
 
+        self.update_database()
     def plot(self):
         """
         Plots the all the Borehole instance in boreholes

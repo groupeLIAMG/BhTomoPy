@@ -24,7 +24,7 @@ from MogData import MogData
 
 
 class AirShots:
-    def __init__(self, name=None):
+    def __init__(self, name=''):
         self.mog = Mog()
         self.name = name
         self.tt = np.array([])     # traveltime vector
@@ -188,11 +188,6 @@ class Mog:
         t0 = times - shot.d_TxRx/v
 
 
-
-
-
-
-
     @staticmethod
     def getID(*args):
         nargin = len(args)
@@ -226,7 +221,6 @@ class Mog:
                 airAfter = air(self.ap)
 
 
-
 class PruneParams:
     def __init__(self):
         self.stepTx = 0
@@ -238,27 +232,6 @@ class PruneParams:
         self.zmax = 1e99
         self.thetaMin = -90
         self.thetaMax = 90
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 if __name__ == '__main__':
 

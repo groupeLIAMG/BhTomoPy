@@ -4,6 +4,7 @@ import os
 from PyQt4 import QtGui, QtCore
 from MogData import MogData
 from mog import Mog, AirShots
+from database import Database
 from unicodedata import *
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -24,9 +25,14 @@ class MOGUI(QtGui.QWidget):
         self.setWindowTitle("bh_thomoPy/MOGs")
         self.MOGs = []
         self.air = []
+        self.db = Database()
         self.data_rep = ''
         self.initUI()
 
+    def update_database(self):
+        self.db.db_Mog_list.clear()
+        for mog in self.MOGs:
+            self.db.db_Mog_list.append(mog)
 
     def add_MOG(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
@@ -63,6 +69,7 @@ class MOGUI(QtGui.QWidget):
         self.update_spectra_Tx_elev_value_label()
         self.update_edits()
         self.moglogSignal.emit("{} Multi Offset-Gather as been loaded succesfully".format(rname))
+        self.update_database()
 
     def update_edits(self):
         """
@@ -91,6 +98,7 @@ class MOGUI(QtGui.QWidget):
             self.moglogSignal.emit("MOG {} as been deleted".format(self.MOGs[int(i.row())].name))
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
+        self.update_database()
 
     def rename(self):
         ind = self.MOG_list.selectedIndexes()
@@ -98,8 +106,9 @@ class MOGUI(QtGui.QWidget):
         if ok:
             for i in ind:
                 self.moglogSignal.emit("MOG {} is now {}".format(self.MOGs[int(i.row())].name, new_name))
-                self.MOGs[int(i.row())] = new_name
+                self.MOGs[int(i.row())].name = new_name
         self.update_List_Widget()
+        self.update_database()
 
 
     def airBefore(self):

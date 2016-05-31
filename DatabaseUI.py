@@ -80,11 +80,23 @@ class DatabaseUI(QtGui.QWidget):
 
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.red))
                 self.log.append(item)
+                scroll = QtGui.QScrollBar()
+                scroll.setValue(0)
+                self.log.setVerticalScrollBar(scroll)
 
             else:
 
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
+                scroll = QtGui.QScrollBar()
+                scroll.setMinimum(0)
+                self.log.setVerticalScrollBar(scroll)
+
+        #cursor = QtGui.QTextCursor()
+        #cursor.setPosition(0)
+        #self.log.setTextCursor(cursor)
+
+
 
     def show(self):
         super(DatabaseUI, self).show()
@@ -104,7 +116,6 @@ class DatabaseUI(QtGui.QWidget):
         self.move(translation)
 
 
-
     def initUI(self):
 
         white_palette = QtGui.QPalette()
@@ -113,6 +124,7 @@ class DatabaseUI(QtGui.QWidget):
         #--- Log Widget ---#
         self.log = QtGui.QTextEdit()
         self.log.setReadOnly(True)
+        self.log.setLineWrapMode(0)
 
         #--- Menubar ---#
         self.tool = QtGui.QMenuBar()
@@ -168,6 +180,14 @@ if __name__ == '__main__':
 
     Database_ui = DatabaseUI()
 
+    Database_ui.update_log("t")
+    Database_ui.update_log("t")
+    Database_ui.update_log("t")
+    Database_ui.update_log("t")
+    Database_ui.update_log("t")
+    Database_ui.update_log("t")
+    Database_ui.update_log("t")
+    Database_ui.update_log("Error: t")
 
     Database_ui.show()
 
