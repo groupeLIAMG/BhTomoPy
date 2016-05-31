@@ -2,7 +2,6 @@
 import sys
 import os
 from PyQt4 import QtGui, QtCore
-from BoreholeUI import BoreholeUI
 from MogData import MogData
 from mog import Mog, AirShots
 from unicodedata import *

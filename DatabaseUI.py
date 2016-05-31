@@ -73,6 +73,9 @@ class DatabaseUI(QtGui.QWidget):
             else:
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
+        textcursor = QtGui.QTextCursor()
+        textcursor.setKeepPositionOnInsert(True)
+        self.log.setTextCursor(textcursor)
 
 
 

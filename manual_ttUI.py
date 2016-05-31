@@ -1,6 +1,8 @@
 import sys
 from PyQt4 import QtGui, QtCore
-
+import matplotlib as mpl
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
 class ManualttUI(QtGui.QFrame):
@@ -176,6 +178,18 @@ class ManualttUI(QtGui.QFrame):
         master_grid.setRowStretch(1, 100)
         master_grid.setColumnStretch(1, 100)
         self.setLayout(master_grid)
+
+class UpperFig(FigureCanvasQTAgg):
+    def __init__(self):
+        fig_width, fig_height = 4, 4
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
+        super(UpperFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        ax = self.figure.add_axes([0.2, 0.2, 0.8, 0.8])
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
 
 if __name__ == '__main__':
 
