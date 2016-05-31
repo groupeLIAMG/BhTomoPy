@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
+from pyqt4 import QtGui, QtCore
 from MogData import MogData
 
 
@@ -50,6 +51,7 @@ class AirShots:
 
 
 class Mog:
+    moglogSignal = QtCore.pyqtSignal(str)
     def __init__(self, name= ''):
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
@@ -132,15 +134,39 @@ class Mog:
         t0av = np.array([])
         t0ap = np.array([])
 
-        if air_before == None :
+        if air_before != None :
             if 'fixed_antenna' in air_before.method:
-                pass
+                t0av = self.get_t0_fixed(air_before, v_air)
             if 'walkaway' in air_before.method:
-                pass
+                pass #TODO get_t0_wa
+
+        if air_after != None:
+            if 'fixed_antenna' in air_before.method:
+                t0ap = self.get_t0_fixed(air_after, v_air)
+            if 'walkaway' in air_before.method:
+                pass #TODO get_t0_wa
+
+        if np.isnan(t0av) or np.isnan(t0ap):
+            self.moglogSignal("t0 correction not applied. Pick t0 before and t0 after correction")
+            t0 = np.zeros((1, ndata))
+            return
+
+        if len(t0av) == 0 and len(t0ap) == 0:
+            t0 = np.zeros((1, ndata))
+        elif len(t0av) == 0:
+            t0 = t0ap*np.zeros((1, ndata))
+        elif len(t0ap) == 0:
+            t0 = t0av*np.zeros((1, ndata))
+        else:
+            dt0 = t0av - t0ap
+            ddt0 = dt0/(ndata-1)
+            t0 = t0av + ddt0*np.arange(ndata-1)      # pas sur de cette etape là
+
 
     @staticmethod
     def load_self(mog):
         Mog.getID(mog.ID)
+
     @staticmethod
     def get_t0_fixed(shot, v):
         times = shot.tt # à vérifier

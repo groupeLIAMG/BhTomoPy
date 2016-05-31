@@ -60,11 +60,6 @@ class DatabaseUI(QtGui.QWidget):
         self.info.update_trace(num)
 
     def update_log(self, action):
-        red_palette = QtGui.QPalette()
-        red_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.red)
-        black_palette = QtGui.QPalette()
-        black_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
-
         self.log.clear()
         self.action_list.append("[{}] {} " .format(self.actual_time, action))
         log_list = []
