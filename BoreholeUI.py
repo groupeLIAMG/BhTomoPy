@@ -29,23 +29,24 @@ class BoreholeUI(QtGui.QWidget):
         and then shows its name in the bh_list
 
         """
-        filename          = QtGui.QFileDialog.getOpenFileName(self, 'Import Borehole')
-        rname             = filename.split('/')
-        rname             = rname[-1]
-        rname             = rname.strip('.xyz')
-        bh                = Borehole(str(rname))
-        bh.fdata          = np.loadtxt(filename)
-        bh.X              = bh.fdata[0,0]
-        bh.Y              = bh.fdata[0,1]
-        bh.Z              = bh.fdata[0,2]
-        bh.Xmax           = bh.fdata[-1,0]
-        bh.Ymax           = bh.fdata[-1,1]
-        bh.Zmax           = bh.fdata[-1,2]
-        self.boreholes.append(bh)
-        self.update_List_Widget()
-        self.bh_list.setCurrentRow(len(self.boreholes) - 1)
-        self.update_List_Edits()
-        self.bhlogSignal.emit("{}.xyz as been loaded succesfully".format(rname))
+        filename              = QtGui.QFileDialog.getOpenFileName(self, 'Import Borehole')
+        if filename:
+            rname             = filename.split('/')
+            rname             = rname[-1]
+            rname             = rname.strip('.xyz')
+            bh                = Borehole(str(rname))
+            bh.fdata          = np.loadtxt(filename)
+            bh.X              = bh.fdata[0,0]
+            bh.Y              = bh.fdata[0,1]
+            bh.Z              = bh.fdata[0,2]
+            bh.Xmax           = bh.fdata[-1,0]
+            bh.Ymax           = bh.fdata[-1,1]
+            bh.Zmax           = bh.fdata[-1,2]
+            self.boreholes.append(bh)
+            self.update_List_Widget()
+            self.bh_list.setCurrentRow(len(self.boreholes) - 1)
+            self.update_List_Edits()
+            self.bhlogSignal.emit("{}.xyz as been loaded succesfully".format(rname))
 
 
     def add_bhole(self):
@@ -201,7 +202,8 @@ class BoreholeUI(QtGui.QWidget):
                 bh.scont = scont
 
             else:
-                raise IOError("the file's extension must be *.con")
+                self.bhlogSignal.emit("Error: the file's extension must be *.con")
+                break
 
     def initUI(self):
 

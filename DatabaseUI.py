@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
@@ -61,7 +62,8 @@ class DatabaseUI(QtGui.QWidget):
     def update_log(self, action):
         red_palette = QtGui.QPalette()
         red_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.red)
-
+        black_palette = QtGui.QPalette()
+        black_palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
 
         self.log.clear()
         self.action_list.append("[{}] {} " .format(self.actual_time, action))
@@ -69,11 +71,12 @@ class DatabaseUI(QtGui.QWidget):
         for action in self.action_list:
             log_list.insert(0, action)
         for item in log_list:
-            #TODO régler le fait que meme si c'est aps une erreur, le message s'affiche en rouge
+#TODO rÃ©gler le fait que meme si c'est aps une erreur, le message s'affiche en rouge
             if "Error: " in item:
-                self.log.setPalette(red_palette)
+                self.log.setTextColor(QtGui.QColor(QtCore.Qt.red))
                 self.log.append(item)
             else:
+                self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
 
 

@@ -140,7 +140,7 @@ class MOGUI(QtGui.QWidget):
 
                         if len(distance_list) > 1:
                             if len(distance_list)!= data.ntrace:
-                                self.moglogSignal.emit('Error : Number of positions inconsistent with number of traces')
+                                self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
 
                         self.air.append(AirShots(str(rname)))
@@ -194,7 +194,7 @@ class MOGUI(QtGui.QWidget):
 
                         if len(distance_list) > 1:
                             if len(distance_list)!= data.ntrace:
-                                self.moglogSignal.emit('Error : Number of positions inconsistent with number of traces')
+                                self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
 
                         self.air[n] = AirShots(str(rname))
