@@ -24,6 +24,21 @@ class ManualttUI(QtGui.QFrame):
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
+        #------ Creation of the Manager for the Lower figure -------#
+        self.lowerFig = LowerFig()
+        self.lowermanager = QtGui.QWidget()
+        lowermanagergrid = QtGui.QGridLayout()
+        lowermanagergrid.addWidget(self.lowerFig, 0, 0)
+        self.lowermanager.setLayout(lowermanagergrid)
+
+        #------ Creation of the Manager for the Upper figure -------#
+        self.upperFig = UpperFig()
+        self.uppertool = NavigationToolbar2QT(self.upperFig, self)
+        self.uppermanager = QtGui.QWidget()
+        uppermanagergrid = QtGui.QGridLayout()
+        uppermanagergrid.addWidget(self.uppertool, 0, 0)
+        uppermanagergrid.addWidget(self.upperFig, 1, 0)
+        self.uppermanager.setLayout(uppermanagergrid)
         #------- Widgets Creation -------#
         #--- Buttons Set ---#
         btn_Prev = QtGui.QPushButton("Previous Trace")
@@ -107,6 +122,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_left_Part_Grid.addWidget(lim_checkbox, 6, 0)
         Sub_left_Part_Grid.addWidget(save_checkbox, 7, 0)
         Sub_left_Part_Grid.addWidget(jump_checkbox, 8, 0)
+        Sub_left_Part_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_left_Part_Widget.setLayout(Sub_left_Part_Grid)
 
         #--- upper right subWidget ---#
@@ -119,6 +135,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_upper_right_Grid.addWidget(pick_combo, 4, 0, 1, 2)
         Sub_upper_right_Grid.addWidget(btn_Upper, 6, 0, 1, 2)
         Sub_upper_right_Grid.addWidget(btn_Conti, 7, 0, 1, 2)
+        Sub_upper_right_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_upper_right_Widget.setLayout(Sub_upper_right_Grid)
 
         #--- Contiguous Trace Groupbox ---#
@@ -128,6 +145,7 @@ class ManualttUI(QtGui.QFrame):
         Conti_Grid.addWidget(std_dev_radio, 1, 0)
         Conti_Grid.addWidget(trace_selec_radio, 2, 0)
         Conti_Grid.setColumnStretch(1, 100)
+        Conti_Grid.setContentsMargins(0, 0, 0, 0)
         Conti_Groupbox.setLayout(Conti_Grid)
 
         #--- Time and Amplitude Labels SubWidget ---#
@@ -158,6 +176,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Labels_Widget, 0, 0)
         Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Edits_Widget, 1, 0)
         Sub_T_and_A_Grid.setRowStretch(3, 100)
+        Sub_T_and_A_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_T_and_A_Widget.setLayout(Sub_T_and_A_Grid)
 
         #--- Control Center SubWidget ---#
@@ -172,8 +191,8 @@ class ManualttUI(QtGui.QFrame):
 
         #--- Master Grid Disposition ---#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(futur_Graph1, 0, 0, 1, 3)
-        master_grid.addWidget(futur_Graph2, 1, 0, 1, 2)
+        master_grid.addWidget(self.uppermanager, 0, 0, 1, 3)
+        master_grid.addWidget(self.lowermanager, 1, 0, 1, 2)
         master_grid.addWidget(Control_Center_GroupBox, 1, 2)
         master_grid.setRowStretch(1, 100)
         master_grid.setColumnStretch(1, 100)
@@ -187,15 +206,31 @@ class UpperFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        ax = self.figure.add_axes([0.2, 0.2, 0.8, 0.8])
+        ax = self.figure.add_axes([0.4, 0.1, 0.3, 0.85])
         ax.yaxis.set_ticks_position('left')
         ax.xaxis.set_ticks_position('bottom')
+
+class LowerFig(FigureCanvasQTAgg):
+    def __init__(self):
+        fig_width, fig_height = 4, 4
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
+        super(LowerFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+
+
+
+
 
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
     Model_ui = ManualttUI()
-    Model_ui.show()
+    Model_ui.showMaximized()
 
     sys.exit(app.exec_())

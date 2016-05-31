@@ -61,21 +61,33 @@ class DatabaseUI(QtGui.QWidget):
         self.info.update_trace(num)
 
     def update_log(self, action):
+        # Clear the log to make sure any action is not written more than once
         self.log.clear()
+
+        # Append the time and the action that was done
         self.action_list.append("[{}] {} " .format(self.actual_time, action))
         log_list = []
+
         for action in self.action_list:
+
+            # Use the insert method to make sure that the lastest action is displayed at the top
             log_list.insert(0, action)
+
+        # Put the Error messages in red and the others in black
         for item in log_list:
+
             if "Error: " in item:
+
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.red))
                 self.log.append(item)
+
             else:
+
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
-        textcursor = QtGui.QTextCursor()
-        textcursor.setKeepPositionOnInsert(True)
-        self.log.setTextCursor(textcursor)
+
+
+
 
 
 
