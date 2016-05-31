@@ -5,6 +5,7 @@ from PyQt4 import QtGui, QtCore
 class ModelUI(QtGui.QWidget):
     #------- Signals Emitted -------#
     modelInfoSignal = QtCore.pyqtSignal(int)
+    modellogSignal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super(ModelUI, self).__init__()
@@ -16,11 +17,13 @@ class ModelUI(QtGui.QWidget):
         name, ok = QtGui.QInputDialog.getText(self, "Model creation", 'Model name')
         if ok :
             self.models.append(name)
+            self.modellogSignal.emit("Model {} as been added succesfully".format(name))
         self.update_model_list()
 
     def del_model(self):
         ind = self.model_list.selectedIndexes()
         for i in ind:
+            self.modellogSignal.emit("Model {} as been deleted succesfully".format(self.models[int(i.row())]))
             del self.models[int(i.row())]
         self.update_model_list()
 

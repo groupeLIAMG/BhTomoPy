@@ -33,6 +33,7 @@ class DatabaseUI(QtGui.QWidget):
         self.model.modelInfoSignal.connect(self.update_model_info)
         self.bh.bhlogSignal.connect(self.update_log)
         self.mog.moglogSignal.connect(self.update_log)
+        self.model.modellogSignal.connect(self.update_log)
 
 
 
