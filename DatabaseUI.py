@@ -71,7 +71,6 @@ class DatabaseUI(QtGui.QWidget):
         for action in self.action_list:
             log_list.insert(0, action)
         for item in log_list:
-#TODO régler le fait que meme si c'est aps une erreur, le message s'affiche en rouge
             if "Error: " in item:
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.red))
                 self.log.append(item)
@@ -79,6 +78,24 @@ class DatabaseUI(QtGui.QWidget):
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
 
+
+
+    def show(self):
+        super(DatabaseUI, self).show()
+
+        # Get initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Show it at the center of the screen
+        cp = QtGui.QDesktopWidget().availableGeometry().center()
+
+        # Move the window's center at the center of the screen
+        qr.moveCenter(cp)
+
+        # Then move it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
 
 
 
