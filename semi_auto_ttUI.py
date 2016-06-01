@@ -3,9 +3,10 @@ from PyQt4 import QtGui, QtCore
 import sys
 
 class SemiAutottUI(QtGui.QWidget):
+
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Semi Automatic Traveltime picking")
+        self.setWindowTitle("bh_thomoPy/Semi Automatic Traveltime Picking")
         self.initUI()
 
     def initUI(self):
@@ -23,67 +24,68 @@ class SemiAutottUI(QtGui.QWidget):
 
         #------- Widgets -------#
         #--- Labels ---#
-        Z_min_label = MyQLabel(('Z min'), ha= 'right')
-        Z_max_label = MyQLabel(('Z max'), ha= 'right')
-        Tx_label = MyQLabel(('Tx'), ha= 'center')
-        Rx_label = MyQLabel(('Rx'), ha= 'center')
-        self.percent_label = MyQLabel((''), ha= 'center')
-        Bin_label = MyQLabel(('Bin width [°]'), ha= 'center')
-        self.bin_value_label = MyQLabel(('0'), ha= 'center')
-        sn_treshold_process_label =MyQLabel(('S/N treshold - 1st Cycle processing'), ha= 'right')
-        treshold_label =MyQLabel(('Selection treshold, 1st Cycle'), ha= 'right')
-        weight_label =MyQLabel(('Weight - Traces 1st Cycle'), ha= 'right')
-        sn_treshold_freq_label =MyQLabel(('S/N treshold - Dom freq scaling'), ha= 'right')
-        Dom_freq_min_label =MyQLabel(('Dom freq - acceptable min freq'), ha= 'right')
-        Dom_freq_max_label =MyQLabel(('Dom freq - acceptable max freq'), ha= 'right')
-        iteration_label =  MyQLabel(('Iteration No'), ha= 'center')
-        self.iteration_num_label = MyQLabel(('0'), ha= 'center')
-        t_label = MyQLabel(('t'), ha= 'right')
-        t_min_label = MyQLabel(('min'), ha= 'center')
-        t_max_label = MyQLabel(('max'), ha= 'center')
-        A_label = MyQLabel(('A'), ha= 'right')
-        A_min_label = MyQLabel(('min'), ha= 'center')
-        A_max_label = MyQLabel(('max'), ha= 'center')
-        computation_label = MyQLabel(('Window - S/N computation'), ha= 'center')
-        self.time_units_label = MyQLabel(('[]'), ha= 'center')
+        Z_min_label                     = MyQLabel(('Z min'), ha= 'right')
+        Z_max_label                     = MyQLabel(('Z max'), ha= 'right')
+        Tx_label                        = MyQLabel(('Tx'), ha= 'center')
+        Rx_label                        = MyQLabel(('Rx'), ha= 'center')
+        self.percent_label              = MyQLabel((''), ha= 'center')
+        Bin_label                       = MyQLabel(('Bin width [°]'), ha= 'center')
+        self.bin_value_label            = MyQLabel(('0'), ha= 'center')
+        sn_treshold_process_label       = MyQLabel(('S/N treshold - 1st Cycle processing'), ha= 'right')
+        treshold_label                  = MyQLabel(('Selection treshold, 1st Cycle'), ha= 'right')
+        weight_label                    = MyQLabel(('Weight - Traces 1st Cycle'), ha= 'right')
+        sn_treshold_freq_label          = MyQLabel(('S/N treshold - Dom freq scaling'), ha= 'right')
+        Dom_freq_min_label              = MyQLabel(('Dom freq - acceptable min freq'), ha= 'right')
+        Dom_freq_max_label              = MyQLabel(('Dom freq - acceptable max freq'), ha= 'right')
+        iteration_label                 = MyQLabel(('Iteration No'), ha= 'center')
+        self.iteration_num_label        = MyQLabel(('0'), ha= 'center')
+        t_label                         = MyQLabel(('t'), ha= 'right')
+        t_min_label                     = MyQLabel(('min'), ha= 'center')
+        t_max_label                     = MyQLabel(('max'), ha= 'center')
+        A_label                         = MyQLabel(('A'), ha= 'right')
+        A_min_label                     = MyQLabel(('min'), ha= 'center')
+        A_max_label                     = MyQLabel(('max'), ha= 'center')
+        computation_label               = MyQLabel(('Window - S/N computation'), ha= 'center')
+        self.time_units_label           = MyQLabel(('[]'), ha= 'center')
 
         #--- Edits ---#
-        self.Tx_Zmin_edit = QtGui.QLineEdit()
-        self.Tx_Zmax_edit = QtGui.QLineEdit()
-        self.Rx_Zmin_edit = QtGui.QLineEdit()
-        self.Rx_Zmax_edit = QtGui.QLineEdit()
-        self.bin_width_edit = QtGui.QLineEdit()
-        self.sn_treshold_process_edit = QtGui.QLineEdit()
-        self.treshold_edit = QtGui.QLineEdit()
-        self.weight_edit = QtGui.QLineEdit()
-        self.sn_treshold_freq_edit = QtGui.QLineEdit()
-        self.Dom_freq_min_edit = QtGui.QLineEdit()
-        self.Dom_freq_max_edit = QtGui.QLineEdit()
-        self.t_min_edit = QtGui.QLineEdit()
-        self.t_max_edit = QtGui.QLineEdit()
-        self.A_min_edit = QtGui.QLineEdit()
-        self.A_max_edit = QtGui.QLineEdit()
-        self.time_step_edit =QtGui.QLineEdit()
+        self.Tx_Zmin_edit               = QtGui.QLineEdit()
+        self.Tx_Zmax_edit               = QtGui.QLineEdit()
+        self.Rx_Zmin_edit               = QtGui.QLineEdit()
+        self.Rx_Zmax_edit               = QtGui.QLineEdit()
+        self.bin_width_edit             = QtGui.QLineEdit()
+        self.sn_treshold_process_edit   = QtGui.QLineEdit()
+        self.treshold_edit              = QtGui.QLineEdit()
+        self.weight_edit                = QtGui.QLineEdit()
+        self.sn_treshold_freq_edit      = QtGui.QLineEdit()
+        self.Dom_freq_min_edit          = QtGui.QLineEdit()
+        self.Dom_freq_max_edit          = QtGui.QLineEdit()
+        self.t_min_edit                 = QtGui.QLineEdit()
+        self.t_max_edit                 = QtGui.QLineEdit()
+        self.A_min_edit                 = QtGui.QLineEdit()
+        self.A_max_edit                 = QtGui.QLineEdit()
+        self.time_step_edit             = QtGui.QLineEdit()
 
         #--- Buttons ---#
-        self.btn_prev_bin = QtGui.QPushButton('Previous')
-        self.btn_next_bin = QtGui.QPushButton('Next')
-        self.btn_prep = QtGui.QPushButton('Prepare')
-        self.btn_show = QtGui.QPushButton('Show')
-        self.btn_remove = QtGui.QPushButton('Remove')
-        self.btn_reinit = QtGui.QPushButton('Reinit')
-        self.btn_align = QtGui.QPushButton('Align Traces')
-        self.btn_pick = QtGui.QPushButton('Pick mean Trace')
-        self.btn_corr = QtGui.QPushButton('Pick Traces using Cross correlation')
+        self.btn_prev_bin               = QtGui.QPushButton('Previous')
+        self.btn_next_bin               = QtGui.QPushButton('Next')
+        self.btn_prep                   = QtGui.QPushButton('Prepare')
+        self.btn_show                   = QtGui.QPushButton('Show')
+        self.btn_remove                 = QtGui.QPushButton('Remove')
+        self.btn_reinit                 = QtGui.QPushButton('Reinit')
+        self.btn_align                  = QtGui.QPushButton('Align Traces')
+        self.btn_pick                   = QtGui.QPushButton('Pick mean Trace')
+        self.btn_corr                   = QtGui.QPushButton('Pick Traces using Cross correlation')
 
         #--- ToolBar ---#
-        self.tool = QtGui.QToolBar()
+        self.tool                       = QtGui.QToolBar()
 
         #--- Checkboxes ---#
-        self.work_check = QtGui.QCheckBox('Work with 1st Cycle')
-        self.dom_freq_check = QtGui.QCheckBox('Dominant frequency scaling')
-        self.orig_check = QtGui.QCheckBox('Display original Traces')
-        self.show_check = QtGui.QCheckBox('Show Picks')
+        self.work_check                 = QtGui.QCheckBox('Work with 1st Cycle')
+        self.dom_freq_check             = QtGui.QCheckBox('Dominant frequency scaling')
+        self.orig_check                 = QtGui.QCheckBox('Display original Traces')
+        self.show_check                 = QtGui.QCheckBox('Show Picks')
+
 
         #------- SubWidgets -------#
         #--- Edits and Labels SubWidget ---#
@@ -142,6 +144,8 @@ class SemiAutottUI(QtGui.QWidget):
         Sub_T_and_A_grid.addWidget(self.time_units_label, 2, 4)
         Sub_T_and_A_grid.addWidget(self.time_step_edit, 2, 5)
         Sub_T_and_A_widget.setLayout(Sub_T_and_A_grid)
+
+
         #------- GroupBoxes --------#
         #--- Station GroupBox ---#
         station_group = QtGui.QGroupBox('Stations Tx-Rx')

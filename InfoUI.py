@@ -2,7 +2,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 
 
-class InfoUI(QtGui.QFrame):
+class InfoUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(InfoUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Info")
