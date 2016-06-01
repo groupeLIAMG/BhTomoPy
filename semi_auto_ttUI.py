@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import sys
 from PyQt4 import QtGui, QtCore
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from manual_ttUI import OpenMainData
 
 class SemiAutottUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Semi Automatic Traveltime Picking")
+        self.openmain = OpenMainData()
         self.initUI()
 
     def initUI(self):
@@ -106,9 +107,53 @@ class SemiAutottUI(QtGui.QWidget):
         self.btn_align                  = QtGui.QPushButton('Align Traces')
         self.btn_pick                   = QtGui.QPushButton('Pick mean Trace')
         self.btn_corr                   = QtGui.QPushButton('Pick Traces using Cross correlation')
+        #--- Action for Menubar ---#
+        saveAction = QtGui.QAction('Save', self)
+        saveAction.setShortcut('Ctrl+S')
 
-        #--- ToolBar ---#
-        self.tool                       = QtGui.QToolBar()
+        chooseAction = QtGui.QAction('Choose MOG', self)
+        chooseAction.setShortcut('Ctrl+O')
+        chooseAction.triggered.connect(self.openmain.show)
+
+        reiniAction = QtGui.QAction('Reinitialize', self)
+
+        usedetrendAction = QtGui.QAction('Use Detrend', self)
+        usedetrendAction.setCheckable(True)
+        usedetrendAction.setChecked(True)
+
+        alignAction = QtGui.QAction('Align Traces', self)
+        alignAction.setShortcut('Ctrl+A')
+
+        pointAction = QtGui.QAction('Point the average Trace', self)
+        pointAction.setShortcut('Ctrl+P')
+
+        prevAction = QtGui.QAction(' Previous Group', self)
+        prevAction.setShortcut('Ctrl+P')
+
+        nextAction = QtGui.QAction('Next Group', self)
+        nextAction.setShortcut('Ctrl+F')
+
+        averAction = QtGui.QAction('Show average Traces', self)
+
+        #--- Menubar ---#
+        self.menu = QtGui.QMenuBar()
+
+        #- Menus -#
+        filemenu = self.menu.addMenu('&File')
+        editmenu = self.menu.addMenu('&Edit')
+        actionmenu = self.menu.addMenu('&Action')
+
+        # Menus Actions #
+        filemenu.addAction(chooseAction)
+        filemenu.addAction(saveAction)
+
+        editmenu.addAction(reiniAction)
+        editmenu.addAction(usedetrendAction)
+
+        actionmenu.addAction(alignAction)
+        actionmenu.addAction(pointAction)
+        actionmenu.addAction(prevAction)
+        actionmenu.addAction(nextAction)
 
         #--- Checkboxes ---#
         self.work_check                 = QtGui.QCheckBox('Work with 1st Cycle')
@@ -239,7 +284,7 @@ class SemiAutottUI(QtGui.QWidget):
 
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(self.tool, 0, 0, 1, 5)
+        master_grid.addWidget(self.menu, 0, 0, 1, 5)
         master_grid.addWidget(self.manager, 1, 0, 5, 4)
         master_grid.addWidget(station_group, 2, 4)
         master_grid.addWidget(bin_group, 3, 4)

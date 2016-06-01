@@ -89,11 +89,14 @@ class ManualttUI(QtGui.QFrame):
         #--- Actions ---#
         openAction = QtGui.QAction(' Open main data file', self)
         openAction.triggered.connect(self.openmain.show)
+
+        saveAction = QtGui.QAction('Save', self)
         #--- ToolBar ---#
-        self.tool = QtGui.QToolBar()
-        self.tool.addAction(openAction)
-        self.tool.addAction('Save')
-        self.tool.addAction('Import')
+        self.tool = QtGui.QMenuBar()
+        filemenu = self.tool.addMenu('&File')
+        filemenu.addAction(openAction)
+        filemenu.addAction(saveAction)
+
 
         #--- Edits ---#
         Tnum_Edit = QtGui.QLineEdit()
