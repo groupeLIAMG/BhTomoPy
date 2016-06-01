@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
 import sys
+from PyQt4 import QtGui, QtCore
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib as mpl
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
 class SemiAutottUI(QtGui.QWidget):
-
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Semi Automatic Traveltime Picking")
@@ -22,10 +24,20 @@ class SemiAutottUI(QtGui.QWidget):
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
+        #------ Creation of the Manager for the Upper figure -------#
+        self.Fig = Fig()
+        self.tool = NavigationToolbar2QT(self.Fig, self)
+        self.manager = QtGui.QWidget()
+        managergrid = QtGui.QGridLayout()
+        managergrid.addWidget(self.tool, 0, 0)
+        managergrid.addWidget(self.Fig, 1, 0)
+        managergrid.setContentsMargins(0, 0, 0, 0)
+        managergrid.setVerticalSpacing(3)
+        self.manager.setLayout(managergrid)
         #------- Widgets -------#
         #--- Labels ---#
-        Z_min_label                     = MyQLabel(('Z min'), ha= 'right')
-        Z_max_label                     = MyQLabel(('Z max'), ha= 'right')
+        Z_min_label                     = MyQLabel(('Z min'), ha= 'center')
+        Z_max_label                     = MyQLabel(('Z max'), ha= 'center')
         Tx_label                        = MyQLabel(('Tx'), ha= 'center')
         Rx_label                        = MyQLabel(('Rx'), ha= 'center')
         self.percent_label              = MyQLabel((''), ha= 'center')
@@ -39,13 +51,13 @@ class SemiAutottUI(QtGui.QWidget):
         Dom_freq_max_label              = MyQLabel(('Dom freq - acceptable max freq'), ha= 'right')
         iteration_label                 = MyQLabel(('Iteration No'), ha= 'center')
         self.iteration_num_label        = MyQLabel(('0'), ha= 'center')
-        t_label                         = MyQLabel(('t'), ha= 'right')
+        t_label                         = MyQLabel(('t   '), ha= 'right')
         t_min_label                     = MyQLabel(('min'), ha= 'center')
         t_max_label                     = MyQLabel(('max'), ha= 'center')
-        A_label                         = MyQLabel(('A'), ha= 'right')
+        A_label                         = MyQLabel(('A   '), ha= 'right')
         A_min_label                     = MyQLabel(('min'), ha= 'center')
         A_max_label                     = MyQLabel(('max'), ha= 'center')
-        computation_label               = MyQLabel(('Window - S/N computation'), ha= 'center')
+        computation_label               = MyQLabel(('Window - S/N computation'), ha= 'right')
         self.time_units_label           = MyQLabel(('[]'), ha= 'center')
 
         #--- Edits ---#
@@ -65,6 +77,24 @@ class SemiAutottUI(QtGui.QWidget):
         self.A_min_edit                 = QtGui.QLineEdit()
         self.A_max_edit                 = QtGui.QLineEdit()
         self.time_step_edit             = QtGui.QLineEdit()
+
+        #- Edits Dispotion -#
+        self.Tx_Zmin_edit.setFixedWidth(80)
+        self.Tx_Zmax_edit.setFixedWidth(80)
+        self.Rx_Zmin_edit.setFixedWidth(80)
+        self.Rx_Zmax_edit.setFixedWidth(80)
+        self.bin_width_edit.setFixedWidth(80)
+        self.t_min_edit.setFixedWidth(50)
+        self.t_max_edit.setFixedWidth(50)
+        self.A_min_edit.setFixedWidth(50)
+        self.A_max_edit.setFixedWidth(50)
+        self.time_step_edit.setFixedWidth(50)
+        self.sn_treshold_process_edit.setFixedWidth(50)
+        self.treshold_edit.setFixedWidth(50)
+        self.weight_edit.setFixedWidth(50)
+        self.sn_treshold_freq_edit.setFixedWidth(50)
+        self.Dom_freq_min_edit.setFixedWidth(50)
+        self.Dom_freq_max_edit.setFixedWidth(50)
 
         #--- Buttons ---#
         self.btn_prev_bin               = QtGui.QPushButton('Previous')
@@ -106,6 +136,7 @@ class SemiAutottUI(QtGui.QWidget):
         Sub_E_and_L_grid.setVerticalSpacing(0)
         Sub_E_and_L_grid.setContentsMargins(0, 0, 0, 0)
         Sub_E_and_L_grid.setColumnStretch(0, 100)
+        Sub_E_and_L_widget.setFixedWidth(250)
         Sub_E_and_L_widget.setLayout(Sub_E_and_L_grid)
 
         #--- Lower Buttons SubWidget ---#
@@ -125,6 +156,7 @@ class SemiAutottUI(QtGui.QWidget):
         Sub_trace_grid.addWidget(iteration_label, 0, 1)
         Sub_trace_grid.addWidget(self.iteration_num_label, 0, 2)
         Sub_trace_grid.addWidget(self.btn_pick, 1, 0, 1, 3)
+        Sub_trace_grid.setContentsMargins(0, 0, 0, 0)
         Sub_trace_widget.setLayout(Sub_trace_grid)
 
         #--- Time and Amplitude Subwidget ---#
@@ -140,9 +172,11 @@ class SemiAutottUI(QtGui.QWidget):
         Sub_T_and_A_grid.addWidget(A_label, 1, 3)
         Sub_T_and_A_grid.addWidget(self.A_min_edit, 1, 4)
         Sub_T_and_A_grid.addWidget(self.A_max_edit, 1, 5)
-        Sub_T_and_A_grid.addWidget(computation_label, 2, 0, 1, 3)
+        Sub_T_and_A_grid.addWidget(computation_label, 2, 1, 1, 3)
         Sub_T_and_A_grid.addWidget(self.time_units_label, 2, 4)
         Sub_T_and_A_grid.addWidget(self.time_step_edit, 2, 5)
+        Sub_T_and_A_grid.setHorizontalSpacing(5)
+        Sub_T_and_A_grid.setContentsMargins(0, 0, 0, 0)
         Sub_T_and_A_widget.setLayout(Sub_T_and_A_grid)
 
 
@@ -160,6 +194,7 @@ class SemiAutottUI(QtGui.QWidget):
         station_grid.addWidget(self.Tx_Zmax_edit, 2, 1)
         station_grid.addWidget(self.Rx_Zmax_edit, 2, 2)
         station_group.setLayout(station_grid)
+        station_group.setFixedWidth(300)
 
         #--- Bin GroupBox ---#
         bin_group = QtGui.QGroupBox('Bin')
@@ -170,6 +205,7 @@ class SemiAutottUI(QtGui.QWidget):
         bin_grid.addWidget(self.bin_value_label, 1, 1)
         bin_grid.addWidget(self.btn_next_bin, 1, 2)
         bin_group.setLayout(bin_grid)
+        bin_group.setFixedWidth(300)
 
         #--- No Name GroupBox ---#
         no_group = QtGui.QGroupBox()
@@ -183,26 +219,53 @@ class SemiAutottUI(QtGui.QWidget):
         no_group.setLayout(no_grid)
 
         #--- Traces GroupBox ---#
-        traces_group = QtGui.QGroupBox()
+        traces_group = QtGui.QGroupBox('Traces')
         traces_grid = QtGui.QGridLayout()
         traces_grid.addWidget(no_group, 0, 0)
-        traces_grid.addWidget(traces_group, 1, 0)
+        traces_grid.addWidget(Sub_trace_widget, 1, 0)
         traces_grid.addWidget(Sub_T_and_A_widget, 2, 0)
         traces_group.setLayout(traces_grid)
+        traces_group.setFixedWidth(300)
+
+        #--- Automatic Picking GroupBox ---#
+        auto_group = QtGui.QGroupBox('Automatic Picking')
+        auto_grid = QtGui.QGridLayout()
+        auto_grid.addWidget(self.show_check, 0, 0)
+        auto_grid.addWidget(self.btn_pick, 1, 0, 1, 2)
+        auto_group.setLayout(auto_grid)
+        auto_group.setFixedWidth(300)
+
 
 
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(station_group, 0, 0)
-        master_grid.addWidget(bin_group, 1, 0)
-        master_grid.addWidget(traces_group, 2, 0)
+        master_grid.addWidget(self.tool, 0, 0, 1, 5)
+        master_grid.addWidget(self.manager, 1, 0, 5, 4)
+        master_grid.addWidget(station_group, 2, 4)
+        master_grid.addWidget(bin_group, 3, 4)
+        master_grid.addWidget(traces_group, 4, 4)
+        master_grid.addWidget(auto_group, 5, 4)
+        master_grid.setColumnStretch(0, 100)
+        #master_grid.addWidget(traces_group)
         self.setLayout(master_grid)
+
+class Fig(FigureCanvasQTAgg):
+    def __init__(self):
+        fig = mpl.figure.Figure(facecolor= 'white')
+        super(Fig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        ax1 = self.figure.add_axes([0.08, 0.45, 0.85, 0.5])
+        ax2 = self.figure.add_axes([0.08, 0.06, 0.85, 0.3])
+        ax1.yaxis.set_ticks_position('left')
+        ax1.set_axisbelow(True)
 
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    Info_ui = SemiAutottUI()
-    Info_ui.show()
+    Semi_ui = SemiAutottUI()
+    Semi_ui.show()
 
     sys.exit(app.exec_())
