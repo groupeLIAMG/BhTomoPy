@@ -77,21 +77,16 @@ class DatabaseUI(QtGui.QWidget):
         for item in log_list:
 
             if "Error: " in item:
-
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.red))
                 self.log.append(item)
-                scroll = QtGui.QScrollBar()
-                scroll.setValue(0)
-                self.log.setVerticalScrollBar(scroll)
 
             else:
-
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
-                scroll = QtGui.QScrollBar()
-                scroll.setMinimum(0)
-                self.log.setVerticalScrollBar(scroll)
 
+        scroll = QtGui.QScrollBar()
+        scroll.setValue(0)
+        self.log.setVerticalScrollBar(scroll)
         #cursor = QtGui.QTextCursor()
         #cursor.setPosition(0)
         #self.log.setTextCursor(cursor)
