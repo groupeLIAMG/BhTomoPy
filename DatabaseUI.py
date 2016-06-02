@@ -86,12 +86,13 @@ class DatabaseUI(QtGui.QWidget):
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
 
-        scroll = QtGui.QScrollBar()
-        scroll.setValue(0)
-        self.log.setVerticalScrollBar(scroll)
+        #scroll = QtGui.QScrollBar()
+        #scroll.setValue(0)
+        #self.log.setVerticalScrollBar(scroll)
         #cursor = QtGui.QTextCursor()
         #cursor.setPosition(0)
         #self.log.setTextCursor(cursor)
+
 
 
 
@@ -169,6 +170,7 @@ class DatabaseUI(QtGui.QWidget):
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
 
+
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
@@ -178,10 +180,18 @@ class DatabaseUI(QtGui.QWidget):
         master_grid.addWidget(Info_GroupBox, 2, 2)
         master_grid.addWidget(self.log, 3, 0, 2, 3)
         master_grid.setVerticalSpacing(3)
-        master_grid.setContentsMargins(2, 2, 2, 2)
+        master_grid.setContentsMargins(5, 2, 5, 2)
         self.setLayout(master_grid)
 
+class MyLogWidget(QtGui.QTextEdit):
+    def __init__(self, parent =None):
+        super(MyLogWidget, self).__init__(parent)
 
+    def append(self, txt):
+        super(MyLogWidget, self).append(txt)
+
+        bottom = self.verticalScrollBar().maximum()
+        self.verticalScrollBar().setValue(bottom)
 
 if __name__ == '__main__':
 

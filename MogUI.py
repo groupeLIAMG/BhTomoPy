@@ -7,6 +7,7 @@ from mog import Mog, AirShots
 from database import Database
 from unicodedata import *
 import matplotlib as mpl
+import scipy as spy
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -234,10 +235,15 @@ class MOGUI(QtGui.QWidget):
         Tx = mog.data.Tx_z
 
         ind = Tx[n]
-
+        print(n)
         traces = normalised_rdata[:, ind]
 
-        nfft = 'TODO'
+        def nextpow2(n):
+            m_f = np.log2(n)
+            m_i = np.ceil(m_f)
+            return 2**m_i
+
+        nfft = 2**(1+ nextpow2(np.shape(traces)[0])) #pas sur
 
         fac_f = 1.0
         fac_t = 1.0
@@ -246,6 +252,7 @@ class MOGUI(QtGui.QWidget):
             # if the time units are in nanoseconds, the antenna's nominal frenquency is in MHz
             fac_f = 10**6
             fac_t = 10**-9
+            self.info_label.setText("Assuming Tx's nominal frequency is in MHz")
 
         elif 'ms' in mog.data.tunits:
             # if the time units are in miliseconds, we assume the dominant frequency to be in kHz
@@ -262,6 +269,28 @@ class MOGUI(QtGui.QWidget):
 
         # Noise on the last 20 ns
         win_snr = np.round(20/mog.data.timec)
+        snr = spy.stats.signaltonoise(traces)
+
+        todo = False
+        if todo:
+            halfFs = Fs/2
+            wp = 1.4*f0/halfFs
+            ws = 1.6*f0/halfFs
+            rp = 3
+            rs = 40
+
+            nc, wn = spy.signal.cheb1ord(wp, ws, rp, rs)
+
+            b, a = spy.signal.cheb1(nc, 0.5, wn)
+
+            for nt in range(np.shape(traces)[1]):
+                traces[:,nt] = spy.signal.filtfilt(b, a, traces[:,nt])
+
+
+        if todo:
+            pass
+
+        print(snr)
 
 
 
@@ -313,9 +342,10 @@ class MOGUI(QtGui.QWidget):
                     self.Tx_num_list.setCurrentRow(idx)
                     green = QtGui.QPalette()
                     green.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
-                    self.info_label.setText('{} is not a value in this data, {} is the closest'.format(item, np.around(self.MOGs[ind[0].row()].data.Tx_z[idx], decimals=1 )))
-                    self.info_label.setPalette(green)
+                    self.search_info_label.setText('{} is not a value in this data, {} is the closest'.format(item, np.around(self.MOGs[ind[0].row()].data.Tx_z[idx], decimals=1 )))
+                    self.search_info_label.setPalette(green)
                 self.update_spectra_Tx_elev_value_label()
+
         elif self.search_combo.currentText() == 'Search with Number':
             item = float(self.search_elev_edit.text())
             if item in range(len(self.Tx_num_list)):
@@ -323,8 +353,8 @@ class MOGUI(QtGui.QWidget):
             else:
                 red = QtGui.QPalette()
                 red.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
-                self.info_label.setText('This data contains only {} traces, {} is out of range'.format(len(self.Tx_num_list) -1, int(item)))
-                self.info_label.setPalette(red)
+                self.search_info_label.setText('This data contains only {} traces, {} is out of range'.format(len(self.Tx_num_list) -1, int(item)))
+                self.search_info_label.setPalette(red)
 
 
     def update_List_Widget(self):
@@ -354,9 +384,16 @@ class MOGUI(QtGui.QWidget):
             self.spectraFig.plot_spectra(self.MOGs[i.row()].data)
             self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
             self.spectramanager.showMaximized()
+            self.Tx_num_list.setCurrentRow(len(self.Tx_num_list) - 1)
+            self.spectra(self.MOGs[i.row()])
 
     def plot_zop(self):
-        self.zopmanager.showMaximized()
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            self.zopFig.plot_zop(self.MOGs[i.row()])
+            self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[i.row()].name))
+            self.zopmanager.showMaximized()
+
 
     def initUI(self):
 
@@ -392,7 +429,7 @@ class MOGUI(QtGui.QWidget):
         self.tmax_edit.setFixedWidth(80)
         self.zmin_edit.setFixedWidth(80)
         self.zmax_edit.setFixedWidth(80)
-        self.tol_edit.setFixedWidth(80)
+        self.tol_edit.setFixedWidth(100)
         self.color_scale_edit.setFixedWidth(80)
 
         #--- Combobox ---#
@@ -408,6 +445,7 @@ class MOGUI(QtGui.QWidget):
         self.const_check = QtGui.QCheckBox("Show BH's Velocity Constaints")
         self.amp_check = QtGui.QCheckBox('Show Amplitude Data')
         self.geo_check = QtGui.QCheckBox('Corr. Geometrical Spreading')
+
 
         #--- Buttons ---#
         btn_show = QtGui.QPushButton('Show Rays')
@@ -468,6 +506,8 @@ class MOGUI(QtGui.QWidget):
         zopmanagergrid.setRowStretch(1, 100)
         self.zopmanager.setLayout(zopmanagergrid)
 
+        #- Checkboxes Actions -#
+        self.amp_check.stateChanged.connect(self.zopFig.show_amplitude_data)
 
         #------- Creation of the Manager for the raw Data figure -------#
         self.rawdataFig = RawDataFig()
@@ -776,6 +816,7 @@ class SpectraFig(FigureCanvasQTAgg):
         ax1.cla()
         ax2.cla()
         ax3.cla()
+        #ax1.imshow(mogd.timestp, cmap='seismic', interpolation= 'none', aspect='auto')
         mpl.axes.Axes.set_title(ax1, 'Normalized amplitude')
         mpl.axes.Axes.set_title(ax2, 'Log Power spectra')
         mpl.axes.Axes.set_title(ax3, 'Signal-to-Noise Ratio')
@@ -791,8 +832,32 @@ class ZOPFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        ax1 = self.figure.add_axes([0.08, 0.06, 0.4, 0.9])
-        ax2 = self.figure.add_axes([0.6, 0.06, 0.3, 0.9])
+        self.ax1 = self.figure.add_axes([0.08, 0.06, 0.4, 0.9])
+        self.ax2 = self.figure.add_axes([0.6, 0.06, 0.3, 0.85])
+        self.ax3 = self.ax2.twiny()
+
+    def plot_zop(self, mog):
+        self.ax2.set_xscale('log')
+        mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
+        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Amplitude')
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
+        self.ax2.xaxis.set_label_position('top')
+        self.ax2.xaxis.set_ticks_position('top')
+        self.ax3.xaxis.set_label_position('bottom')
+        self.ax3.xaxis.set_ticks_position('bottom')
+        self.ax3.set_visible(False)
+
+        self.draw()
+    def show_amplitude_data(self, state):
+
+        self.ax3.set_visible(state)
+        self.draw()
+        self.ax3.spines['top'].set_color('red')
+        self.ax3.spines['bottom'].set_color('blue')
+
+
 
 class MergeMog(QtGui.QWidget):
     def __init__(self, parent=MOGUI):
@@ -856,13 +921,16 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-
+    #zopFig = ZOPFig()
+    #zopFig.show()
     MOGUI_ui = MOGUI()
-    #MOGUI_ui.show()
+    MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
+
     MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
+    #MOGUI_ui.plot_zop()
 
 
     sys.exit(app.exec_())

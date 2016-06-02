@@ -127,7 +127,6 @@ class MogData:
         #print(self.rnomfreq)
         #print(self.antennas)
         #print(self.ntrace)
-        #print(self.timestp)
 
 
     def readRD3(self, basename):
