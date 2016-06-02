@@ -26,9 +26,12 @@ class MOGUI(QtGui.QWidget):
         self.MOGs = []
         self.air = []
         self.db = Database()
+        self.mergemog = MergeMog()
         self.data_rep = ''
         self.initUI()
 
+    def update_merge_combo(self, list_mog):
+        self.mergemog.update_combo(list_mog)
     def update_database(self):
         self.db.db_Mog_list.clear()
         for mog in self.MOGs:
@@ -329,6 +332,7 @@ class MOGUI(QtGui.QWidget):
         for mog in self.MOGs:
             self.MOG_list.addItem(mog.name)
         self.mogInfoSignal.emit(len(self.MOG_list))
+        self.update_merge_combo(self.MOGs)
 
     def update_Tx_and_Rx_Widget(self, list):
         self.Tx_combo.clear()
@@ -342,7 +346,7 @@ class MOGUI(QtGui.QWidget):
         for i in ind:
             self.rawdataFig.plot_raw_data(self.MOGs[i.row()].data)
             self.moglogSignal.emit(" MOG {}'s Raw Data as been plotted ". format(self.MOGs[i.row()].name))
-            self.rawdatamanager.show()
+            self.rawdatamanager.showMaximized()
 
     def plot_spectra(self):
         ind = self.MOG_list.selectedIndexes()
@@ -350,6 +354,9 @@ class MOGUI(QtGui.QWidget):
             self.spectraFig.plot_spectra(self.MOGs[i.row()].data)
             self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
             self.spectramanager.showMaximized()
+
+    def plot_zop(self):
+        self.zopmanager.showMaximized()
 
     def initUI(self):
 
@@ -364,8 +371,105 @@ class MOGUI(QtGui.QWidget):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
+        #-------- Widgets in ZOP -------#
+        #--- Labels ---#
+        tmin_label = MyQLabel('t min', ha= 'right')
+        tmax_label = MyQLabel('t max', ha= 'right')
+        zmin_label = MyQLabel('z min', ha= 'right')
+        zmax_label = MyQLabel('z max', ha= 'right')
+        tol_label = MyQLabel('Vertical Tx-Rx Offset Tolerance')
 
-        #------ Creation of the Manager for the raw Data figure -------#
+        #--- Edits ---#
+        self.tmin_edit = QtGui.QLineEdit()
+        self.tmax_edit = QtGui.QLineEdit()
+        self.zmin_edit = QtGui.QLineEdit()
+        self.zmax_edit = QtGui.QLineEdit()
+        self.tol_edit = QtGui.QLineEdit()
+        self.color_scale_edit = QtGui.QLineEdit()
+
+        #--- Edits Disposition ---#
+        self.tmin_edit.setFixedWidth(80)
+        self.tmax_edit.setFixedWidth(80)
+        self.zmin_edit.setFixedWidth(80)
+        self.zmax_edit.setFixedWidth(80)
+        self.tol_edit.setFixedWidth(80)
+        self.color_scale_edit.setFixedWidth(80)
+
+        #--- Combobox ---#
+        self.color_scale_combo = QtGui.QComboBox()
+
+        #- Combobox items -#
+        self.color_scale_combo.addItem('Low')
+        self.color_scale_combo.addItem('Medium')
+        self.color_scale_combo.addItem('High')
+
+        #--- Checkboxes ---#
+        self.veloc_check = QtGui.QCheckBox('Show Apparent Velocity')
+        self.const_check = QtGui.QCheckBox("Show BH's Velocity Constaints")
+        self.amp_check = QtGui.QCheckBox('Show Amplitude Data')
+        self.geo_check = QtGui.QCheckBox('Corr. Geometrical Spreading')
+
+        #--- Buttons ---#
+        btn_show = QtGui.QPushButton('Show Rays')
+        btn_print = QtGui.QPushButton('Print')
+        #------- SubWidgets in ZOP -------#
+        #--- Time and Elevation SubWidget ---#
+        Sub_t_and_z_widget = QtGui.QWidget()
+        Sub_t_and_z_grid = QtGui.QGridLayout()
+        Sub_t_and_z_grid.addWidget(tmin_label, 0, 0)
+        Sub_t_and_z_grid.addWidget(tmax_label, 1, 0)
+        Sub_t_and_z_grid.addWidget(zmin_label, 2, 0)
+        Sub_t_and_z_grid.addWidget(zmax_label, 3, 0)
+        Sub_t_and_z_grid.addWidget(self.tmin_edit, 0, 1)
+        Sub_t_and_z_grid.addWidget(self.tmax_edit, 1, 1)
+        Sub_t_and_z_grid.addWidget(self.zmin_edit, 2, 1)
+        Sub_t_and_z_grid.addWidget(self.zmax_edit, 3, 1)
+        Sub_t_and_z_widget.setLayout(Sub_t_and_z_grid)
+
+        #--- tolerance SubWidget ---#
+        Sub_tol_widget = QtGui.QWidget()
+        Sub_tol_grid = QtGui.QGridLayout()
+        Sub_tol_grid.addWidget(tol_label, 0, 0)
+        Sub_tol_grid.addWidget(self.tol_edit, 1, 0)
+        Sub_tol_grid.setAlignment(QtCore.Qt.AlignCenter)
+        Sub_tol_widget.setLayout(Sub_tol_grid)
+        #------- Groupboxes in ZOP -------#
+
+        #--- Color Scale GroupBox ---#
+        color_group = QtGui.QGroupBox('Color Scale')
+        color_grid = QtGui.QGridLayout()
+        color_grid.addWidget(self.color_scale_edit, 0, 0)
+        color_grid.addWidget(self.color_scale_combo, 1, 0)
+        color_grid.setAlignment(QtCore.Qt.AlignCenter)
+        color_group.setLayout(color_grid)
+
+        #--- Control GroupBox ---#
+        control_group = QtGui.QGroupBox('Control')
+        control_grid = QtGui.QGridLayout()
+        control_grid.addWidget(Sub_t_and_z_widget, 0, 0)
+        control_grid.addWidget(Sub_tol_widget, 1, 0)
+        control_grid.addWidget(color_group, 2, 0)
+        control_grid.addWidget(self.veloc_check, 3, 0)
+        control_grid.addWidget(self.const_check, 4, 0)
+        control_grid.addWidget(self.amp_check, 5, 0)
+        control_grid.addWidget(self.geo_check, 6, 0)
+        control_grid.addWidget(btn_show, 7, 0)
+        control_grid.addWidget(btn_print, 8, 0)
+        control_group.setLayout(control_grid)
+
+
+        #------- Creation of the manager for the ZOP figure -------#
+        self.zopFig = ZOPFig()
+        self.zopmanager = QtGui.QWidget()
+        zopmanagergrid = QtGui.QGridLayout()
+        zopmanagergrid.addWidget(self.zopFig, 0, 0, 2, 5)
+        zopmanagergrid.addWidget(control_group, 0, 5)
+        zopmanagergrid.setColumnStretch(1, 100)
+        zopmanagergrid.setRowStretch(1, 100)
+        self.zopmanager.setLayout(zopmanagergrid)
+
+
+        #------- Creation of the Manager for the raw Data figure -------#
         self.rawdataFig = RawDataFig()
         self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
         self.rawdatamanager = QtGui.QWidget()
@@ -543,6 +647,8 @@ class MOGUI(QtGui.QWidget):
         btn_Raw_Data.clicked.connect(self.plot_rawdata)
         btn_Spectra.clicked.connect(self.plot_spectra)
         btn_Air_Shot_Before.clicked.connect(self.airBefore)
+        btn_Merge.clicked.connect(self.mergemog.show)
+        btn_Trace_ZOP.clicked.connect(self.plot_zop)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -678,8 +784,74 @@ class SpectraFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(ax2, 'Frequency [MHz]')
         mpl.axes.Axes.set_xlabel(ax3, 'SNR')
 
+class ZOPFig(FigureCanvasQTAgg):
+    def __init__(self):
+        fig = mpl.figure.Figure(facecolor= 'white')
+        super(ZOPFig, self).__init__(fig)
+        self.initFig()
 
+    def initFig(self):
+        ax1 = self.figure.add_axes([0.08, 0.06, 0.4, 0.9])
+        ax2 = self.figure.add_axes([0.6, 0.06, 0.3, 0.9])
 
+class MergeMog(QtGui.QWidget):
+    def __init__(self, parent=MOGUI):
+        super(MergeMog, self).__init__()
+        self.setWindowTitle("Merge MOGs")
+        self.initUI()
+
+    def initUI(self):
+
+        #--- Class For Alignment ---#
+        class  MyQLabel(QtGui.QLabel):
+            def __init__(self, label, ha='left',  parent= None):
+                super(MyQLabel, self).__init__(label,parent)
+                if ha == 'center':
+                    self.setAlignment(QtCore.Qt.AlignCenter)
+                elif ha == 'right':
+                    self.setAlignment(QtCore.Qt.AlignRight)
+                else:
+                    self.setAlignment(QtCore.Qt.AlignLeft)
+        #------- Widgets -------#
+        #--- Labels ---#
+        ref_label = MyQLabel('Reference MOG', ha= 'center')
+        comp_label = MyQLabel('Compatible MOGs', ha= 'center')
+        new_label = MyQLabel('New MOG Name', ha ='center')
+
+        #--- Edit ---#
+        self.new_edit = QtGui.QLineEdit()
+
+        #--- List ---#
+        self.comp_list = QtGui.QListWidget()
+
+        #--- Combobox ---#
+        self.ref_combo = QtGui.QComboBox()
+
+        #--- Checkbox ---#
+        self.erase_check = QtGui.QCheckBox('Erase MOGs after merge')
+
+        #--- Buttons ---#
+        self.btn_cancel = QtGui.QPushButton('Cancel')
+        self.btn_merge = QtGui.QPushButton('Merge')
+
+        #------- Master Grid -------#
+        master_grid = QtGui.QGridLayout()
+        master_grid.addWidget(ref_label, 0, 0)
+        master_grid.addWidget(self.ref_combo, 1, 0)
+        master_grid.addWidget(self.erase_check, 3, 0)
+        master_grid.addWidget(new_label, 5, 0)
+        master_grid.addWidget(self.new_edit, 6, 0)
+        master_grid.addWidget(self.btn_cancel, 8, 0)
+        master_grid.addWidget(comp_label, 0, 1)
+        master_grid.addWidget(self.comp_list, 1, 1, 7, 1)
+        master_grid.addWidget(self.btn_merge, 8, 1)
+
+        self.setLayout(master_grid)
+
+    def update_combo(self, mog_list):
+        self.ref_combo.clear()
+        for mog in mog_list:
+            self.ref_combo.addItem(mog.name)
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)

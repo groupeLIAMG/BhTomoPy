@@ -3,7 +3,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 
 class ManualttUI(QtGui.QFrame):
@@ -289,9 +289,6 @@ class OpenMainData(QtGui.QWidget):
             rname = rname[-1]
             rname = rname[:-4]
 
-
-
-
     def initUI(self):
 
         #-------  Widgets --------#
@@ -317,6 +314,7 @@ class OpenMainData(QtGui.QWidget):
         master_grid.addWidget(self.btn_ok, 3, 0)
         master_grid.addWidget(self.btn_cancel, 3 ,1)
         self.setLayout(master_grid)
+
 
 class UpperFig(FigureCanvasQTAgg):
     def __init__(self):

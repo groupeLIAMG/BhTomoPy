@@ -3,7 +3,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
 from ModelUI import ModelUI
-from MogUI import MOGUI
+from MogUI import MOGUI, MergeMog
 from InfoUI import InfoUI
 from MogData import MogData
 import time
@@ -19,6 +19,7 @@ class DatabaseUI(QtGui.QWidget):
         self.mog = MOGUI()
         self.info = InfoUI()
         self.mogdata = MogData()
+        self.mergemog = MergeMog()
         self.initUI()
         self.action_list = []
 
@@ -34,6 +35,7 @@ class DatabaseUI(QtGui.QWidget):
         self.bh.bhlogSignal.connect(self.update_log)
         self.mog.moglogSignal.connect(self.update_log)
         self.model.modellogSignal.connect(self.update_log)
+
 
 
 
@@ -110,22 +112,35 @@ class DatabaseUI(QtGui.QWidget):
 
         self.move(translation)
 
+    def openfile(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+
+
 
     def initUI(self):
-
-        white_palette = QtGui.QPalette()
-        white_palette.setColor(QtGui.QPalette.Background, QtCore.Qt.white)
 
         #--- Log Widget ---#
         self.log = QtGui.QTextEdit()
         self.log.setReadOnly(True)
         self.log.setLineWrapMode(0)
 
+        #--- Actions ---#
+        openAction = QtGui.QAction('Open', self)
+        openAction.setShortcut('Ctrl+O')
+        openAction.triggered.connect(self.openfile)
+
+        saveAction = QtGui.QAction('Save', self)
+        saveAction.setShortcut('Ctrl+S')
+
+        saveasAction = QtGui.QAction('Save as', self)
+        saveasAction.setShortcut('Ctrl+A')
+
         #--- Menubar ---#
-        self.tool = QtGui.QMenuBar()
-        self.tool.addAction('Open')
-        self.tool.addAction('Save')
-        self.tool.addAction('Save as')
+        self.menu = QtGui.QMenuBar()
+        filemenu = self.menu.addMenu('&File')
+        filemenu.addAction(openAction)
+        filemenu.addAction(saveAction)
+        filemenu.addAction(saveasAction)
 
 
         #--- GroupBoxes ---#
@@ -156,7 +171,7 @@ class DatabaseUI(QtGui.QWidget):
 
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
-        master_grid.addWidget(self.tool, 0, 0, 1, 3)
+        master_grid.addWidget(self.menu, 0, 0, 1, 3)
         master_grid.addWidget(bh_GroupBox, 1, 0)
         master_grid.addWidget(MOGs_GroupBox, 1, 1, 1, 2)
         master_grid.addWidget(Models_GroupBox, 2, 0, 1, 2)
@@ -168,21 +183,11 @@ class DatabaseUI(QtGui.QWidget):
 
 
 
-
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
-
-    Database_ui.update_log("t")
-    Database_ui.update_log("t")
-    Database_ui.update_log("t")
-    Database_ui.update_log("t")
-    Database_ui.update_log("t")
-    Database_ui.update_log("t")
-    Database_ui.update_log("t")
-    Database_ui.update_log("Error: t")
 
     Database_ui.show()
 
