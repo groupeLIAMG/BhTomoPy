@@ -221,7 +221,17 @@ class MOGUI(QtGui.QWidget):
                         self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
 
 
-    def spectra(self, mog):
+    def spectra(self):
+        # First of all, we get the selected MOG instance
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            mog = self.MOGs[i.row()]
+
+        # Setting a matrix containing different elevations
+        Tx = np.unique(mog.data.Tx_z)
+
+        # à commenter
+        rdata = self.detrend_rad(mog.data.rdata)
 
         # Getting the maximum amplitude value for each column
         A = np.amax(mog.data.rdata, axis= 0)
@@ -232,14 +242,19 @@ class MOGUI(QtGui.QWidget):
         # Dividing the original rdata by A max in order to have a normalised amplitude matrix
         normalised_rdata = mog.data.rdata/Amax
 
-        n = self.Tx_num_list.selectedIndexes()
+        self.updateFigs(mog, Tx, rdata)
+
+
+    def updateFigs(self, mog, Tx, data):
+
+        indexes = self.Tx_num_list.selectedIndexes()
+        n = indexes[0].row()
 
         dt = mog.data.timec * mog.fac_dt
-        Tx = mog.data.Tx_z
-        for i in n:
-            ind = Tx[i.row() - 1]
-        print(i.row() -1)
-        traces = normalised_rdata[:, ind]
+
+        ind = Tx[n] == mog.data.Tx_z
+
+        traces = data[:, ind]
 
         def nextpow2(n):
             m_f = np.log2(n)
@@ -291,11 +306,27 @@ class MOGUI(QtGui.QWidget):
 
 
         if todo:
+            # we need pburg
+            pass
+        if todo:
+            # we need pwelch
             pass
 
-        print(snr)
+        z = mog.data.Rx_z[ind]
 
 
+
+    def detrend_rad(self, inp):
+        n =30
+        m = np.shape(inp)[0]
+        m1 = np.mean(inp[0:n,])
+        m2 = np.mean(inp[(m-n-1):m,])
+
+        dm = (m2 - m1)/(m-1)
+
+        out= inp - np.matlib.repmat(m1, m, 1) - np.arange(m)*dm
+
+        return out
 
 #TODO:
     def import_mog(self):
@@ -338,7 +369,10 @@ class MOGUI(QtGui.QWidget):
 
     def search_Tx_elev(self):
         if self.search_combo.currentText() == 'Search with Elevation':
-            item = float(self.search_elev_edit.text())
+            try:
+                item = float(self.search_elev_edit.text())
+            except:
+                pass
             ind = self.MOG_list.selectedIndexes()
             for i in range(len(self.MOGs[ind[0].row()].data.Tx_z)):
                 if self.MOGs[ind[0].row()].data.Tx_z[i] == item:
@@ -400,6 +434,12 @@ class MOGUI(QtGui.QWidget):
             self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[i.row()].name))
             self.zopmanager.showMaximized()
 
+    def plot_statstt(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            self.statsFig.plot_stats(self.MOGs[i.row()])
+            self.statsmanager.showMaximized()
+
 
     def initUI(self):
 
@@ -414,6 +454,16 @@ class MOGUI(QtGui.QWidget):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
+
+        # ------- Creation of the manager for the ZOP figure -------#
+        self.statsFig = StatsttFig()
+        self.statsmanager = QtGui.QWidget()
+        self.statstool = NavigationToolbar2QT(self.statsFig, self)
+        statsmanagergrid = QtGui.QGridLayout()
+        statsmanagergrid.addWidget(self.statstool, 0, 0)
+        statsmanagergrid.addWidget(self.statsFig, 1, 0)
+        self.statsmanager.setLayout(statsmanagergrid)
+
         #-------- Widgets in ZOP -------#
         #--- Labels ---#
         tmin_label = MyQLabel('t min', ha= 'right')
@@ -686,6 +736,9 @@ class MOGUI(QtGui.QWidget):
         self.Multiplication_Factor_edit          = QtGui.QLineEdit()
         self.Date_edit                           = QtGui.QLineEdit()
 
+        #- Edits Disposition -#
+        self.Date_edit.setReadOnly(True)
+
         #--- Buttons actions ---#
         btn_Add_MOG.clicked.connect(self.add_MOG)
         btn_Rename.clicked.connect(self.rename)
@@ -695,6 +748,7 @@ class MOGUI(QtGui.QWidget):
         btn_Air_Shot_Before.clicked.connect(self.airBefore)
         btn_Merge.clicked.connect(self.mergemog.show)
         btn_Trace_ZOP.clicked.connect(self.plot_zop)
+        btn_Stats_tt.clicked.connect(self.plot_statstt)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -722,13 +776,13 @@ class MOGUI(QtGui.QWidget):
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Correction_Factor_checkbox, 3, 1)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Tx_Offset_label,2, 1)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Multiplication_Factor_label,4, 1)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Date_label,7, 1)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Date_label,7, 0)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Nominal_Frequency_edit,0, 2)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Rx_Offset_edit,1, 2)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Tx_Offset_edit,2, 2)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Correction_Factor_edit,3, 2)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Multiplication_Factor_edit,4, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Date_edit, 7, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Date_edit, 7, 1, 1, 2)
         Sub_Labels_Checkbox_and_Edits_Widget.setLayout(Sub_Labels_Checkbox_and_Edits_Grid)
 
         #- Sub Right Buttons Widget -#
@@ -863,10 +917,52 @@ class ZOPFig(FigureCanvasQTAgg):
         self.ax3.spines['top'].set_color('red')
         self.ax3.spines['bottom'].set_color('blue')
 
+class StatsttFig(FigureCanvasQTAgg):
+    def __init__(self, parent = None):
+
+        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        super(StatsttFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        # vertical
+        #self.figure.add_axes([0.15, 0.05, 0.25, 0.2])
+        #self.figure.add_axes([0.15, 0.40, 0.25, 0.2])
+        #self.figure.add_axes([0.15, 0.75, 0.25, 0.2])
+        #self.figure.add_axes([0.55, 0.05, 0.25, 0.2])
+        #self.figure.add_axes([0.55, 0.40, 0.25, 0.2])
+        #self.figure.add_axes([0.55, 0.75, 0.25, 0.2])
+
+        # horizontal
+        self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
+        self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
+        self.ax3 = self.figure.add_axes([0.7, 0.1, 0.2, 0.25])
+        self.ax4 = self.figure.add_axes([0.1, 0.55, 0.2, 0.25])
+        self.ax5 = self.figure.add_axes([0.4, 0.55, 0.2, 0.25])
+        self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
+
+    def plot_stats(self, mog):
+        self.figure.suptitle('{}'.format(mog.name), fontsize=20)
+        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
+        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
+        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
+
 
 
 class MergeMog(QtGui.QWidget):
-    def __init__(self, parent=MOGUI):
+    def __init__(self, parent=None):
         super(MergeMog, self).__init__()
         self.setWindowTitle("Merge MOGs")
         self.initUI()
@@ -930,13 +1026,14 @@ if __name__ == '__main__':
     #zopFig = ZOPFig()
     #zopFig.show()
     MOGUI_ui = MOGUI()
-    MOGUI_ui.show()
+    #MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
 
-    MOGUI_ui.plot_spectra()
+    #MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
     #MOGUI_ui.plot_zop()
+    MOGUI_ui.plot_statstt()
 
 
     sys.exit(app.exec_())
