@@ -127,21 +127,21 @@ class SemiAutottUI(QtGui.QWidget):
         pointAction = QtGui.QAction('Point the average Trace', self)
         pointAction.setShortcut('Ctrl+P')
 
-        prevAction = QtGui.QAction(' Previous Group', self)
+        prevAction  = QtGui.QAction(' Previous Group', self)
         prevAction.setShortcut('Ctrl+P')
 
-        nextAction = QtGui.QAction('Next Group', self)
+        nextAction  = QtGui.QAction('Next Group', self)
         nextAction.setShortcut('Ctrl+F')
 
-        averAction = QtGui.QAction('Show average Traces', self)
+        averAction  = QtGui.QAction('Show average Traces', self)
 
         #--- Menubar ---#
-        self.menu = QtGui.QMenuBar()
+        self.menu  = QtGui.QMenuBar()
 
         #- Menus -#
-        filemenu = self.menu.addMenu('&File')
-        editmenu = self.menu.addMenu('&Edit')
-        actionmenu = self.menu.addMenu('&Action')
+        filemenu    = self.menu.addMenu('&File')
+        editmenu    = self.menu.addMenu('&Edit')
+        actionmenu  = self.menu.addMenu('&Action')
 
         # Menus Actions #
         filemenu.addAction(chooseAction)
@@ -154,12 +154,14 @@ class SemiAutottUI(QtGui.QWidget):
         actionmenu.addAction(pointAction)
         actionmenu.addAction(prevAction)
         actionmenu.addAction(nextAction)
+        actionmenu.addAction(nextAction)
+        actionmenu.addAction(averAction)
 
         #--- Checkboxes ---#
-        self.work_check                 = QtGui.QCheckBox('Work with 1st Cycle')
-        self.dom_freq_check             = QtGui.QCheckBox('Dominant frequency scaling')
-        self.orig_check                 = QtGui.QCheckBox('Display original Traces')
-        self.show_check                 = QtGui.QCheckBox('Show Picks')
+        self.work_check             = QtGui.QCheckBox('Work with 1st Cycle')
+        self.dom_freq_check         = QtGui.QCheckBox('Dominant frequency scaling')
+        self.orig_check             = QtGui.QCheckBox('Display original Traces')
+        self.show_check             = QtGui.QCheckBox('Show Picks')
 
 
         #------- SubWidgets -------#
@@ -291,7 +293,8 @@ class SemiAutottUI(QtGui.QWidget):
         master_grid.addWidget(traces_group, 4, 4)
         master_grid.addWidget(auto_group, 5, 4)
         master_grid.setColumnStretch(0, 100)
-        #master_grid.addWidget(traces_group)
+        master_grid.setVerticalSpacing(0)
+        master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
 
 class Fig(FigureCanvasQTAgg):
@@ -311,6 +314,6 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     Semi_ui = SemiAutottUI()
-    Semi_ui.show()
+    Semi_ui.showMaximized()
 
     sys.exit(app.exec_())

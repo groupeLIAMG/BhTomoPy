@@ -33,10 +33,6 @@ class MOGUI(QtGui.QWidget):
 
     def update_merge_combo(self, list_mog):
         self.mergemog.update_combo(list_mog)
-    def update_database(self):
-        self.db.db_Mog_list.clear()
-        for mog in self.MOGs:
-            self.db.db_Mog_list.append(mog)
 
     def add_MOG(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
@@ -73,7 +69,7 @@ class MOGUI(QtGui.QWidget):
         self.update_spectra_Tx_elev_value_label()
         self.update_edits()
         self.moglogSignal.emit("{} Multi Offset-Gather as been loaded succesfully".format(rname))
-        self.update_database()
+
 
     def update_edits(self):
         """
@@ -102,7 +98,7 @@ class MOGUI(QtGui.QWidget):
             self.moglogSignal.emit("MOG {} as been deleted".format(self.MOGs[int(i.row())].name))
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
-        self.update_database()
+
 
     def rename(self):
         ind = self.MOG_list.selectedIndexes()
@@ -112,7 +108,7 @@ class MOGUI(QtGui.QWidget):
                 self.moglogSignal.emit("MOG {} is now {}".format(self.MOGs[int(i.row())].name, new_name))
                 self.MOGs[int(i.row())].name = new_name
         self.update_List_Widget()
-        self.update_database()
+
 
 
     def airBefore(self):
@@ -226,16 +222,23 @@ class MOGUI(QtGui.QWidget):
 
 
     def spectra(self, mog):
-        Amax = max(mog.data.rdata.flatten())
+
+        # Getting the maximum amplitude value for each column
+        A = np.amax(mog.data.rdata, axis= 0)
+
+        # Making a matrix which has the same size as rdata but filled with the maximum amplitude of each column
+        Amax= np.tile(A, (550,1))
+
+        # Dividing the original rdata by A max in order to have a normalised amplitude matrix
         normalised_rdata = mog.data.rdata/Amax
 
         n = self.Tx_num_list.selectedIndexes()
 
         dt = mog.data.timec * mog.fac_dt
         Tx = mog.data.Tx_z
-
-        ind = Tx[n]
-        print(n)
+        for i in n:
+            ind = Tx[i.row() - 1]
+        print(i.row() -1)
         traces = normalised_rdata[:, ind]
 
         def nextpow2(n):
@@ -319,7 +322,9 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
         self.Tx_num_list.clear()
-        for Tx in range(len(mog.data.Tx_z)+1):
+        unique_Tx_z = np.unique(mog.data.Tx_z)
+        print(unique_Tx_z[0])
+        for Tx in range(len(unique_Tx_z)+1):
             self.Tx_num_list.addItem(str(Tx))
 
     def update_spectra_Tx_elev_value_label(self):
@@ -327,8 +332,9 @@ class MOGUI(QtGui.QWidget):
         mog = self.MOGs[ind1[0].row()]
         self.Tx_elev_value_label.clear()
         ind = self.Tx_num_list.selectedIndexes()
+        unique_Tx_z = np.unique(mog.data.Tx_z)
         for j in ind:
-            self.Tx_elev_value_label.setText(str((list(mog.data.Tx_z))[j.row()]))
+            self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[j.row()]))
 
     def search_Tx_elev(self):
         if self.search_combo.currentText() == 'Search with Elevation':
@@ -384,8 +390,8 @@ class MOGUI(QtGui.QWidget):
             self.spectraFig.plot_spectra(self.MOGs[i.row()].data)
             self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
             self.spectramanager.showMaximized()
-            self.Tx_num_list.setCurrentRow(len(self.Tx_num_list) - 1)
-            self.spectra(self.MOGs[i.row()])
+
+            #self.spectra(self.MOGs[i.row()])
 
     def plot_zop(self):
         ind = self.MOG_list.selectedIndexes()
