@@ -11,6 +11,7 @@ import scipy as spy
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.mplot3d import axes3d
 import re
 
 class MOGUI(QtGui.QWidget):
@@ -446,6 +447,12 @@ class MOGUI(QtGui.QWidget):
             self.statsampFig.plot_stats(self.MOGs[i.row()])
             self.statsampmanager.showMaximized()
 
+    def plot_ray_coverage(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            self.raycoverageFig.plot_ray_coverage(self.MOGs[i.row()])
+            self.raymanager.show()
+
 
 
     def initUI(self):
@@ -461,7 +468,18 @@ class MOGUI(QtGui.QWidget):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
-         # ------- Creation of the manager for the Stats Amp figure -------#
+
+
+        #-------- Creation of the manager for the Ray Coverage figure -------#
+        self.raycoverageFig = RayCoverageFig()
+        self.raymanager = QtGui.QWidget()
+        self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
+        raymanagergrid = QtGui.QGridLayout()
+        raymanagergrid.addWidget(self.raytool, 0, 0)
+        raymanagergrid.addWidget(self.raycoverageFig, 1, 0)
+        self.raymanager.setLayout(raymanagergrid)
+
+        #-------- Creation of the manager for the Stats Amp figure -------#
         self.statsampFig = StatsAmpFig()
         self.statsampmanager = QtGui.QWidget()
         self.statsamptool = NavigationToolbar2QT(self.statsampFig, self)
@@ -470,7 +488,7 @@ class MOGUI(QtGui.QWidget):
         statsampmanagergrid.addWidget(self.statsampFig, 1, 0)
         self.statsampmanager.setLayout(statsampmanagergrid)
 
-        # ------- Creation of the manager for the Stats tt figure -------#
+        #------- Creation of the manager for the Stats tt figure -------#
         self.statsttFig = StatsttFig()
         self.statsttmanager = QtGui.QWidget()
         self.statstttool = NavigationToolbar2QT(self.statsttFig, self)
@@ -765,6 +783,7 @@ class MOGUI(QtGui.QWidget):
         btn_Trace_ZOP.clicked.connect(self.plot_zop)
         btn_Stats_tt.clicked.connect(self.plot_statstt)
         btn_Stats_Ampl.clicked.connect(self.plot_statsamp)
+        btn_Ray_Coverage.clicked.connect(self.plot_ray_coverage)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -1004,8 +1023,21 @@ class StatsAmpFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_title(self.ax2, 'Amplitude - Centroid Frequency')
         mpl.axes.Axes.set_ylabel(self.ax3, r'$\alpha_a$')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax2, 'Amplitude - Hybrid')
+        mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')
 
+class RayCoverageFig(FigureCanvasQTAgg):
+    def __init__(self, parent= None):
+        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        super(RayCoverageFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+
+    def plot_ray_coverage(self, mog):
+        self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
 class MergeMog(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -1079,7 +1111,8 @@ if __name__ == '__main__':
     #MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
     #MOGUI_ui.plot_zop()
-    MOGUI_ui.plot_statsamp()
+    #MOGUI_ui.plot_statsamp()
+    MOGUI_ui.plot_ray_coverage()
 
 
     sys.exit(app.exec_())
