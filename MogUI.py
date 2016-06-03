@@ -417,7 +417,7 @@ class MOGUI(QtGui.QWidget):
     def plot_statstt(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            self.statsFig.plot_stats(self.MOGs[i.row()])
+            self.statsttFig.plot_stats(self.MOGs[i.row()])
             self.statsttmanager.showMaximized()
 
     def plot_statsamp(self):
