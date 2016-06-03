@@ -438,7 +438,14 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             self.statsFig.plot_stats(self.MOGs[i.row()])
-            self.statsmanager.showMaximized()
+            self.statsttmanager.showMaximized()
+
+    def plot_statsamp(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            self.statsampFig.plot_stats(self.MOGs[i.row()])
+            self.statsampmanager.showMaximized()
+
 
 
     def initUI(self):
@@ -454,15 +461,23 @@ class MOGUI(QtGui.QWidget):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
+         # ------- Creation of the manager for the Stats Amp figure -------#
+        self.statsampFig = StatsAmpFig()
+        self.statsampmanager = QtGui.QWidget()
+        self.statsamptool = NavigationToolbar2QT(self.statsampFig, self)
+        statsampmanagergrid = QtGui.QGridLayout()
+        statsampmanagergrid.addWidget(self.statsamptool, 0, 0)
+        statsampmanagergrid.addWidget(self.statsampFig, 1, 0)
+        self.statsampmanager.setLayout(statsampmanagergrid)
 
-        # ------- Creation of the manager for the ZOP figure -------#
-        self.statsFig = StatsttFig()
-        self.statsmanager = QtGui.QWidget()
-        self.statstool = NavigationToolbar2QT(self.statsFig, self)
-        statsmanagergrid = QtGui.QGridLayout()
-        statsmanagergrid.addWidget(self.statstool, 0, 0)
-        statsmanagergrid.addWidget(self.statsFig, 1, 0)
-        self.statsmanager.setLayout(statsmanagergrid)
+        # ------- Creation of the manager for the Stats tt figure -------#
+        self.statsttFig = StatsttFig()
+        self.statsttmanager = QtGui.QWidget()
+        self.statstttool = NavigationToolbar2QT(self.statsttFig, self)
+        statsttmanagergrid = QtGui.QGridLayout()
+        statsttmanagergrid.addWidget(self.statstttool, 0, 0)
+        statsttmanagergrid.addWidget(self.statsttFig, 1, 0)
+        self.statsttmanager.setLayout(statsttmanagergrid)
 
         #-------- Widgets in ZOP -------#
         #--- Labels ---#
@@ -749,6 +764,7 @@ class MOGUI(QtGui.QWidget):
         btn_Merge.clicked.connect(self.mergemog.show)
         btn_Trace_ZOP.clicked.connect(self.plot_zop)
         btn_Stats_tt.clicked.connect(self.plot_statstt)
+        btn_Stats_Ampl.clicked.connect(self.plot_statsamp)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -925,13 +941,6 @@ class StatsttFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        # vertical
-        #self.figure.add_axes([0.15, 0.05, 0.25, 0.2])
-        #self.figure.add_axes([0.15, 0.40, 0.25, 0.2])
-        #self.figure.add_axes([0.15, 0.75, 0.25, 0.2])
-        #self.figure.add_axes([0.55, 0.05, 0.25, 0.2])
-        #self.figure.add_axes([0.55, 0.40, 0.25, 0.2])
-        #self.figure.add_axes([0.55, 0.75, 0.25, 0.2])
 
         # horizontal
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
@@ -959,6 +968,43 @@ class StatsttFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
+class StatsAmpFig(FigureCanvasQTAgg):
+    def __init__(self, parent = None):
+
+        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        super(StatsAmpFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+
+        # horizontal configruation
+        self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
+        self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
+        self.ax3 = self.figure.add_axes([0.7, 0.1, 0.2, 0.25])
+        self.ax4 = self.figure.add_axes([0.1, 0.55, 0.2, 0.25])
+        self.ax5 = self.figure.add_axes([0.4, 0.55, 0.2, 0.25])
+        self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
+
+    def plot_stats(self, mog):
+        self.figure.suptitle('{}'.format(mog.name), fontsize=20)
+        mpl.axes.Axes.set_ylabel(self.ax4, r'$\tau_a$')
+        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_title(self.ax4, 'Amplitude - Amplitude ratio')
+        mpl.axes.Axes.set_ylabel(self.ax5, r'$\tau_a$')
+        mpl.axes.Axes.set_xlabel(self.ax5, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_title(self.ax5, 'Amplitude - Centroid Frequency')
+        mpl.axes.Axes.set_ylabel(self.ax6, r'$\tau_a$')
+        mpl.axes.Axes.set_xlabel(self.ax6, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_title(self.ax6, 'Amplitude - Hybrid')
+        mpl.axes.Axes.set_ylabel(self.ax1, r'$\alpha_a$')
+        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_title(self.ax1, 'Amplitude - Amplitude ratio')
+        mpl.axes.Axes.set_ylabel(self.ax2, r'$\alpha_a$')
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_title(self.ax2, 'Amplitude - Centroid Frequency')
+        mpl.axes.Axes.set_ylabel(self.ax3, r'$\alpha_a$')
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_title(self.ax2, 'Amplitude - Hybrid')
 
 
 class MergeMog(QtGui.QWidget):
@@ -1033,7 +1079,7 @@ if __name__ == '__main__':
     #MOGUI_ui.plot_spectra()
     #MOGUI_ui.plot_rawdata()
     #MOGUI_ui.plot_zop()
-    MOGUI_ui.plot_statstt()
+    MOGUI_ui.plot_statsamp()
 
 
     sys.exit(app.exec_())
