@@ -329,27 +329,6 @@ class MOGUI(QtGui.QWidget):
 
         return out
 
-#TODO:
-    def import_mog(self):
-        pass
-    def merge(self):
-        pass
-    def trace_zop(self):
-        pass
-
-    def stats_tt(self):
-        pass
-    def stats_ampl(self):
-        pass
-    def ray_coverage(self):
-        pass
-    def export_tt(self):
-        pass
-    def export_tau(self):
-        pass
-    def prune(self):
-        pass
-
     def update_spectra_Tx_num_list(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
@@ -453,6 +432,8 @@ class MOGUI(QtGui.QWidget):
             self.raycoverageFig.plot_ray_coverage(self.MOGs[i.row()])
             self.raymanager.show()
 
+    def export_tt(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
 
 
     def initUI(self):
@@ -496,6 +477,52 @@ class MOGUI(QtGui.QWidget):
         statsttmanagergrid.addWidget(self.statstttool, 0, 0)
         statsttmanagergrid.addWidget(self.statsttFig, 1, 0)
         self.statsttmanager.setLayout(statsttmanagergrid)
+
+        #------- Widgets in Prune -------#
+        #--- Labels ---#
+        skip_Tx_label = MyQLabel('Number of stations to Skip - Tx', ha='center')
+        skip_Rx_label = MyQLabel('Number of stations to Skip - Rx', ha='center')
+        round_fac_label = MyQLabel('Rouding Factor', ha='center')
+        min_ang_label = MyQLabel('Minimum Ray Angle', ha='center')
+        max_ang_label = MyQLabel('Maximum Ray Angle', ha='center')
+        min_elev_label = MyQLabel('Minimum Elevation', ha='center')
+        max_elev_label = MyQLabel('Maximum Elevation', ha='center')
+
+        #- Labels in Info -#
+        info_label = MyQLabel('Informations', ha='center')
+        Tx_info_label = MyQLabel('Tx', ha='left')
+        Rx_info_label = MyQLabel('Rx', ha='left')
+        Tx_Rx_removed_label = MyQLabel('% removed - Tx & Rx', ha='left')
+        sm_ratio_removed_label = MyQLabel('% removed - S/M ratio', ha='left')
+        ray_angle_removed_label = MyQLabel('% removed - Ray angle', ha='left')
+        traces_kept_label = MyQLabel('% of traces kept', ha='left')
+
+        #--- Edits ---#
+        self.skip_Tx_edit = QtGui.QLineEdit()
+        self.skip_Rx_edit = QtGui.QLineEdit()
+        self.round_fac_edit = QtGui.QLineEdit()
+        self.min_ang_edit = QtGui.QLineEdit()
+        self.max_ang_edit = QtGui.QLineEdit()
+        self.min_elev_edit = QtGui.QLineEdit()
+        self.max_elev_edit = QtGui.QLineEdit()
+        self.tresh_edit = QtGui.QLineEdit()
+
+        #- Edits Actions -#
+        self.min_ang_edit.setReadOnly(True)
+        self.max_ang_edit.setReadOnly(True)
+        self.min_elev_edit.setReadOnly(True)
+        self.max_elev_edit.setReadOnly(True)
+
+        #--- CheckBox ---#
+        self.tresh_check = QtGui.QCheckBox()
+
+        #--- Button ---#
+        btn_done = QtGui.QPushButton()
+
+        #--- Info Frame ---#
+        info_frame = QtGui.QFrame()
+        info_frame_grid =QtGui.QGridLayout()
+        info_frame.setLayout(info_frame_grid)
 
         #-------- Widgets in ZOP -------#
         #--- Labels ---#
@@ -784,6 +811,7 @@ class MOGUI(QtGui.QWidget):
         btn_Stats_tt.clicked.connect(self.plot_statstt)
         btn_Stats_Ampl.clicked.connect(self.plot_statsamp)
         btn_Ray_Coverage.clicked.connect(self.plot_ray_coverage)
+        btn_Export_tt.clicked.connect(self.export_tt)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -1039,6 +1067,23 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
+class Prune(FigureCanvasQTAgg):
+    def __init__(self, parent= None):
+        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
+        super(Prune, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+
+    def plot_prune(self, mog):
+        self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
+
+
+
+
 class MergeMog(QtGui.QWidget):
     def __init__(self, parent=None):
         super(MergeMog, self).__init__()
@@ -1104,7 +1149,7 @@ if __name__ == '__main__':
     #zopFig = ZOPFig()
     #zopFig.show()
     MOGUI_ui = MOGUI()
-    #MOGUI_ui.show()
+    MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
 
@@ -1112,7 +1157,7 @@ if __name__ == '__main__':
     #MOGUI_ui.plot_rawdata()
     #MOGUI_ui.plot_zop()
     #MOGUI_ui.plot_statsamp()
-    MOGUI_ui.plot_ray_coverage()
+    #MOGUI_ui.plot_ray_coverage()
 
 
     sys.exit(app.exec_())
