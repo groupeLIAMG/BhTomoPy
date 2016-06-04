@@ -435,6 +435,9 @@ class MOGUI(QtGui.QWidget):
     def export_tt(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
 
+    def plot_prune(self):
+        self.prunemanager.showMaximized()
+
 
     def initUI(self):
 
@@ -489,13 +492,19 @@ class MOGUI(QtGui.QWidget):
         max_elev_label = MyQLabel('Maximum Elevation', ha='center')
 
         #- Labels in Info -#
-        info_label = MyQLabel('Informations', ha='center')
         Tx_info_label = MyQLabel('Tx', ha='left')
         Rx_info_label = MyQLabel('Rx', ha='left')
         Tx_Rx_removed_label = MyQLabel('% removed - Tx & Rx', ha='left')
         sm_ratio_removed_label = MyQLabel('% removed - S/M ratio', ha='left')
         ray_angle_removed_label = MyQLabel('% removed - Ray angle', ha='left')
         traces_kept_label = MyQLabel('% of traces kept', ha='left')
+
+        self.value_Tx_info_label = MyQLabel('', ha='right')
+        self.value_Rx_info_label = MyQLabel('', ha='right')
+        self.value_Tx_Rx_removed_label = MyQLabel('', ha='right')
+        self.value_sm_ratio_removed_label = MyQLabel('', ha='right')
+        self.value_ray_angle_removed_label = MyQLabel('', ha='right')
+        self.value_traces_kept_label = MyQLabel('', ha='right')
 
         #--- Edits ---#
         self.skip_Tx_edit = QtGui.QLineEdit()
@@ -514,15 +523,70 @@ class MOGUI(QtGui.QWidget):
         self.max_elev_edit.setReadOnly(True)
 
         #--- CheckBox ---#
-        self.tresh_check = QtGui.QCheckBox()
+        self.tresh_check = QtGui.QCheckBox('Treshold - SNR')
 
         #--- Button ---#
-        btn_done = QtGui.QPushButton()
+        btn_done = QtGui.QPushButton('Done')
 
         #--- Info Frame ---#
         info_frame = QtGui.QFrame()
         info_frame_grid =QtGui.QGridLayout()
+        info_frame_grid.addWidget(self.value_Tx_info_label, 1, 0)
+        info_frame_grid.addWidget(Tx_info_label, 1, 1)
+        info_frame_grid.addWidget(self.value_Rx_info_label, 2, 0)
+        info_frame_grid.addWidget(Rx_info_label, 2, 1)
+        info_frame_grid.addWidget(self.value_Tx_Rx_removed_label, 3, 0)
+        info_frame_grid.addWidget(Tx_Rx_removed_label, 3, 1)
+        info_frame_grid.addWidget(self.value_sm_ratio_removed_label, 4, 0)
+        info_frame_grid.addWidget(sm_ratio_removed_label, 4, 1)
+        info_frame_grid.addWidget(self.value_ray_angle_removed_label, 5, 0)
+        info_frame_grid.addWidget(ray_angle_removed_label, 5, 1)
+        info_frame_grid.addWidget(self.value_traces_kept_label, 6, 0)
+        info_frame_grid.addWidget(traces_kept_label, 6, 1)
         info_frame.setLayout(info_frame_grid)
+        info_frame.setStyleSheet('background: white')
+
+        #--- Info GroupBox ---#
+        info_group = QtGui.QGroupBox('Informations')
+        info_grid = QtGui.QGridLayout()
+        info_grid.addWidget(info_frame, 0, 0)
+        info_group.setLayout(info_grid)
+
+        #--- Prune SubWidget ---#
+        Sub_prune_widget = QtGui.QWidget()
+        Sub_prune_grid = QtGui.QGridLayout()
+        Sub_prune_grid.addWidget(skip_Tx_label, 0, 0)
+        Sub_prune_grid.addWidget(self.skip_Tx_edit, 1, 0)
+        Sub_prune_grid.addWidget(skip_Rx_label, 2, 0)
+        Sub_prune_grid.addWidget(self.skip_Rx_edit, 3, 0)
+        Sub_prune_grid.addWidget(round_fac_label, 4, 0)
+        Sub_prune_grid.addWidget(self.round_fac_edit, 5, 0)
+        Sub_prune_grid.addWidget(self.tresh_check, 6, 0)
+        Sub_prune_grid.addWidget(self.tresh_edit, 7, 0)
+        Sub_prune_grid.addWidget(min_ang_label, 8, 0)
+        Sub_prune_grid.addWidget(self.min_ang_edit, 9, 0)
+        Sub_prune_grid.addWidget(max_ang_label, 10, 0)
+        Sub_prune_grid.addWidget(self.max_ang_edit, 11, 0)
+        Sub_prune_grid.addWidget(min_elev_label, 12, 0)
+        Sub_prune_grid.addWidget(self.min_elev_edit, 13, 0)
+        Sub_prune_grid.addWidget(max_elev_label, 14, 0)
+        Sub_prune_grid.addWidget(self.max_elev_edit, 15, 0)
+        Sub_prune_grid.addWidget(info_group, 16, 0)
+        Sub_prune_grid.addWidget(btn_done, 17, 0)
+        Sub_prune_widget.setLayout(Sub_prune_grid)
+
+        #-------- Creation of the manager for Prune Figure --------#
+        self.pruneFig = PruneFig()
+        self.prunetool = NavigationToolbar2QT(self.pruneFig, self)
+        self.prunemanager = QtGui.QWidget()
+        prunemanagergrid = QtGui.QGridLayout()
+        prunemanagergrid.addWidget(self.prunetool, 0, 0, 1, 3)
+        prunemanagergrid.addWidget(self.pruneFig, 1, 0, 2, 2)
+        prunemanagergrid.addWidget(Sub_prune_widget, 1, 2)
+        prunemanagergrid.setColumnStretch(0, 100)
+        prunemanagergrid.setRowStretch(0, 100)
+        self.prunemanager.setLayout(prunemanagergrid)
+
 
         #-------- Widgets in ZOP -------#
         #--- Labels ---#
@@ -812,6 +876,7 @@ class MOGUI(QtGui.QWidget):
         btn_Stats_Ampl.clicked.connect(self.plot_statsamp)
         btn_Ray_Coverage.clicked.connect(self.plot_ray_coverage)
         btn_Export_tt.clicked.connect(self.export_tt)
+        btn_Prune.clicked.connect(self.plot_prune)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -1067,10 +1132,10 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
-class Prune(FigureCanvasQTAgg):
+class PruneFig(FigureCanvasQTAgg):
     def __init__(self, parent= None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
-        super(Prune, self).__init__(fig)
+        super(PruneFig, self).__init__(fig)
         self.initFig()
 
     def initFig(self):
