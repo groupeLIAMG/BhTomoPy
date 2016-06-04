@@ -436,7 +436,10 @@ class MOGUI(QtGui.QWidget):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
 
     def plot_prune(self):
-        self.prunemanager.showMaximized()
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            self.pruneFig.plot_prune(self.MOGs[i.row()])
+            self.prunemanager.showMaximized()
 
 
     def initUI(self):
