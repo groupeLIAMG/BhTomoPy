@@ -432,14 +432,17 @@ class MOGUI(QtGui.QWidget):
             self.raycoverageFig.plot_ray_coverage(self.MOGs[i.row()])
             self.raymanager.show()
 
-    def export_tt(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
-
     def plot_prune(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             self.pruneFig.plot_prune(self.MOGs[i.row()])
-            self.prunemanager.showMaximized()
+            self.prunemanager.show()
+
+    def export_tt(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
+
+    def export_tau(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tau')
 
 
     def initUI(self):
@@ -546,6 +549,7 @@ class MOGUI(QtGui.QWidget):
         info_frame_grid.addWidget(ray_angle_removed_label, 5, 1)
         info_frame_grid.addWidget(self.value_traces_kept_label, 6, 0)
         info_frame_grid.addWidget(traces_kept_label, 6, 1)
+        info_frame_grid.setAlignment(QtCore.Qt.AlignCenter)
         info_frame.setLayout(info_frame_grid)
         info_frame.setStyleSheet('background: white')
 
@@ -1145,6 +1149,33 @@ class PruneFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_prune(self, mog):
+
+
+
+        Z1 = 0
+        Z1max = -15
+
+        Z2 = 0
+        Z2max = -10
+
+        X1 = 0
+        Y1 = 0
+
+        X2 = 20
+        Y2 = 10
+
+        for z1 in range(np.abs(Z1max)):
+            self.ax.scatter(X1, Y1, -z1, c= 'g', marker= 'o')
+
+        for z2 in range(np.abs(Z2max)):
+            self.ax.scatter(X2, Y2, -z2, c='b', marker='*')
+
+        #TODO: Voir avec bernard la longueur de Tx_z et Rx_z
+        #for i in range(len(np.unique(mog.data.Tx_z))):
+        #    self.ax.scatter(X1, Y1, np.unique(mog.data.Tx_z)[i], c= 'g', marker= 'o')
+
+        #for j in range(len(np.unique(mog.data.Rx_z))):
+        #    self.ax.scatter(X2, Y2, np.unique(mog.data.Rx_z)[j], c='b', marker='*')
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
@@ -1217,7 +1248,7 @@ if __name__ == '__main__':
     #zopFig = ZOPFig()
     #zopFig.show()
     MOGUI_ui = MOGUI()
-    MOGUI_ui.show()
+    #MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
 
@@ -1226,6 +1257,7 @@ if __name__ == '__main__':
     #MOGUI_ui.plot_zop()
     #MOGUI_ui.plot_statsamp()
     #MOGUI_ui.plot_ray_coverage()
+    MOGUI_ui.plot_prune()
 
 
     sys.exit(app.exec_())
