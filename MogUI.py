@@ -463,17 +463,20 @@ class MOGUI(QtGui.QWidget):
             unique_Tx_z = unique_Tx_z[::skip_len + 1]
 
             self.Txpts = len(unique_Tx_z)
+
+
+            for i in range(len(np.unique(mog.data.Tx_z))):
+                if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
+                    inds.append(i)
+
+            for value in inds:
+                mog.in_vect[value] = False
+
+            self.pruneFig.plot_prune(mog)
         except:
             pass
 
-        for i in range(len(np.unique(mog.data.Tx_z))):
-            if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
-                inds.append(i)
 
-        for value in inds:
-            mog.in_vect[value] = False
-
-        self.pruneFig.plot_prune(mog)
 
     def update_skip_Rx(self):
         ind = self.MOG_list.selectedIndexes()
@@ -488,18 +491,20 @@ class MOGUI(QtGui.QWidget):
             unique_Rx_z = unique_Rx_z[::skip_len + 1]
 
             self.Rxpts = len(unique_Rx_z)
+
+
+
+            for i in range(len(np.unique(mog.data.Rx_z))):
+                if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
+                    inds.append(i)
+
+            for value in inds:
+                mog.in_vect[value] = False
+
+            self.pruneFig.plot_prune(mog)
+
         except:
             pass
-
-
-        for i in range(len(np.unique(mog.data.Rx_z))):
-            if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
-                inds.append(i)
-
-        for value in inds:
-            mog.in_vect[value] = False
-
-        self.pruneFig.plot_prune(mog)
 
     def update_min_elev(self):
         ind = self.MOG_list.selectedIndexes()
