@@ -13,7 +13,7 @@ class MogData:
 
     Tx_zSignal = QtCore.pyqtSignal(list)
 
-    def __init__(self, name=None, date=None):
+    def __init__(self, name='', date=None):
         self.ntrace       = 0       # number of traces
         self.nptsptrc     = 0       # number of points per trace
         self.rstepsz      = 0       # size of step used
@@ -43,7 +43,10 @@ class MogData:
         """
         load data in Malå RAMAC format
         """
+        rname = basename.split('/')  # the split method gives us back a list which contains al the caracter that were
+        rname = rname[-1]
 
+        self.name = rname
         self.tunits = 'ns'
         self.cunits = 'm'
 
@@ -63,15 +66,13 @@ class MogData:
                 self.TxOffset = 0.325
                 self.RxOffset = 0.365
 
-        self.Tx_z = self.Tx_z*np.arange(self.ntrace)
-        self.Rx_z = self.Rx_z*np.arange(self.ntrace)
-        self.Tx_y = np.zeros((1, self.ntrace))
-        self.Rx_y = np.zeros((1, self.ntrace))
-        self.Tx_x = np.zeros((1, self.ntrace))
-        self.Rx_x = np.zeros((1, self.ntrace))
+        self.Tx_z = self.Tx_z[:self.ntrace]
+        self.Rx_z = self.Rx_z[:self.ntrace]
+        self.Tx_y = np.zeros(self.ntrace)
+        self.Rx_y = np.zeros(self.ntrace)
+        self.Tx_x = np.zeros(self.ntrace)
+        self.Rx_x = np.zeros(self.ntrace)
 
-        #for i in self.Tx_z:
-         #   print(i)
 
 
 

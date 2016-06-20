@@ -51,7 +51,6 @@ class AirShots:
 
 
 class Mog:
-    moglogSignal = QtCore.pyqtSignal(str)
     def __init__(self, name= ''):
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
@@ -79,36 +78,42 @@ class Mog:
         self.useAirShots              = 0
         self.ID                       = Mog.getID()
 
+        self.initialize()
+
     def initialize(self):
-        if self.data == None:
-            return
+        #if self.data.name == '':
+        #    return
         self.date                     = self.data.date
         self.tt                       = -1*np.ones((1,self.data.ntrace), dtype= float)
         self.et                       = -1*np.ones((1,self.data.ntrace), dtype= float)
         self.tt_done                  = np.zeros((1, self.data.ntrace), dtype = bool)
+
         if self.data.tdata == None:
             self.ttTx                 = np.array([])
             self.ttTx_done            = np.array([])
         else:
-            self.amp_tmin             = -1*np.ones((1,self.data.ntrace), dtype= float)   # à Définir avec Bernard
-            self.amp_tmax             = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.amp_done             = np.zeros((1,self.data.ntrace), dtype= bool)
-            self.App                  = np.zeros((1,self.data.ntrace), dtype= float)
-            self.fcentroid            = np.zeros((1,self.data.ntrace), dtype= float)
-            self.scentroid            = np.zeros((1,self.data.ntrace), dtype= float)
-            self.tau_App              = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.tauApp_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.tauFce               = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.tauFce_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.tauHyb               = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
-            self.Tx_z_orig            = self.data.Tx_z
-            self.Rx_z_orig            = self.data.Rx_z
-            self.inside               = np.ones((1,self.data.ntrace), dtype= bool)  #substitut de obj.in
-            self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]))
-            self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]))
-#TODO:
+            self.ttTx                 = np.zeros(self.data.ntrace)
+            self.ttTx_done            = np.zeros(self.data.ntrace, dtype= bool)
+
+        self.amp_tmin             = -1*np.ones((1,self.data.ntrace), dtype= float)   # à Définir avec Bernard
+        self.amp_tmax             = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.amp_done             = np.zeros((1,self.data.ntrace), dtype= bool)
+        self.App                  = np.zeros((1,self.data.ntrace), dtype= float)
+        self.fcentroid            = np.zeros((1,self.data.ntrace), dtype= float)
+        self.scentroid            = np.zeros((1,self.data.ntrace), dtype= float)
+        self.tau_App              = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.tauApp_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.tauFce               = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.tauFce_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.tauHyb               = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.Tx_z_orig            = self.data.Tx_z
+        self.Rx_z_orig            = self.data.Rx_z
+        self.in_vect               = np.ones(self.data.ntrace, dtype= bool)  #substitut de obj.in
+        self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+        self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+
     def correction_t0(self, ndata, air_before, air_after, *args):
         """
         :param ndata:
@@ -235,4 +240,12 @@ class PruneParams:
 
 if __name__ == '__main__':
 
-    m = MogData('M01' )
+    m = Mog('M01')
+    md = MogData()
+    md.readRAMAC('testData/formats/ramac/t0102')
+    m.data = md
+    m.initialize()
+
+
+
+

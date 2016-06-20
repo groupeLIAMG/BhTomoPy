@@ -65,10 +65,13 @@ class MOGUI(QtGui.QWidget):
         self.MOGs.append(mog)
         self.update_List_Widget()
         mog.data.readRAMAC(basename)
+        mog.initialize()
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
         self.update_spectra_Tx_num_list()
         self.update_spectra_Tx_elev_value_label()
         self.update_edits()
+        self.update_prune_edits_info()
+        self.update_prune_info()
         self.moglogSignal.emit("{} Multi Offset-Gather as been loaded succesfully".format(rname))
 
 
@@ -376,7 +379,6 @@ class MOGUI(QtGui.QWidget):
                 self.search_info_label.setText('This data contains only {} traces, {} is out of range'.format(len(self.Tx_num_list) -1, int(item)))
                 self.search_info_label.setPalette(red)
 
-
     def update_List_Widget(self):
         self.MOG_list.clear()
         for mog in self.MOGs:
@@ -390,6 +392,7 @@ class MOGUI(QtGui.QWidget):
         for bh in list:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
+
 
     def plot_rawdata(self):
         ind = self.MOG_list.selectedIndexes()
@@ -438,11 +441,85 @@ class MOGUI(QtGui.QWidget):
             self.pruneFig.plot_prune(self.MOGs[i.row()])
             self.prunemanager.show()
 
+
     def export_tt(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
 
     def export_tau(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tau')
+
+    # Methods to update the Prune Manager
+    def update_skip_Tx(self):
+        ind = self.MOG_list.selectedIndexes()
+
+        inds = []
+        mog = self.MOGs[ind[0].row()]
+        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+
+        skip_len = int(self.skip_Tx_edit.text())
+
+        unique_Tx_z = np.unique(mog.data.Tx_z)
+        unique_Tx_z = unique_Tx_z[::skip_len + 1]
+
+        self.Txpts = len(unique_Tx_z)
+
+
+        for i in range(len(np.unique(mog.data.Tx_z))):
+            if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
+                inds.append(i)
+
+        for value in inds:
+            mog.in_vect[value] = False
+
+        self.pruneFig.plot_prune(mog)
+
+    def update_skip_Rx(self):
+        ind = self.MOG_list.selectedIndexes()
+
+        inds = []
+        mog = self.MOGs[ind[0].row()]
+        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+
+        skip_len = int(self.skip_Rx_edit.text())
+
+        unique_Rx_z = np.unique(mog.data.Rx_z)
+        unique_Rx_z = unique_Rx_z[::skip_len + 1]
+
+        self.Rxpts = len(unique_Rx_z)
+
+
+        for i in range(len(np.unique(mog.data.Rx_z))):
+            if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
+                inds.append(i)
+
+        for value in inds:
+            mog.in_vect[value] = False
+
+        self.pruneFig.plot_prune(mog)
+
+    def update_prune_edits_info(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            mog = self.MOGs[i.row()]
+            self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
+            self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
+            self.min_elev_edit.setText(str(mog.data.Tx_z[-1]))
+            self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
+
+    def update_prune_info(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            mog = self.MOGs[i.row()]
+
+            tot_traces = mog.data.ntrace
+            #selec_traces =
+            #tot_Tx_Rx =
+
+            self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
+            self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
+
+
+
 
 
     def initUI(self):
@@ -523,10 +600,18 @@ class MOGUI(QtGui.QWidget):
         self.tresh_edit = QtGui.QLineEdit()
 
         #- Edits Actions -#
-        self.min_ang_edit.setReadOnly(True)
-        self.max_ang_edit.setReadOnly(True)
-        self.min_elev_edit.setReadOnly(True)
-        self.max_elev_edit.setReadOnly(True)
+        self.skip_Tx_edit.editingFinished.connect(self.update_skip_Tx)
+        self.skip_Rx_edit.editingFinished.connect(self.update_skip_Rx)
+
+        #- Edits Disposition -#
+        self.skip_Tx_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.skip_Rx_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.round_fac_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.min_ang_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.max_ang_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.min_elev_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.max_elev_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.tresh_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- CheckBox ---#
         self.tresh_check = QtGui.QCheckBox('Treshold - SNR')
@@ -1149,36 +1234,35 @@ class PruneFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_prune(self, mog):
+        self.ax.cla()
+
+        false_ind = np.nonzero(mog.in_vect == False)
 
 
+        Tx_zs = np.unique(mog.data.Tx_z)
+        Rx_zs = np.unique(mog.data.Rx_z)
 
-        Z1 = 0
-        Z1max = -15
 
-        Z2 = 0
-        Z2max = -10
+        Tx_zs = np.delete(Tx_zs, false_ind[0])
+        Rx_zs = np.delete(Rx_zs, false_ind[0])
 
-        X1 = 0
-        Y1 = 0
+        num_Tx = len(Tx_zs)
+        num_Rx = len(Rx_zs)
+        Tx_xs = mog.data.Tx_x[:num_Tx]
+        Rx_xs = mog.data.Rx_x[:num_Rx]
+        Tx_ys= mog.data.Tx_y[:num_Tx]
+        Rx_ys = mog.data.Rx_y[:num_Rx]
 
-        X2 = 20
-        Y2 = 10
+        #self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o')
 
-        for z1 in range(np.abs(Z1max)):
-            self.ax.scatter(X1, Y1, -z1, c= 'g', marker= 'o')
+        self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*')
 
-        for z2 in range(np.abs(Z2max)):
-            self.ax.scatter(X2, Y2, -z2, c='b', marker='*')
 
-        #TODO: Voir avec bernard la longueur de Tx_z et Rx_z
-        #for i in range(len(np.unique(mog.data.Tx_z))):
-        #    self.ax.scatter(X1, Y1, np.unique(mog.data.Tx_z)[i], c= 'g', marker= 'o')
-
-        #for j in range(len(np.unique(mog.data.Rx_z))):
-        #    self.ax.scatter(X2, Y2, np.unique(mog.data.Rx_z)[j], c='b', marker='*')
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
+
+        self.draw()
 
 
 
