@@ -455,14 +455,16 @@ class MOGUI(QtGui.QWidget):
         inds = []
         mog = self.MOGs[ind[0].row()]
         mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+        try:
+            skip_len = int(self.skip_Tx_edit.text())
 
-        skip_len = int(self.skip_Tx_edit.text())
 
-        unique_Tx_z = np.unique(mog.data.Tx_z)
-        unique_Tx_z = unique_Tx_z[::skip_len + 1]
+            unique_Tx_z = np.unique(mog.data.Tx_z)
+            unique_Tx_z = unique_Tx_z[::skip_len + 1]
 
-        self.Txpts = len(unique_Tx_z)
-
+            self.Txpts = len(unique_Tx_z)
+        except:
+            pass
 
         for i in range(len(np.unique(mog.data.Tx_z))):
             if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
@@ -479,13 +481,15 @@ class MOGUI(QtGui.QWidget):
         inds = []
         mog = self.MOGs[ind[0].row()]
         mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+        try:
+            skip_len = int(self.skip_Rx_edit.text())
 
-        skip_len = int(self.skip_Rx_edit.text())
+            unique_Rx_z = np.unique(mog.data.Rx_z)
+            unique_Rx_z = unique_Rx_z[::skip_len + 1]
 
-        unique_Rx_z = np.unique(mog.data.Rx_z)
-        unique_Rx_z = unique_Rx_z[::skip_len + 1]
-
-        self.Rxpts = len(unique_Rx_z)
+            self.Rxpts = len(unique_Rx_z)
+        except:
+            pass
 
 
         for i in range(len(np.unique(mog.data.Rx_z))):
@@ -497,13 +501,40 @@ class MOGUI(QtGui.QWidget):
 
         self.pruneFig.plot_prune(mog)
 
+    def update_min_elev(self):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+
+        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+
+        new_min = float(self.min_elev_edit.text())
+        idx = np.argmin((np.abs((np.unique(mog.data.Tx_z)+ new_min))))
+
+        mog.in_vect[idx:] = False
+
+        self.pruneFig.plot_prune(mog)
+
+    def update_max_elev(self):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+
+        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+
+        new_max = float(self.max_elev_edit.text())
+        idx = np.argmin((np.abs((np.unique(mog.data.Tx_z) + new_max))))
+
+        mog.in_vect[:idx] = False
+
+        self.pruneFig.plot_prune(mog)
+
+
     def update_prune_edits_info(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             mog = self.MOGs[i.row()]
             self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
             self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
-            self.min_elev_edit.setText(str(mog.data.Tx_z[-1]))
+            self.min_elev_edit.setText(str(-mog.data.Tx_z[-1]))
             self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
 
     def update_prune_info(self):
@@ -512,8 +543,8 @@ class MOGUI(QtGui.QWidget):
             mog = self.MOGs[i.row()]
 
             tot_traces = mog.data.ntrace
-            #selec_traces =
-            #tot_Tx_Rx =
+            #selec_traces = self.Txpts + self.Rxpts
+            #tot_Tx
 
             self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
             self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
@@ -582,12 +613,12 @@ class MOGUI(QtGui.QWidget):
         ray_angle_removed_label = MyQLabel('% removed - Ray angle', ha='left')
         traces_kept_label = MyQLabel('% of traces kept', ha='left')
 
-        self.value_Tx_info_label = MyQLabel('', ha='right')
-        self.value_Rx_info_label = MyQLabel('', ha='right')
-        self.value_Tx_Rx_removed_label = MyQLabel('', ha='right')
-        self.value_sm_ratio_removed_label = MyQLabel('', ha='right')
-        self.value_ray_angle_removed_label = MyQLabel('', ha='right')
-        self.value_traces_kept_label = MyQLabel('', ha='right')
+        self.value_Tx_info_label = MyQLabel('0', ha='right')
+        self.value_Rx_info_label = MyQLabel('0', ha='right')
+        self.value_Tx_Rx_removed_label = MyQLabel('0', ha='right')
+        self.value_sm_ratio_removed_label = MyQLabel('0', ha='right')
+        self.value_ray_angle_removed_label = MyQLabel('0', ha='right')
+        self.value_traces_kept_label = MyQLabel('100', ha='right')
 
         #--- Edits ---#
         self.skip_Tx_edit = QtGui.QLineEdit()
@@ -602,6 +633,8 @@ class MOGUI(QtGui.QWidget):
         #- Edits Actions -#
         self.skip_Tx_edit.editingFinished.connect(self.update_skip_Tx)
         self.skip_Rx_edit.editingFinished.connect(self.update_skip_Rx)
+        self.min_elev_edit.editingFinished.connect(self.update_min_elev)
+        self.max_elev_edit.editingFinished.connect(self.update_max_elev)
 
         #- Edits Disposition -#
         self.skip_Tx_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -1253,9 +1286,9 @@ class PruneFig(FigureCanvasQTAgg):
         Tx_ys= mog.data.Tx_y[:num_Tx]
         Rx_ys = mog.data.Rx_y[:num_Rx]
 
-        #self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o')
+        self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o')
 
-        self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*')
+        #self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*')
 
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))

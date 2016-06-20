@@ -68,6 +68,7 @@ class MogData:
 
         self.Tx_z = self.Tx_z[:self.ntrace]
         self.Rx_z = self.Rx_z[:self.ntrace]
+
         self.Tx_y = np.zeros(self.ntrace)
         self.Rx_y = np.zeros(self.ntrace)
         self.Tx_x = np.zeros(self.ntrace)
