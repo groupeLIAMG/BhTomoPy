@@ -192,7 +192,11 @@ class MogData:
                 self.Rx_z = np.concatenate((self.Rx_z, vect))
         file.close()
         #print(self.Tx_z)
-        #print(self.Rx_z)
+
+        for row in self.Rx_z:
+            print(row)
+
+        print(len(self.Rx_z))
 
 
     def readSEGY(self, basename):
@@ -208,6 +212,6 @@ if __name__ == '__main__':
     #m.readRAD('testData/formats/ramac/t0102')
     #m.readRD3('testData/formats/ramac/t0102')
     #m.readTLF('testData/formats/ramac/t0102')
-    m.readRAMAC('testData/formats/ramac/t0102')
+    m.readRAMAC('testData/formats/ramac/t0302')
 
 

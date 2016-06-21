@@ -492,8 +492,6 @@ class MOGUI(QtGui.QWidget):
 
             self.Rxpts = len(unique_Rx_z)
 
-
-
             for i in range(len(np.unique(mog.data.Rx_z))):
                 if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
                     inds.append(i)
@@ -513,9 +511,9 @@ class MOGUI(QtGui.QWidget):
         mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
 
         new_min = float(self.min_elev_edit.text())
-        idx = np.argmin((np.abs((np.unique(mog.data.Tx_z)+ new_min))))
+        idmin = np.argmin((np.abs((np.unique(mog.data.Tx_z)+ new_min))))
 
-        mog.in_vect[idx:] = False
+        mog.in_vect[idmin:] = False
 
         self.pruneFig.plot_prune(mog)
 
@@ -526,9 +524,58 @@ class MOGUI(QtGui.QWidget):
         mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
 
         new_max = float(self.max_elev_edit.text())
-        idx = np.argmin((np.abs((np.unique(mog.data.Tx_z) + new_max))))
+        idmax = np.argmin((np.abs((np.unique(mog.data.Tx_z) + new_max))))
 
-        mog.in_vect[:idx] = False
+        mog.in_vect[:idmax] = False
+
+        self.pruneFig.plot_prune(mog)
+
+    def update_elev(self):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+
+        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+
+        new_min = float(self.min_elev_edit.text())
+        new_max = float(self.max_elev_edit.text())
+
+        idmin = np.argmin((np.abs((np.unique(mog.data.Tx_z)+ new_min))))
+
+        idmax = np.argmin((np.abs((np.unique(mog.data.Tx_z) + new_max))))
+
+        mog.in_vect[idmin:] = False
+        mog.in_vect[:idmax] = False
+
+        self.pruneFig.plot_prune(mog)
+
+    def update_round_fact(self):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+
+        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+
+        round_fact = float(self.round_fac_edit.text())
+
+        unique_Tx_z = np.unique(mog.data.Tx_z)
+        unique_Rx_z = np.unique(mog.data.Rx_z)
+
+        unique_Tx_z = unique_Tx_z%round_fact
+        unique_Rx_z = unique_Rx_z%round_fact
+
+        inTx = unique_Tx_z == 0
+        inRx = unique_Rx_z == 0
+
+        true_Tx_ind = []
+        true_Rx_ind = []
+        for i in range(len(inTx)):
+            if inTx[i] == True:
+                true_Tx_ind.append(i)
+
+        for j in range(len(inRx)):
+            if inTx[j] == True:
+                true_Rx_ind.append(j)
+
+
 
         self.pruneFig.plot_prune(mog)
 
@@ -546,13 +593,15 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             mog = self.MOGs[i.row()]
-
+            self.Rxpts = len(np.unique(mog.data.Rx_z))
+            self.Txpts = len(np.unique(mog.data.Tx_z))
             tot_traces = mog.data.ntrace
-            #selec_traces = self.Txpts + self.Rxpts
-            #tot_Tx
+            selec_traces = self.Txpts*self.Rxpts
+            kept_traces = (selec_traces/tot_traces)*100
 
             self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
             self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
+            self.value_traces_kept_label.setText(str(kept_traces))
 
 
 
@@ -626,9 +675,9 @@ class MOGUI(QtGui.QWidget):
         self.value_traces_kept_label = MyQLabel('100', ha='right')
 
         #--- Edits ---#
-        self.skip_Tx_edit = QtGui.QLineEdit()
-        self.skip_Rx_edit = QtGui.QLineEdit()
-        self.round_fac_edit = QtGui.QLineEdit()
+        self.skip_Tx_edit = QtGui.QLineEdit('0')
+        self.skip_Rx_edit = QtGui.QLineEdit('0')
+        self.round_fac_edit = QtGui.QLineEdit('0')
         self.min_ang_edit = QtGui.QLineEdit()
         self.max_ang_edit = QtGui.QLineEdit()
         self.min_elev_edit = QtGui.QLineEdit()
@@ -638,8 +687,10 @@ class MOGUI(QtGui.QWidget):
         #- Edits Actions -#
         self.skip_Tx_edit.editingFinished.connect(self.update_skip_Tx)
         self.skip_Rx_edit.editingFinished.connect(self.update_skip_Rx)
-        self.min_elev_edit.editingFinished.connect(self.update_min_elev)
-        self.max_elev_edit.editingFinished.connect(self.update_max_elev)
+        self.min_elev_edit.returnPressed.connect(self.update_elev)
+        self.max_elev_edit.returnPressed.connect(self.update_elev)
+        self.round_fac_edit.returnPressed.connect(self.update_round_fact)
+
 
         #- Edits Disposition -#
         self.skip_Tx_edit.setAlignment(QtCore.Qt.AlignHCenter)

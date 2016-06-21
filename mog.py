@@ -110,7 +110,7 @@ class Mog:
         self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
         self.Tx_z_orig            = self.data.Tx_z
         self.Rx_z_orig            = self.data.Rx_z
-        self.in_vect               = np.ones(self.data.ntrace, dtype= bool)  #substitut de obj.in
+        self.in_vect              = np.ones(self.data.ntrace, dtype= bool)
         self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
 
