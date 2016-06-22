@@ -139,14 +139,13 @@ class MOGUI(QtGui.QWidget):
 
                 if not found:
                     n = len(self.air)
-                    print(n)
-                    print(self.air)
 
                     data = MogData()
                     data.readRAMAC(basename)
-                    print(data.ntrace)
+
 
                     distance, ok = QtGui.QInputDialog.getText(self, 'Aishots Before', 'Distance between Tx and Rx :')
+
                     if ok :
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
 
@@ -337,7 +336,7 @@ class MOGUI(QtGui.QWidget):
         mog = self.MOGs[ind[0].row()]
         self.Tx_num_list.clear()
         unique_Tx_z = np.unique(mog.data.Tx_z)
-        print(unique_Tx_z[0])
+
         for Tx in range(len(unique_Tx_z)+1):
             self.Tx_num_list.addItem(str(Tx))
 
@@ -489,6 +488,7 @@ class MOGUI(QtGui.QWidget):
             for value in inds:
                 mog.in_vect[value] = False
 
+            self.update_prune_info()
             self.pruneFig.plot_prune(mog)
         except:
             pass
@@ -516,36 +516,12 @@ class MOGUI(QtGui.QWidget):
             for value in inds:
                 mog.in_vect[value] = False
 
+            self.update_prune_info()
             self.pruneFig.plot_prune(mog)
 
         except:
             pass
 
-    def update_min_elev(self):
-        ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-
-        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
-
-        new_min = float(self.min_elev_edit.text())
-        idmin = np.argmin((np.abs((np.unique(mog.data.Tx_z)+ new_min))))
-
-        mog.in_vect[idmin:] = False
-
-        self.pruneFig.plot_prune(mog)
-
-    def update_max_elev(self):
-        ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-
-        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
-
-        new_max = float(self.max_elev_edit.text())
-        idmax = np.argmin((np.abs((np.unique(mog.data.Tx_z) + new_max))))
-
-        mog.in_vect[:idmax] = False
-
-        self.pruneFig.plot_prune(mog)
 
     def update_elev(self):
         ind = self.MOG_list.selectedIndexes()
@@ -562,7 +538,7 @@ class MOGUI(QtGui.QWidget):
 
         mog.in_vect[idmin:] = False
         mog.in_vect[:idmax] = False
-
+        self.update_prune_info()
         self.pruneFig.plot_prune(mog)
 
     def update_round_fact(self):
@@ -1035,8 +1011,7 @@ class MOGUI(QtGui.QWidget):
         self.Type_combo.addItem(" VSP/VRP ")
 
         #- Comboboxes Actions -#
-        self.Tx_combo.currentIndexChanged.connect(self.update_mog_trajectory)
-        self.Rx_combo.currentIndexChanged.connect(self.update_mog_trajectory)
+
 
         #--- Checkbox ---#
         Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")
@@ -1363,12 +1338,10 @@ class PruneFig(FigureCanvasQTAgg):
         Tx_ys= mog.data.Tx_y[:num_Tx]
         Rx_ys = mog.data.Rx_y[:num_Rx]
 
-        print(Tx_xs)
-        print(Rx_xs)
 
         self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o')
 
-        self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*')
+        self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*')
 
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))

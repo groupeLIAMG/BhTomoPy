@@ -46,7 +46,7 @@ class DatabaseUI(QtGui.QWidget):
 
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
-        self.mog.update_mog_trajectory(list_bh)
+
 
     def update_database_info(self, name):
         self.info.update_database(name)
@@ -184,6 +184,9 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
+    Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
+    Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
 
     Database_ui.show()
 
