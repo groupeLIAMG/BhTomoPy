@@ -22,12 +22,12 @@ class MOGUI(QtGui.QWidget):
     moglogSignal = QtCore.pyqtSignal(str)
 
 
-    def __init__(self, parent=None):
+    def __init__(self, borehole, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/MOGs")
         self.MOGs = []
         self.air = []
-        self.db = Database()
+        self.borehole = borehole
         self.mergemog = MergeMog()
         self.data_rep = ''
         self.initUI()
@@ -393,6 +393,23 @@ class MOGUI(QtGui.QWidget):
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
+    def updateCoords(self, list):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+
+        iTx = self.Tx_combo.currentIndex()
+        iRx = self.Tx_combo.currentIndex()
+
+        Tx = list[iTx]
+        Rx = list[iRx]
+
+        mog.data.Tx_x = Tx.fdata[:,0]
+        mog.data.Tx_y = Tx.fdata[:,1]
+
+        mog.data.Rx_x = Rx.fdata[:,0]
+        mog.data.Rx_y = Rx.fdata[:,1]
+
+
 
     def plot_rawdata(self):
         ind = self.MOG_list.selectedIndexes()
@@ -596,7 +613,7 @@ class MOGUI(QtGui.QWidget):
             self.Rxpts = len(np.unique(mog.data.Rx_z))
             self.Txpts = len(np.unique(mog.data.Tx_z))
             tot_traces = mog.data.ntrace
-            selec_traces = self.Txpts*self.Rxpts
+            selec_traces = sum(mog.in_vect)
             kept_traces = (selec_traces/tot_traces)*100
 
             self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
@@ -1010,12 +1027,16 @@ class MOGUI(QtGui.QWidget):
         #--- List Actions ---#
         self.MOG_list.itemSelectionChanged.connect(self.update_edits)
 
-        #--- combobox ---#
+        #--- ComboBoxes ---#
         self.Type_combo = QtGui.QComboBox()
         self.Tx_combo = QtGui.QComboBox()
         self.Rx_combo = QtGui.QComboBox()
         self.Type_combo.addItem(" Crosshole ")
         self.Type_combo.addItem(" VSP/VRP ")
+
+        #- Comboboxes Actions -#
+        self.Tx_combo.currentIndexChanged.connect(self.update_mog_trajectory)
+        self.Rx_combo.currentIndexChanged.connect(self.update_mog_trajectory)
 
         #--- Checkbox ---#
         Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")
@@ -1342,9 +1363,12 @@ class PruneFig(FigureCanvasQTAgg):
         Tx_ys= mog.data.Tx_y[:num_Tx]
         Rx_ys = mog.data.Rx_y[:num_Rx]
 
+        print(Tx_xs)
+        print(Rx_xs)
+
         self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o')
 
-        #self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*')
+        self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*')
 
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
@@ -1421,7 +1445,8 @@ if __name__ == '__main__':
     #zopFig = ZOPFig()
     #zopFig.show()
     MOGUI_ui = MOGUI()
-    #MOGUI_ui.show()
+    MOGUI_ui.show()
+
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
 
@@ -1430,7 +1455,7 @@ if __name__ == '__main__':
     #MOGUI_ui.plot_zop()
     #MOGUI_ui.plot_statsamp()
     #MOGUI_ui.plot_ray_coverage()
-    MOGUI_ui.plot_prune()
+    #MOGUI_ui.plot_prune()
 
 
     sys.exit(app.exec_())

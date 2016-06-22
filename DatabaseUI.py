@@ -16,7 +16,7 @@ class DatabaseUI(QtGui.QWidget):
         self.actual_time = time.asctime()[11:16]
         self.bh = BoreholeUI()
         self.model = ModelUI()
-        self.mog = MOGUI()
+        self.mog = MOGUI(self.bh)
         self.info = InfoUI()
         self.mogdata = MogData()
         self.mergemog = MergeMog()
@@ -46,6 +46,7 @@ class DatabaseUI(QtGui.QWidget):
 
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
+        self.mog.update_mog_trajectory(list_bh)
 
     def update_database_info(self, name):
         self.info.update_database(name)
