@@ -5,6 +5,7 @@ from manual_ttUI import ManualttUI
 from covarUI import CovarUI
 from inversionUI import InversionUI
 from interpUI import InterpretationUI
+from semi_auto_ttUI import SemiAutottUI
 
 class Bh_ThomoPyUI(QtGui.QWidget):
 
@@ -14,12 +15,14 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
-        self.database_pop = Database_Pop()
-        self.manual_tt_pop = Manual_tt_Pop()
-        self.covar_pop = Covar_Pop()
-        self.inv_pop = Inv_Pop()
-        self.inte_pop = Interp_Pop()
-        #--- Widgets ---#
+        self.database = DatabaseUI()
+        self.manual_tt = ManualttUI()
+        self.semi_tt = SemiAutottUI()
+        self.covar = CovarUI()
+        self.inv = InversionUI()
+        self.interp = InterpretationUI()
+        #------- Widgets -------#
+        #--- Buttons ---#
         btn_Database = QtGui.QPushButton("Database")
         btn_Automatic_Traveltime_Picking = QtGui.QPushButton("Automatic Traveltime Picking (AIC-CWT)")
         btn_Semi_Automatic_Traveltime_Picking = QtGui.QPushButton("Semi-Automatic Traveltime Picking (x-corr)")
@@ -32,121 +35,49 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         btn_Time_Lapse_Visualisation = QtGui.QPushButton("Time-Lapse Visualisation")
         btn_Nano_Fluid = QtGui.QPushButton("Magnetic Nano Fluid Saturation")
 
+        #--- Label ---#
+        Title = QtGui.QLabel('BH TOMO \n Borehole Radar/Seismic Data Processing Center')
+        Title.setAlignment(QtCore.Qt.AlignHCenter)
+        Title.setContentsMargins(10, 10, 10, 30)
+        Title.setStyleSheet('color: Darkcyan')
+        serifFont = QtGui.QFont("Times", 10, QtGui.QFont.Bold)
+        Title.setFont(serifFont)
 
-        btn_Database.clicked.connect(self.database_pop.show)
-        btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt_pop.show)
-        btn_Cov_Mod.clicked.connect(self.covar_pop.show)
-        btn_Inversion.clicked.connect(self.inv_pop.show)
-        btn_Interpretation.clicked.connect(self.inte_pop.show)
+
+        btn_Database.clicked.connect(self.database.show)
+        btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt.showMaximized)
+        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(self.semi_tt.showMaximized)
+        btn_Cov_Mod.clicked.connect(self.covar.show)
+        btn_Inversion.clicked.connect(self.inv.show)
+        btn_Interpretation.clicked.connect(self.interp.show)
 
 
         btn_Automatic_Traveltime_Picking.setDisabled(True)
-        btn_Semi_Automatic_Traveltime_Picking.setDisabled(True)
         btn_Manual_Amplitude_Picking.setDisabled(True)
         btn_Time_Lapse_Inversion.setDisabled(True)
         btn_Time_Lapse_Visualisation.setDisabled(True)
         btn_Nano_Fluid.setDisabled(True)
-        #--- GroupBox ---#
-        bh_tomo_GroupBox = QtGui.QGroupBox("BH THOMO")
+        #--- Main Widget---#
+        bh_tomo = QtGui.QWidget()
         bh_tomo_Sub_Grid   = QtGui.QGridLayout()
-        bh_tomo_Sub_Grid.addWidget(btn_Database, 0, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Automatic_Traveltime_Picking, 1, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Semi_Automatic_Traveltime_Picking, 2, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Manual_Traveltime_Picking, 3, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Manual_Amplitude_Picking, 4, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Cov_Mod, 5, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Inversion, 6, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Interpretation, 7, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Time_Lapse_Inversion, 8, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Time_Lapse_Visualisation, 9, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Nano_Fluid, 10, 0, 1, 4)
-        bh_tomo_GroupBox.setLayout(bh_tomo_Sub_Grid)
+        bh_tomo_Sub_Grid.addWidget(Title, 0, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Database, 2, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Automatic_Traveltime_Picking, 3, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Semi_Automatic_Traveltime_Picking, 4, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Manual_Traveltime_Picking, 5, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Manual_Amplitude_Picking, 6, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Cov_Mod, 7, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Inversion, 8, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Interpretation, 9, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Time_Lapse_Inversion, 10, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Time_Lapse_Visualisation, 11, 0, 1, 4)
+        bh_tomo_Sub_Grid.addWidget(btn_Nano_Fluid, 12, 0, 1, 4)
+        bh_tomo.setLayout(bh_tomo_Sub_Grid)
         master_grid     = QtGui.QGridLayout()
-        master_grid.addWidget(bh_tomo_GroupBox, 0, 0)
+        master_grid.addWidget(bh_tomo, 0, 0)
         self.setLayout(master_grid)
 
 
-class Database_Pop(QtGui.QWidget):
-    databaseSignal = QtCore.pyqtSignal(str)
-    def __init__(self, parent=None):
-        super(Database_Pop, self).__init__()
-        self.setWindowTitle("Bh_thomoPy/Database")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.databaseSignal.emit("Welcome to Bh_thomoPy's Database module")
-        self.initUI()
-
-        #------- Widget Creation -------#
-    def initUI(self):
-        self.database = DatabaseUI()
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(self.database)
-        self.setLayout(creation_grid)
-
-class Manual_tt_Pop(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(Manual_tt_Pop, self).__init__()
-        self.setWindowTitle("Bh_thomoPy/Manual Traveltime Picking")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-        #------- Widget Creation -------#
-    def initUI(self):
-        self.manual_tt = ManualttUI()
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(self.manual_tt)
-        self.setLayout(creation_grid)
-
-class Covar_Pop(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(Covar_Pop, self).__init__()
-        self.setWindowTitle("Bh_thomoPy/Covar")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-        #------- Widget Creation -------#
-    def initUI(self):
-        self.Covar = CovarUI()
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(self.Covar)
-        self.setLayout(creation_grid)
-
-class Inv_Pop(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(Inv_Pop, self).__init__()
-        self.setWindowTitle("Bh_thomoPy/Inversion")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-        #------- Widget Creation -------#
-    def initUI(self):
-        self.Inv = InversionUI()
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(self.Inv)
-        self.setLayout(creation_grid)
-
-class Interp_Pop(QtGui.QWidget):
-    def __init__(self, parent=None):
-        super(Interp_Pop, self).__init__()
-        self.setWindowTitle("Bh_thomoPy/Interpretation")
-        self.setWindowFlags(QtCore.Qt.Window)
-        self.initUI()
-
-        #------- Widget Creation -------#
-    def initUI(self):
-        self.Inter = InterpretationUI()
-        #------- Grid Creation -------#
-
-        creation_grid = QtGui.QGridLayout()
-        creation_grid.addWidget(self.Inter)
-        self.setLayout(creation_grid)
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)

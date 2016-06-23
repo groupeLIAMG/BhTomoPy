@@ -7,9 +7,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BoreholeUI.py" afterPath="$PROJECT_DIR$/BoreholeUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bh_tomoPyUI.py" afterPath="$PROJECT_DIR$/bh_tomoPyUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -53,11 +51,33 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.45723686">
+            <state vertical-scroll-proportion="0.0">
               <caret line="187" column="55" selection-start-line="187" selection-start-column="55" selection-end-line="187" selection-end-column="55" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bh_tomoPyUI.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.5065789">
+              <caret line="38" column="86" selection-start-line="38" selection-start-column="86" selection-end-line="38" selection-end-column="86" />
+              <folding>
+                <element signature="e#0#10#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="semi_auto_ttUI.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="59" column="73" selection-start-line="59" selection-start-column="73" selection-end-line="59" selection-end-column="73" />
               <folding />
             </state>
           </provider>
@@ -115,7 +135,6 @@
         <option value="$USER_HOME$/Downloads/exemple_signaux.py" />
         <option value="$PROJECT_DIR$/covarUI.py" />
         <option value="$PROJECT_DIR$/borehole.py" />
-        <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
         <option value="$PROJECT_DIR$/database.py" />
         <option value="$PROJECT_DIR$/toto.py" />
@@ -129,6 +148,7 @@
         <option value="$PROJECT_DIR$/BoreholeUI.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
+        <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
       </list>
     </option>
   </component>
@@ -183,8 +203,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -219,6 +237,8 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -243,8 +263,9 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="827" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
     <property name="FullScreen" value="false" />
+    <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file://C:/Users/Utilisateur/PycharmProjects/BhTomoPy/DatabaseUI.py" />
   </component>
-  <component name="RunManager" selected="Python.DatabaseUI">
+  <component name="RunManager" selected="Python.bh_tomoPyUI">
     <configuration default="false" name="DatabaseUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -313,7 +334,7 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="mog" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="bh_tomoPyUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -325,7 +346,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="BhTomoPy" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/mog.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bh_tomoPyUI.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -457,15 +478,15 @@
       <item index="1" class="java.lang.String" itemvalue="Python.test" />
       <item index="2" class="java.lang.String" itemvalue="Python.MogUI" />
       <item index="3" class="java.lang.String" itemvalue="Python.MogData" />
-      <item index="4" class="java.lang.String" itemvalue="Python.mog" />
+      <item index="4" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.MogUI" />
-        <item index="2" class="java.lang.String" itemvalue="Python.test" />
-        <item index="3" class="java.lang.String" itemvalue="Python.MogData" />
-        <item index="4" class="java.lang.String" itemvalue="Python.mog" />
+        <item index="0" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.DatabaseUI" />
+        <item index="2" class="java.lang.String" itemvalue="Python.MogUI" />
+        <item index="3" class="java.lang.String" itemvalue="Python.test" />
+        <item index="4" class="java.lang.String" itemvalue="Python.MogData" />
       </list>
     </recent_temporary>
   </component>
@@ -479,12 +500,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00023" summary="retour de chariot superflu dans self.antennas fixé avec la méthode .strip()">
-      <created>1463795006594</created>
-      <option name="number" value="00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1463795006594</updated>
     </task>
     <task id="LOCAL-00024" summary="communication entre les différents widgets de databaseUI, databaseUI et le widget info">
       <created>1464108516925</created>
@@ -774,7 +789,13 @@
       <option name="project" value="LOCAL" />
       <updated>1466601143634</updated>
     </task>
-    <option name="localTasksCounter" value="72" />
+    <task id="LOCAL-00072" summary="Ajout de la liste boreholes lié dans mog ui et changement du main pour faciliter les tests">
+      <created>1466603488009</created>
+      <option name="number" value="00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1466603488009</updated>
+    </task>
+    <option name="localTasksCounter" value="73" />
     <servers />
   </component>
   <component name="TodoView">
@@ -792,7 +813,6 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16517857" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4640523" sideWeight="0.50446427" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
@@ -803,6 +823,7 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.38398692" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -844,7 +865,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="début des fonctions par rapport au t0 dans mog" />
     <MESSAGE value="ajout de messages et de fonctionnalités dans le log" />
     <MESSAGE value="Ajout de la méthode show afin que la fenêtre s'ouvre dans un endroit défini dans l'écran" />
     <MESSAGE value="méthode Mog.getcorrected_traveltimes valide pour fixed antenna" />
@@ -869,7 +889,8 @@
     <MESSAGE value="gestion d'exceptions non nécessaires" />
     <MESSAGE value="update elev dans le module prune et debut de rounding factor" />
     <MESSAGE value="début update coords" />
-    <option name="LAST_COMMIT_MESSAGE" value="début update coords" />
+    <MESSAGE value="Ajout de la liste boreholes lié dans mog ui et changement du main pour faciliter les tests" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ajout de la liste boreholes lié dans mog ui et changement du main pour faciliter les tests" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1031,13 +1052,6 @@
     </entry>
     <entry file="file://$USER_HOME$/Downloads/exemple_scrollbar_qt.py" />
     <entry file="file://$PROJECT_DIR$/toto.py" />
-    <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/testsUI.py" />
     <entry file="file://$PROJECT_DIR$/database.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -1050,16 +1064,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="278" column="4" selection-start-line="278" selection-start-column="4" selection-end-line="282" selection-end-column="21" />
-          <folding>
-            <element signature="e#24#34#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="59" column="73" selection-start-line="59" selection-start-column="73" selection-end-line="59" selection-end-column="73" />
           <folding>
             <element signature="e#24#34#0" expanded="false" />
           </folding>
@@ -1150,6 +1154,22 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="187" column="55" selection-start-line="187" selection-start-column="55" selection-end-line="187" selection-end-column="55" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="59" column="73" selection-start-line="59" selection-start-column="73" selection-end-line="59" selection-end-column="73" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1168,11 +1188,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+    <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.45723686">
-          <caret line="187" column="55" selection-start-line="187" selection-start-column="55" selection-end-line="187" selection-end-column="55" />
-          <folding />
+        <state vertical-scroll-proportion="0.5065789">
+          <caret line="38" column="86" selection-start-line="38" selection-start-column="86" selection-end-line="38" selection-end-column="86" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
