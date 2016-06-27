@@ -12,28 +12,71 @@ class Bh_ThomoPyUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(Bh_ThomoPyUI, self).__init__()
         self.setWindowTitle("bh_thomoPy")
-        self.initUI()
-
-    def initUI(self):
         self.database = DatabaseUI()
         self.manual_tt = ManualttUI()
         self.semi_tt = SemiAutottUI()
         self.covar = CovarUI()
         self.inv = InversionUI()
         self.interp = InterpretationUI()
+        self.initUI()
+
+    def choosedb(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Choose Database')
+        self.laoddb(filename)
+
+    def laoddb(self, filename):
+        # We create a load db methods to be able to load databases in the main
+        rname = filename.split('/')
+        rname = rname[-1]
+
+        self.current_db.setText(str(rname))
+
+    def initUI(self):
+
         #------- Widgets -------#
+        # --- Actions ---#
+        ChooseDbAction = QtGui.QAction('Choose Database', self)
+        ChooseDbAction.setShortcut('Ctrl+O')
+        ChooseDbAction.triggered.connect(self.choosedb)
+
+        ConvertDbAction = QtGui.QAction('Convert Database', self)
+        ConvertDbAction.setShortcut('Ctrl+C')
+
+        #--- Menubar ---#
+        self.menu = QtGui.QMenuBar()
+        filemenu = self.menu.addMenu('&File')
+        editmenu = self.menu.addMenu('&Edit')
+        filemenu.addAction(ChooseDbAction)
+        editmenu.addAction(ConvertDbAction)
+
+
         #--- Buttons ---#
-        btn_Database = QtGui.QPushButton("Database")
-        btn_Automatic_Traveltime_Picking = QtGui.QPushButton("Automatic Traveltime Picking (AIC-CWT)")
-        btn_Semi_Automatic_Traveltime_Picking = QtGui.QPushButton("Semi-Automatic Traveltime Picking (x-corr)")
-        btn_Manual_Traveltime_Picking = QtGui.QPushButton("Manual Traveltime Picking")
-        btn_Manual_Amplitude_Picking = QtGui.QPushButton("Manual Amplitude Picking")
-        btn_Cov_Mod = QtGui.QPushButton("Covariance Model")
-        btn_Inversion = QtGui.QPushButton("Inversion")
-        btn_Interpretation = QtGui.QPushButton("Interpretation (GPR)")
-        btn_Time_Lapse_Inversion = QtGui.QPushButton("Time-Lapse Inversion")
-        btn_Time_Lapse_Visualisation = QtGui.QPushButton("Time-Lapse Visualisation")
-        btn_Nano_Fluid = QtGui.QPushButton("Magnetic Nano Fluid Saturation")
+        btn_Database                            = QtGui.QPushButton("Database")
+        btn_Automatic_Traveltime_Picking        = QtGui.QPushButton("Automatic Traveltime Picking (AIC-CWT)")
+        btn_Semi_Automatic_Traveltime_Picking   = QtGui.QPushButton("Semi-Automatic Traveltime Picking (x-corr)")
+        btn_Manual_Traveltime_Picking           = QtGui.QPushButton("Manual Traveltime Picking")
+        btn_Manual_Amplitude_Picking            = QtGui.QPushButton("Manual Amplitude Picking")
+        btn_Cov_Mod                             = QtGui.QPushButton("Covariance Model")
+        btn_Inversion                           = QtGui.QPushButton("Inversion")
+        btn_Interpretation                      = QtGui.QPushButton("Interpretation (GPR)")
+        btn_Time_Lapse_Inversion                = QtGui.QPushButton("Time-Lapse Inversion")
+        btn_Time_Lapse_Visualisation            = QtGui.QPushButton("Time-Lapse Visualisation")
+        btn_Nano_Fluid                          = QtGui.QPushButton("Magnetic Nano Fluid Saturation")
+
+        #- Buttons Disposition -#
+        btn_Automatic_Traveltime_Picking.setDisabled(True)
+        btn_Manual_Amplitude_Picking.setDisabled(True)
+        btn_Time_Lapse_Inversion.setDisabled(True)
+        btn_Time_Lapse_Visualisation.setDisabled(True)
+        btn_Nano_Fluid.setDisabled(True)
+
+        #- Buttons Actions -#
+        btn_Database.clicked.connect(self.database.show)
+        btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt.showMaximized)
+        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(self.semi_tt.showMaximized)
+        btn_Cov_Mod.clicked.connect(self.covar.show)
+        btn_Inversion.clicked.connect(self.inv.show)
+        btn_Interpretation.clicked.connect(self.interp.show)
 
         #--- Label ---#
         Title = QtGui.QLabel('BH TOMO \n Borehole Radar/Seismic Data Processing Center')
@@ -43,38 +86,40 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         serifFont = QtGui.QFont("Times", 10, QtGui.QFont.Bold)
         Title.setFont(serifFont)
 
+        #--- Edit ---#
+        # Edit to hold the chosen database's name
+        self.current_db = QtGui.QLineEdit()
 
-        btn_Database.clicked.connect(self.database.show)
-        btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt.showMaximized)
-        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(self.semi_tt.showMaximized)
-        btn_Cov_Mod.clicked.connect(self.covar.show)
-        btn_Inversion.clicked.connect(self.inv.show)
-        btn_Interpretation.clicked.connect(self.interp.show)
+        #- Edit Disposition -#
+        self.current_db.setReadOnly(True)
 
+        #--- Buttons SubWidget ---#
+        Sub_button_widget = QtGui.QGroupBox()
+        sub_button_grid = QtGui.QGridLayout()
+        sub_button_grid.addWidget(btn_Database, 0, 0)
+        sub_button_grid.addWidget(btn_Automatic_Traveltime_Picking, 1, 0)
+        sub_button_grid.addWidget(btn_Semi_Automatic_Traveltime_Picking, 2, 0)
+        sub_button_grid.addWidget(btn_Manual_Traveltime_Picking, 3, 0)
+        sub_button_grid.addWidget(btn_Manual_Amplitude_Picking, 4, 0)
+        sub_button_grid.addWidget(btn_Cov_Mod, 5, 0)
+        sub_button_grid.addWidget(btn_Inversion, 6, 0)
+        sub_button_grid.addWidget(btn_Interpretation, 7, 0)
+        sub_button_grid.addWidget(btn_Time_Lapse_Inversion, 8, 0)
+        sub_button_grid.addWidget(btn_Time_Lapse_Visualisation, 9, 0)
+        sub_button_grid.addWidget(btn_Nano_Fluid, 10, 0)
+        Sub_button_widget.setLayout(sub_button_grid)
 
-        btn_Automatic_Traveltime_Picking.setDisabled(True)
-        btn_Manual_Amplitude_Picking.setDisabled(True)
-        btn_Time_Lapse_Inversion.setDisabled(True)
-        btn_Time_Lapse_Visualisation.setDisabled(True)
-        btn_Nano_Fluid.setDisabled(True)
         #--- Main Widget---#
         bh_tomo = QtGui.QWidget()
-        bh_tomo_Sub_Grid   = QtGui.QGridLayout()
-        bh_tomo_Sub_Grid.addWidget(Title, 0, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Database, 2, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Automatic_Traveltime_Picking, 3, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Semi_Automatic_Traveltime_Picking, 4, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Manual_Traveltime_Picking, 5, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Manual_Amplitude_Picking, 6, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Cov_Mod, 7, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Inversion, 8, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Interpretation, 9, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Time_Lapse_Inversion, 10, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Time_Lapse_Visualisation, 11, 0, 1, 4)
-        bh_tomo_Sub_Grid.addWidget(btn_Nano_Fluid, 12, 0, 1, 4)
-        bh_tomo.setLayout(bh_tomo_Sub_Grid)
-        master_grid     = QtGui.QGridLayout()
-        master_grid.addWidget(bh_tomo, 0, 0)
+        master_grid   = QtGui.QGridLayout()
+        master_grid.addWidget(self.menu, 0, 0, 1, 4)
+        master_grid.addWidget(Title, 2, 0, 1, 4)
+        master_grid.addWidget(self.current_db, 3, 1, 1, 2)
+        master_grid.addWidget(Sub_button_widget, 4, 0, 1, 4)
+        master_grid.setContentsMargins(0, 0, 0, 0)
+        master_grid.setVerticalSpacing(3)
+
+
         self.setLayout(master_grid)
 
 

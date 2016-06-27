@@ -155,8 +155,6 @@ class DatabaseUI(QtGui.QWidget):
         Info_Sub_Grid.addWidget(self.info)
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
-
-
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
@@ -166,7 +164,7 @@ class DatabaseUI(QtGui.QWidget):
         master_grid.addWidget(Info_GroupBox, 2, 2)
         master_grid.addWidget(self.log, 3, 0, 2, 3)
         master_grid.setVerticalSpacing(3)
-        master_grid.setContentsMargins(5, 2, 5, 2)
+        master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
 
 class MyLogWidget(QtGui.QTextEdit):
