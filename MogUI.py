@@ -320,6 +320,11 @@ class MOGUI(QtGui.QWidget):
 
 
     def detrend_rad(self, inp):
+        """
+
+        :param inp: the input data to be straightenend
+        :return:
+        """
         n =30
         m = np.shape(inp)[0]
         m1 = np.mean(inp[0:n,])
@@ -392,21 +397,32 @@ class MOGUI(QtGui.QWidget):
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
-    def updateCoords(self, list):
+    def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-
         iTx = self.Tx_combo.currentIndex()
         iRx = self.Tx_combo.currentIndex()
+        for i in ind:
+            mog = self.MOGs[i.row()]
 
-        Tx = list[iTx]
-        Rx = list[iRx]
+            if 'true positions' in mog.data.comment:
 
-        mog.data.Tx_x = Tx.fdata[:,0]
-        mog.data.Tx_y = Tx.fdata[:,1]
+                Tx = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z])
+                mog.TxCosDir = np.zeros(np.shape(Tx))
 
-        mog.data.Rx_x = Rx.fdata[:,0]
-        mog.data.Rx_y = Rx.fdata[:,1]
+                # Equivalent of unique(Tx, 'rows') of the Matlab version
+                b = np.ascontiguousarray(Tx).view(np.dtype((np.void, Tx.dtype.itemsize * Tx.shape[1])))
+                tmp = np.unique(b).view(a.dtype).reshape(-1, a.shape[1])
+                tmp = np.sort(tmp, axis=0)
+                tmp = tmp[::-1]
+                v   = -np.diff(tmp, axis=0)
+                # voir quel est le résultat espéré pour d
+                # même chose pour l
+
+            for n in range(np.shape(tmp)[0]):
+                ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
+                mog.TxCosDir[ind, 1] = l[n,1]
+                mog.TxCosDir[ind, 2] = l[n,2]
+                mog.TxCosDir[ind, 3] = l[n,3]
 
 
 
@@ -891,9 +907,11 @@ class MOGUI(QtGui.QWidget):
         self.f_min_edit = QtGui.QLineEdit()
         self.f_maxi_edit = QtGui.QLineEdit()
         self.search_elev_edit = QtGui.QLineEdit()
+
         #- Edits disposition -#
         self.search_elev_edit.editingFinished.connect(self.search_Tx_elev)
         self.search_elev_edit.setFixedWidth(100)
+
         #- Comboboxes -#
         self.Tx_num_combo = QtGui.QComboBox()
         self.search_combo = QtGui.QComboBox()
@@ -903,7 +921,6 @@ class MOGUI(QtGui.QWidget):
         #- Combobox Items -#
         self.search_combo.addItem('Search with Elevation')
         self.search_combo.addItem('Search with Number')
-
 
         #- List Widget -#
         self.Tx_num_list = QtGui.QListWidget()
@@ -1009,9 +1026,6 @@ class MOGUI(QtGui.QWidget):
         self.Rx_combo = QtGui.QComboBox()
         self.Type_combo.addItem(" Crosshole ")
         self.Type_combo.addItem(" VSP/VRP ")
-
-        #- Comboboxes Actions -#
-
 
         #--- Checkbox ---#
         Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")

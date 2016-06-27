@@ -76,6 +76,8 @@ class Mog:
         self.pruneParams.thetaMin     = -90
         self.pruneParams.thetaMax     = 90
         self.useAirShots              = 0
+        self.TxCosDir                 = np.array([])
+        self.RxCosDir                 = np.array([])
         self.ID                       = Mog.getID()
 
         self.initialize()
@@ -113,6 +115,7 @@ class Mog:
         self.in_vect              = np.ones(self.data.ntrace, dtype= bool)
         self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+
 
     def correction_t0(self, ndata, air_before, air_after, *args):
         """
