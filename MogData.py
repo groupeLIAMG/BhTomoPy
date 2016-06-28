@@ -191,12 +191,6 @@ class MogData:
                 self.Tx_z = np.append(self.Tx_z, (Tx*np.ones(np.abs(nt))))
                 self.Rx_z = np.concatenate((self.Rx_z, vect))
         file.close()
-        #print(self.Tx_z)
-
-        for row in self.Rx_z:
-            print(row)
-
-        print(len(self.Rx_z))
 
 
     def readSEGY(self, basename):

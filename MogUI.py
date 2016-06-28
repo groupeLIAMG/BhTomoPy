@@ -32,6 +32,7 @@ class MOGUI(QtGui.QWidget):
         self.data_rep = ''
         self.initUI()
 
+
     def update_merge_combo(self, list_mog):
         self.mergemog.update_combo(list_mog)
 
@@ -116,23 +117,34 @@ class MOGUI(QtGui.QWidget):
 
 
     def airBefore(self):
-        old_rep = os.getcwd()       # this operation gets the first directory
+        # this operation gets the first directory
+        old_rep = os.getcwd()
         if len(self.data_rep) != 0 :
-            os.chdir(self.data_rep) # if one already have uploaded a file, the next time will be at the same path
+            # if one have already  uploaded a file, the next time will be at the same path
+            os.chdir(self.data_rep)
+
+        # then we get the filename to process
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
         os.chdir(old_rep)
         if not filename:
+            # security for an empty filename
             return
         else:
+            # We get the selected index f MOG_list to then be able to get the mog instance from MOGS
             ind = self.MOG_list.selectedIndexes()
+
+            # the object ind contains all the selected indexes
             for i in ind:
+                #then we get only the real name of the file(i.e. not the path behind it)
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
                 found = False
 
                 for n in range(len(self.air)):
+                    # then we verify if we've already applied the airshots
                     if str(basename) in str(self.air[n].name):
+                        # then we associate the index of the air shot to the selected mog
                         self.MOGs[i.row()].av = n
                         found = True
                         break
@@ -140,12 +152,16 @@ class MOGUI(QtGui.QWidget):
                 if not found:
                     n = len(self.air)
 
+                    # because of the fact that Airshots files are either rd3, tlf or rad , we apply the method read
+                    # ramac to get the informations frome these files
                     data = MogData()
                     data.readRAMAC(basename)
 
-
+                    # Then we ask if the airshots were done in a sucession of positions or at a fixed posisitons
                     distance, ok = QtGui.QInputDialog.getText(self, 'Aishots Before', 'Distance between Tx and Rx :')
 
+                    # The getText method returns a tuple containing the entered data and a boolean factor
+                    # (i.e. if the ok button is clicked, it returns True)
                     if ok :
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
 
@@ -156,12 +172,13 @@ class MOGUI(QtGui.QWidget):
 
                         self.air.append(AirShots(str(rname)))
                         self.air[n].data = data
-                        self.air[n].tt = -1* np.ones((1, data.ntrace))
-                        self.air[n].et = -1* np.ones((1, data.ntrace))
-                        self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
-                        self.air[n].d_TxRx = distance_list
-                        self.air[n].fac_dt = 1
-                        self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
+                        self.air[n].tt = -1* np.ones(data.ntrace) # tt stands for the travel time vector
+                        self.air[n].et = -1* np.ones(data.ntrace) # to be defined
+                        self.air[n].tt_done = np.zeros(data.ntrace, dtype=bool) # the tt_done is a zeros array and whenever a ray arrives,
+                                                                                # its value will be changed to one
+                        self.air[n].d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
+                        self.air[n].fac_dt = 1  # to be defined
+                        self.air[n].in_vect = np.ones(data.ntrace, dtype= bool) # in_vect is the vector which help to plot the figures of Airshots
 
                         if len(distance_list) == 1:
                             self.air[n].method ='fixed_antenna'
@@ -171,6 +188,7 @@ class MOGUI(QtGui.QWidget):
 
 
     def airAfter(self):
+        # As you can see, the air After method is almost the same as airBefore (refer to airBefore for any questions)
         old_rep = os.getcwd()
         if len(self.mogdata.data_rep) != 0 :
             os.chdir(self.mogdata.data_rep)
@@ -342,7 +360,7 @@ class MOGUI(QtGui.QWidget):
         self.Tx_num_list.clear()
         unique_Tx_z = np.unique(mog.data.Tx_z)
 
-        for Tx in range(len(unique_Tx_z)+1):
+        for Tx in range(len(unique_Tx_z)):
             self.Tx_num_list.addItem(str(Tx))
 
     def update_spectra_Tx_elev_value_label(self):
@@ -400,7 +418,7 @@ class MOGUI(QtGui.QWidget):
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
         iTx = self.Tx_combo.currentIndex()
-        iRx = self.Tx_combo.currentIndex()
+        iRx = self.Rx_combo.currentIndex()
         for i in ind:
             mog = self.MOGs[i.row()]
 
@@ -418,11 +436,39 @@ class MOGUI(QtGui.QWidget):
                 # voir quel est le résultat espéré pour d
                 # même chose pour l
 
-            for n in range(np.shape(tmp)[0]):
-                ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
-                mog.TxCosDir[ind, 1] = l[n,1]
-                mog.TxCosDir[ind, 2] = l[n,2]
-                mog.TxCosDir[ind, 3] = l[n,3]
+                for n in range(np.shape(tmp)[0]):
+                    ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
+                    mog.TxCosDir[ind, 1] = l[n,1]
+                    mog.TxCosDir[ind, 2] = l[n,2]
+                    mog.TxCosDir[ind, 3] = l[n,3]
+
+            print(self.borehole.boreholes)
+            print(iTx)
+            print(iRx)
+
+            Tx = self.borehole.boreholes[iTx]
+            Rx = self.borehole.boreholes[iRx]
+
+            mog.data.Tx_x = np.ones(mog.data.ntrace)
+            mog.data.Tx_y = np.ones(mog.data.ntrace)
+            mog.data.Rx_x = np.ones(mog.data.ntrace)
+            mog.data.Rx_y = np.ones(mog.data.ntrace)
+
+            if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
+                if Tx.fdata[0, 0] == Tx.fdata[-1, 0] and Tx.fdata[0, 1] == Tx.fdata[-1, 1]:
+                    mog.data.Tx_x[:len(np.unique(mog.data.Tx_z))] = Tx.fdata[0, 0]*np.ones(len(np.unique(mog.data.Tx_z)))
+                    mog.data.Tx_y[:len(np.unique(mog.data.Tx_z))] = Tx.fdata[0, 1]*np.ones(len(np.unique(mog.data.Tx_z)))
+                    print(len(mog.data.Tx_x))
+                    print(mog.data.Tx_x)
+                    print(mog.data.Tx_y)
+
+
+            if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
+                if Rx.fdata[0, 0] == Rx.fdata[-1, 0] and Rx.fdata[0, 1] == Rx.fdata[-1, 1]:
+                    mog.data.Rx_x[:len(np.unique(mog.data.Rx_z))] = Rx.fdata[0, 0] * np.ones(len(np.unique(mog.data.Rx_z)))
+                    mog.data.Rx_y[:len(np.unique(mog.data.Rx_z))] = Rx.fdata[0, 1] * np.ones(len(np.unique(mog.data.Rx_z)))
+                    print(mog.data.Rx_x)
+                    print(mog.data.Rx_y)
 
 
 
@@ -1024,8 +1070,14 @@ class MOGUI(QtGui.QWidget):
         self.Type_combo = QtGui.QComboBox()
         self.Tx_combo = QtGui.QComboBox()
         self.Rx_combo = QtGui.QComboBox()
+
+        #- ComboBoxes Dispostion -#
         self.Type_combo.addItem(" Crosshole ")
         self.Type_combo.addItem(" VSP/VRP ")
+
+        #- ComboBoxes Actions -#
+        self.Tx_combo.currentIndexChanged.connect(self.updateCoords)
+        self.Rx_combo.currentIndexChanged.connect(self.updateCoords)
 
         #--- Checkbox ---#
         Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")
