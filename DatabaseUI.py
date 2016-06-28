@@ -102,7 +102,12 @@ class DatabaseUI(QtGui.QWidget):
     def openfile(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
 
+    def saveasfile(self):
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...')
 
+    def save(self):
+        # TODO
+        pass
 
     def initUI(self):
 
@@ -121,6 +126,8 @@ class DatabaseUI(QtGui.QWidget):
 
         saveasAction = QtGui.QAction('Save as', self)
         saveasAction.setShortcut('Ctrl+A')
+        saveasAction.triggered.connect(self.saveasfile)
+
 
         #--- Menubar ---#
         self.menu = QtGui.QMenuBar()

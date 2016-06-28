@@ -132,34 +132,34 @@ class Mog:
         fac_dt_av = 1
         fac_dt_ap = 1
         if self.useAirShots == 0:
-            t0 = np.zeros((1, ndata))
+            t0 = np.zeros(ndata)
             return
-        elif air_before == None and air_after == None and self.useAirShots == 1 :
-            t0 = np.zeros((1, ndata))
-            raise InterruptedError(" t0 correction not applied;Pick t0 before and t0 after for correction")
+        elif np.all(air_before == 0) and np.all(air_after == 0) and self.useAirShots == 1 :
+            t0 = np.zeros(ndata)
+            raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
 
         v_air = 0.2998
         t0av = np.array([])
         t0ap = np.array([])
 
-        if air_before != None :
+        if not np.all(air_before == 0) :
             if 'fixed_antenna' in air_before.method:
                 t0av = self.get_t0_fixed(air_before, v_air)
             if 'walkaway' in air_before.method:
                 pass #TODO get_t0_wa
 
-        if air_after != None:
+        if not np.all(air_after == 0):
             if 'fixed_antenna' in air_before.method:
                 t0ap = self.get_t0_fixed(air_after, v_air)
+
             if 'walkaway' in air_before.method:
                 pass #TODO get_t0_wa
 
         if np.isnan(t0av) or np.isnan(t0ap):
-            self.moglogSignal("t0 correction not applied. Pick t0 before and t0 after correction")
             t0 = np.zeros((1, ndata))
-            return
+            raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
 
-        if len(t0av) == 0 and len(t0ap) == 0:
+        if np.all(t0av == 0) and np.all(t0ap == 0):
             t0 = np.zeros((1, ndata))
         elif len(t0av) == 0:
             t0 = t0ap*np.zeros((1, ndata))
@@ -168,7 +168,7 @@ class Mog:
         else:
             dt0 = t0av - t0ap
             ddt0 = dt0/(ndata-1)
-            t0 = t0av + ddt0*np.arange(ndata-1)      # pas sur de cette etape là
+            t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
 
 
     @staticmethod
@@ -218,11 +218,11 @@ class Mog:
             if isinstance(element, AirShots):
                 pass
             else:
-                raise TypeError ("air shot should be instance of class AirShots")
+                raise TypeError("air shot should be instance of class AirShots")
 
             if self.data.synthetique == 1:
                 tt = self.tt
-                t0 = np.zeros(tt.size)
+                t0 = np.zeros(np.shape(tt))
                 return tt and t0
             else:
                 airBefore = air(self.av)

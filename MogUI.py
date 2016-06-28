@@ -415,6 +415,8 @@ class MOGUI(QtGui.QWidget):
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
+        #self.Rx_combo.setCurrentIndex(len(self.borehole.boreholes) - 1)
+
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
         iTx = self.Tx_combo.currentIndex()
@@ -442,9 +444,7 @@ class MOGUI(QtGui.QWidget):
                     mog.TxCosDir[ind, 2] = l[n,2]
                     mog.TxCosDir[ind, 3] = l[n,3]
 
-            print(self.borehole.boreholes)
-            print(iTx)
-            print(iRx)
+
 
             Tx = self.borehole.boreholes[iTx]
             Rx = self.borehole.boreholes[iRx]
@@ -454,21 +454,27 @@ class MOGUI(QtGui.QWidget):
             mog.data.Rx_x = np.ones(mog.data.ntrace)
             mog.data.Rx_y = np.ones(mog.data.ntrace)
 
-            if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
-                if Tx.fdata[0, 0] == Tx.fdata[-1, 0] and Tx.fdata[0, 1] == Tx.fdata[-1, 1]:
-                    mog.data.Tx_x[:len(np.unique(mog.data.Tx_z))] = Tx.fdata[0, 0]*np.ones(len(np.unique(mog.data.Tx_z)))
-                    mog.data.Tx_y[:len(np.unique(mog.data.Tx_z))] = Tx.fdata[0, 1]*np.ones(len(np.unique(mog.data.Tx_z)))
-                    print(len(mog.data.Tx_x))
-                    print(mog.data.Tx_x)
-                    print(mog.data.Tx_y)
+            if self.Type_combo.currentText() == 'Crosshole':
+                mog.data.csurvmod = 'SURVEY MODE       = Trans. -MOG'
 
+            elif self.Type_combo.currentText() == 'VSP/VRP':
+                mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
+
+            if iTx == iRx:
+                dialog = QtGui.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
+                                                       buttons=QtGui.QMessageBox.Ok )
+
+            if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
+                if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05 :
+                    mog.data.Tx_x = Tx.fdata[0, 0]*np.ones(len(np.unique(mog.data.Tx_z)))
+                    mog.data.Tx_y = Tx.fdata[0, 1]*np.ones(len(np.unique(mog.data.Tx_z)))
+
+            #else:
 
             if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
-                if Rx.fdata[0, 0] == Rx.fdata[-1, 0] and Rx.fdata[0, 1] == Rx.fdata[-1, 1]:
-                    mog.data.Rx_x[:len(np.unique(mog.data.Rx_z))] = Rx.fdata[0, 0] * np.ones(len(np.unique(mog.data.Rx_z)))
-                    mog.data.Rx_y[:len(np.unique(mog.data.Rx_z))] = Rx.fdata[0, 1] * np.ones(len(np.unique(mog.data.Rx_z)))
-                    print(mog.data.Rx_x)
-                    print(mog.data.Rx_y)
+                if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) <1e-05 :
+                    mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(len(np.unique(mog.data.Rx_z)))
+                    mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(len(np.unique(mog.data.Rx_z)))
 
 
 
@@ -1363,7 +1369,7 @@ class StatsAmpFig(FigureCanvasQTAgg):
 
 class RayCoverageFig(FigureCanvasQTAgg):
     def __init__(self, parent= None):
-        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        fig = mpl.figure.Figure(figsize= (6, 8), facecolor='white')
         super(RayCoverageFig, self).__init__(fig)
         self.initFig()
 
@@ -1371,6 +1377,23 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_ray_coverage(self, mog):
+        false_ind = np.nonzero(mog.in_vect == False)
+
+        Tx_zs = np.unique(mog.data.Tx_z)
+        Rx_zs = np.unique(mog.data.Rx_z)
+
+        Tx_zs = np.delete(Tx_zs, false_ind[0])
+        Rx_zs = np.delete(Rx_zs, false_ind[0])
+
+        num_Tx = len(Tx_zs)
+        num_Rx = len(Rx_zs)
+        Tx_xs = mog.data.Tx_x[:num_Tx]
+        Rx_xs = mog.data.Rx_x[:num_Rx]
+        Tx_ys = mog.data.Tx_y[:num_Tx]
+        Rx_ys = mog.data.Rx_y[:num_Rx]
+
+        zs = np.array([])
+
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
