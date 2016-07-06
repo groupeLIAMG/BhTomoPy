@@ -525,7 +525,7 @@ class MOGUI(QtGui.QWidget):
     def plot_prune(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            self.pruneFig.plot_prune(self.MOGs[i.row()])
+            self.pruneFig.plot_prune(self.MOGs[i.row()], 0)
             self.prunemanager.show()
 
 
@@ -564,10 +564,9 @@ class MOGUI(QtGui.QWidget):
 
         new_min = float(self.min_elev_edit.text())
         new_max = float(self.max_elev_edit.text())
-
-
         skip_len_Rx = int(self.skip_Rx_edit.text())
         skip_len_Tx = int(self.skip_Tx_edit.text())
+        round_factor = float(self.round_fac_edit.text())
 
 
         min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z),new_min)
@@ -578,13 +577,6 @@ class MOGUI(QtGui.QWidget):
 
         mog.in_Tx_vect = (min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
         mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
-
-        print(new_min)
-        print(new_max)
-
-        print(sum(max_Rx))
-        print(sum(min_Rx))
-
 
         unique_Rx_z = np.unique(mog.data.Rx_z)
         unique_Tx_z = np.unique(mog.data.Tx_z)
@@ -613,7 +605,7 @@ class MOGUI(QtGui.QWidget):
 
 
         self.update_prune_info()
-        self.pruneFig.plot_prune(mog)
+        self.pruneFig.plot_prune(mog, round_factor)
 
 
 
@@ -1389,7 +1381,7 @@ class PruneFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
-    def plot_prune(self, mog):
+    def plot_prune(self, mog, round_factor):
         self.ax.cla()
 
         false_Rx_ind = np.nonzero(mog.in_Rx_vect == False)
@@ -1402,6 +1394,12 @@ class PruneFig(FigureCanvasQTAgg):
 
         Tx_zs = np.delete(Tx_zs, false_Tx_ind[0])
         Rx_zs = np.delete(Rx_zs, false_Rx_ind[0])
+
+        if round_factor == 0:
+            pass
+        else:
+            Tx_zs = round_factor*np.round(Tx_zs/round_factor)
+            Rx_zs = round_factor*np.round(Rx_zs/round_factor)
 
         num_Tx = len(Tx_zs)
         num_Rx = len(Rx_zs)
