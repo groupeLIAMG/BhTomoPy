@@ -431,18 +431,21 @@ class MOGUI(QtGui.QWidget):
 
                 # Equivalent of unique(Tx, 'rows') of the Matlab version
                 b = np.ascontiguousarray(Tx).view(np.dtype((np.void, Tx.dtype.itemsize * Tx.shape[1])))
-                tmp = np.unique(b).view(a.dtype).reshape(-1, a.shape[1])
+                tmp = np.unique(b).view(Tx.dtype).reshape(-1, Tx.shape[1])
                 tmp = np.sort(tmp, axis=0)
                 tmp = tmp[::-1]
                 v   = -np.diff(tmp, axis=0)
                 # voir quel est le résultat espéré pour d
                 # même chose pour l
 
-                for n in range(np.shape(tmp)[0]):
-                    ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
-                    mog.TxCosDir[ind, 1] = l[n,1]
-                    mog.TxCosDir[ind, 2] = l[n,2]
-                    mog.TxCosDir[ind, 3] = l[n,3]
+
+
+                #TODO:
+                #for n in range(np.shape(tmp)[0]):
+                #    ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
+                #    mog.TxCosDir[ind, 1] = l[n,1]
+                #    mog.TxCosDir[ind, 2] = l[n,2]
+                #    mog.TxCosDir[ind, 3] = l[n,3]
 
 
 
@@ -540,21 +543,6 @@ class MOGUI(QtGui.QWidget):
         mog = self.MOGs[ind[0].row()]
         mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
         try:
-            skip_len = int(self.skip_Tx_edit.text())
-
-
-            unique_Tx_z = np.unique(mog.data.Tx_z)
-            unique_Tx_z = unique_Tx_z[::skip_len + 1]
-
-            self.Txpts = len(unique_Tx_z)
-
-
-            for i in range(len(np.unique(mog.data.Tx_z))):
-                if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
-                    inds.append(i)
-
-            for value in inds:
-                mog.in_vect[value] = False
 
             self.update_prune_info()
             self.pruneFig.plot_prune(mog)
@@ -563,82 +551,70 @@ class MOGUI(QtGui.QWidget):
 
 
 
-    def update_skip_Rx(self):
-        ind = self.MOG_list.selectedIndexes()
 
-        inds = []
-        mog = self.MOGs[ind[0].row()]
-        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
-        try:
-            skip_len = int(self.skip_Rx_edit.text())
+    def update_prune(self):
 
-            unique_Rx_z = np.unique(mog.data.Rx_z)
-            unique_Rx_z = unique_Rx_z[::skip_len + 1]
-
-            self.Rxpts = len(unique_Rx_z)
-
-            for i in range(len(np.unique(mog.data.Rx_z))):
-                if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
-                    inds.append(i)
-
-            for value in inds:
-                mog.in_vect[value] = False
-
-            self.update_prune_info()
-            self.pruneFig.plot_prune(mog)
-
-        except:
-            pass
-
-
-    def update_elev(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
+        inRx = []
+        inTx = []
 
-        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
+        mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype= bool)
+        mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype= bool)
 
         new_min = float(self.min_elev_edit.text())
         new_max = float(self.max_elev_edit.text())
 
-        idmin = np.argmin((np.abs((np.unique(mog.data.Tx_z)+ new_min))))
 
-        idmax = np.argmin((np.abs((np.unique(mog.data.Tx_z) + new_max))))
+        skip_len_Rx = int(self.skip_Rx_edit.text())
+        skip_len_Tx = int(self.skip_Tx_edit.text())
 
-        mog.in_vect[idmin:] = False
-        mog.in_vect[:idmax] = False
+
+        min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z),new_min)
+        min_Rx = np.greater_equal(-np.unique(np.sort(mog.data.Rx_z)), new_min)
+
+        max_Tx = np.less_equal(-np.unique(mog.data.Tx_z),new_max)
+        max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max)
+
+        mog.in_Tx_vect = (min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
+        mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
+
+        print(new_min)
+        print(new_max)
+
+        print(sum(max_Rx))
+        print(sum(min_Rx))
+
+
+        unique_Rx_z = np.unique(mog.data.Rx_z)
+        unique_Tx_z = np.unique(mog.data.Tx_z)
+
+        unique_Rx_z = unique_Rx_z[::skip_len_Rx + 1]
+        unique_Tx_z = unique_Tx_z[::skip_len_Tx + 1]
+
+
+        for i in range(len(np.unique(mog.data.Rx_z))):
+            if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
+                inRx.append(i)
+
+        for value in inRx:
+            mog.in_Rx_vect[value] = False
+
+        for i in range(len(np.unique(mog.data.Tx_z))):
+            if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
+                inTx.append(i)
+
+        for value in inTx:
+            mog.in_Tx_vect[value] = False
+
+
+        self.Rxpts = len(unique_Rx_z)
+        self.Txpts = len(unique_Tx_z)
+
+
         self.update_prune_info()
         self.pruneFig.plot_prune(mog)
 
-    def update_round_fact(self):
-        ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-
-        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
-
-        round_fact = float(self.round_fac_edit.text())
-
-        unique_Tx_z = np.unique(mog.data.Tx_z)
-        unique_Rx_z = np.unique(mog.data.Rx_z)
-
-        unique_Tx_z = unique_Tx_z%round_fact
-        unique_Rx_z = unique_Rx_z%round_fact
-
-        inTx = unique_Tx_z == 0
-        inRx = unique_Rx_z == 0
-
-        true_Tx_ind = []
-        true_Rx_ind = []
-        for i in range(len(inTx)):
-            if inTx[i] == True:
-                true_Tx_ind.append(i)
-
-        for j in range(len(inRx)):
-            if inTx[j] == True:
-                true_Rx_ind.append(j)
-
-
-
-        self.pruneFig.plot_prune(mog)
 
 
     def update_prune_edits_info(self):
@@ -647,8 +623,14 @@ class MOGUI(QtGui.QWidget):
             mog = self.MOGs[i.row()]
             self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
             self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
-            self.min_elev_edit.setText(str(-mog.data.Tx_z[-1]))
-            self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
+
+            if min(mog.data.Tx_z) < min(mog.data.Rx_z):
+                self.min_elev_edit.setText(str(-mog.data.Tx_z[-1]))
+                self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
+
+            elif min(mog.data.Rx_z) < min(mog.data.Tx_z):
+                self.min_elev_edit.setText(str(-max(mog.data.Rx_z)))
+                self.max_elev_edit.setText(str(-min(mog.data.Rx_z)))
 
     def update_prune_info(self):
         ind = self.MOG_list.selectedIndexes()
@@ -657,12 +639,12 @@ class MOGUI(QtGui.QWidget):
             self.Rxpts = len(np.unique(mog.data.Rx_z))
             self.Txpts = len(np.unique(mog.data.Tx_z))
             tot_traces = mog.data.ntrace
-            selec_traces = sum(mog.in_vect)
+            selec_traces = sum(mog.in_Tx_vect)
             kept_traces = (selec_traces/tot_traces)*100
 
             self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
             self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
-            self.value_traces_kept_label.setText(str(kept_traces))
+            self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
 
 
 
@@ -746,11 +728,11 @@ class MOGUI(QtGui.QWidget):
         self.tresh_edit = QtGui.QLineEdit()
 
         #- Edits Actions -#
-        self.skip_Tx_edit.editingFinished.connect(self.update_skip_Tx)
-        self.skip_Rx_edit.editingFinished.connect(self.update_skip_Rx)
-        self.min_elev_edit.returnPressed.connect(self.update_elev)
-        self.max_elev_edit.returnPressed.connect(self.update_elev)
-        self.round_fac_edit.returnPressed.connect(self.update_round_fact)
+        self.skip_Tx_edit.editingFinished.connect(self.update_prune)
+        self.skip_Rx_edit.editingFinished.connect(self.update_prune)
+        self.min_elev_edit.editingFinished.connect(self.update_prune)
+        self.max_elev_edit.editingFinished.connect(self.update_prune)
+        self.round_fac_edit.editingFinished.connect(self.update_prune)
 
 
         #- Edits Disposition -#
@@ -1410,15 +1392,16 @@ class PruneFig(FigureCanvasQTAgg):
     def plot_prune(self, mog):
         self.ax.cla()
 
-        false_ind = np.nonzero(mog.in_vect == False)
+        false_Rx_ind = np.nonzero(mog.in_Rx_vect == False)
+        false_Tx_ind = np.nonzero(mog.in_Tx_vect == False)
 
 
         Tx_zs = np.unique(mog.data.Tx_z)
         Rx_zs = np.unique(mog.data.Rx_z)
 
 
-        Tx_zs = np.delete(Tx_zs, false_ind[0])
-        Rx_zs = np.delete(Rx_zs, false_ind[0])
+        Tx_zs = np.delete(Tx_zs, false_Tx_ind[0])
+        Rx_zs = np.delete(Rx_zs, false_Rx_ind[0])
 
         num_Tx = len(Tx_zs)
         num_Rx = len(Rx_zs)
