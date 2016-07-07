@@ -114,6 +114,7 @@ class Mog:
         self.Rx_z_orig            = self.data.Rx_z
         self.in_Rx_vect           = np.ones(self.data.ntrace, dtype= bool)
         self.in_Tx_vect           = np.ones(self.data.ntrace, dtype= bool)
+        self.in_vect              = np.ones(self.data.ntrace, dtype= bool)
         self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
 

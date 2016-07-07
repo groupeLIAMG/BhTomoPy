@@ -549,8 +549,13 @@ class MOGUI(QtGui.QWidget):
         except:
             pass
 
+#TODO:
+    def compute_SNR(self):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+        SNR = np.ones(mog.data.ntrace)
 
-
+        return SNR
 
     def update_prune(self):
 
@@ -567,7 +572,14 @@ class MOGUI(QtGui.QWidget):
         skip_len_Rx = int(self.skip_Rx_edit.text())
         skip_len_Tx = int(self.skip_Tx_edit.text())
         round_factor = float(self.round_fac_edit.text())
+        SB_treshold = float(self.tresh_edit.text())
+        theta_min = float(self.min_ang_edit.text())
+        theta_max = float(self.max_ang_edit.text())
 
+        #TODO: touver une facon de les soustraire même s'ils n'ont pas la même taille
+        #dr = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 + (mog.data.Tx_y - mog.data.Rx_y)**2)
+
+        #theta = np.arctan2(mog.data.Tx_z-mog.data.Rx_z, dr)
 
         min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z),new_min)
         min_Rx = np.greater_equal(-np.unique(np.sort(mog.data.Rx_z)), new_min)
@@ -585,6 +597,8 @@ class MOGUI(QtGui.QWidget):
         unique_Tx_z = unique_Tx_z[::skip_len_Tx + 1]
 
 
+
+
         for i in range(len(np.unique(mog.data.Rx_z))):
             if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
                 inRx.append(i)
@@ -599,6 +613,8 @@ class MOGUI(QtGui.QWidget):
         for value in inTx:
             mog.in_Tx_vect[value] = False
 
+        #TODO: touver une facon de les soustraire même s'ils n'ont pas la même taille
+        #mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1)
 
         self.Rxpts = len(unique_Rx_z)
         self.Txpts = len(unique_Tx_z)
@@ -631,7 +647,7 @@ class MOGUI(QtGui.QWidget):
             self.Rxpts = len(np.unique(mog.data.Rx_z))
             self.Txpts = len(np.unique(mog.data.Tx_z))
             tot_traces = mog.data.ntrace
-            selec_traces = sum(mog.in_Tx_vect)
+            selec_traces = sum(mog.in_vect)
             kept_traces = (selec_traces/tot_traces)*100
 
             self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
@@ -717,7 +733,7 @@ class MOGUI(QtGui.QWidget):
         self.max_ang_edit = QtGui.QLineEdit()
         self.min_elev_edit = QtGui.QLineEdit()
         self.max_elev_edit = QtGui.QLineEdit()
-        self.tresh_edit = QtGui.QLineEdit()
+        self.tresh_edit = QtGui.QLineEdit('0')
 
         #- Edits Actions -#
         self.skip_Tx_edit.editingFinished.connect(self.update_prune)
