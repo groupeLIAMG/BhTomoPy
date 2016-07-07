@@ -535,21 +535,8 @@ class MOGUI(QtGui.QWidget):
     def export_tau(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tau')
 
-    # Methods to update the Prune Manager
-    def update_skip_Tx(self):
-        ind = self.MOG_list.selectedIndexes()
 
-        inds = []
-        mog = self.MOGs[ind[0].row()]
-        mog.in_vect = np.ones(mog.data.ntrace, dtype= bool)
-        try:
-
-            self.update_prune_info()
-            self.pruneFig.plot_prune(mog)
-        except:
-            pass
-
-#TODO:
+    #TODO:
     def compute_SNR(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
@@ -558,15 +545,23 @@ class MOGUI(QtGui.QWidget):
         return SNR
 
     def update_prune(self):
-
+        """
+        This method updates the figure containing the points of Tx and Rx
+        with the information which is into the different edits of the prune widget
+        """
+        # First, we get the mog instance's informations
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
+
+        # List which contain the indexes of the skipped Tx and Rx
         inRx = []
         inTx = []
 
+        # Reinitialisation of the boolean vectors before modification
         mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype= bool)
         mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype= bool)
 
+        # Information from all the edits of the prune widget
         new_min = float(self.min_elev_edit.text())
         new_max = float(self.max_elev_edit.text())
         skip_len_Rx = int(self.skip_Rx_edit.text())
@@ -581,47 +576,62 @@ class MOGUI(QtGui.QWidget):
 
         #theta = np.arctan2(mog.data.Tx_z-mog.data.Rx_z, dr)
 
+        # These steps are for the constraining of the Tx's ad Rx's elevation.
+        # Because the truth of multiple values array is ambiguous, we have to do these steps
+
+        # We first create a boolean vector which will have a True value if the elevation is greater or equals the new min
+        # and will be False the other way
         min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z),new_min)
         min_Rx = np.greater_equal(-np.unique(np.sort(mog.data.Rx_z)), new_min)
 
+        # Then we create another boolean vector which will have a True value if the elevation is less or equals the new max
+        # and will be false the other way
         max_Tx = np.less_equal(-np.unique(mog.data.Tx_z),new_max)
         max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max)
 
+        # Finally, we add these two boolean vectors as integer type. The subsequent vector will have values of 1 and 2,
+        # but only the 2s are of interest because they mean that the value is true, either in the min vector than the
+        # max vector.we than substract 1 to this vector and transform it to a boolean type to have the right points
+        # plotted in the pruneFig
         mog.in_Tx_vect = (min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
         mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
 
+
+        # These steps are for the skipping of Txs and Rxs
+
+        # We first get the unique version of Rx_z and Tx_z
         unique_Rx_z = np.unique(mog.data.Rx_z)
         unique_Tx_z = np.unique(mog.data.Tx_z)
 
+        # And then we apply the skip_len with proper matrix indexing
         unique_Rx_z = unique_Rx_z[::skip_len_Rx + 1]
         unique_Tx_z = unique_Tx_z[::skip_len_Tx + 1]
+        # Why the +1 ? its because skipping 0 would bring out an error. The initial skipping value is 1, which skips no values
 
-
-
-
+        # We then look for the indexes of the skipped values
         for i in range(len(np.unique(mog.data.Rx_z))):
             if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
                 inRx.append(i)
-
+        # And the we assing and False to the skipped points, so the plotting can be succesful
         for value in inRx:
             mog.in_Rx_vect[value] = False
 
+        # here its the same thig but for the Txs
         for i in range(len(np.unique(mog.data.Tx_z))):
             if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
                 inTx.append(i)
-
         for value in inTx:
             mog.in_Tx_vect[value] = False
 
         #TODO: touver une facon de les soustraire même s'ils n'ont pas la même taille
         #mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1)
 
-        self.Rxpts = len(unique_Rx_z)
-        self.Txpts = len(unique_Tx_z)
-
-
+        # And then. when all of the steps have been done, we update the prune info subwidget and plot the graphic
         self.update_prune_info()
         self.pruneFig.plot_prune(mog, round_factor)
+        # Why wouldn't we apply the modification of the round factor in the update prune method?
+        # well it's because the update prune method modifies the boolean vector in_Tx_vect and in_Rx_vect
+        # and the applicatiomn of a round facotr modifies the data itself so we had to put it in the plotting
 
 
 
@@ -642,17 +652,16 @@ class MOGUI(QtGui.QWidget):
 
     def update_prune_info(self):
         ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            mog = self.MOGs[i.row()]
-            self.Rxpts = len(np.unique(mog.data.Rx_z))
-            self.Txpts = len(np.unique(mog.data.Tx_z))
-            tot_traces = mog.data.ntrace
-            selec_traces = sum(mog.in_vect)
-            kept_traces = (selec_traces/tot_traces)*100
+        mog = self.MOGs[ind[0].row()]
 
-            self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
-            self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
-            self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
+
+        tot_traces = mog.data.ntrace
+        selec_traces = sum(mog.in_vect)
+        kept_traces = (selec_traces/tot_traces)*100
+
+        self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
+        self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
+        self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
 
 
 

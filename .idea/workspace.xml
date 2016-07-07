@@ -3,12 +3,11 @@
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="173" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="248" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="825" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="834" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -33,8 +32,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.54140127">
-              <caret line="643" column="45" selection-start-line="643" selection-start-column="45" selection-end-line="643" selection-end-column="45" />
+            <state vertical-scroll-proportion="0.59931505">
+              <caret line="633" column="109" selection-start-line="633" selection-start-column="109" selection-end-line="633" selection-end-column="109" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -587,12 +586,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00026" summary="Actualisation du module Info en fonction du MOG sélectionné dans la MOG_list">
-      <created>1464185103284</created>
-      <option name="number" value="00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1464185103284</updated>
-    </task>
     <task id="LOCAL-00027" summary="btn import fonctionnel dans boreholeUI">
       <created>1464186548638</created>
       <option name="number" value="00027" />
@@ -881,7 +874,13 @@
       <option name="project" value="LOCAL" />
       <updated>1467848300338</updated>
     </task>
-    <option name="localTasksCounter" value="75" />
+    <task id="LOCAL-00075" summary="début de l'implémentation des méthodes pour min et max theta">
+      <created>1467924094666</created>
+      <option name="number" value="00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1467924094666</updated>
+    </task>
+    <option name="localTasksCounter" value="76" />
     <servers />
   </component>
   <component name="TodoView">
@@ -904,7 +903,7 @@
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3267974" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.44117647" sideWeight="0.4955357" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.44117647" sideWeight="0.4955357" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -951,7 +950,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="méthode Mog.getcorrected_traveltimes valide pour fixed antenna" />
     <MESSAGE value="ajout de notifications dans le log lors d'actions dans ModelUI" />
     <MESSAGE value="scrollbar du log reste collée en haut lors de l'ajout de nouvelles actions" />
     <MESSAGE value="ajout des graphiques sans fonctionnalités dans manual tt" />
@@ -976,7 +974,8 @@
     <MESSAGE value="Ajout de la liste boreholes lié dans mog ui et changement du main pour faciliter les tests" />
     <MESSAGE value="fonction update_prune(équivalent de update dans la version matlab) fonctionelle pour le skip et l'élévation" />
     <MESSAGE value="round factor de prune est fonctionnel" />
-    <option name="LAST_COMMIT_MESSAGE" value="round factor de prune est fonctionnel" />
+    <MESSAGE value="début de l'implémentation des méthodes pour min et max theta" />
+    <option name="LAST_COMMIT_MESSAGE" value="début de l'implémentation des méthodes pour min et max theta" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1281,8 +1280,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.54140127">
-          <caret line="643" column="45" selection-start-line="643" selection-start-column="45" selection-end-line="643" selection-end-column="45" />
+        <state vertical-scroll-proportion="0.59931505">
+          <caret line="633" column="109" selection-start-line="633" selection-start-column="109" selection-end-line="633" selection-end-column="109" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
