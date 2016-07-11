@@ -469,15 +469,15 @@ class MOGUI(QtGui.QWidget):
 
             if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
                 if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05 :
-                    mog.data.Tx_x = Tx.fdata[0, 0]*np.ones(len(np.unique(mog.data.Tx_z)))
-                    mog.data.Tx_y = Tx.fdata[0, 1]*np.ones(len(np.unique(mog.data.Tx_z)))
+                    mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
+                    mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
 
             #else:
 
             if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
                 if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) <1e-05 :
-                    mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(len(np.unique(mog.data.Rx_z)))
-                    mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(len(np.unique(mog.data.Rx_z)))
+                    mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
+                    mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
 
 
 
@@ -494,8 +494,6 @@ class MOGUI(QtGui.QWidget):
             self.spectraFig.plot_spectra(self.MOGs[i.row()].data)
             self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
             self.spectramanager.showMaximized()
-
-            #self.spectra(self.MOGs[i.row()])
 
     def plot_zop(self):
         ind = self.MOG_list.selectedIndexes()
@@ -568,13 +566,14 @@ class MOGUI(QtGui.QWidget):
         skip_len_Tx = int(self.skip_Tx_edit.text())
         round_factor = float(self.round_fac_edit.text())
         SB_treshold = float(self.tresh_edit.text())
-        theta_min = float(self.min_ang_edit.text())
-        theta_max = float(self.max_ang_edit.text())
+        ang_min = float(self.min_ang_edit.text())
+        ang_max = float(self.max_ang_edit.text())
 
         #TODO: touver une facon de les soustraire même s'ils n'ont pas la même taille
-        #dr = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 + (mog.data.Tx_y - mog.data.Rx_y)**2)
 
-        #theta = np.arctan2(mog.data.Tx_z-mog.data.Rx_z, dr)
+
+
+
 
         # These steps are for the constraining of the Tx's ad Rx's elevation.
         # Because the truth of multiple values array is ambiguous, we have to do these steps
@@ -593,9 +592,12 @@ class MOGUI(QtGui.QWidget):
         # but only the 2s are of interest because they mean that the value is true, either in the min vector than the
         # max vector.we than substract 1 to this vector and transform it to a boolean type to have the right points
         # plotted in the pruneFig
-        mog.in_Tx_vect = (min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
-        mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
+        mog.in_Tx_vect = ( min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
+        mog.in_Rx_vect = ( min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
 
+        # We then append a False boolean vector to fit the lenght of ntrace
+        mog.in_Tx_vect = np.append(mog.in_Tx_vect, np.ones(mog.data.ntrace - len(min_Tx), dtype=bool))
+        mog.in_Rx_vect = np.append(mog.in_Rx_vect, np.ones(mog.data.ntrace - len(min_Rx), dtype=bool))
 
         # These steps are for the skipping of Txs and Rxs
 
@@ -623,8 +625,27 @@ class MOGUI(QtGui.QWidget):
         for value in inTx:
             mog.in_Tx_vect[value] = False
 
-        #TODO: touver une facon de les soustraire même s'ils n'ont pas la même taille
-        #mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1)
+        # For the angular restrictions, we first calculate the X-Y distance between the Tx's and Rx's
+        dr = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 + (mog.data.Tx_y - mog.data.Rx_y)**2)
+
+        # Then we call the arctan2 function from numpy which gives us the angle for every couple Tx-Rx
+        theta = np.arctan2(mog.data.Tx_z-mog.data.Rx_z, dr) * 180 / np.pi
+
+        # After finding all the angles of the Tx-Rx set, we do the same thing we did for the elevation
+        min_theta = np.greater_equal(theta, ang_min)
+        max_theta = np.less_equal(theta, ang_max)
+
+        intheta = (min_theta.astype(int) + max_theta.astype(int) - 1).astype(bool)
+
+        # We then look for the indexes of the angle values which don't fit in the restrictions
+        false_theta = np.where(intheta==False)
+
+        # Then we associate a false value to these indexes in the in_Rx_vect so the plot will contain only the Rx points
+        # which fit the constraints values of the min_ang and max_ang edits
+        for false_index in false_theta[0]:
+            mog.in_Rx_vect[false_index] = False
+
+        mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1).astype(bool)
 
         # And then. when all of the steps have been done, we update the prune info subwidget and plot the graphic
         self.update_prune_info()
@@ -747,6 +768,8 @@ class MOGUI(QtGui.QWidget):
         #- Edits Actions -#
         self.skip_Tx_edit.editingFinished.connect(self.update_prune)
         self.skip_Rx_edit.editingFinished.connect(self.update_prune)
+        self.min_ang_edit.editingFinished.connect(self.update_prune)
+        self.max_ang_edit.editingFinished.connect(self.update_prune)
         self.min_elev_edit.editingFinished.connect(self.update_prune)
         self.max_elev_edit.editingFinished.connect(self.update_prune)
         self.round_fac_edit.editingFinished.connect(self.update_prune)
