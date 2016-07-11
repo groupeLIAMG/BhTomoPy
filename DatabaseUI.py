@@ -19,7 +19,7 @@ class DatabaseUI(QtGui.QWidget):
         self.mog = MOGUI(self.bh)
         self.info = InfoUI()
         self.mogdata = MogData()
-        self.mergemog = MergeMog()
+        self.mergemog = MergeMog(self.mog.MOGs)
         self.initUI()
         self.action_list = []
 
@@ -35,9 +35,7 @@ class DatabaseUI(QtGui.QWidget):
         self.bh.bhlogSignal.connect(self.update_log)
         self.mog.moglogSignal.connect(self.update_log)
         self.model.modellogSignal.connect(self.update_log)
-
-
-
+        self.mergemog.mergemoglogSignal.connect(self.update_log)
 
     def update_spectra(self, Tx_list):
         self.mog.update_spectra_Tx_num_combo(Tx_list)

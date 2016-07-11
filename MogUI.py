@@ -28,7 +28,7 @@ class MOGUI(QtGui.QWidget):
         self.MOGs = []
         self.air = []
         self.borehole = borehole
-        self.mergemog = MergeMog()
+        self.mergemog = MergeMog(self.MOGs)
         self.data_rep = ''
         self.initUI()
 
@@ -465,7 +465,7 @@ class MOGUI(QtGui.QWidget):
 
             if iTx == iRx:
                 dialog = QtGui.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
-                                                       buttons=QtGui.QMessageBox.Ok )
+                                                       buttons=QtGui.QMessageBox.Ok)
 
             if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
                 if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05 :
@@ -569,13 +569,7 @@ class MOGUI(QtGui.QWidget):
         ang_min = float(self.min_ang_edit.text())
         ang_max = float(self.max_ang_edit.text())
 
-        #TODO: touver une facon de les soustraire même s'ils n'ont pas la même taille
-
-
-
-
-
-        # These steps are for the constraining of the Tx's ad Rx's elevation.
+        #-These steps are for the constraining of the Tx's ad Rx's elevation--------------------------------------------
         # Because the truth of multiple values array is ambiguous, we have to do these steps
 
         # We first create a boolean vector which will have a True value if the elevation is greater or equals the new min
@@ -586,7 +580,8 @@ class MOGUI(QtGui.QWidget):
         # Then we create another boolean vector which will have a True value if the elevation is less or equals the new max
         # and will be false the other way
         max_Tx = np.less_equal(-np.unique(mog.data.Tx_z),new_max)
-        max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max)
+        max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max + 0.0000000001) #À voir avec bernard
+
 
         # Finally, we add these two boolean vectors as integer type. The subsequent vector will have values of 1 and 2,
         # but only the 2s are of interest because they mean that the value is true, either in the min vector than the
@@ -599,7 +594,7 @@ class MOGUI(QtGui.QWidget):
         mog.in_Tx_vect = np.append(mog.in_Tx_vect, np.ones(mog.data.ntrace - len(min_Tx), dtype=bool))
         mog.in_Rx_vect = np.append(mog.in_Rx_vect, np.ones(mog.data.ntrace - len(min_Rx), dtype=bool))
 
-        # These steps are for the skipping of Txs and Rxs
+        #-These steps are for the skipping of Txs and Rxs---------------------------------------------------------------
 
         # We first get the unique version of Rx_z and Tx_z
         unique_Rx_z = np.unique(mog.data.Rx_z)
@@ -614,7 +609,7 @@ class MOGUI(QtGui.QWidget):
         for i in range(len(np.unique(mog.data.Rx_z))):
             if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
                 inRx.append(i)
-        # And the we assing and False to the skipped points, so the plotting can be succesful
+        # And the we assing and False to the skipped points, so the plotting can be successful
         for value in inRx:
             mog.in_Rx_vect[value] = False
 
@@ -1089,6 +1084,7 @@ class MOGUI(QtGui.QWidget):
         btn_export_tau              = QtGui.QPushButton("Export {}".format(char1))
         btn_Prune                   = QtGui.QPushButton("Prune")
 
+
         #--- List ---#
         self.MOG_list = QtGui.QListWidget()
         #--- List Actions ---#
@@ -1457,10 +1453,13 @@ class PruneFig(FigureCanvasQTAgg):
         Rx_ys = mog.data.Rx_y[:num_Rx]
 
 
-        self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o')
+        self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o', label= 'Tx')
 
-        self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*')
+        self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*', label= 'Rx')
 
+        l = self.ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
+                    borderpad=0)
+        l.draw_frame(False)
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
@@ -1472,10 +1471,84 @@ class PruneFig(FigureCanvasQTAgg):
 
 
 class MergeMog(QtGui.QWidget):
-    def __init__(self, parent=None):
+
+    mergemoglogSignal = QtCore.pyqtSignal(str)
+
+    def __init__(self, mog_list, parent=None):
         super(MergeMog, self).__init__()
         self.setWindowTitle("Merge MOGs")
         self.initUI()
+        self.mog_list = mog_list
+
+    def merge_mogs(self):
+        if len(self.mog_list) == 0:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG in Database",
+                                                       buttons= QtGui.QMessageBox.Ok )
+        if len(self.mog_list) == 1:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "Only 1 MOG in Database",
+                                                        buttons= QtGui.QMessageBox.Ok)
+
+    def getCompat(self):
+        for refmog in self.mog_list:
+            for comparing_mog in self.mog_list:
+                if refmog != comparing_mog:
+                    test1 = (np.all(refmog.Tx == comparing_mog.Tx) and np.all(refmog.Rx == comparing_mog.Rx))
+                    test2 = (np.all(refmog.data.TxOffset == comparing_mog.data.TxOffset)
+                             and np.all(refmog.data.RxOffset == comparing_mog.data.RxOffset))
+                    test3 = refmog.type = comparing_mog.type
+                    test4 = False
+                    test5 = False
+
+                if refmog.av == comparing_mog.av:
+                    test4 = True
+                if refmog.ap == comparing_mog.av:
+                    test5 = True
+
+                if test1 and test2 and test3 and test4 and test5:
+                    self.comp_list.addItem((refmog.name, comparing_mog.name))
+    def doMerge(self):
+    #TODO: vérifications matlab(lignes 160 à 177)
+        new_mog = Mog(self.new_edit.text())
+
+        num = self.ref_combo.currentIndex()
+        ref_mog = self.mog_list[num]
+        new_mog.data = ref_mog.data
+        newMog.av = refMog.av
+        newMog.ap = refMog.ap
+        newMog.Tx = refMog.Tx
+        newMog.Rx = refMog.Rx
+        newMog.f_et = refMog.f_et
+        newMog.type = refMog.type
+        newMog.fac_dt = refMog.fac_dt
+        newMog.user_fac_dt = refMog.user_fac_dt
+        newMog.fw = refMog.fw
+        newMog.tt = refMog.tt
+        newMog.et = refMog.et
+        newMog.tt_done = refMog.tt_done
+        newMog.ttTx = refMog.ttTx
+        newMog.ttTx_done = refMog.ttTx_done
+        newMog.amp_tmin = refMog.amp_tmin
+        newMog.amp_tmax = refMog.amp_tmax
+        newMog.amp_done = refMog.amp_done
+        newMog.App = refMog.App
+        newMog.fcentroid = refMog.fcentroid
+        newMog.scentroid = refMog.scentroid
+        newMog.tauApp = refMog.tauApp
+        newMog.tauApp_et = refMog.tauApp_et
+        newMog.tauFce = refMog.tauFce
+        newMog.tauFce_et = refMog.tauFce_et
+        newMog.tauHyb = refMog.tauHyb
+        newMog.tauHyb_et = refMog.tauHyb_et
+        newMog.Tx_z_orig = refMog.Tx_z_orig
+        newMog.Rx_z_orig = refMog.Rx_z_orig
+        newMog.in_vect = refMog.in_vect
+        newMog.in_Tx_vect = refMog.in_Tx_vect
+        newMog.in_Rx_vect = refMog.in_Rx_vect
+
+    def update_combo(self, mog_list):
+        self.ref_combo.clear()
+        for mog in mog_list:
+            self.ref_combo.addItem(mog.name)
 
     def initUI(self):
 
@@ -1511,6 +1584,9 @@ class MergeMog(QtGui.QWidget):
         self.btn_cancel = QtGui.QPushButton('Cancel')
         self.btn_merge = QtGui.QPushButton('Merge')
 
+        #- Buttons Actions -#
+        self.btn_merge.clicked.connect(self.merge_mogs)
+
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()
         master_grid.addWidget(ref_label, 0, 0)
@@ -1525,10 +1601,7 @@ class MergeMog(QtGui.QWidget):
 
         self.setLayout(master_grid)
 
-    def update_combo(self, mog_list):
-        self.ref_combo.clear()
-        for mog in mog_list:
-            self.ref_combo.addItem(mog.name)
+
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
