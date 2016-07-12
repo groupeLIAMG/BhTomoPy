@@ -262,6 +262,7 @@ class MOGUI(QtGui.QWidget):
         # Dividing the original rdata by A max in order to have a normalised amplitude matrix
         normalised_rdata = mog.data.rdata/Amax
 
+        self.spectraFig.plot_spectra(mog)
         self.updateFigs(mog, Tx, rdata)
 
 
@@ -362,6 +363,9 @@ class MOGUI(QtGui.QWidget):
         for Tx in range(len(unique_Tx_z)):
             self.Tx_num_list.addItem(str(Tx))
 
+        self.Tx_num_list.setCurrentRow(0)
+
+
     def update_spectra_Tx_elev_value_label(self):
         ind1 = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind1[0].row()]
@@ -407,16 +411,14 @@ class MOGUI(QtGui.QWidget):
         self.mogInfoSignal.emit(len(self.MOG_list))
         self.update_merge_combo(self.MOGs)
 
-    def update_Tx_and_Rx_Widget(self, list):
+    def update_Tx_and_Rx_Widget(self, liste):
         self.Tx_combo.clear()
         self.Rx_combo.clear()
-        for bh in list:
+        for bh in liste:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
-        self.Rx_combo.setCurrentIndex(len(list)-1)
 
-
-
+        #self.Rx_combo.setCurrentIndex(len(self.borehole.broeholes))
 
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
@@ -474,8 +476,6 @@ class MOGUI(QtGui.QWidget):
                     mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
                     mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
 
-            #else:
-
             if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
                 if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) <1e-05 :
                     mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
@@ -494,8 +494,10 @@ class MOGUI(QtGui.QWidget):
 
     def plot_spectra(self):
         ind = self.MOG_list.selectedIndexes()
+        tx = self.Tx_num_list.currentIndex()
+
         for i in ind:
-            self.spectraFig.plot_spectra(self.MOGs[i.row()].data)
+            self.spectraFig.plot_spectra(self.MOGs[i.row()], tx.row())
             self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
             self.spectramanager.showMaximized()
 
@@ -987,7 +989,6 @@ class MOGUI(QtGui.QWidget):
         self.search_elev_edit.setFixedWidth(100)
 
         #- Comboboxes -#
-        self.Tx_num_combo = QtGui.QComboBox()
         self.search_combo = QtGui.QComboBox()
         self.psd_combo = QtGui.QComboBox()
         self.snr_combo = QtGui.QComboBox()
@@ -999,6 +1000,7 @@ class MOGUI(QtGui.QWidget):
         #- List Widget -#
         self.Tx_num_list = QtGui.QListWidget()
         self.Tx_num_list.itemSelectionChanged.connect(self.update_spectra_Tx_elev_value_label)
+        self.Tx_num_list.clicked.connect(self.plot_spectra)
 
         #- Checkboxes -#
         self.filter_check = QtGui.QCheckBox('Apply Low Pass Filter')
@@ -1264,27 +1266,44 @@ class SpectraFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        ax1 = self.figure.add_axes([0.08, 0.06, 0.3, 0.9])
-        ax2 = self.figure.add_axes([0.42, 0.06, 0.3, 0.9])
-        ax3 = self.figure.add_axes([0.78, 0.06, 0.2, 0.9])
-        ax1.yaxis.set_ticks_position('left')
-        ax1.set_axisbelow(True)
+        self.ax1 = self.figure.add_axes([0.08, 0.06, 0.3, 0.9])
+        self.ax2 = self.figure.add_axes([0.42, 0.06, 0.3, 0.9])
+        self.ax3 = self.figure.add_axes([0.78, 0.06, 0.2, 0.9])
+        self.ax1.yaxis.set_ticks_position('left')
+        self.ax1.set_axisbelow(True)
 
-    def plot_spectra(self, mogd):
-        ax1 = self.figure.axes[0]
-        ax2 = self.figure.axes[1]
-        ax3 = self.figure.axes[2]
-        ax1.cla()
-        ax2.cla()
-        ax3.cla()
-        #ax1.imshow(mogd.timestp, cmap='seismic', interpolation= 'none', aspect='auto')
-        mpl.axes.Axes.set_title(ax1, 'Normalized amplitude')
-        mpl.axes.Axes.set_title(ax2, 'Log Power spectra')
-        mpl.axes.Axes.set_title(ax3, 'Signal-to-Noise Ratio')
-        mpl.axes.Axes.set_xlabel(ax1, ' Time [{}]'.format(mogd.tunits))
-        mpl.axes.Axes.set_ylabel(ax1, 'Rx elevation [{}]'.format(mogd.cunits))
-        mpl.axes.Axes.set_xlabel(ax2, 'Frequency [MHz]')
-        mpl.axes.Axes.set_xlabel(ax3, 'SNR')
+    def plot_spectra(self, mog, tx):
+
+        self.ax1.cla()
+        self.ax2.cla()
+        self.ax3.cla()
+
+        # Getting the maximum amplitude value for each column
+        A = np.amax(mog.data.rdata, axis= 0)
+
+        # Making a matrix which has the same size as rdata but filled with the maximum amplitude of each column
+        Amax= np.tile(A, (550,1))
+
+        # Dividing the original rdata by A max in order to have a normalised amplitude matrix
+        normalised_rdata = mog.data.rdata/Amax
+
+        ps = np.fft.fft(normalised_rdata[:, tx])
+
+
+        self.ax1.plot(normalised_rdata[:, tx])
+        self.ax2.plot(ps)
+
+
+
+        mpl.axes.Axes.set_title(self.ax1, 'Normalized amplitude')
+        mpl.axes.Axes.set_title(self.ax2, 'Log Power spectra')
+        mpl.axes.Axes.set_title(self.ax3, 'Signal-to-Noise Ratio')
+        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax1, 'Rx elevation [{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Frequency [MHz]')
+        mpl.axes.Axes.set_xlabel(self.ax3, 'SNR')
+
+        self.draw()
 
 class ZOPFig(FigureCanvasQTAgg):
     def __init__(self):

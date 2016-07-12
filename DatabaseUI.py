@@ -187,10 +187,11 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
+    Database_ui.action_list.append("[{}] Welcome to BH_TOMO Py " .format(Database_ui.actual_time))
     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+    Database_ui.bh.load_bh('testData/testConstraints/F5.xyz')
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
-    Database_ui.mog.updateCoords()
 
     Database_ui.show()
 

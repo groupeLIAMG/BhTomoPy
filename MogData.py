@@ -119,6 +119,7 @@ class MogData:
 
         self.timec = self.timec/1000
         self.timestp = self.timec*np.arange(self.nptsptrc)
+
         if self.synthetique == False :
           self.antennas = self.antennas + "  - Ramac"
 

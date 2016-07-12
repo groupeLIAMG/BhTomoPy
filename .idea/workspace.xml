@@ -3,14 +3,13 @@
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="173" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="248" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="857" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="859" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BoreholeUI.py" afterPath="$PROJECT_DIR$/BoreholeUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogData.py" afterPath="$PROJECT_DIR$/MogData.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -32,24 +31,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/MogUI.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="496" column="21" selection-start-line="496" selection-start-column="21" selection-end-line="496" selection-end-column="21" />
-              <folding>
-                <element signature="e#24#34#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="17" column="30" selection-start-line="17" selection-start-column="30" selection-end-line="17" selection-end-column="30" />
+              <caret line="174" column="35" selection-start-line="174" selection-start-column="35" selection-end-line="174" selection-end-column="35" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/MogUI.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.5322581">
+              <caret line="1287" column="46" selection-start-line="1287" selection-start-column="46" selection-end-line="1287" selection-end-column="46" />
+              <folding>
+                <element signature="e#24#34#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -58,7 +57,17 @@
         <entry file="file://$PROJECT_DIR$/mog.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="60" column="41" selection-start-line="60" selection-start-column="41" selection-end-line="60" selection-end-column="41" />
+              <caret line="33" column="20" selection-start-line="33" selection-start-column="8" selection-end-line="33" selection-end-column="20" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MogData.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/MogData.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="121" column="0" selection-start-line="121" selection-start-column="0" selection-end-line="121" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -68,7 +77,7 @@
         <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="375" column="0" selection-start-line="375" selection-start-column="0" selection-end-line="375" selection-end-column="0" />
+              <caret line="87" column="44" selection-start-line="87" selection-start-column="44" selection-end-line="87" selection-end-column="44" />
               <folding />
             </state>
           </provider>
@@ -126,13 +135,13 @@
         <option value="$PROJECT_DIR$/InfoUI.py" />
         <option value="$PROJECT_DIR$/semi_auto_ttUI.py" />
         <option value="$PROJECT_DIR$/mpl_exemple.py" />
-        <option value="$PROJECT_DIR$/MogData.py" />
         <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
         <option value="$USER_HOME$/Downloads/pyplot_two_subplots.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/BoreholeUI.py" />
         <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
+        <option value="$PROJECT_DIR$/MogData.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
       </list>
     </option>
@@ -285,23 +294,6 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="bh_tomoPyUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="BhTomoPy" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bh_tomoPyUI.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
     <configuration default="false" name="pyplot_two_subplots" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -332,6 +324,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="BhTomoPy" />
       <option name="SCRIPT_NAME" value="$USER_HOME$/Downloads/lines3d_demo (1).py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="MogData" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="BhTomoPy" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MogData.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -461,17 +470,17 @@
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
       <item index="1" class="java.lang.String" itemvalue="Python.test" />
-      <item index="2" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
-      <item index="3" class="java.lang.String" itemvalue="Python.pyplot_two_subplots" />
-      <item index="4" class="java.lang.String" itemvalue="Python.lines3d_demo (1)" />
+      <item index="2" class="java.lang.String" itemvalue="Python.pyplot_two_subplots" />
+      <item index="3" class="java.lang.String" itemvalue="Python.lines3d_demo (1)" />
+      <item index="4" class="java.lang.String" itemvalue="Python.MogData" />
     </list>
     <recent_temporary>
       <list size="5">
         <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.lines3d_demo (1)" />
-        <item index="2" class="java.lang.String" itemvalue="Python.test" />
-        <item index="3" class="java.lang.String" itemvalue="Python.pyplot_two_subplots" />
-        <item index="4" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.MogData" />
+        <item index="2" class="java.lang.String" itemvalue="Python.lines3d_demo (1)" />
+        <item index="3" class="java.lang.String" itemvalue="Python.test" />
+        <item index="4" class="java.lang.String" itemvalue="Python.pyplot_two_subplots" />
       </list>
     </recent_temporary>
   </component>
@@ -485,12 +494,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00031" summary="implémentation de la fonction airBefore dans MogUI">
-      <created>1464297126802</created>
-      <option name="number" value="00031" />
-      <option name="project" value="LOCAL" />
-      <updated>1464297126802</updated>
     </task>
     <task id="LOCAL-00032" summary="implémentation de la fonction airAfter dans MogUI">
       <created>1464297853898</created>
@@ -780,7 +783,13 @@
       <option name="project" value="LOCAL" />
       <updated>1468326641405</updated>
     </task>
-    <option name="localTasksCounter" value="80" />
+    <task id="LOCAL-00080" summary="Ajout de messages pour le log et solutions pour ray coverage">
+      <created>1468335658365</created>
+      <option name="number" value="00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1468335658367</updated>
+    </task>
+    <option name="localTasksCounter" value="81" />
     <servers />
   </component>
   <component name="TodoView">
@@ -798,6 +807,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.10714286" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4640523" sideWeight="0.50446427" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
@@ -808,7 +818,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.38398692" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -850,7 +859,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="début de classe database et essai de faire rester la scrollbar du log en haut sans enlever le rouge des messages d'erreur non concluant" />
     <MESSAGE value="début du module semi-auto tt" />
     <MESSAGE value="ajout de composantes au module semi auto tt&#10;" />
     <MESSAGE value="ajout du bon modèle de menubar dans semi tt et manual tt" />
@@ -875,7 +883,8 @@
     <MESSAGE value="restrictions par rapport à theta fonctionelles et ajour de commentaires" />
     <MESSAGE value="début de merge mog" />
     <MESSAGE value="plot de ray coverage modifié (pas encore fonctionnel à 100%)" />
-    <option name="LAST_COMMIT_MESSAGE" value="plot de ray coverage modifié (pas encore fonctionnel à 100%)" />
+    <MESSAGE value="Ajout de messages pour le log et solutions pour ray coverage" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ajout de messages pour le log et solutions pour ray coverage" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1107,14 +1116,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MogData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="125" column="35" selection-start-line="125" selection-start-column="0" selection-end-line="126" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Downloads/pyplot_two_subplots.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1152,7 +1153,7 @@
     <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="375" column="0" selection-start-line="375" selection-start-column="0" selection-end-line="375" selection-end-column="0" />
+          <caret line="87" column="44" selection-start-line="87" selection-start-column="44" selection-end-line="87" selection-end-column="44" />
           <folding />
         </state>
       </provider>
@@ -1160,7 +1161,7 @@
     <entry file="file://$PROJECT_DIR$/mog.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="60" column="41" selection-start-line="60" selection-start-column="41" selection-end-line="60" selection-end-column="41" />
+          <caret line="33" column="20" selection-start-line="33" selection-start-column="8" selection-end-line="33" selection-end-column="20" />
           <folding />
         </state>
       </provider>
@@ -1168,15 +1169,23 @@
     <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="17" column="30" selection-start-line="17" selection-start-column="30" selection-end-line="17" selection-end-column="30" />
+          <caret line="174" column="35" selection-start-line="174" selection-start-column="35" selection-end-line="174" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MogData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="121" column="0" selection-start-line="121" selection-start-column="0" selection-end-line="121" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="496" column="21" selection-start-line="496" selection-start-column="21" selection-end-line="496" selection-end-column="21" />
+        <state vertical-scroll-proportion="0.5322581">
+          <caret line="1287" column="46" selection-start-line="1287" selection-start-column="46" selection-end-line="1287" selection-end-column="46" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
