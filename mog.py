@@ -57,8 +57,8 @@ class Mog:
         self.data                     = MogData()     # Instance of Mogdata
         self.av                       = np.array([])  # Air shot before
         self.ap                       = np.array([])  # Airshot after
-        self.Tx                       = np.array([self.data.Tx_x, self.data.Tx_y, self.data.Tx_z])
-        self.Rx                       = np.array([self.data.Rx_x, self.data.Rx_y, self.data.Rx_z])
+        self.Tx                       = 1
+        self.Rx                       = 1
         self.tau_params               = np.array([])
         self.fw                       = np.array([])
         self.f_et                     = 1

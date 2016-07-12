@@ -413,8 +413,10 @@ class MOGUI(QtGui.QWidget):
         for bh in list:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
+        self.Rx_combo.setCurrentIndex(len(list)-1)
 
-        #self.Rx_combo.setCurrentIndex(len(self.borehole.boreholes) - 1)
+
+
 
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
@@ -450,7 +452,8 @@ class MOGUI(QtGui.QWidget):
 
             Tx = self.borehole.boreholes[iTx]
             Rx = self.borehole.boreholes[iRx]
-
+            mog.Tx = Tx
+            mog.Rx = Rx
             mog.data.Tx_x = np.ones(mog.data.ntrace)
             mog.data.Tx_y = np.ones(mog.data.ntrace)
             mog.data.Rx_x = np.ones(mog.data.ntrace)
@@ -478,6 +481,8 @@ class MOGUI(QtGui.QWidget):
                     mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
                     mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
 
+            if Tx != Rx:
+                self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
 
 
     def plot_rawdata(self):
@@ -505,30 +510,37 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             self.statsttFig.plot_stats(self.MOGs[i.row()])
+            self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[i.row()].name))
             self.statsttmanager.showMaximized()
 
     def plot_statsamp(self):
         ind = self.MOG_list.selectedIndexes()
         self.statsampFig.plot_stats(self.MOGs[ind[0].row()])
+        self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(self.MOGs[ind[0].row()].name))
         self.statsampmanager.showMaximized()
 
     def plot_ray_coverage(self):
         ind = self.MOG_list.selectedIndexes()
         self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()])
+        self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
         self.raymanager.show()
 
     def plot_prune(self):
         ind = self.MOG_list.selectedIndexes()
         self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0)
+        self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(self.MOGs[ind[0].row()].name))
         self.prunemanager.show()
 
 
     def export_tt(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
+        self.moglogSignal.emit('Exporting Traveltime file ...')
+        self.moglogSignal.emit('File exported succesfully ')
 
     def export_tau(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tau')
-
+        self.moglogSignal.emit('Exporting tau file ...')
+        self.moglogSignal.emit('File exported succesfully ')
 
     #TODO:
     def compute_SNR(self):
@@ -674,9 +686,6 @@ class MOGUI(QtGui.QWidget):
         self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
         self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
         self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
-
-
-
 
 
     def initUI(self):
@@ -1139,6 +1148,7 @@ class MOGUI(QtGui.QWidget):
         btn_Stats_Ampl.clicked.connect(self.plot_statsamp)
         btn_Ray_Coverage.clicked.connect(self.plot_ray_coverage)
         btn_Export_tt.clicked.connect(self.export_tt)
+        btn_export_tau.clicked.connect(self.export_tau)
         btn_Prune.clicked.connect(self.plot_prune)
         #--- Sub Widgets ---#
 
@@ -1304,9 +1314,9 @@ class ZOPFig(FigureCanvasQTAgg):
     def show_amplitude_data(self, state):
 
         self.ax3.set_visible(state)
-        self.draw()
         self.ax3.spines['top'].set_color('red')
         self.ax3.spines['bottom'].set_color('blue')
+        self.draw()
 
 class StatsttFig(FigureCanvasQTAgg):
     def __init__(self, parent = None):
@@ -1388,10 +1398,10 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection= '3d')
 
     def plot_ray_coverage(self, mog):
-
+        self.ax.cla()
 
 
         Tx_xs = mog.data.Tx_x
@@ -1415,10 +1425,21 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_ys = np.concatenate((Tx_ys, Rx_ys), axis=1)
         Tx_Rx_zs = np.concatenate((Tx_zs, Rx_zs), axis=1)
 
+        Tx_Rx_xs = Tx_Rx_xs.T
+        Tx_Rx_ys = Tx_Rx_ys.T
+        Tx_Rx_zs = Tx_Rx_zs.T
 
 
+        for i in range(49): #demo
+            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
 
+        # 2D rapide
+        #self.ax.plot(-1*Tx_Rx_zs)
 
+        #for i in range(mog.data.ntrace): #complet
+         #   self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
+
+        self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))

@@ -372,7 +372,7 @@ class BoreholeFig(FigureCanvasQTAgg):
         ax = self.figure.axes[0]
         ax.cla()
         for bhole in bhole_list:
-            ax.plot(bhole.fdata[:,0] ,bhole.fdata[:,1],bhole.fdata[:, 2], label=bhole.name)
+            ax.plot(bhole.fdata[:, 0], bhole.fdata[:, 1], bhole.fdata[:, 2], label=bhole.name)
 
         l = ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
                     borderpad=0)
