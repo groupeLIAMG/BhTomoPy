@@ -66,7 +66,6 @@ class MOGUI(QtGui.QWidget):
         self.MOGs.append(mog)
         self.update_List_Widget()
         mog.data.readRAMAC(basename)
-        mog.initialize()
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
         self.update_spectra_Tx_num_list()
         self.update_spectra_Tx_elev_value_label()
@@ -510,21 +509,18 @@ class MOGUI(QtGui.QWidget):
 
     def plot_statsamp(self):
         ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            self.statsampFig.plot_stats(self.MOGs[i.row()])
-            self.statsampmanager.showMaximized()
+        self.statsampFig.plot_stats(self.MOGs[ind[0].row()])
+        self.statsampmanager.showMaximized()
 
     def plot_ray_coverage(self):
         ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            self.raycoverageFig.plot_ray_coverage(self.MOGs[i.row()])
-            self.raymanager.show()
+        self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()])
+        self.raymanager.show()
 
     def plot_prune(self):
         ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            self.pruneFig.plot_prune(self.MOGs[i.row()], 0)
-            self.prunemanager.show()
+        self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0)
+        self.prunemanager.show()
 
 
     def export_tt(self):
@@ -1395,22 +1391,33 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_ray_coverage(self, mog):
-        false_ind = np.nonzero(mog.in_vect == False)
 
-        Tx_zs = np.unique(mog.data.Tx_z)
-        Rx_zs = np.unique(mog.data.Rx_z)
 
-        Tx_zs = np.delete(Tx_zs, false_ind[0])
-        Rx_zs = np.delete(Rx_zs, false_ind[0])
 
-        num_Tx = len(Tx_zs)
-        num_Rx = len(Rx_zs)
-        Tx_xs = mog.data.Tx_x[:num_Tx]
-        Rx_xs = mog.data.Rx_x[:num_Rx]
-        Tx_ys = mog.data.Tx_y[:num_Tx]
-        Rx_ys = mog.data.Rx_y[:num_Rx]
+        Tx_xs = mog.data.Tx_x
+        Rx_xs = mog.data.Rx_x
 
-        zs = np.array([])
+        Tx_ys = mog.data.Tx_y
+        Rx_ys = mog.data.Rx_y
+
+        Tx_zs = mog.data.Tx_z
+        Rx_zs = mog.data.Rx_z
+
+        Tx_xs = Tx_xs[:, None]
+        Tx_ys = Tx_ys[:, None]
+        Tx_zs = Tx_zs[:, None]
+
+        Rx_xs = Rx_xs[:, None]
+        Rx_ys = Rx_ys[:, None]
+        Rx_zs = Rx_zs[:, None]
+
+        Tx_Rx_xs = np.concatenate((Tx_xs, Rx_xs), axis=1)
+        Tx_Rx_ys = np.concatenate((Tx_ys, Rx_ys), axis=1)
+        Tx_Rx_zs = np.concatenate((Tx_zs, Rx_zs), axis=1)
+
+
+
+
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
