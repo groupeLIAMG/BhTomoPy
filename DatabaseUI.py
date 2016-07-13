@@ -15,8 +15,8 @@ class DatabaseUI(QtGui.QWidget):
         #--- Other Modules Instance ---#
         self.actual_time = time.asctime()[11:16]
         self.bh = BoreholeUI()
-        self.model = ModelUI(borehole= self.bh, mog= self.mog)
         self.mog = MOGUI(self.bh)
+        self.model = ModelUI(borehole=self.bh, mog=self.mog)
         self.info = InfoUI()
         self.mogdata = MogData()
         self.mergemog = MergeMog(self.mog.MOGs)
@@ -190,7 +190,6 @@ if __name__ == '__main__':
     Database_ui.action_list.append("[{}] Welcome to BH_TOMO Py " .format(Database_ui.actual_time))
     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
-    Database_ui.bh.load_bh('testData/testConstraints/F5.xyz')
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
 
     Database_ui.show()
