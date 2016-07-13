@@ -15,7 +15,7 @@ class DatabaseUI(QtGui.QWidget):
         #--- Other Modules Instance ---#
         self.actual_time = time.asctime()[11:16]
         self.bh = BoreholeUI()
-        self.model = ModelUI()
+        self.model = ModelUI(borehole= self.bh, mog= self.mog)
         self.mog = MOGUI(self.bh)
         self.info = InfoUI()
         self.mogdata = MogData()
