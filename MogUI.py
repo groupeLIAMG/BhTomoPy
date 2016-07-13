@@ -494,10 +494,10 @@ class MOGUI(QtGui.QWidget):
 
     def plot_spectra(self):
         ind = self.MOG_list.selectedIndexes()
-        tx = self.Tx_num_list.currentIndex()
+        n = self.Tx_num_list.currentIndex()
 
         for i in ind:
-            self.spectraFig.plot_spectra(self.MOGs[i.row()], tx.row())
+            self.spectraFig.plot_spectra(self.MOGs[i.row()], n.row())
             self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
             self.spectramanager.showMaximized()
 
@@ -1272,11 +1272,15 @@ class SpectraFig(FigureCanvasQTAgg):
         self.ax1.yaxis.set_ticks_position('left')
         self.ax1.set_axisbelow(True)
 
-    def plot_spectra(self, mog, tx):
+    def plot_spectra(self, mog, n):
 
         self.ax1.cla()
         self.ax2.cla()
         self.ax3.cla()
+
+        Tx= np.unique(mog.data.Tx_z)
+
+        ind = Tx[n] == mog.data.Tx_z
 
         # Getting the maximum amplitude value for each column
         A = np.amax(mog.data.rdata, axis= 0)
@@ -1287,10 +1291,17 @@ class SpectraFig(FigureCanvasQTAgg):
         # Dividing the original rdata by A max in order to have a normalised amplitude matrix
         normalised_rdata = mog.data.rdata/Amax
 
-        ps = np.fft.fft(normalised_rdata[:, tx])
+        ps = np.fft.fft(normalised_rdata[:, ind])
+
+        z = mog.data.Rx_z[ind]
+        traces = normalised_rdata[:, ind]
+        snr = np.mean(traces)/np.std(traces) * np.ones(np.shape(normalised_rdata))
+        print(np.mean(traces))
+        print(np.std(traces))
+        print(snr)
 
 
-        self.ax1.plot(normalised_rdata[:, tx])
+        self.ax1.plot(snr)
         self.ax2.plot(ps)
 
 

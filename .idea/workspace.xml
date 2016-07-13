@@ -6,9 +6,7 @@
     <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="859" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogData.py" afterPath="$PROJECT_DIR$/MogData.py" />
+    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="debut spectra">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -44,8 +42,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5322581">
-              <caret line="1287" column="46" selection-start-line="1287" selection-start-column="46" selection-end-line="1287" selection-end-column="46" />
+            <state vertical-scroll-proportion="1.3548387">
+              <caret line="1297" column="80" selection-start-line="1297" selection-start-column="80" selection-end-line="1297" selection-end-column="80" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -495,12 +493,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00032" summary="implémentation de la fonction airAfter dans MogUI">
-      <created>1464297853898</created>
-      <option name="number" value="00032" />
-      <option name="project" value="LOCAL" />
-      <updated>1464297853898</updated>
-    </task>
     <task id="LOCAL-00033" summary="air before, air after, squellete de spectra">
       <created>1464358486935</created>
       <option name="number" value="00033" />
@@ -789,7 +781,13 @@
       <option name="project" value="LOCAL" />
       <updated>1468335658367</updated>
     </task>
-    <option name="localTasksCounter" value="81" />
+    <task id="LOCAL-00081" summary="debut spectra">
+      <created>1468349620440</created>
+      <option name="number" value="00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1468349620440</updated>
+    </task>
+    <option name="localTasksCounter" value="82" />
     <servers />
   </component>
   <component name="TodoView">
@@ -859,7 +857,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="début du module semi-auto tt" />
     <MESSAGE value="ajout de composantes au module semi auto tt&#10;" />
     <MESSAGE value="ajout du bon modèle de menubar dans semi tt et manual tt" />
     <MESSAGE value="squelette merge et zop" />
@@ -884,7 +881,8 @@
     <MESSAGE value="début de merge mog" />
     <MESSAGE value="plot de ray coverage modifié (pas encore fonctionnel à 100%)" />
     <MESSAGE value="Ajout de messages pour le log et solutions pour ray coverage" />
-    <option name="LAST_COMMIT_MESSAGE" value="Ajout de messages pour le log et solutions pour ray coverage" />
+    <MESSAGE value="debut spectra" />
+    <option name="LAST_COMMIT_MESSAGE" value="debut spectra" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1166,14 +1164,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="174" column="35" selection-start-line="174" selection-start-column="35" selection-end-line="174" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/MogData.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1182,10 +1172,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="174" column="35" selection-start-line="174" selection-start-column="35" selection-end-line="174" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5322581">
-          <caret line="1287" column="46" selection-start-line="1287" selection-start-column="46" selection-end-line="1287" selection-end-column="46" />
+        <state vertical-scroll-proportion="1.3548387">
+          <caret line="1297" column="80" selection-start-line="1297" selection-start-column="80" selection-end-line="1297" selection-end-column="80" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
