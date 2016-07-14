@@ -121,17 +121,20 @@ class gridUI(QtGui.QWidget):
         self.bestfitplanemanager.showMaximized()
 
     def plot_boreholes(self):
-        self.bhsFig.plot_boreholes(self.boreholes, self.MOGs)
+        view = self.bhfig_combo.currentText()
+        self.bhsFig.plot_boreholes(self.boreholes, self.MOGs, view)
 
     def plot_grid_view(self):
         bh = self.borehole_combo.currentText()
-        self.gridviewFig.plot_grid(self.MOGs, bh)
+        state = self.flip_check.checkState()
+        self.gridviewFig.plot_grid(self.MOGs, bh, state)
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
         for n in range(len(self.MOGs)):
             self.borehole_combo.addItem(self.MOGs[n].Tx.name)
             self.borehole_combo.addItem(self.MOGs[n].Rx.name)
+
 
     def update_origin(self):
         ind = self.borehole_combo.currentIndex()
@@ -184,21 +187,25 @@ class gridUI(QtGui.QWidget):
         origin_label            = MyQLabel('Origin', ha= 'right')
 
         #--- CheckBox ---#
-        flip_check              = QtGui.QCheckBox('Flip horizontally')
+        self.flip_check              = QtGui.QCheckBox('Flip horizontally')
+
+        #- CheckBox Actions -#
+        self.flip_check.stateChanged.connect(self.plot_grid_view)
         #--- ComboBoxes ---#
-        self.borehole_combo          = QtGui.QComboBox()
-        bhfig_combo                  = QtGui.QComboBox()
-
-        #- ComboBoxes Actions -#
-
-        self.borehole_combo.activated.connect(self.update_origin)
-        self.borehole_combo.activated.connect(self.plot_grid_view)
-
+        self.borehole_combo     = QtGui.QComboBox()
+        self.bhfig_combo        = QtGui.QComboBox()
 
         #- Combobox items -#
         view_list = ['3D View', 'XY Plane', 'XZ Plane', 'YZ Plane']
         for item in view_list:
-            bhfig_combo.addItem(item)
+            self.bhfig_combo.addItem(item)
+
+        #- ComboBoxes Actions -#
+        self.borehole_combo.activated.connect(self.update_origin)
+        self.borehole_combo.activated.connect(self.plot_grid_view)
+        self.bhfig_combo.activated.connect(self.plot_boreholes)
+
+
         #--- SubWidgets ---#
         sub_param_widget        = QtGui.QWidget()
         sub_param_grid          = QtGui.QGridLayout()
@@ -228,7 +235,7 @@ class gridUI(QtGui.QWidget):
         grid_param_group        = QtGui.QGroupBox('Grid Parameters')
         grid_param_grid         = QtGui.QGridLayout()
         grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 4)
-        grid_param_grid.addWidget(flip_check, 1, 0)
+        grid_param_grid.addWidget(self.flip_check, 1, 0)
         grid_param_grid.addWidget(adjustment_btn, 2, 0)
         grid_param_grid.setVerticalSpacing(3)
         grid_param_group.setLayout(grid_param_grid)
@@ -243,7 +250,7 @@ class gridUI(QtGui.QWidget):
         self.bhsFig = BoreholesFig()
         bhs_group = QtGui.QGroupBox('Boreholes')
         bhs_grid = QtGui.QGridLayout()
-        bhs_grid.addWidget(bhfig_combo, 0, 0)
+        bhs_grid.addWidget(self.bhfig_combo, 0, 0)
         bhs_grid.addWidget(self.bhsFig, 1, 0, 1, 8)
         bhs_group.setLayout(bhs_grid)
 
@@ -337,7 +344,7 @@ class BoreholesFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
-    def plot_boreholes(self, boreholes, mogs):
+    def plot_boreholes(self, boreholes, mogs, view):
         self.ax.cla()
 
         for n in range(len(mogs)):
@@ -369,6 +376,14 @@ class BoreholesFig(FigureCanvasQTAgg):
         for bhole in boreholes:
             self.ax.plot(bhole.fdata[:, 0], bhole.fdata[:, 1], bhole.fdata[:, 2], color= 'r')
 
+        if view == '3D View':
+            self.ax.view_init()
+        elif view == 'XY Plane':
+            self.ax.view_init(elev= 90, azim= 90)
+        elif view == 'XZ Plane':
+            self.ax.view_init(elev= 0, azim= 90)
+        elif view == 'YZ Plane':
+            self.ax.view_init(elev= 0, azim= 0)
         self.draw()
 
 class GridViewFig(FigureCanvasQTAgg):
@@ -381,7 +396,7 @@ class GridViewFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
         self.ax.grid(True)
 
-    def plot_grid(self, mogs, origin):
+    def plot_grid(self, mogs, origin, flip):
         self.ax.cla()
         for mog in mogs:
             Tx_zs = np.unique(mog.data.Tx_z)
@@ -393,12 +408,24 @@ class GridViewFig(FigureCanvasQTAgg):
 
             if origin == mog.Tx.name:
                 self.ax.plot(orig_Tx, -Tx_zs, 'o', c= 'g')
-                self.ax.plot(-(Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
-                self.ax.set_xlim([-0.2, -(Tx_ys[0]-Rx_ys[0])+0.2])
+
+                if flip:
+                    self.ax.plot((Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
+                    self.ax.set_xlim([(Tx_ys[0]-Rx_ys[0])-0.2, 0.2])
+                if not flip:
+                    self.ax.plot(-(Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
+                    self.ax.set_xlim([-0.2, -(Tx_ys[0]-Rx_ys[0])+0.2])
+
             if origin == mog.Rx.name:
-                self.ax.plot(-(Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
                 self.ax.plot(orig_Rx, -Rx_zs, '*', c='b')
-                self.ax.set_xlim([-(Rx_ys[0] - Tx_ys[0])-0.2, 0.2])
+
+                if flip:
+                    self.ax.plot((Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
+                    self.ax.set_xlim([-0.2, (Rx_ys[0] - Tx_ys[0])+0.2 ])
+                if not flip:
+                    self.ax.plot(-(Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
+                    self.ax.set_xlim([-(Rx_ys[0] - Tx_ys[0])-0.2, 0.2])
+
 
             self.ax.grid(which= 'both', ls='solid')
 
