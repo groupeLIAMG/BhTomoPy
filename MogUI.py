@@ -1107,8 +1107,8 @@ class MOGUI(QtGui.QWidget):
         self.Type_combo.addItem(" VSP/VRP ")
 
         #- ComboBoxes Actions -#
-        self.Tx_combo.currentIndexChanged.connect(self.updateCoords)
-        self.Rx_combo.currentIndexChanged.connect(self.updateCoords)
+        self.Tx_combo.activated.connect(self.updateCoords)
+        self.Rx_combo.activated.connect(self.updateCoords)
 
         #--- Checkbox ---#
         Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")

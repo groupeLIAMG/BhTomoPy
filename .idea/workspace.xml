@@ -8,9 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/model.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ModelUI.py" afterPath="$PROJECT_DIR$/ModelUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -36,7 +35,7 @@
         <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="195" column="49" selection-start-line="195" selection-start-column="49" selection-end-line="195" selection-end-column="49" />
+              <caret line="195" column="47" selection-start-line="195" selection-start-column="47" selection-end-line="195" selection-end-column="47" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -48,7 +47,7 @@
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1262" column="23" selection-start-line="1262" selection-start-column="23" selection-end-line="1262" selection-end-column="23" />
+              <caret line="1108" column="32" selection-start-line="1108" selection-start-column="32" selection-end-line="1108" selection-end-column="32" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -56,11 +55,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ModelUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.92903227">
-              <caret line="156" column="28" selection-start-line="156" selection-start-column="28" selection-end-line="156" selection-end-column="28" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="315" column="0" selection-start-line="315" selection-start-column="0" selection-end-line="315" selection-end-column="0" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -98,11 +97,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BoreholeUI.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="BoreholeUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="374" column="75" selection-start-line="374" selection-start-column="20" selection-end-line="374" selection-end-column="75" />
+            <state vertical-scroll-proportion="0.67741936">
+              <caret line="22" column="28" selection-start-line="22" selection-start-column="28" selection-end-line="22" selection-end-column="28" />
               <folding />
             </state>
           </provider>
@@ -161,13 +160,13 @@
         <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
         <option value="$USER_HOME$/Downloads/pyplot_two_subplots.py" />
         <option value="$PROJECT_DIR$/test.py" />
-        <option value="$PROJECT_DIR$/BoreholeUI.py" />
         <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/MogData.py" />
-        <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/model.py" />
-        <option value="$PROJECT_DIR$/DatabaseUI.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
+        <option value="$PROJECT_DIR$/DatabaseUI.py" />
+        <option value="$PROJECT_DIR$/MogUI.py" />
+        <option value="$PROJECT_DIR$/BoreholeUI.py" />
       </list>
     </option>
   </component>
@@ -301,23 +300,6 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="lines3d_demo (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Downloads" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="BhTomoPy" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/Downloads/lines3d_demo (1).py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
     <configuration default="false" name="MogData" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -365,6 +347,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="BhTomoPy" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/BoreholeUI.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="text3d_demo" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Downloads" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="BhTomoPy" />
+      <option name="SCRIPT_NAME" value="$USER_HOME$/Downloads/text3d_demo.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -493,18 +492,18 @@
     </configuration>
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-      <item index="1" class="java.lang.String" itemvalue="Python.lines3d_demo (1)" />
-      <item index="2" class="java.lang.String" itemvalue="Python.MogData" />
-      <item index="3" class="java.lang.String" itemvalue="Python.ModelUI" />
-      <item index="4" class="java.lang.String" itemvalue="Python.BoreholeUI" />
+      <item index="1" class="java.lang.String" itemvalue="Python.MogData" />
+      <item index="2" class="java.lang.String" itemvalue="Python.ModelUI" />
+      <item index="3" class="java.lang.String" itemvalue="Python.BoreholeUI" />
+      <item index="4" class="java.lang.String" itemvalue="Python.text3d_demo" />
     </list>
     <recent_temporary>
       <list size="5">
         <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.BoreholeUI" />
-        <item index="2" class="java.lang.String" itemvalue="Python.ModelUI" />
-        <item index="3" class="java.lang.String" itemvalue="Python.MogData" />
-        <item index="4" class="java.lang.String" itemvalue="Python.lines3d_demo (1)" />
+        <item index="1" class="java.lang.String" itemvalue="Python.text3d_demo" />
+        <item index="2" class="java.lang.String" itemvalue="Python.BoreholeUI" />
+        <item index="3" class="java.lang.String" itemvalue="Python.ModelUI" />
+        <item index="4" class="java.lang.String" itemvalue="Python.MogData" />
       </list>
     </recent_temporary>
   </component>
@@ -518,12 +517,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00036" summary="élévation en fonction de la trace choisie fonctionnelle&#10;">
-      <created>1464368298576</created>
-      <option name="number" value="00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1464368298576</updated>
     </task>
     <task id="LOCAL-00037" summary="élévation en fonction de la trace choisie fonctionnelle&#10;">
       <created>1464368365860</created>
@@ -813,7 +806,13 @@
       <option name="project" value="LOCAL" />
       <updated>1468514933117</updated>
     </task>
-    <option name="localTasksCounter" value="85" />
+    <task id="LOCAL-00085" summary="Grid UI dépendant de Model UI pour pouvoir éditer un grid">
+      <created>1468525545773</created>
+      <option name="number" value="00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1468525545773</updated>
+    </task>
+    <option name="localTasksCounter" value="86" />
     <servers />
   </component>
   <component name="TodoView">
@@ -883,7 +882,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="squelette Stats tt" />
     <MESSAGE value="squelette Stats Ampl" />
     <MESSAGE value="squelette Ray Coverage" />
     <MESSAGE value="statsttFig bug fix" />
@@ -908,7 +906,8 @@
     <MESSAGE value="essai de méthodes dans spectra" />
     <MESSAGE value="modelui update" />
     <MESSAGE value="graphiques boreholes et grid view de la classe GridUI fonctionnels" />
-    <option name="LAST_COMMIT_MESSAGE" value="graphiques boreholes et grid view de la classe GridUI fonctionnels" />
+    <MESSAGE value="Grid UI dépendant de Model UI pour pouvoir éditer un grid" />
+    <option name="LAST_COMMIT_MESSAGE" value="Grid UI dépendant de Model UI pour pouvoir éditer un grid" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -924,13 +923,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/InfoUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="32" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/testsUI.py" />
     <entry file="file://$PROJECT_DIR$/borehole.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -1113,24 +1105,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="374" column="75" selection-start-line="374" selection-start-column="20" selection-end-line="374" selection-end-column="75" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MogUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1262" column="23" selection-start-line="1262" selection-start-column="23" selection-end-line="1262" selection-end-column="23" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/mog.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1147,23 +1121,51 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+    <entry file="file://$USER_HOME$/Downloads/text3d_demo.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="195" column="49" selection-start-line="195" selection-start-column="49" selection-end-line="195" selection-end-column="49" />
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#24#34#0" expanded="true" />
+            <element signature="e#0#39#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/ModelUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.92903227">
-          <caret line="156" column="28" selection-start-line="156" selection-start-column="28" selection-end-line="156" selection-end-column="28" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="315" column="0" selection-start-line="315" selection-start-column="0" selection-end-line="315" selection-end-column="0" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="195" column="47" selection-start-line="195" selection-start-column="47" selection-end-line="195" selection-end-column="47" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MogUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1108" column="32" selection-start-line="1108" selection-start-column="32" selection-end-line="1108" selection-end-column="32" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.67741936">
+          <caret line="22" column="28" selection-start-line="22" selection-start-column="28" selection-end-line="22" selection-end-column="28" />
+          <folding />
         </state>
       </provider>
     </entry>

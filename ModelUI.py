@@ -383,10 +383,10 @@ class BoreholesFig(FigureCanvasQTAgg):
             Rx_xs = mog.data.Rx_x[:num_Rx]
             Tx_ys = mog.data.Tx_y[:num_Tx]
             Rx_ys = mog.data.Rx_y[:num_Rx]
-
-            self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c='g', marker='o', label='Tx', lw=0)
-
-            self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*', label='Rx', lw=0)
+            self.ax.text(x= Tx_xs[0],y=  Tx_ys[0],z= Tx_zs[0], s= str(mog.Tx.name))
+            self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c='g', marker='o', label="{}'s Tx".format(mog.name), lw=0)
+            self.ax.text(x= Rx_xs[0],y= Rx_ys[0],z= Rx_zs[0], s= str(mog.Rx.name))
+            self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*', label="{}'s Rx".format(mog.name), lw=0)
 
             l = self.ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
                                borderpad=0)
@@ -412,7 +412,7 @@ class GridViewFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.1, 0.1, 0.85, 0.85])
         self.ax.grid(True)
 
     def plot_grid(self, mogs, origin, flip):
@@ -445,7 +445,8 @@ class GridViewFig(FigureCanvasQTAgg):
                     self.ax.plot(-(Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
                     self.ax.set_xlim([-(Rx_ys[0] - Tx_ys[0])-0.2, 0.2])
 
-
+            self.ax.set_xlabel('Y', fontsize= 16)
+            self.ax.set_ylabel('Z', fontsize= 16)
             self.ax.grid(which= 'both', ls='solid')
 
 
