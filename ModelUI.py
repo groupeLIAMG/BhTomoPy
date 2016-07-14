@@ -59,6 +59,9 @@ class ModelUI(QtGui.QWidget):
         btn_Remove_Model.clicked.connect(self.del_model)
         btn_Edit_Grid.clicked.connect(self.grid.showMaximized)
         btn_Edit_Grid.clicked.connect(self.grid.plot_boreholes)
+        btn_Edit_Grid.clicked.connect(self.grid.update_bh_origin)
+        btn_Edit_Grid.clicked.connect(self.grid.update_origin)
+        btn_Edit_Grid.clicked.connect(self.grid.plot_grid_view)
 
 
 
@@ -120,14 +123,19 @@ class gridUI(QtGui.QWidget):
     def plot_boreholes(self):
         self.bhsFig.plot_boreholes(self.boreholes, self.MOGs)
 
-    def update_grid_Parameters(self):
+    def plot_grid_view(self):
+        bh = self.borehole_combo.currentText()
+        self.gridviewFig.plot_grid(self.MOGs, bh)
+
+    def update_bh_origin(self):
         self.borehole_combo.clear()
+        for n in range(len(self.MOGs)):
+            self.borehole_combo.addItem(self.MOGs[n].Tx.name)
+            self.borehole_combo.addItem(self.MOGs[n].Rx.name)
 
-        for bhole in self.boreholes:
-            self.borehole_combo.addItem(bhole.name)
-
+    def update_origin(self):
         ind = self.borehole_combo.currentIndex()
-        print(ind)
+
         self.origin_x_edit.setText(str(self.boreholes[ind].X))
         self.origin_y_edit.setText(str(self.boreholes[ind].Y))
         self.origin_z_edit.setText(str(self.boreholes[ind].Z))
@@ -153,13 +161,13 @@ class gridUI(QtGui.QWidget):
         #- Buttons' Actions -#
         adjustment_btn.clicked.connect(self.plot_adjustment)
         #--- Edits ---#
-        self.pad_plus_x_edit    = QtGui.QLineEdit()
-        self.pad_plus_z_edit    = QtGui.QLineEdit()
-        self.pad_minus_x_edit   = QtGui.QLineEdit()
-        self.pad_minus_z_edit   = QtGui.QLineEdit()
+        self.pad_plus_x_edit    = QtGui.QLineEdit('1')
+        self.pad_plus_z_edit    = QtGui.QLineEdit('1')
+        self.pad_minus_x_edit   = QtGui.QLineEdit('1')
+        self.pad_minus_z_edit   = QtGui.QLineEdit('1')
 
-        self.cell_size_x_edit   = QtGui.QLineEdit()
-        self.cell_size_z_edit   = QtGui.QLineEdit()
+        self.cell_size_x_edit   = QtGui.QLineEdit('0.2')
+        self.cell_size_z_edit   = QtGui.QLineEdit('0.2')
 
         self.origin_x_edit      = QtGui.QLineEdit()
         self.origin_y_edit      = QtGui.QLineEdit()
@@ -179,11 +187,12 @@ class gridUI(QtGui.QWidget):
         flip_check              = QtGui.QCheckBox('Flip horizontally')
         #--- ComboBoxes ---#
         self.borehole_combo          = QtGui.QComboBox()
-        bhfig_combo             = QtGui.QComboBox()
+        bhfig_combo                  = QtGui.QComboBox()
 
         #- ComboBoxes Actions -#
 
-        self.borehole_combo.activated.connect(self.update_grid_Parameters)
+        self.borehole_combo.activated.connect(self.update_origin)
+        self.borehole_combo.activated.connect(self.plot_grid_view)
 
 
         #- Combobox items -#
@@ -369,8 +378,32 @@ class GridViewFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        self.ax.grid(True)
 
+    def plot_grid(self, mogs, origin):
+        self.ax.cla()
+        for mog in mogs:
+            Tx_zs = np.unique(mog.data.Tx_z)
+            Tx_ys = mog.data.Tx_y[:len(Tx_zs)]
+            Rx_zs = np.unique(mog.data.Rx_z)
+            Rx_ys = mog.data.Rx_y[:len(Rx_zs)]
+            orig_Tx = np.zeros(len(Tx_zs))
+            orig_Rx = np.zeros(len(Rx_zs))
+
+            if origin == mog.Tx.name:
+                self.ax.plot(orig_Tx, -Tx_zs, 'o', c= 'g')
+                self.ax.plot(-(Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
+                self.ax.set_xlim([-0.2, -(Tx_ys[0]-Rx_ys[0])+0.2])
+            if origin == mog.Rx.name:
+                self.ax.plot(-(Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
+                self.ax.plot(orig_Rx, -Rx_zs, '*', c='b')
+                self.ax.set_xlim([-(Rx_ys[0] - Tx_ys[0])-0.2, 0.2])
+
+            self.ax.grid(which= 'both', ls='solid')
+
+
+        self.draw()
 
 
 class  MyQLabel(QtGui.QLabel):

@@ -1460,14 +1460,14 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_zs = Tx_Rx_zs.T
 
 
-        for i in range(49): #demo
-            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
+        #for i in range(49): #demo
+         #   self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
 
         # 2D rapide
         #self.ax.plot(-1*Tx_Rx_zs)
 
-        #for i in range(mog.data.ntrace): #complet
-         #   self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
+        for i in range(mog.data.ntrace): #complet
+            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))

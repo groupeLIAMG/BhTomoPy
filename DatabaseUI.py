@@ -2,7 +2,7 @@
 import sys
 from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
-from ModelUI import ModelUI
+from ModelUI import ModelUI, gridUI
 from MogUI import MOGUI, MergeMog
 from InfoUI import InfoUI
 from MogData import MogData
@@ -17,6 +17,7 @@ class DatabaseUI(QtGui.QWidget):
         self.bh = BoreholeUI()
         self.mog = MOGUI(self.bh)
         self.model = ModelUI(borehole=self.bh, mog=self.mog)
+        self.grid = gridUI(self.model)
         self.info = InfoUI()
         self.mogdata = MogData()
         self.mergemog = MergeMog(self.mog.MOGs)
@@ -44,6 +45,7 @@ class DatabaseUI(QtGui.QWidget):
 
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
+
 
 
     def update_database_info(self, name):
