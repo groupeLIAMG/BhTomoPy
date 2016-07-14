@@ -5,6 +5,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 import numpy as np
 import matplotlib as mpl
+from model import Model
 
 
 class ModelUI(QtGui.QWidget):
@@ -24,10 +25,12 @@ class ModelUI(QtGui.QWidget):
     def add_model(self):
         name, ok = QtGui.QInputDialog.getText(self, "Model creation", 'Model name')
         if ok :
-            self.models.append(name)
-            self.modellogSignal.emit("Model {} as been added succesfully".format(name))
+            self.load_model(name)
+
+    def load_model(self, name):
+        self.models.append(Model(name))
+        self.modellogSignal.emit("Model {} as been added succesfully".format(name))
         self.update_model_list()
-        self.grid.update_grid_Parameters()
 
     def del_model(self):
         ind = self.model_list.selectedIndexes()
@@ -36,12 +39,27 @@ class ModelUI(QtGui.QWidget):
             del self.models[int(i.row())]
         self.update_model_list()
 
+    def add_mog(self):
+        ind = self.mog.MOG_list.currentIndex().row()
+        n = self.model_list.currentIndex().row()
+        self.load_mog(ind, n)
+    def load_mog(self, ind, n):
+        self.model_mog_list.addItem(self.mog.MOGs[ind].name)
+        self.models[n].mogs.append(self.mog.MOGs[ind])
+
 
     def update_model_list(self):
         self.model_list.clear()
         for model in self.models:
-            self.model_list.addItem(model)
+            self.model_list.addItem(model.name)
         self.modelInfoSignal.emit(len(self.model_list)) # we send the information to DatabaseUI
+
+    def start_grid(self):
+        self.grid.showMaximized()
+        self.grid.plot_boreholes()
+        self.grid.update_bh_origin()
+        self.grid.update_origin()
+        self.grid.plot_grid_view()
 
     def initUI(self):
 
@@ -57,16 +75,13 @@ class ModelUI(QtGui.QWidget):
         #--- Buttons Actions ---#
         btn_Add_Model.clicked.connect(self.add_model)
         btn_Remove_Model.clicked.connect(self.del_model)
-        btn_Edit_Grid.clicked.connect(self.grid.showMaximized)
-        btn_Edit_Grid.clicked.connect(self.grid.plot_boreholes)
-        btn_Edit_Grid.clicked.connect(self.grid.update_bh_origin)
-        btn_Edit_Grid.clicked.connect(self.grid.update_origin)
-        btn_Edit_Grid.clicked.connect(self.grid.plot_grid_view)
+        btn_Add_MOG.clicked.connect(self.add_mog)
+        btn_Edit_Grid.clicked.connect(self.start_grid)
 
 
 
         #--- Lists ---#
-        MOG_list                         = QtGui.QListWidget()
+        self.model_mog_list              = QtGui.QListWidget()
         self.model_list                  = QtGui.QListWidget()
 
         #--- Sub Widgets ---#
@@ -90,7 +105,7 @@ class ModelUI(QtGui.QWidget):
         MOGS_Sub_Grid                    = QtGui.QGridLayout()
         MOGS_Sub_Grid.addWidget(btn_Add_MOG, 0, 0, 1, 2)
         MOGS_Sub_Grid.addWidget(btn_Remove_MOG, 0, 2, 1, 2)
-        MOGS_Sub_Grid.addWidget(MOG_list, 1, 0, 1, 4)
+        MOGS_Sub_Grid.addWidget(self.model_mog_list, 1, 0, 1, 4)
         MOGS_Groupbox.setLayout(MOGS_Sub_Grid)
 
 
@@ -111,7 +126,9 @@ class gridUI(QtGui.QWidget):
         super(gridUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/gridUI")
         self.gridinfo = GridInfoUI()
+        self.constraintseditor = ConstraintsEditorUI()
         self.model = model
+
         self.boreholes = self.model.borehole.boreholes
         self.MOGs = self.model.mog.MOGs
         self.initUI()
@@ -121,13 +138,14 @@ class gridUI(QtGui.QWidget):
         self.bestfitplanemanager.showMaximized()
 
     def plot_boreholes(self):
+        self.model_ind = self.model.model_list.currentIndex().row()
         view = self.bhfig_combo.currentText()
-        self.bhsFig.plot_boreholes(self.boreholes, self.MOGs, view)
+        self.bhsFig.plot_boreholes(self.boreholes, self.model.models[self.model_ind].mogs, view)
 
     def plot_grid_view(self):
         bh = self.borehole_combo.currentText()
         state = self.flip_check.checkState()
-        self.gridviewFig.plot_grid(self.MOGs, bh, state)
+        self.gridviewFig.plot_grid(self.model.models[self.model_ind].mogs, bh, state)
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
@@ -163,6 +181,7 @@ class gridUI(QtGui.QWidget):
         adjustment_btn          = QtGui.QPushButton('Adjustment of Best-Fit Plane')
         #- Buttons' Actions -#
         adjustment_btn.clicked.connect(self.plot_adjustment)
+        add_edit_btn.clicked.connect(self.constraintseditor.show)
         #--- Edits ---#
         self.pad_plus_x_edit    = QtGui.QLineEdit('1')
         self.pad_plus_z_edit    = QtGui.QLineEdit('1')
@@ -431,6 +450,112 @@ class GridViewFig(FigureCanvasQTAgg):
 
 
         self.draw()
+
+class ConstraintsEditorUI(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(ConstraintsEditorUI, self).__init__()
+
+        self.initUI()
+
+    def initUI(self):
+        #-------- Widgets -------#
+        #--- Buttons ---#
+        edit_btn                    = QtGui.QPushButton('Edit')
+        import_btn                  = QtGui.QPushButton('Import')
+        reinit_btn                  = QtGui.QPushButton('Reinitialize')
+        display_btn                 = QtGui.QPushButton('Display')
+        cancel_btn                  = QtGui.QPushButton('Cancel')
+        done_btn                    = QtGui.QPushButton('Done')
+
+        #--- Labels ---#
+        cmax_label                  = MyQLabel('Cmax', ha= 'center')
+        cmin_label                  = MyQLabel('Cmin', ha= 'center')
+        property_value_label        = MyQLabel('Value: ', ha= 'right')
+        variance_value_label        = MyQLabel('Value: ', ha= 'right')
+
+        #--- Edits ---#
+        self.cmax_edit              = QtGui.QLineEdit()
+        self.cmin_edit              = QtGui.QLineEdit()
+        self.property_value_edit    = QtGui.QLineEdit()
+        self.variance_value_edit    = QtGui.QLineEdit()
+
+        #--- ComboBox ---#
+        self.property_combo         = QtGui.QComboBox()
+
+        #- Combobox Items -#
+        properties_list             = ['Velocity', 'Attenuation', 'Reservoir', 'Xi', 'Tilt Angle' ]
+        self.property_combo.addItems(properties_list)
+
+        #--- SubWidgets ---#
+        #- Property Value SubWidget -#
+        sub_property_value_widget   = QtGui.QWidget()
+        sub_property_value_grid     = QtGui.QGridLayout()
+        sub_property_value_grid.addWidget(property_value_label, 0, 0)
+        sub_property_value_grid.addWidget(self.property_value_edit, 0, 1)
+        sub_property_value_grid.setContentsMargins(0, 0, 0, 0)
+        sub_property_value_grid.setHorizontalSpacing(0)
+        sub_property_value_widget.setLayout(sub_property_value_grid)
+
+        #- Variance Value SubWidget -#
+        sub_variance_value_widget   = QtGui.QWidget()
+        sub_variance_value_grid     = QtGui.QGridLayout()
+        sub_variance_value_grid.addWidget(variance_value_label, 0, 0)
+        sub_variance_value_grid.addWidget(self.variance_value_edit, 0, 1)
+        sub_variance_value_grid.setContentsMargins(0, 0, 0, 0)
+        sub_variance_value_grid.setHorizontalSpacing(0)
+        sub_variance_value_widget.setLayout(sub_variance_value_grid)
+
+
+        #------- GroupBoxes -------#
+        #--- Constraints GroupBox ---#
+        self.constraintsFig = ConstraintsFig()
+        constraints_group = QtGui.QGroupBox('Constraints')
+        constraints_grid = QtGui.QGridLayout()
+        constraints_grid.addWidget(self.constraintsFig, 0, 0, 8, 1)
+        constraints_grid.addWidget(cmax_label, 0, 1)
+        constraints_grid.addWidget(self.cmax_edit, 1, 1)
+        constraints_grid.addWidget(cmin_label, 6, 1)
+        constraints_grid.addWidget(self.cmin_edit, 7, 1)
+        constraints_grid.setColumnStretch(0, 100)
+        constraints_group.setLayout(constraints_grid)
+        #--- Variance GroupBox ---#
+        variance_group              = QtGui.QGroupBox('Variance')
+        variance_grid               = QtGui.QGridLayout()
+        variance_grid.addWidget(sub_variance_value_widget, 0, 0)
+        variance_grid.addWidget(display_btn, 1, 0)
+        variance_group.setLayout(variance_grid)
+        #--- Property GroupBox ---#
+        property_group              = QtGui.QGroupBox('Property')
+        property_grid               = QtGui.QGridLayout()
+        property_grid.addWidget(self.property_combo, 0, 0)
+        property_grid.addWidget(sub_property_value_widget, 1, 0)
+        property_grid.addWidget(edit_btn, 2, 0)
+        property_grid.addWidget(import_btn, 3, 0)
+        property_grid.addWidget(reinit_btn, 4, 0)
+        property_grid.addWidget(variance_group, 5, 0)
+        property_group.setLayout(property_grid)
+
+
+
+        #------- Master grid's Layout -------#
+        master_grid                 = QtGui.QGridLayout()
+        master_grid.addWidget(constraints_group, 0, 0, 6, 1)
+        master_grid.addWidget(property_group, 0, 1)
+        master_grid.addWidget(cancel_btn, 4, 1)
+        master_grid.addWidget(done_btn, 5, 1)
+        master_grid.setColumnStretch(0, 100)
+        self.setLayout(master_grid)
+
+class ConstraintsFig(FigureCanvasQTAgg):
+    def __init__(self, parent=None):
+        fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
+        super(ConstraintsFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
+        divider = make_axes_locatable(ax)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
 
 
 class  MyQLabel(QtGui.QLabel):
