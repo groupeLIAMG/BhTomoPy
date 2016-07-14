@@ -3,12 +3,11 @@
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="173" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="248" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="859" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="1462" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="868" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="1471" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ModelUI.py" afterPath="$PROJECT_DIR$/ModelUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -43,11 +42,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="1108" column="32" selection-start-line="1108" selection-start-column="32" selection-end-line="1108" selection-end-column="32" />
+            <state vertical-scroll-proportion="0.63548386">
+              <caret line="101" column="16" selection-start-line="101" selection-start-column="16" selection-end-line="101" selection-end-column="16" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -62,6 +61,7 @@
               <caret line="315" column="0" selection-start-line="315" selection-start-column="0" selection-end-line="315" selection-end-column="0" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
+                <marker date="1468528452942" expanded="true" signature="16770:18240" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -97,11 +97,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BoreholeUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="BoreholeUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.67741936">
-              <caret line="22" column="28" selection-start-line="22" selection-start-column="28" selection-end-line="22" selection-end-column="28" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="24" column="48" selection-start-line="24" selection-start-column="48" selection-end-line="24" selection-end-column="48" />
               <folding />
             </state>
           </provider>
@@ -165,8 +165,8 @@
         <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
-        <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/BoreholeUI.py" />
+        <option value="$PROJECT_DIR$/MogUI.py" />
       </list>
     </option>
   </component>
@@ -518,12 +518,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00037" summary="élévation en fonction de la trace choisie fonctionnelle&#10;">
-      <created>1464368365860</created>
-      <option name="number" value="00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1464368365860</updated>
-    </task>
     <task id="LOCAL-00038" summary="Nouvelle fonction search pour le module Spectra">
       <created>1464371668945</created>
       <option name="number" value="00038" />
@@ -812,7 +806,13 @@
       <option name="project" value="LOCAL" />
       <updated>1468525545773</updated>
     </task>
-    <option name="localTasksCounter" value="86" />
+    <task id="LOCAL-00086" summary="changement du signal de Tx et Rx combo afin de ne pas avoir d'erreur lors de l'ajout ou de l'importation de bhs">
+      <created>1468529502530</created>
+      <option name="number" value="00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1468529502530</updated>
+    </task>
+    <option name="localTasksCounter" value="87" />
     <servers />
   </component>
   <component name="TodoView">
@@ -882,7 +882,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="squelette Stats Ampl" />
     <MESSAGE value="squelette Ray Coverage" />
     <MESSAGE value="statsttFig bug fix" />
     <MESSAGE value="squelette prune fini (Ajout d'un modele 3d)" />
@@ -907,7 +906,8 @@
     <MESSAGE value="modelui update" />
     <MESSAGE value="graphiques boreholes et grid view de la classe GridUI fonctionnels" />
     <MESSAGE value="Grid UI dépendant de Model UI pour pouvoir éditer un grid" />
-    <option name="LAST_COMMIT_MESSAGE" value="Grid UI dépendant de Model UI pour pouvoir éditer un grid" />
+    <MESSAGE value="changement du signal de Tx et Rx combo afin de ne pas avoir d'erreur lors de l'ajout ou de l'importation de bhs" />
+    <option name="LAST_COMMIT_MESSAGE" value="changement du signal de Tx et Rx combo afin de ne pas avoir d'erreur lors de l'ajout ou de l'importation de bhs" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1126,7 +1126,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#39#0" expanded="true" />
+            <element signature="e#0#39#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1137,6 +1137,7 @@
           <caret line="315" column="0" selection-start-line="315" selection-start-column="0" selection-end-line="315" selection-end-column="0" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
+            <marker date="1468528452942" expanded="true" signature="16770:18240" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -1151,21 +1152,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MogUI.py">
+    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="1108" column="32" selection-start-line="1108" selection-start-column="32" selection-end-line="1108" selection-end-column="32" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
+          <caret line="24" column="48" selection-start-line="24" selection-start-column="48" selection-end-line="24" selection-end-column="48" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
+    <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.67741936">
-          <caret line="22" column="28" selection-start-line="22" selection-start-column="28" selection-end-line="22" selection-end-column="28" />
-          <folding />
+        <state vertical-scroll-proportion="0.63548386">
+          <caret line="101" column="16" selection-start-line="101" selection-start-column="16" selection-end-line="101" selection-end-column="16" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

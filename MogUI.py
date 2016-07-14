@@ -93,6 +93,15 @@ class MOGUI(QtGui.QWidget):
             self.Rx_Offset_edit.setText(str(mog.data.RxOffset))
             self.Tx_Offset_edit.setText(str(mog.data.TxOffset))
 
+            for i in range(len(self.borehole.boreholes)):
+                if mog.Tx ==1 and mog.Rx ==1 :
+                    pass
+                elif mog.Tx.name == self.borehole.boreholes[i].name:
+                    self.Tx_combo.setCurrentIndex(i)
+
+                elif mog.Rx.name == self.borehole.boreholes[i].name:
+                    self.Rx_combo.setCurrentIndex(i)
+
             self.ntraceSignal.emit(mog.data.ntrace)
             self.databaseSignal.emit(mog.data.name)
 
