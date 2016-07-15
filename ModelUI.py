@@ -54,12 +54,29 @@ class ModelUI(QtGui.QWidget):
             self.model_list.addItem(model.name)
         self.modelInfoSignal.emit(len(self.model_list)) # we send the information to DatabaseUI
 
+    def update_grid_info(self):
+        ndata = 0
+        n_tt_data_picked = 0
+        n_amp_data_picked = 0
+        ind = self.model_list.currentIndex().row()
+
+        for mog in self.models[ind].mogs:
+
+            ndata += mog.data.ntrace
+            n_tt_data_picked += sum(mog.tt_done.astype(int) + mog.in_vect.astype(int))
+            n_amp_data_picked += sum(mog.amp_done.astype(int) + mog.in_vect.astype(int))
+
+        self.grid.gridinfo.num_data_label.setText(str(ndata))
+        self.grid.gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
+        self.grid.gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
+
     def start_grid(self):
         self.grid.showMaximized()
         self.grid.plot_boreholes()
         self.grid.update_bh_origin()
         self.grid.update_origin()
         self.grid.plot_grid_view()
+        self.update_grid_info()
 
     def initUI(self):
 
@@ -160,6 +177,7 @@ class gridUI(QtGui.QWidget):
         self.origin_x_edit.setText(str(self.boreholes[ind].X))
         self.origin_y_edit.setText(str(self.boreholes[ind].Y))
         self.origin_z_edit.setText(str(self.boreholes[ind].Z))
+
 
 
     def initUI(self):

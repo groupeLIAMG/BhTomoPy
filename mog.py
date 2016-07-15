@@ -51,10 +51,10 @@ class AirShots:
 
 
 class Mog:
-    def __init__(self, name= ''):
+    def __init__(self, name= '', data= ''):
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
-        self.data                     = MogData()     # Instance of Mogdata
+        self.data                     = data          # Instance of Mogdata
         self.av                       = np.array([])  # Air shot before
         self.ap                       = np.array([])  # Airshot after
         self.Tx                       = 1
@@ -79,11 +79,13 @@ class Mog:
         self.TxCosDir                 = np.array([])
         self.RxCosDir                 = np.array([])
         self.ID                       = Mog.getID()
-
+        self.in_Rx_vect           = np.ones(self.data.ntrace, dtype= bool)
+        self.in_Tx_vect           = np.ones(self.data.ntrace, dtype= bool)
+        self.in_vect              = np.ones(self.data.ntrace, dtype= bool)
         self.date                     = self.data.date
-        self.tt                       = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.et                       = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tt_done                  = np.zeros((1, self.data.ntrace), dtype = bool)
+        self.tt                       = -1*np.ones(self.data.ntrace, dtype= float)
+        self.et                       = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tt_done                  = np.zeros(self.data.ntrace, dtype = bool)
 
         if self.data.tdata == None:
             self.ttTx                 = np.array([])
@@ -92,24 +94,22 @@ class Mog:
             self.ttTx                 = np.zeros(self.data.ntrace)
             self.ttTx_done            = np.zeros(self.data.ntrace, dtype= bool)
 
-        self.amp_tmin             = -1*np.ones((1,self.data.ntrace), dtype= float)   # à Définir avec Bernard
-        self.amp_tmax             = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.amp_done             = np.zeros((1,self.data.ntrace), dtype= bool)
-        self.App                  = np.zeros((1,self.data.ntrace), dtype= float)
-        self.fcentroid            = np.zeros((1,self.data.ntrace), dtype= float)
-        self.scentroid            = np.zeros((1,self.data.ntrace), dtype= float)
-        self.tau_App              = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tauApp_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tauFce               = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tauFce_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tauHyb               = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
-        self.tauHyb_et            = -1*np.ones((1,self.data.ntrace), dtype= float)
+        self.amp_tmin             = -1*np.ones(self.data.ntrace, dtype= float)   # à Définir avec Bernard
+        self.amp_tmax             = -1*np.ones(self.data.ntrace, dtype= float)
+        self.amp_done             = np.zeros(self.data.ntrace, dtype= bool)
+        self.App                  = np.zeros(self.data.ntrace, dtype= float)
+        self.fcentroid            = np.zeros(self.data.ntrace, dtype= float)
+        self.scentroid            = np.zeros(self.data.ntrace, dtype= float)
+        self.tau_App              = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauApp_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauFce               = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauFce_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauHyb               = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype= float)
         self.Tx_z_orig            = self.data.Tx_z
         self.Rx_z_orig            = self.data.Rx_z
-        self.in_Rx_vect           = np.ones(self.data.ntrace, dtype= bool)
-        self.in_Tx_vect           = np.ones(self.data.ntrace, dtype= bool)
-        self.in_vect              = np.ones(self.data.ntrace, dtype= bool)
+
         self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
 

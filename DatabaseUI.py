@@ -193,6 +193,7 @@ if __name__ == '__main__':
     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
     Database_ui.model.load_model("t0302's model")
 
     Database_ui.show()
