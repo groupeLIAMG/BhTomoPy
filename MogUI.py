@@ -698,7 +698,7 @@ class MOGUI(QtGui.QWidget):
         self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
 
     def start_merge(self):
-        self.mergemog = MergeMog()
+        self.mergemog = MergeMog(self)
 
         if len(self.MOG_list) == 0:
             dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG in Database",buttons= QtGui.QMessageBox.Ok )
@@ -709,6 +709,8 @@ class MOGUI(QtGui.QWidget):
 
         for mog in self.MOGs:
             self.mergemog.ref_combo.addItem(str(mog.name))
+
+        self.mergemog.getcompat()
         self.mergemog.show()
 
     def start_delta_t(self):
@@ -717,13 +719,6 @@ class MOGUI(QtGui.QWidget):
             self.deltat.min_combo.addItem(str(mog.name))
         self.deltat.getcompat()
         self.deltat.show()
-
-
-
-
-
-
-
 
 
     def initUI(self):
@@ -1572,67 +1567,112 @@ class MergeMog(QtGui.QWidget):
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, mog, parent=None):
         super(MergeMog, self).__init__()
         self.setWindowTitle("Merge MOGs")
+        self.mog = mog
         self.initUI()
 
-    def getCompat(self):
-        for refmog in self.mog_list:
-            for comparing_mog in self.mog_list:
-                if refmog != comparing_mog:
-                    test1 = (np.all(refmog.Tx == comparing_mog.Tx) and np.all(refmog.Rx == comparing_mog.Rx))
-                    test2 = (np.all(refmog.data.TxOffset == comparing_mog.data.TxOffset)
-                             and np.all(refmog.data.RxOffset == comparing_mog.data.RxOffset))
-                    test3 = refmog.type = comparing_mog.type
-                    test4 = False
-                    test5 = False
+    def getcompat(self):
+        char1 = lookup("RIGHTWARDS ARROW")
+        self.comp_list.clear()
+        n = self.ref_combo.currentIndex()
+        ref_mog = self.mog.MOGs[n]
+        ids = []
+        nc = 0
+        if n == len(self.mog.MOGs):
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+            return
+        for mog in self.mog.MOGs:
+            if mog != ref_mog:
+                test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
+                test2 = False
+                test3 = False
 
-                if refmog.av == comparing_mog.av:
-                    test4 = True
-                if refmog.ap == comparing_mog.av:
-                    test5 = True
+                if len(ref_mog.av) == 0 and len(mog.av) == 0:
+                    test2 = True
+                elif ref_mog.av == mog.av:
+                    test2 = True
+                if len(ref_mog.ap) == 0 and len(mog.ap) == 0:
+                    test3 = True
+                elif ref_mog.ap == mog.ap:
+                    test3 = True
+                test4 = ref_mog.data.TxOffset == mog.data.TxOffset and ref_mog.data.RxOffset == mog.data.RxOffset
+                test5 = ref_mog.type == mog.type
 
                 if test1 and test2 and test3 and test4 and test5:
-                    self.comp_list.addItem((refmog.name, comparing_mog.name))
+                    nc += 1
+                    self.comp_list.addItem("{}".format( mog.name))
+                    ids.append(mog.ID)
+
+            else:
+                pass
+        if nc == 0 :
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+
+
     def doMerge(self):
-    #TODO: vérifications matlab(lignes 160 à 177)
-        new_mog = Mog(self.new_edit.text())
 
         num = self.ref_combo.currentIndex()
-        ref_mog = self.mog_list[num]
-        new_mog.data = ref_mog.data
-        newMog.av = refMog.av
-        newMog.ap = refMog.ap
-        newMog.Tx = refMog.Tx
-        newMog.Rx = refMog.Rx
-        newMog.f_et = refMog.f_et
-        newMog.type = refMog.type
-        newMog.fac_dt = refMog.fac_dt
-        newMog.user_fac_dt = refMog.user_fac_dt
-        newMog.fw = refMog.fw
-        newMog.tt = refMog.tt
-        newMog.et = refMog.et
-        newMog.tt_done = refMog.tt_done
-        newMog.ttTx = refMog.ttTx
-        newMog.ttTx_done = refMog.ttTx_done
-        newMog.amp_tmin = refMog.amp_tmin
-        newMog.amp_tmax = refMog.amp_tmax
-        newMog.amp_done = refMog.amp_done
-        newMog.App = refMog.App
-        newMog.fcentroid = refMog.fcentroid
-        newMog.scentroid = refMog.scentroid
-        newMog.tauApp = refMog.tauApp
-        newMog.tauApp_et = refMog.tauApp_et
-        newMog.tauFce = refMog.tauFce
-        newMog.tauFce_et = refMog.tauFce_et
-        newMog.tauHyb = refMog.tauHyb
-        newMog.tauHyb_et = refMog.tauHyb_et
-        newMog.Tx_z_orig = refMog.Tx_z_orig
-        newMog.Rx_z_orig = refMog.Rx_z_orig
-        newMog.in_vect = refMog.in_vect
-        newMog.in_Tx_vect = refMog.in_Tx_vect
-        newMog.in_Rx_vect = refMog.in_Rx_vect
+        merge_name = self.comp_list.currentItem().text()
+
+
+        for i in range(len(self.mog.MOGs)):
+            if self.mog.MOGs[i].name == merge_name:
+                merging_mog = self.mog.MOGs[i]
+                merge_ind = i
+
+        refMog = self.mog.MOGs[num]
+        newMog = Mog(self.new_edit.text(), refMog.data)
+
+        newMog.av           = np.array([refMog.av, merging_mog.av])
+        newMog.ap           = np.array([refMog.ap, merging_mog.ap])
+        newMog.Tx           = refMog.Tx
+        newMog.Rx           = refMog.Rx
+        newMog.f_et         = np.array([refMog.f_et, merging_mog.f_et])
+        newMog.type         = np.array([refMog.type, merging_mog.type])
+        newMog.fac_dt       = np.array([refMog.fac_dt, merging_mog.fac_dt])
+        newMog.user_fac_dt  = np.array([refMog.user_fac_dt, merging_mog.user_fac_dt])
+        newMog.fw           = np.array([refMog.fw, merging_mog.fw])
+        newMog.tt           = np.array([refMog.tt, merging_mog.tt])
+        newMog.et           = np.array([refMog.et, merging_mog.et])
+        newMog.tt_done      = np.array([refMog.tt_done, merging_mog.tt_done])
+        newMog.ttTx         = np.array([refMog.ttTx, merging_mog.ttTx])
+        newMog.ttTx_done    = np.array([refMog.ttTx_done, merging_mog.ttTx_done])
+        newMog.amp_tmin     = np.array([refMog.amp_tmin, merging_mog.amp_tmin])
+        newMog.amp_tmax     = np.array([refMog.amp_tmax, merging_mog.amp_tmax])
+        newMog.amp_done     = np.array([refMog.amp_done, merging_mog.amp_done])
+        newMog.App          = np.array([refMog.App, merging_mog.App])
+        newMog.fcentroid    = np.array([refMog.fcentroid, merging_mog.fcentroid])
+        newMog.scentroid    = np.array([refMog.scentroid, merging_mog.scentroid])
+        newMog.tauApp       = np.array([refMog.tauApp, merging_mog.tauApp])
+        newMog.tauApp_et    = np.array([refMog.tauApp_et, merging_mog.tauApp_et])
+        newMog.tauFce       = np.array([refMog.tauFce, merging_mog.tauFce])
+        newMog.tauFce_et    = np.array([refMog.tauFce_et, merging_mog.tauFce_et])
+        newMog.tauHyb       = np.array([refMog.tauHyb, merging_mog.tauHyb])
+        newMog.tauHyb_et    = np.array([refMog.tauHyb_et, merging_mog.tauHyb_et])
+        newMog.Tx_z_orig    = np.array([refMog.Tx_z_orig, merging_mog.Tx_z_orig])
+        newMog.Rx_z_orig    = np.array([refMog.Rx_z_orig, merging_mog.Rx_z_orig])
+        newMog.in_vect      = np.array([refMog.in_vect, merging_mog.in_vect])
+        newMog.in_Tx_vect   = np.array([refMog.in_Tx_vect, merging_mog.in_Tx_vect])
+        newMog.in_Rx_vect   = np.array([refMog.in_Rx_vect, merging_mog.in_Rx_vect])
+
+
+        if self.erase_check.isChecked() == True :
+            self.mog.MOGs.remove(refMog)
+            self.mog.MOGs.remove(merging_mog)
+            self.mog.MOGs.append(newMog)
+            self.mog.update_List_Widget()
+            self.close()
+
+        elif self.erase_check.isChecked() == False:
+            self.mog.MOGs.append(newMog)
+            self.mog.update_List_Widget()
+            self.close()
+
+
+
+
 
 
     def initUI(self):
@@ -1661,7 +1701,7 @@ class MergeMog(QtGui.QWidget):
         self.btn_merge = QtGui.QPushButton('Merge')
 
         #- Buttons Actions -#
-
+        self.btn_merge.clicked.connect(self.doMerge)
 
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()

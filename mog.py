@@ -51,7 +51,7 @@ class AirShots:
 
 
 class Mog:
-    def __init__(self, name= '', data= ''):
+    def __init__(self, name= '', data= MogData()):
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
         self.data                     = data          # Instance of Mogdata
@@ -87,7 +87,7 @@ class Mog:
         self.et                       = -1*np.ones(self.data.ntrace, dtype= float)
         self.tt_done                  = np.zeros(self.data.ntrace, dtype = bool)
 
-        if self.data.tdata == None:
+        if np.all(self.data.tdata == 0):
             self.ttTx                 = np.array([])
             self.ttTx_done            = np.array([])
         else:
@@ -100,7 +100,7 @@ class Mog:
         self.App                  = np.zeros(self.data.ntrace, dtype= float)
         self.fcentroid            = np.zeros(self.data.ntrace, dtype= float)
         self.scentroid            = np.zeros(self.data.ntrace, dtype= float)
-        self.tau_App              = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauApp              = -1*np.ones(self.data.ntrace, dtype= float)
         self.tauApp_et            = -1*np.ones(self.data.ntrace, dtype= float)
         self.tauFce               = -1*np.ones(self.data.ntrace, dtype= float)
         self.tauFce_et            = -1*np.ones(self.data.ntrace, dtype= float)
