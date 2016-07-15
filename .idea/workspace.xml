@@ -9,7 +9,6 @@
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -46,8 +45,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.44817072">
-              <caret line="1662" column="44" selection-start-line="1662" selection-start-column="44" selection-end-line="1662" selection-end-column="44" />
+            <state vertical-scroll-proportion="-24.789635">
+              <caret line="158" column="29" selection-start-line="158" selection-start-column="29" selection-end-line="158" selection-end-column="29" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -491,12 +490,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00040" summary="amélioration fonction search">
-      <created>1464611575031</created>
-      <option name="number" value="00040" />
-      <option name="project" value="LOCAL" />
-      <updated>1464611575031</updated>
-    </task>
     <task id="LOCAL-00041" summary="Début de la fonction spectra et intégralité de BoreholeUI commenté">
       <created>1464621093704</created>
       <option name="number" value="00041" />
@@ -785,7 +778,13 @@
       <option name="project" value="LOCAL" />
       <updated>1468604521562</updated>
     </task>
-    <option name="localTasksCounter" value="89" />
+    <task id="LOCAL-00089" summary="Merge Mog fonctionnel">
+      <created>1468610203191</created>
+      <option name="number" value="00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1468610203191</updated>
+    </task>
+    <option name="localTasksCounter" value="90" />
     <servers />
   </component>
   <component name="TodoView">
@@ -855,7 +854,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="squelette prune fini (Ajout d'un modele 3d)" />
     <MESSAGE value="ajout axes dans pruneFig" />
     <MESSAGE value="ajout démo dans prune" />
     <MESSAGE value="ien entre skip Tx, skip Rx et le pruneFig fonctionnel" />
@@ -880,17 +878,11 @@
     <MESSAGE value="changement du signal de Tx et Rx combo afin de ne pas avoir d'erreur lors de l'ajout ou de l'importation de bhs" />
     <MESSAGE value="update du lien entre les mogs et Tx/Rx combo" />
     <MESSAGE value="création de delta t mog et fonction getcompat fonctionelle" />
-    <option name="LAST_COMMIT_MESSAGE" value="création de delta t mog et fonction getcompat fonctionelle" />
+    <MESSAGE value="Merge Mog fonctionnel" />
+    <option name="LAST_COMMIT_MESSAGE" value="Merge Mog fonctionnel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/MogUI.py</url>
-          <line>1613</line>
-          <option name="timeStamp" value="51" />
-        </line-breakpoint>
-      </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -1141,8 +1133,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.44817072">
-          <caret line="1662" column="44" selection-start-line="1662" selection-start-column="44" selection-end-line="1662" selection-end-column="44" />
+        <state vertical-scroll-proportion="-24.789635">
+          <caret line="158" column="29" selection-start-line="158" selection-start-column="29" selection-end-line="158" selection-end-column="29" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>

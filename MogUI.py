@@ -1615,6 +1615,12 @@ class MergeMog(QtGui.QWidget):
 
         num = self.ref_combo.currentIndex()
         merge_name = self.comp_list.currentItem().text()
+        if len(self.comp_list) == 0:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+        if merge_name == None:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG selected for merging",buttons= QtGui.QMessageBox.Ok)
+        if self.new_edit.text() == None:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "Please enter a name for the new MOG",buttons= QtGui.QMessageBox.Ok)
 
 
         for i in range(len(self.mog.MOGs)):
@@ -1659,11 +1665,19 @@ class MergeMog(QtGui.QWidget):
 
 
         if self.erase_check.isChecked() == True :
-            self.mog.MOGs.remove(refMog)
-            self.mog.MOGs.remove(merging_mog)
-            self.mog.MOGs.append(newMog)
-            self.mog.update_List_Widget()
-            self.close()
+            dialog = QtGui.QMessageBox()
+            dialog.setText("following MOGs will be erased : {} {}".format(refMog.name, merging_mog.name))
+            dialog.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            dialog.setIcon(QtGui.QMessageBox.Warning)
+            ret = dialog.exec_()
+
+            if ret == QtGui.QMessageBox.Ok:
+                self.mog.MOGs.remove(refMog)
+                self.mog.MOGs.remove(merging_mog)
+                self.mog.MOGs.append(newMog)
+                self.mog.update_List_Widget()
+                self.close()
+
 
         elif self.erase_check.isChecked() == False:
             self.mog.MOGs.append(newMog)
@@ -1702,6 +1716,7 @@ class MergeMog(QtGui.QWidget):
 
         #- Buttons Actions -#
         self.btn_merge.clicked.connect(self.doMerge)
+        self.btn_cancel.clicked.connect(self.close)
 
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()
