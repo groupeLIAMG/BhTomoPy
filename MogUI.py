@@ -5,6 +5,7 @@ from PyQt4 import QtGui, QtCore
 from MogData import MogData
 from mog import Mog, AirShots
 from database import Database
+from ModelUI import gridUI
 from unicodedata import *
 import matplotlib as mpl
 import scipy as spy
@@ -426,7 +427,9 @@ class MOGUI(QtGui.QWidget):
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
-        #self.Rx_combo.setCurrentIndex(len(self.borehole.broeholes))
+
+
+
 
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
@@ -711,14 +714,15 @@ class MOGUI(QtGui.QWidget):
             self.mergemog.ref_combo.addItem(str(mog.name))
 
         self.mergemog.getcompat()
-        self.mergemog.show()
+
+
 
     def start_delta_t(self):
         self.deltat = DeltaTMOG(self)
         for mog in self.MOGs:
             self.deltat.min_combo.addItem(str(mog.name))
         self.deltat.getcompat()
-        self.deltat.show()
+
 
 
     def initUI(self):
@@ -1574,7 +1578,6 @@ class MergeMog(QtGui.QWidget):
         self.initUI()
 
     def getcompat(self):
-        char1 = lookup("RIGHTWARDS ARROW")
         self.comp_list.clear()
         n = self.ref_combo.currentIndex()
         ref_mog = self.mog.MOGs[n]
@@ -1605,18 +1608,21 @@ class MergeMog(QtGui.QWidget):
                     self.comp_list.addItem("{}".format( mog.name))
                     ids.append(mog.ID)
 
-            else:
-                pass
+
         if nc == 0 :
             dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
 
+        else:
+            self.show()
 
     def doMerge(self):
 
         num = self.ref_combo.currentIndex()
         merge_name = self.comp_list.currentItem().text()
         if len(self.comp_list) == 0:
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+            self.dialog.setText("No compatible MOG found")
+            self.dialog.setStandardButtons(QtGui.QMessageBox.Ok)
+            self.dialog.setIcon(QtGui.QMessageBox.Warning)
         if merge_name == None:
             dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG selected for merging",buttons= QtGui.QMessageBox.Ok)
         if self.new_edit.text() == None:
@@ -1665,11 +1671,11 @@ class MergeMog(QtGui.QWidget):
 
 
         if self.erase_check.isChecked() == True :
-            dialog = QtGui.QMessageBox()
-            dialog.setText("following MOGs will be erased : {} {}".format(refMog.name, merging_mog.name))
-            dialog.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-            dialog.setIcon(QtGui.QMessageBox.Warning)
-            ret = dialog.exec_()
+
+            self.dialog.setText("following MOGs will be erased : {} {}".format(refMog.name, merging_mog.name))
+            self.dialog.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            self.dialog.setIcon(QtGui.QMessageBox.Warning)
+            ret = self.dialog.exec_()
 
             if ret == QtGui.QMessageBox.Ok:
                 self.mog.MOGs.remove(refMog)
@@ -1704,8 +1710,11 @@ class MergeMog(QtGui.QWidget):
         #--- List ---#
         self.comp_list = QtGui.QListWidget()
 
-        #--- Combobox ---#
+        #--- ComboBox ---#
         self.ref_combo = QtGui.QComboBox()
+
+        #--- ComboBoxes Actions ---#
+        self.ref_combo.activated.connect(self.getcompat)
 
         #--- Checkbox ---#
         self.erase_check = QtGui.QCheckBox('Erase MOGs after merge')
@@ -1717,6 +1726,9 @@ class MergeMog(QtGui.QWidget):
         #- Buttons Actions -#
         self.btn_merge.clicked.connect(self.doMerge)
         self.btn_cancel.clicked.connect(self.close)
+
+        #--- MessageBox ---#
+        self.dialog = QtGui.QMessageBox()
 
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()
@@ -1775,6 +1787,9 @@ class DeltaTMOG(QtGui.QWidget):
                 pass
         if nc == 0 :
             dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+
+        else:
+            self.show()
 
     def initUI(self):
         #------- Widgets -------#

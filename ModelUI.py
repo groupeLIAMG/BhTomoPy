@@ -43,6 +43,7 @@ class ModelUI(QtGui.QWidget):
         ind = self.mog.MOG_list.currentIndex().row()
         n = self.model_list.currentIndex().row()
         self.load_mog(ind, n)
+
     def load_mog(self, ind, n):
         self.model_mog_list.addItem(self.mog.MOGs[ind].name)
         self.models[n].mogs.append(self.mog.MOGs[ind])
@@ -94,8 +95,6 @@ class ModelUI(QtGui.QWidget):
         btn_Remove_Model.clicked.connect(self.del_model)
         btn_Add_MOG.clicked.connect(self.add_mog)
         btn_Edit_Grid.clicked.connect(self.start_grid)
-
-
 
         #--- Lists ---#
         self.model_mog_list              = QtGui.QListWidget()
@@ -166,9 +165,19 @@ class gridUI(QtGui.QWidget):
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
+        Tx_output = set()
+        Rx_output = set()
         for n in range(len(self.MOGs)):
-            self.borehole_combo.addItem(self.MOGs[n].Tx.name)
-            self.borehole_combo.addItem(self.MOGs[n].Rx.name)
+            Tx_output.add(self.MOGs[n].Tx.name)
+            Rx_output.add(self.MOGs[n].Rx.name)
+
+        Tx_output = list(Tx_output)
+        Rx_output = list(Rx_output)
+        for Tx in Tx_output:
+            self.borehole_combo.addItem(Tx)
+        for Rx in Rx_output:
+            self.borehole_combo.addItem(Rx)
+
 
 
     def update_origin(self):
