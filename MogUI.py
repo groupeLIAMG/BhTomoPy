@@ -5,6 +5,7 @@ from PyQt4 import QtGui, QtCore
 from MogData import MogData
 from mog import Mog, AirShots
 from database import Database
+from ModelUI import gridUI
 from unicodedata import *
 import matplotlib as mpl
 import scipy as spy
@@ -28,13 +29,11 @@ class MOGUI(QtGui.QWidget):
         self.MOGs = []
         self.air = []
         self.borehole = borehole
-        self.mergemog = MergeMog(self.MOGs)
         self.data_rep = ''
         self.initUI()
 
 
-    def update_merge_combo(self, list_mog):
-        self.mergemog.update_combo(list_mog)
+
 
     def add_MOG(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open File')
@@ -62,10 +61,11 @@ class MOGUI(QtGui.QWidget):
             self.data_rep = self.data_rep + rep + '/'
         self.data_rep = self.data_rep[:-1]
 
-        mog = Mog(rname)
+        mogdata = MogData(rname)
+        mogdata.readRAMAC(basename)
+        mog = Mog(rname, mogdata)
         self.MOGs.append(mog)
         self.update_List_Widget()
-        mog.data.readRAMAC(basename)
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
         self.update_spectra_Tx_num_list()
         self.update_spectra_Tx_elev_value_label()
@@ -92,6 +92,15 @@ class MOGUI(QtGui.QWidget):
             self.Nominal_Frequency_edit.setText(str(mog.data.rnomfreq))
             self.Rx_Offset_edit.setText(str(mog.data.RxOffset))
             self.Tx_Offset_edit.setText(str(mog.data.TxOffset))
+
+            for i in range(len(self.borehole.boreholes)):
+                if mog.Tx ==1 and mog.Rx ==1 :
+                    pass
+                elif mog.Tx.name == self.borehole.boreholes[i].name:
+                    self.Tx_combo.setCurrentIndex(i)
+
+                elif mog.Rx.name == self.borehole.boreholes[i].name:
+                    self.Rx_combo.setCurrentIndex(i)
 
             self.ntraceSignal.emit(mog.data.ntrace)
             self.databaseSignal.emit(mog.data.name)
@@ -409,7 +418,7 @@ class MOGUI(QtGui.QWidget):
         for mog in self.MOGs:
             self.MOG_list.addItem(mog.name)
         self.mogInfoSignal.emit(len(self.MOG_list))
-        self.update_merge_combo(self.MOGs)
+
 
     def update_Tx_and_Rx_Widget(self, liste):
         self.Tx_combo.clear()
@@ -418,7 +427,9 @@ class MOGUI(QtGui.QWidget):
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
-        #self.Rx_combo.setCurrentIndex(len(self.borehole.broeholes))
+
+
+
 
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
@@ -689,10 +700,35 @@ class MOGUI(QtGui.QWidget):
         self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
         self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
 
+    def start_merge(self):
+        self.mergemog = MergeMog(self)
+
+        if len(self.MOG_list) == 0:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG in Database",buttons= QtGui.QMessageBox.Ok )
+            return
+        if len(self.MOG_list) == 1:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "Only 1 MOG in Database",buttons= QtGui.QMessageBox.Ok)
+            return
+
+        for mog in self.MOGs:
+            self.mergemog.ref_combo.addItem(str(mog.name))
+
+        self.mergemog.getcompat()
+
+
+
+    def start_delta_t(self):
+        self.deltat = DeltaTMOG(self)
+        for mog in self.MOGs:
+            self.deltat.min_combo.addItem(str(mog.name))
+        self.deltat.getcompat()
+
+
 
     def initUI(self):
 
         char1 = lookup("GREEK SMALL LETTER TAU")
+        char2 = lookup("GREEK CAPITAL LETTER DELTA")
         #--- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
             def __init__(self, label, ha='left',  parent=None):
@@ -1090,6 +1126,7 @@ class MOGUI(QtGui.QWidget):
         btn_Export_tt               = QtGui.QPushButton("Export tt")
         btn_export_tau              = QtGui.QPushButton("Export {}".format(char1))
         btn_Prune                   = QtGui.QPushButton("Prune")
+        btn_delta_t_mog             = QtGui.QPushButton(" Create {}t MOG".format(char2))
 
 
         #--- List ---#
@@ -1107,8 +1144,8 @@ class MOGUI(QtGui.QWidget):
         self.Type_combo.addItem(" VSP/VRP ")
 
         #- ComboBoxes Actions -#
-        self.Tx_combo.currentIndexChanged.connect(self.updateCoords)
-        self.Rx_combo.currentIndexChanged.connect(self.updateCoords)
+        self.Tx_combo.activated.connect(self.updateCoords)
+        self.Rx_combo.activated.connect(self.updateCoords)
 
         #--- Checkbox ---#
         Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")
@@ -1144,7 +1181,7 @@ class MOGUI(QtGui.QWidget):
         btn_Raw_Data.clicked.connect(self.plot_rawdata)
         btn_Spectra.clicked.connect(self.plot_spectra)
         btn_Air_Shot_Before.clicked.connect(self.airBefore)
-        btn_Merge.clicked.connect(self.mergemog.show)
+        btn_Merge.clicked.connect(self.start_merge)
         btn_Trace_ZOP.clicked.connect(self.plot_zop)
         btn_Stats_tt.clicked.connect(self.plot_statstt)
         btn_Stats_Ampl.clicked.connect(self.plot_statsamp)
@@ -1152,6 +1189,7 @@ class MOGUI(QtGui.QWidget):
         btn_Export_tt.clicked.connect(self.export_tt)
         btn_export_tau.clicked.connect(self.export_tau)
         btn_Prune.clicked.connect(self.plot_prune)
+        btn_delta_t_mog.clicked.connect(self.start_delta_t)
         #--- Sub Widgets ---#
 
         #- Sub AirShots Widget-#
@@ -1203,6 +1241,7 @@ class MOGUI(QtGui.QWidget):
         sub_right_buttons_Grid.addWidget(btn_Export_tt, 4, 1)
         sub_right_buttons_Grid.addWidget(btn_export_tau, 4, 2)
         sub_right_buttons_Grid.addWidget(btn_Prune, 4, 3)
+        sub_right_buttons_Grid.addWidget(btn_delta_t_mog, 5, 2)
         sub_right_buttons_Grid.setVerticalSpacing(0)
         sub_right_buttons_Grid.setHorizontalSpacing(0)
         sub_right_buttons_Grid.setRowStretch(0, 100)
@@ -1532,94 +1571,133 @@ class MergeMog(QtGui.QWidget):
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
 
-    def __init__(self, mog_list, parent=None):
+    def __init__(self, mog, parent=None):
         super(MergeMog, self).__init__()
         self.setWindowTitle("Merge MOGs")
+        self.mog = mog
         self.initUI()
-        self.mog_list = mog_list
 
-    def merge_mogs(self):
-        if len(self.mog_list) == 0:
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG in Database",
-                                                       buttons= QtGui.QMessageBox.Ok )
-        if len(self.mog_list) == 1:
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "Only 1 MOG in Database",
-                                                        buttons= QtGui.QMessageBox.Ok)
+    def getcompat(self):
+        self.comp_list.clear()
+        n = self.ref_combo.currentIndex()
+        ref_mog = self.mog.MOGs[n]
+        ids = []
+        nc = 0
+        if n == len(self.mog.MOGs):
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+            return
+        for mog in self.mog.MOGs:
+            if mog != ref_mog:
+                test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
+                test2 = False
+                test3 = False
 
-    def getCompat(self):
-        for refmog in self.mog_list:
-            for comparing_mog in self.mog_list:
-                if refmog != comparing_mog:
-                    test1 = (np.all(refmog.Tx == comparing_mog.Tx) and np.all(refmog.Rx == comparing_mog.Rx))
-                    test2 = (np.all(refmog.data.TxOffset == comparing_mog.data.TxOffset)
-                             and np.all(refmog.data.RxOffset == comparing_mog.data.RxOffset))
-                    test3 = refmog.type = comparing_mog.type
-                    test4 = False
-                    test5 = False
-
-                if refmog.av == comparing_mog.av:
-                    test4 = True
-                if refmog.ap == comparing_mog.av:
-                    test5 = True
+                if len(ref_mog.av) == 0 and len(mog.av) == 0:
+                    test2 = True
+                elif ref_mog.av == mog.av:
+                    test2 = True
+                if len(ref_mog.ap) == 0 and len(mog.ap) == 0:
+                    test3 = True
+                elif ref_mog.ap == mog.ap:
+                    test3 = True
+                test4 = ref_mog.data.TxOffset == mog.data.TxOffset and ref_mog.data.RxOffset == mog.data.RxOffset
+                test5 = ref_mog.type == mog.type
 
                 if test1 and test2 and test3 and test4 and test5:
-                    self.comp_list.addItem((refmog.name, comparing_mog.name))
+                    nc += 1
+                    self.comp_list.addItem("{}".format( mog.name))
+                    ids.append(mog.ID)
+
+
+        if nc == 0 :
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+
+        else:
+            self.show()
+
     def doMerge(self):
-    #TODO: vérifications matlab(lignes 160 à 177)
-        new_mog = Mog(self.new_edit.text())
 
         num = self.ref_combo.currentIndex()
-        ref_mog = self.mog_list[num]
-        new_mog.data = ref_mog.data
-        newMog.av = refMog.av
-        newMog.ap = refMog.ap
-        newMog.Tx = refMog.Tx
-        newMog.Rx = refMog.Rx
-        newMog.f_et = refMog.f_et
-        newMog.type = refMog.type
-        newMog.fac_dt = refMog.fac_dt
-        newMog.user_fac_dt = refMog.user_fac_dt
-        newMog.fw = refMog.fw
-        newMog.tt = refMog.tt
-        newMog.et = refMog.et
-        newMog.tt_done = refMog.tt_done
-        newMog.ttTx = refMog.ttTx
-        newMog.ttTx_done = refMog.ttTx_done
-        newMog.amp_tmin = refMog.amp_tmin
-        newMog.amp_tmax = refMog.amp_tmax
-        newMog.amp_done = refMog.amp_done
-        newMog.App = refMog.App
-        newMog.fcentroid = refMog.fcentroid
-        newMog.scentroid = refMog.scentroid
-        newMog.tauApp = refMog.tauApp
-        newMog.tauApp_et = refMog.tauApp_et
-        newMog.tauFce = refMog.tauFce
-        newMog.tauFce_et = refMog.tauFce_et
-        newMog.tauHyb = refMog.tauHyb
-        newMog.tauHyb_et = refMog.tauHyb_et
-        newMog.Tx_z_orig = refMog.Tx_z_orig
-        newMog.Rx_z_orig = refMog.Rx_z_orig
-        newMog.in_vect = refMog.in_vect
-        newMog.in_Tx_vect = refMog.in_Tx_vect
-        newMog.in_Rx_vect = refMog.in_Rx_vect
+        merge_name = self.comp_list.currentItem().text()
+        if len(self.comp_list) == 0:
+            self.dialog.setText("No compatible MOG found")
+            self.dialog.setStandardButtons(QtGui.QMessageBox.Ok)
+            self.dialog.setIcon(QtGui.QMessageBox.Warning)
+        if merge_name == None:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG selected for merging",buttons= QtGui.QMessageBox.Ok)
+        if self.new_edit.text() == None:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "Please enter a name for the new MOG",buttons= QtGui.QMessageBox.Ok)
 
-    def update_combo(self, mog_list):
-        self.ref_combo.clear()
-        for mog in mog_list:
-            self.ref_combo.addItem(mog.name)
+
+        for i in range(len(self.mog.MOGs)):
+            if self.mog.MOGs[i].name == merge_name:
+                merging_mog = self.mog.MOGs[i]
+                merge_ind = i
+
+        refMog = self.mog.MOGs[num]
+        newMog = Mog(self.new_edit.text(), refMog.data)
+
+        newMog.av           = np.array([refMog.av, merging_mog.av])
+        newMog.ap           = np.array([refMog.ap, merging_mog.ap])
+        newMog.Tx           = refMog.Tx
+        newMog.Rx           = refMog.Rx
+        newMog.f_et         = np.array([refMog.f_et, merging_mog.f_et])
+        newMog.type         = np.array([refMog.type, merging_mog.type])
+        newMog.fac_dt       = np.array([refMog.fac_dt, merging_mog.fac_dt])
+        newMog.user_fac_dt  = np.array([refMog.user_fac_dt, merging_mog.user_fac_dt])
+        newMog.fw           = np.array([refMog.fw, merging_mog.fw])
+        newMog.tt           = np.array([refMog.tt, merging_mog.tt])
+        newMog.et           = np.array([refMog.et, merging_mog.et])
+        newMog.tt_done      = np.array([refMog.tt_done, merging_mog.tt_done])
+        newMog.ttTx         = np.array([refMog.ttTx, merging_mog.ttTx])
+        newMog.ttTx_done    = np.array([refMog.ttTx_done, merging_mog.ttTx_done])
+        newMog.amp_tmin     = np.array([refMog.amp_tmin, merging_mog.amp_tmin])
+        newMog.amp_tmax     = np.array([refMog.amp_tmax, merging_mog.amp_tmax])
+        newMog.amp_done     = np.array([refMog.amp_done, merging_mog.amp_done])
+        newMog.App          = np.array([refMog.App, merging_mog.App])
+        newMog.fcentroid    = np.array([refMog.fcentroid, merging_mog.fcentroid])
+        newMog.scentroid    = np.array([refMog.scentroid, merging_mog.scentroid])
+        newMog.tauApp       = np.array([refMog.tauApp, merging_mog.tauApp])
+        newMog.tauApp_et    = np.array([refMog.tauApp_et, merging_mog.tauApp_et])
+        newMog.tauFce       = np.array([refMog.tauFce, merging_mog.tauFce])
+        newMog.tauFce_et    = np.array([refMog.tauFce_et, merging_mog.tauFce_et])
+        newMog.tauHyb       = np.array([refMog.tauHyb, merging_mog.tauHyb])
+        newMog.tauHyb_et    = np.array([refMog.tauHyb_et, merging_mog.tauHyb_et])
+        newMog.Tx_z_orig    = np.array([refMog.Tx_z_orig, merging_mog.Tx_z_orig])
+        newMog.Rx_z_orig    = np.array([refMog.Rx_z_orig, merging_mog.Rx_z_orig])
+        newMog.in_vect      = np.array([refMog.in_vect, merging_mog.in_vect])
+        newMog.in_Tx_vect   = np.array([refMog.in_Tx_vect, merging_mog.in_Tx_vect])
+        newMog.in_Rx_vect   = np.array([refMog.in_Rx_vect, merging_mog.in_Rx_vect])
+
+
+        if self.erase_check.isChecked() == True :
+
+            self.dialog.setText("following MOGs will be erased : {} {}".format(refMog.name, merging_mog.name))
+            self.dialog.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            self.dialog.setIcon(QtGui.QMessageBox.Warning)
+            ret = self.dialog.exec_()
+
+            if ret == QtGui.QMessageBox.Ok:
+                self.mog.MOGs.remove(refMog)
+                self.mog.MOGs.remove(merging_mog)
+                self.mog.MOGs.append(newMog)
+                self.mog.update_List_Widget()
+                self.close()
+
+
+        elif self.erase_check.isChecked() == False:
+            self.mog.MOGs.append(newMog)
+            self.mog.update_List_Widget()
+            self.close()
+
+
+
+
+
 
     def initUI(self):
 
-        #--- Class For Alignment ---#
-        class  MyQLabel(QtGui.QLabel):
-            def __init__(self, label, ha='left',  parent= None):
-                super(MyQLabel, self).__init__(label,parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
+
         #------- Widgets -------#
         #--- Labels ---#
         ref_label = MyQLabel('Reference MOG', ha= 'center')
@@ -1632,8 +1710,11 @@ class MergeMog(QtGui.QWidget):
         #--- List ---#
         self.comp_list = QtGui.QListWidget()
 
-        #--- Combobox ---#
+        #--- ComboBox ---#
         self.ref_combo = QtGui.QComboBox()
+
+        #--- ComboBoxes Actions ---#
+        self.ref_combo.activated.connect(self.getcompat)
 
         #--- Checkbox ---#
         self.erase_check = QtGui.QCheckBox('Erase MOGs after merge')
@@ -1643,7 +1724,11 @@ class MergeMog(QtGui.QWidget):
         self.btn_merge = QtGui.QPushButton('Merge')
 
         #- Buttons Actions -#
-        self.btn_merge.clicked.connect(self.merge_mogs)
+        self.btn_merge.clicked.connect(self.doMerge)
+        self.btn_cancel.clicked.connect(self.close)
+
+        #--- MessageBox ---#
+        self.dialog = QtGui.QMessageBox()
 
         #------- Master Grid -------#
         master_grid = QtGui.QGridLayout()
@@ -1659,6 +1744,99 @@ class MergeMog(QtGui.QWidget):
 
         self.setLayout(master_grid)
 
+class DeltaTMOG(QtGui.QWidget):
+    def __init__(self, mog, parent=None):
+        super(DeltaTMOG, self).__init__()
+        char2 = lookup("GREEK CAPITAL LETTER DELTA")
+        self.setWindowTitle("Create {}t MOG".format(char2))
+        self.mog = mog
+        self.initUI()
+
+    def getcompat(self):
+        self.sub_combo.clear()
+        n = self.min_combo.currentIndex()
+        ref_mog = self.mog.MOGs[n]
+        ids = []
+        nc = 0
+        if n == len(self.mog.MOGs):
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+            return
+        for mog in self.mog.MOGs:
+            if mog != ref_mog:
+                test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
+                test2 = False
+                test3 = False
+
+                if len(ref_mog.av) == 0 and len(mog.av) == 0:
+                    test2 = True
+                if ref_mog.av == mog.av:
+                    test2 = True
+                if len(ref_mog.ap) == 0 and len(mog.ap) == 0:
+                    test3 = True
+                if ref_mog.ap == mog.ap:
+                    test3 = True
+                test4 = ref_mog.data.TxOffset == mog.data.TxOffset and ref_mog.data.RxOffset == mog.data.RxOffset
+                test5 = ref_mog.type == mog.type
+
+                if test1 and test2 and test3 and test4 and test5:
+                    nc += 1
+                    self.sub_combo.addItem(mog.name)
+                    ids.append(mog.ID)
+
+            else:
+                pass
+        if nc == 0 :
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+
+        else:
+            self.show()
+
+    def initUI(self):
+        #------- Widgets -------#
+        #--- Buttons ---#
+        cancel_btn = QtGui.QPushButton('Cancel')
+        done_btn = QtGui.QPushButton('Done')
+        #--- Labels ---#
+        min_label = MyQLabel('Minuend MOG', ha= 'center')
+        sub_label = MyQLabel('Subtrahend MOG', ha= 'center')
+        offset_label = MyQLabel('Offset Tolerance', ha= 'right')
+        name_label = MyQLabel('Name of Difference MOG', ha= 'right')
+        #--- Edits ---#
+        self.offset_edit = QtGui.QLineEdit('0.5')
+        self.name_edit = QtGui.QLineEdit()
+        #--- ComboBoxes ---#
+        self.min_combo = QtGui.QComboBox()
+        self.sub_combo = QtGui.QComboBox()
+
+        #--- ComboBoxes' Actions ---#
+        self.min_combo.activated.connect(self.getcompat)
+
+        #------- Master grid's disposition -------#
+        master_grid = QtGui.QGridLayout()
+        master_grid.addWidget(min_label, 0, 0)
+        master_grid.addWidget(sub_label, 0, 1)
+        master_grid.addWidget(self.min_combo, 1, 0)
+        master_grid.addWidget(self.sub_combo, 1, 1)
+        master_grid.addWidget(offset_label, 2, 0)
+        master_grid.addWidget(self.offset_edit, 2, 1)
+        master_grid.addWidget(name_label, 3, 0)
+        master_grid.addWidget(self.name_edit, 3, 1)
+        master_grid.addWidget(cancel_btn, 5, 0)
+        master_grid.addWidget(done_btn, 5, 1)
+        self.setLayout(master_grid)
+
+
+
+#--- Class For Alignment ---#
+class  MyQLabel(QtGui.QLabel):
+    def __init__(self, label, ha='left',  parent= None):
+        super(MyQLabel, self).__init__(label,parent)
+        if ha == 'center':
+            self.setAlignment(QtCore.Qt.AlignCenter)
+        elif ha == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
+        else:
+            self.setAlignment(QtCore.Qt.AlignLeft)
 
 if __name__ == '__main__':
 
