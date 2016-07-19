@@ -517,15 +517,32 @@ class MOGUI(QtGui.QWidget):
 
 
         self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
-        self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
+        #self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
         self.spectramanager.showMaximized()
 
     def plot_zop(self):
         ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            self.zopFig.plot_zop(self.MOGs[i.row()])
-            self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[i.row()].name))
-            self.zopmanager.showMaximized()
+        mog = self.MOGs[ind[0].row()]
+
+        if mog.data.rstepsz == 0:
+            self.tol_edit.setText('0.5')
+        else:
+            self.tol_edit.setText(str(mog.data.rstepsz * 0.5))
+
+
+
+
+        self.zopFig.plot_zop(mog)
+        self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
+        self.zopmanager.showMaximized()
+
+    def plot_zop_rays(self):
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+        tol = float(self.tol_edit.text())
+        self.zopraysFig.plot_rays(mog, tol)
+        self.zopraysmanager.show()
+
 
     def plot_statstt(self):
         ind = self.MOG_list.selectedIndexes()
@@ -748,6 +765,14 @@ class MOGUI(QtGui.QWidget):
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
+        # -------- Creation of the manager for the Ray Coverage figure -------#
+        self.zopraysFig = ZOPRaysFig()
+        self.zopraysmanager = QtGui.QWidget()
+        self.zopraystool = NavigationToolbar2QT(self.zopraysFig, self)
+        zopraysmanagergrid = QtGui.QGridLayout()
+        zopraysmanagergrid.addWidget(self.zopraystool, 0, 0)
+        zopraysmanagergrid.addWidget(self.zopraysFig, 1, 0)
+        self.zopraysmanager.setLayout(zopraysmanagergrid)
 
         #-------- Creation of the manager for the Ray Coverage figure -------#
         self.raycoverageFig = RayCoverageFig()
@@ -922,6 +947,8 @@ class MOGUI(QtGui.QWidget):
         self.tol_edit.setFixedWidth(100)
         self.color_scale_edit.setFixedWidth(80)
 
+
+
         #--- Combobox ---#
         self.color_scale_combo = QtGui.QComboBox()
 
@@ -940,6 +967,9 @@ class MOGUI(QtGui.QWidget):
         #--- Buttons ---#
         btn_show = QtGui.QPushButton('Show Rays')
         btn_print = QtGui.QPushButton('Print')
+
+        #--- Buttons' Actions ---#
+        btn_show.clicked.connect(self.plot_zop_rays)
         #------- SubWidgets in ZOP -------#
         #--- Time and Elevation SubWidget ---#
         Sub_t_and_z_widget = QtGui.QWidget()
@@ -1475,12 +1505,6 @@ class SpectraFig(FigureCanvasQTAgg):
         return SNR
 
 
-
-
-
-
-
-
 class ZOPFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor= 'white')
@@ -1493,7 +1517,7 @@ class ZOPFig(FigureCanvasQTAgg):
         self.ax3 = self.ax2.twiny()
 
     def plot_zop(self, mog):
-        self.ax2.set_xscale('log')
+
         mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
         mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
@@ -1507,10 +1531,73 @@ class ZOPFig(FigureCanvasQTAgg):
 
         self.draw()
     def show_amplitude_data(self, state):
-
         self.ax3.set_visible(state)
         self.ax3.spines['top'].set_color('red')
         self.ax3.spines['bottom'].set_color('blue')
+        self.draw()
+
+class ZOPRaysFig(FigureCanvasQTAgg):
+    def __init__(self):
+        fig = mpl.figure.Figure(figsize=(6,8), facecolor='white')
+        super(ZOPRaysFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+
+    def plot_rays(self, mog, offset_tol):
+        self.ax.cla()
+        dz = np.abs(mog.data.Tx_z - mog.data.Rx_z)
+
+        zop = np.less_equal(dz, offset_tol)
+
+        false_ind = np.nonzero(zop == False)
+
+        Tx_zs = mog.data.Tx_z
+        Rx_zs = mog.data.Rx_z
+
+        Tx_zs = np.delete(Tx_zs, false_ind[0])
+        Rx_zs = np.delete(Rx_zs, false_ind[0])
+
+        num_Tx = len(Tx_zs)
+        num_Rx = len(Rx_zs)
+        Tx_xs = mog.data.Tx_x[:num_Tx]
+        Rx_xs = mog.data.Rx_x[:num_Rx]
+        Tx_ys = mog.data.Tx_y[:num_Tx]
+        Rx_ys = mog.data.Rx_y[:num_Rx]
+
+        Tx_xs = Tx_xs[:, None]
+        Tx_ys = Tx_ys[:, None]
+        Tx_zs = Tx_zs[:, None]
+
+        Rx_xs = Rx_xs[:, None]
+        Rx_ys = Rx_ys[:, None]
+        Rx_zs = Rx_zs[:, None]
+
+        Tx_Rx_xs = np.concatenate((Tx_xs, Rx_xs), axis=1)
+        Tx_Rx_ys = np.concatenate((Tx_ys, Rx_ys), axis=1)
+        Tx_Rx_zs = np.concatenate((Tx_zs, Rx_zs), axis=1)
+
+        Tx_Rx_xs = Tx_Rx_xs.T
+        Tx_Rx_ys = Tx_Rx_ys.T
+        Tx_Rx_zs = Tx_Rx_zs.T
+
+        for i in range(num_Tx):
+            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i], c='g')
+
+        self.ax.plot(mog.Tx.fdata[:, 0], mog.Tx.fdata[:, 1], mog.Tx.fdata[:, 2], color='b')
+        self.ax.plot(mog.Rx.fdata[:, 0], mog.Rx.fdata[:, 1], mog.Rx.fdata[:, 2], color='b')
+
+        self.ax.text(x=mog.data.Rx_x[0], y=mog.data.Rx_y[0], z=mog.data.Rx_z[0] + 0.5, s=str(mog.Rx.name))
+        self.ax.text(x=mog.data.Tx_x[0], y=mog.data.Tx_y[0], z=mog.data.Tx_z[0] + 0.5, s=str(mog.Tx.name))
+
+        self.ax.scatter(xs=mog.data.Rx_x[0], ys=mog.data.Rx_y[0], zs=mog.data.Rx_z[0], c='black', marker='o')
+        self.ax.scatter(xs=mog.data.Tx_x[0], ys=mog.data.Tx_y[0], zs=mog.data.Tx_z[0], c='black', marker='o')
+
+        self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
+
         self.draw()
 
 class StatsttFig(FigureCanvasQTAgg):

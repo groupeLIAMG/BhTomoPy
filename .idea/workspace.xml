@@ -3,13 +3,12 @@
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="173" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="248" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="903" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="928" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/BhTomoPy.iml" afterPath="$PROJECT_DIR$/.idea/BhTomoPy.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -34,8 +33,8 @@
       <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="431">
-              <caret line="199" column="5" selection-start-line="199" selection-start-column="5" selection-end-line="199" selection-end-column="5" />
+            <state relative-caret-position="158">
+              <caret line="198" column="5" selection-start-line="198" selection-start-column="5" selection-end-line="198" selection-end-column="5" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -46,8 +45,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2875">
-              <caret line="1534" column="0" selection-start-line="1534" selection-start-column="0" selection-end-line="1534" selection-end-column="0" />
+            <state relative-caret-position="-7">
+              <caret line="519" column="9" selection-start-line="519" selection-start-column="9" selection-end-line="519" selection-end-column="9" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -58,8 +57,8 @@
       <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ModelUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3111">
-              <caret line="183" column="48" selection-start-line="183" selection-start-column="48" selection-end-line="183" selection-end-column="48" />
+            <state relative-caret-position="102">
+              <caret line="410" column="42" selection-start-line="410" selection-start-column="42" selection-end-line="410" selection-end-column="42" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -491,13 +490,6 @@
       <option name="presentableId" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00043" summary="début des fonctions par rapport au t0 dans mog">
-      <created>1464633099153</created>
-      <option name="number" value="00043" />
-      <option name="presentableId" value="LOCAL-00043" />
-      <option name="project" value="LOCAL" />
-      <updated>1464633099153</updated>
-    </task>
     <task id="LOCAL-00044" summary="ajout de messages et de fonctionnalités dans le log">
       <created>1464642625083</created>
       <option name="number" value="00044" />
@@ -834,7 +826,14 @@
       <option name="project" value="LOCAL" />
       <updated>1468849676901</updated>
     </task>
-    <option name="localTasksCounter" value="92" />
+    <task id="LOCAL-00092" summary="Spectra fonctionel avec méthode welch et fourier">
+      <created>1468949931973</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1468949931973</updated>
+    </task>
+    <option name="localTasksCounter" value="93" />
     <servers />
   </component>
   <component name="TodoView">
@@ -855,7 +854,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4640523" sideWeight="0.50446427" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3267974" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.41761827" sideWeight="0.4955357" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.41830066" sideWeight="0.4955357" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32843137" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -904,7 +903,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="ien entre skip Tx, skip Rx et le pruneFig fonctionnel" />
     <MESSAGE value="lien entre min elev, max elev et la restriction des points fonctionnel" />
     <MESSAGE value="gestion d'exceptions non nécessaires" />
     <MESSAGE value="update elev dans le module prune et debut de rounding factor" />
@@ -929,7 +927,8 @@
     <MESSAGE value="Merge Mog fonctionnel" />
     <MESSAGE value="gestions derreurs avec merge mog" />
     <MESSAGE value="Gestion d'erreurs par rapport à MergeMog et à GridUI" />
-    <option name="LAST_COMMIT_MESSAGE" value="Gestion d'erreurs par rapport à MergeMog et à GridUI" />
+    <MESSAGE value="Spectra fonctionel avec méthode welch et fourier" />
+    <option name="LAST_COMMIT_MESSAGE" value="Spectra fonctionel avec méthode welch et fourier" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1096,13 +1095,6 @@
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/Downloads/lines3d_demo (1).py" />
-    <entry file="file://$PROJECT_DIR$/MogData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="121" column="0" selection-start-line="121" selection-start-column="0" selection-end-line="121" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/InfoUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1149,30 +1141,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ModelUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3111">
-          <caret line="183" column="48" selection-start-line="183" selection-start-column="48" selection-end-line="183" selection-end-column="48" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="431">
-          <caret line="199" column="5" selection-start-line="199" selection-start-column="5" selection-end-line="199" selection-end-column="5" />
+        <state relative-caret-position="158">
+          <caret line="198" column="5" selection-start-line="198" selection-start-column="5" selection-end-line="198" selection-end-column="5" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/MogData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1802">
+          <caret line="121" column="0" selection-start-line="121" selection-start-column="0" selection-end-line="121" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ModelUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="410" column="42" selection-start-line="410" selection-start-column="42" selection-end-line="410" selection-end-column="42" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2875">
-          <caret line="1534" column="0" selection-start-line="1534" selection-start-column="0" selection-end-line="1534" selection-end-column="0" />
+        <state relative-caret-position="-7">
+          <caret line="519" column="9" selection-start-line="519" selection-start-column="9" selection-end-line="519" selection-end-column="9" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>

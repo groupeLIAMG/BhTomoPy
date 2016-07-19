@@ -195,9 +195,9 @@ if __name__ == '__main__':
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
     Database_ui.model.load_model("t0302's model")
-    Database_ui.mog.plot_spectra()
-
-    #Database_ui.show()
+    #Database_ui.mog.plot_spectra()
+    #Database_ui.mog.plot_zop()
+    Database_ui.show()
 
 
     sys.exit(app.exec_())
