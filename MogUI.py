@@ -16,6 +16,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 import re
 
+
+
 class MOGUI(QtGui.QWidget):
 
     mogInfoSignal = QtCore.pyqtSignal(int)
@@ -505,15 +507,16 @@ class MOGUI(QtGui.QWidget):
             self.rawdatamanager.showMaximized()
 
     def plot_spectra(self):
-        ind = self.MOG_list.selectedIndexes()
-        n = self.Tx_num_list.currentIndex().row()
-        mog = self.MOGs[ind[0].row()]
-        Fmax = float(self.f_max_edit.text())
-        filter_state = self.filter_check.isChecked()
-        scale = self.snr_combo.currentText()
+        ind                 = self.MOG_list.selectedIndexes()
+        n                   = self.Tx_num_list.currentIndex().row()
+        mog                 = self.MOGs[ind[0].row()]
+        Fmax                = float(self.f_max_edit.text())
+        filter_state        = self.filter_check.isChecked()
+        scale               = self.snr_combo.currentText()
+        estimation_method   = self.psd_combo.currentText()
 
 
-        self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale)
+        self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
         self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
         self.spectramanager.showMaximized()
 
@@ -1045,7 +1048,7 @@ class MOGUI(QtGui.QWidget):
         self.search_combo.addItem('Search with Elevation')
         self.search_combo.addItem('Search with Number')
 
-        method_list = ['Welch', 'Burg - Order 2', 'Burg - Order 3', 'Burg - Order 4']
+        method_list = ['Standard Fourier', 'Welch', 'Burg - Order 2', 'Burg - Order 3', 'Burg - Order 4']
         self.psd_combo.addItems(method_list)
 
         scale_list = ['Linear', 'Logarithmic']
@@ -1053,6 +1056,7 @@ class MOGUI(QtGui.QWidget):
 
         #- ComboBoxes Actions -#
         self.snr_combo.currentIndexChanged.connect(self.plot_spectra)
+        self.psd_combo.currentIndexChanged.connect(self.plot_spectra)
 
         #- List Widget -#
         self.Tx_num_list = QtGui.QListWidget()
@@ -1341,7 +1345,7 @@ class SpectraFig(FigureCanvasQTAgg):
         self.ax1.yaxis.set_ticks_position('left')
         self.ax1.set_axisbelow(True)
 
-    def plot_spectra(self, mog, n, Fmax, filter_state, scale):
+    def plot_spectra(self, mog, n, Fmax, filter_state, scale, method):
 
         self.ax1.cla()
         self.ax2.cla()
@@ -1351,10 +1355,20 @@ class SpectraFig(FigureCanvasQTAgg):
 
         ind = Tx[n] == mog.data.Tx_z
 
-        f0 = mog.data.rnomfreq
+        fac_f = 1
+        fac_t = 1
+        if 'ns' in mog.data.tunits:
+            fac_f = 10**6
+            fac_t = 10**-9
+        elif 'ms' in mog.data.tunits:
+            fac_f = 10**3
+            fac_t = 10**-3
 
+        f0 = mog.data.rnomfreq * fac_f
 
         dt = mog.data.timec * mog.fac_dt
+        dt = dt * fac_t
+        Fs = 1/dt
 
         # Getting the maximum amplitude value for each column
         A = np.amax(mog.data.rdata, axis= 0)
@@ -1365,31 +1379,51 @@ class SpectraFig(FigureCanvasQTAgg):
         # Dividing the original rdata by A max in order to have a normalised amplitude matrix
         normalised_rdata = mog.data.rdata/Amax
 
-        ps = np.fft.rfft(normalised_rdata[:, ind], axis= 0)
-
-        z = mog.data.Rx_z[ind]
         traces = normalised_rdata[:, ind]
 
-        win_snr = np.round(20/mog.data.timec)
-        #SNR = self.data_select(traces, f0, dt, win_snr)
-        #print(SNR)
-        #print(np.shape(SNR))
-
-
-        #f, Pxx = spy.signal.welch(ps)
-
-
         if filter_state:
-            pass
+            halfFs = Fs / 2
+            wp = 1.4 * f0 / halfFs
+            ws = 1.6 * f0 / halfFs
+            rp = 3
+            rs = 40
 
-        else:
-            self.ax1.imshow(traces.T, cmap= 'plasma', aspect= 'auto', interpolation= 'none')
-            self.ax2.imshow(np.log10(np.abs(ps)).T[:, :Fmax], cmap= 'plasma', aspect= 'auto',
-                            interpolation= 'none', extent= [0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0] )
+            nc, wn = spy.signal.cheb1ord(wp, ws, rp, rs)
+
+            b, a = spy.signal.cheby1(nc, 0.5, wn)
+            for nt in range(np.shape(traces)[1]):
+                traces[:, nt] = spy.signal.filtfilt(b, a, traces[:, nt], method='gust')
+
+        if method == 'Welch':
+            freq, tmp = spy.signal.welch(traces[:,0], Fs)
+            Pxx = np.zeros((len(tmp),np.shape(traces)[1]))
+            Pxx[:, 0] = tmp
+            for nt in range(1,np.shape(traces)[1]):
+                freq, Pxx[:, nt] = spy.signal.welch(traces[:, nt], Fs)
+            self.ax2.imshow(np.log10(Pxx).T[:, :Fmax], cmap='plasma', aspect='auto',
+                        interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
+
+        if method == 'Standard Fourier':
+            Pxx = np.fft.rfft(traces, axis=0)
+            self.ax2.imshow(np.log10(np.abs(Pxx)).T[:, :Fmax], cmap='plasma', aspect='auto',
+                        interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
+
+        win_snr = np.round(20 / mog.data.timec)
+        SNR = self.data_select(traces, f0, dt, win_snr)
+        SNR = SNR[::-1]
+
+
+        self.ax1.imshow(traces.T, cmap= 'plasma', aspect= 'auto', interpolation= 'none')
+        #self.ax2.imshow(np.log10(np.abs(ps)).T[:, :Fmax], cmap= 'plasma', aspect= 'auto',
+         #                   interpolation= 'none', extent= [0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0] )
+
 
         if scale == 'Linear':
-            pass
+            self.ax3.plot(SNR, range(len(SNR)))
+
+
         elif scale == 'Logarithmic':
+            self.ax3.plot(SNR, range(len(SNR)))
             self.ax3.set_xscale('log')
 
 
@@ -1431,7 +1465,7 @@ class SpectraFig(FigureCanvasQTAgg):
 
 
 
-            std_sig[0, i] = np.std(data[ind,i])
+            std_sig[i] = np.std(data[int(ind[0]):int(ind[-1]),i])
 
 
         std_noise = np.std(data[-1-L: -1, :])
