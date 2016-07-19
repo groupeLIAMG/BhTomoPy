@@ -43,8 +43,8 @@ class AirShots:
         We initialize two vectors(i.e. self.tt and self.et) which have a value of -1 for each trace and a vector(i.e. self.tt_done)
         which as a false value for each trace until one actually arrives to the receptor
         """
-        if self.mog.data == None :
-            return self.mog.data
+        if self.data.rdata == 0 :
+            return
         self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
         self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
@@ -54,9 +54,9 @@ class Mog:
     def __init__(self, name= '', data= MogData()):
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
-        self.data                     = data          # Instance of Mogdata
-        self.av                       = np.array([])  # Air shot before
-        self.ap                       = np.array([])  # Airshot after
+        self.data                     = data          # Instance of MogData
+        self.av                       = ''            # Air shot before
+        self.ap                       = ''            # Airshot after
         self.Tx                       = 1
         self.Rx                       = 1
         self.tau_params               = np.array([])
@@ -87,7 +87,7 @@ class Mog:
         self.et                       = -1*np.ones(self.data.ntrace, dtype= float)
         self.tt_done                  = np.zeros(self.data.ntrace, dtype = bool)
 
-        if np.all(self.data.tdata == 0):
+        if self.data.tdata == None:
             self.ttTx                 = np.array([])
             self.ttTx_done            = np.array([])
         else:
@@ -114,24 +114,20 @@ class Mog:
         self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
 
 
-    def correction_t0(self, ndata, air_before, air_after, *args):
+    def correction_t0(self, ndata, air_before, air_after):
         """
         :param ndata:
         :param air_before: instance of class Airshots
         :param air_after: instance of class Airshots
-        :return:
         """
-        nargin = len(args)
-        if nargin >= 4 :
-            show = args[1]
-        else:
-            show = False
+
+        show = False
         fac_dt_av = 1
         fac_dt_ap = 1
         if self.useAirShots == 0:
             t0 = np.zeros(ndata)
             return
-        elif np.all(air_before == 0) and np.all(air_after == 0) and self.useAirShots == 1 :
+        elif air_before.name == '' and air_after.name == ''  and self.useAirShots == 1 :
             t0 = np.zeros(ndata)
             raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
 
@@ -139,13 +135,13 @@ class Mog:
         t0av = np.array([])
         t0ap = np.array([])
 
-        if not np.all(air_before == 0) :
+        if air_before.name != '' :
             if 'fixed_antenna' in air_before.method:
                 t0av = self.get_t0_fixed(air_before, v_air)
             if 'walkaway' in air_before.method:
                 pass #TODO get_t0_wa
 
-        if not np.all(air_after == 0):
+        if air_after != '':
             if 'fixed_antenna' in air_before.method:
                 t0ap = self.get_t0_fixed(air_after, v_air)
 
@@ -167,7 +163,7 @@ class Mog:
             ddt0 = dt0/(ndata-1)
             t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
 
-
+        return t0
     @staticmethod
     def load_self(mog):
         Mog.getID(mog.ID)
@@ -191,7 +187,7 @@ class Mog:
             times = sum(times[ind]*std_times[ind]/std_tot)
 
         t0 = times - shot.d_TxRx/v
-
+        return  t0
 
     @staticmethod
     def getID(*args):
@@ -220,10 +216,11 @@ class Mog:
             if self.data.synthetique == 1:
                 tt = self.tt
                 t0 = np.zeros(np.shape(tt))
-                return tt and t0
+                return
             else:
-                airBefore = air(self.av)
-                airAfter = air(self.ap)
+                airBefore = AirShots(self.av)
+                airAfter = AirShots(self.ap)
+                t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter, True)
 
 
 class PruneParams:

@@ -180,8 +180,8 @@ class MOGUI(QtGui.QWidget):
                             if len(distance_list)!= data.ntrace:
                                 self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
-
-                        self.air.append(AirShots(str(rname)))
+                        airshot_before = AirShots(str(rname))
+                        self.air.append(airshot_before)
                         self.air[n].data = data
                         self.air[n].tt = -1* np.ones(data.ntrace) # tt stands for the travel time vector
                         self.air[n].et = -1* np.ones(data.ntrace) # to be defined
@@ -253,99 +253,10 @@ class MOGUI(QtGui.QWidget):
                         self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
 
 
-    def spectra(self):
-        # First of all, we get the selected MOG instance
-        ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            mog = self.MOGs[i.row()]
-
-        # Setting a matrix containing different elevations
-        Tx = np.unique(mog.data.Tx_z)
-
-        # à commenter
-        rdata = self.detrend_rad(mog.data.rdata)
-
-        # Getting the maximum amplitude value for each column
-        A = np.amax(mog.data.rdata, axis= 0)
-
-        # Making a matrix which has the same size as rdata but filled with the maximum amplitude of each column
-        Amax= np.tile(A, (550,1))
-
-        # Dividing the original rdata by A max in order to have a normalised amplitude matrix
-        normalised_rdata = mog.data.rdata/Amax
-
-        self.spectraFig.plot_spectra(mog)
-        self.updateFigs(mog, Tx, rdata)
 
 
-    def updateFigs(self, mog, Tx, data):
-
-        indexes = self.Tx_num_list.selectedIndexes()
-        n = indexes[0].row()
-
-        dt = mog.data.timec * mog.fac_dt
-
-        ind = Tx[n] == mog.data.Tx_z
-
-        traces = data[:, ind]
-
-        def nextpow2(n):
-            m_f = np.log2(n)
-            m_i = np.ceil(m_f)
-            return 2**m_i
-
-        nfft = 2**(1+ nextpow2(np.shape(traces)[0])) #pas sur
-
-        fac_f = 1.0
-        fac_t = 1.0
-
-        if 'ns' in mog.data.tunits:
-            # if the time units are in nanoseconds, the antenna's nominal frenquency is in MHz
-            fac_f = 10**6
-            fac_t = 10**-9
-            self.info_label.setText("Assuming Tx's nominal frequency is in MHz")
-
-        elif 'ms' in mog.data.tunits:
-            # if the time units are in miliseconds, we assume the dominant frequency to be in kHz
-            fac_f = 10**3
-            fac_t = 10**-3
-            self.info_label.setText("Assuming Tx's nominal frequency is in kHz")
-
-        else:
-            self.info_label.setText("Assuming Tx's nominal frequency is in kHz \n and the time step in seconds")
-
-        f0 = mog.data.rnomfreq * fac_f
-        dt = dt * fac_t
-        Fs = 1/dt
-
-        # Noise on the last 20 ns
-        win_snr = np.round(20/mog.data.timec)
-        snr = spy.stats.signaltonoise(traces)
-
-        todo = False
-        if todo:
-            halfFs = Fs/2
-            wp = 1.4*f0/halfFs
-            ws = 1.6*f0/halfFs
-            rp = 3
-            rs = 40
-
-            nc, wn = spy.signal.cheb1ord(wp, ws, rp, rs)
-
-            b, a = spy.signal.cheb1(nc, 0.5, wn)
-
-            for nt in range(np.shape(traces)[1]):
-                traces[:,nt] = spy.signal.filtfilt(b, a, traces[:,nt])
 
 
-        if todo:
-            # we need pburg
-            pass
-        if todo:
-            # we need pwelch
-            pass
-
-        z = mog.data.Rx_z[ind]
 
 
 
@@ -1551,6 +1462,7 @@ class ZOPRaysFig(FigureCanvasQTAgg):
 
         zop = np.less_equal(dz, offset_tol)
 
+
         false_ind = np.nonzero(zop == False)
 
         Tx_zs = mog.data.Tx_z
@@ -1618,9 +1530,17 @@ class StatsttFig(FigureCanvasQTAgg):
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
     def plot_stats(self, mog):
+
+
+
+
+
+
+
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
         mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+
         mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
         mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
