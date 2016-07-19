@@ -9,6 +9,7 @@ from ModelUI import gridUI
 from unicodedata import *
 import matplotlib as mpl
 import scipy as spy
+from scipy import signal
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -505,12 +506,16 @@ class MOGUI(QtGui.QWidget):
 
     def plot_spectra(self):
         ind = self.MOG_list.selectedIndexes()
-        n = self.Tx_num_list.currentIndex()
+        n = self.Tx_num_list.currentIndex().row()
+        mog = self.MOGs[ind[0].row()]
+        Fmax = float(self.f_max_edit.text())
+        filter_state = self.filter_check.isChecked()
+        scale = self.snr_combo.currentText()
 
-        for i in ind:
-            self.spectraFig.plot_spectra(self.MOGs[i.row()], n.row())
-            self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(self.MOGs[i.row()].name))
-            self.spectramanager.showMaximized()
+
+        self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale)
+        self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
+        self.spectramanager.showMaximized()
 
     def plot_zop(self):
         ind = self.MOG_list.selectedIndexes()
@@ -1009,16 +1014,23 @@ class MOGUI(QtGui.QWidget):
         psd_label = MyQLabel(('PSD Estimation Method'), ha= 'center')
         f_max_label = MyQLabel(('F Max'), ha='center')
         snr_label = MyQLabel(('SNR Scale'), ha='center')
-        f_min_label = MyQLabel(('F Max'), ha='right')
+        f_min_label = MyQLabel(('F Min'), ha='right')
         f_maxi_label = MyQLabel(('F Max'), ha='right')
         self.search_info_label = MyQLabel((''), ha= 'center')
         self.info_label = MyQLabel((''), ha= 'center')
 
         #- Edits -#
-        self.f_max_edit = QtGui.QLineEdit()
-        self.f_min_edit = QtGui.QLineEdit()
-        self.f_maxi_edit = QtGui.QLineEdit()
+        self.f_max_edit = QtGui.QLineEdit('400')
+        self.f_min_edit = QtGui.QLineEdit('0')
+        self.f_maxi_edit = QtGui.QLineEdit('400')
         self.search_elev_edit = QtGui.QLineEdit()
+
+        #- Edits Disposition -#
+        self.f_max_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.f_min_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.f_maxi_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        #- Edits Actions -#
+        self.f_max_edit.editingFinished.connect(self.plot_spectra)
 
         #- Edits disposition -#
         self.search_elev_edit.editingFinished.connect(self.search_Tx_elev)
@@ -1033,14 +1045,27 @@ class MOGUI(QtGui.QWidget):
         self.search_combo.addItem('Search with Elevation')
         self.search_combo.addItem('Search with Number')
 
+        method_list = ['Welch', 'Burg - Order 2', 'Burg - Order 3', 'Burg - Order 4']
+        self.psd_combo.addItems(method_list)
+
+        scale_list = ['Linear', 'Logarithmic']
+        self.snr_combo.addItems(scale_list)
+
+        #- ComboBoxes Actions -#
+        self.snr_combo.currentIndexChanged.connect(self.plot_spectra)
+
         #- List Widget -#
         self.Tx_num_list = QtGui.QListWidget()
         self.Tx_num_list.itemSelectionChanged.connect(self.update_spectra_Tx_elev_value_label)
         self.Tx_num_list.clicked.connect(self.plot_spectra)
+        self.Tx_num_list.setFixedWidth(200)
 
         #- Checkboxes -#
         self.filter_check = QtGui.QCheckBox('Apply Low Pass Filter')
-        self.compute_check = QtGui.QCheckBox('Compute & Show')
+        self.compute_check = QtGui.QCheckBox('Compute and Show')
+
+        #- CheckBoxes Actions -#
+        self.filter_check.stateChanged.connect(self.plot_spectra)
 
         #- elevation SubWidget -#
         sub_elev_widget = QtGui.QWidget()
@@ -1073,15 +1098,20 @@ class MOGUI(QtGui.QWidget):
         sub_first_grid.addWidget(self.filter_check, 13, 0)
         sub_first_widget.setLayout(sub_first_grid)
 
+        #- Fmin and Fmax SubWidget -#
+        sub_freq_widget = QtGui.QWidget()
+        sub_freq_grid = QtGui.QGridLayout()
+        sub_freq_grid.addWidget(f_min_label, 0, 0)
+        sub_freq_grid.addWidget(self.f_min_edit, 0, 1)
+        sub_freq_grid.addWidget(f_maxi_label, 1, 0)
+        sub_freq_grid.addWidget(self.f_maxi_edit, 1, 1)
+        sub_freq_widget.setLayout(sub_freq_grid)
 
         #- Dominant frequency Groupbox -#
         dominant_frequency_GroupBox =  QtGui.QGroupBox("Dominant Frequency")
         dominant_frequency_Grid     = QtGui.QGridLayout()
-        dominant_frequency_Grid.addWidget(f_min_label, 0, 0)
-        dominant_frequency_Grid.addWidget(self.f_min_edit, 0, 1)
-        dominant_frequency_Grid.addWidget(f_maxi_label, 1, 0)
-        dominant_frequency_Grid.addWidget(self.f_maxi_edit, 1, 1)
-        dominant_frequency_Grid.addWidget(self.compute_check, 2, 0)
+        dominant_frequency_Grid.addWidget(sub_freq_widget, 0, 0)
+        dominant_frequency_Grid.addWidget(self.compute_check, 1, 0)
         dominant_frequency_GroupBox.setLayout(dominant_frequency_Grid)
 
         #- Total Subwidget -#
@@ -1311,7 +1341,7 @@ class SpectraFig(FigureCanvasQTAgg):
         self.ax1.yaxis.set_ticks_position('left')
         self.ax1.set_axisbelow(True)
 
-    def plot_spectra(self, mog, n):
+    def plot_spectra(self, mog, n, Fmax, filter_state, scale):
 
         self.ax1.cla()
         self.ax2.cla()
@@ -1320,6 +1350,11 @@ class SpectraFig(FigureCanvasQTAgg):
         Tx= np.unique(mog.data.Tx_z)
 
         ind = Tx[n] == mog.data.Tx_z
+
+        f0 = mog.data.rnomfreq
+
+
+        dt = mog.data.timec * mog.fac_dt
 
         # Getting the maximum amplitude value for each column
         A = np.amax(mog.data.rdata, axis= 0)
@@ -1330,19 +1365,32 @@ class SpectraFig(FigureCanvasQTAgg):
         # Dividing the original rdata by A max in order to have a normalised amplitude matrix
         normalised_rdata = mog.data.rdata/Amax
 
-        ps = np.fft.fft(normalised_rdata[:, ind])
+        ps = np.fft.rfft(normalised_rdata[:, ind], axis= 0)
 
         z = mog.data.Rx_z[ind]
         traces = normalised_rdata[:, ind]
-        snr = np.mean(traces)/np.std(traces) * np.ones(np.shape(normalised_rdata))
-        print(np.mean(traces))
-        print(np.std(traces))
-        print(snr)
+
+        win_snr = np.round(20/mog.data.timec)
+        #SNR = self.data_select(traces, f0, dt, win_snr)
+        #print(SNR)
+        #print(np.shape(SNR))
 
 
-        self.ax1.plot(snr)
-        self.ax2.plot(ps)
+        #f, Pxx = spy.signal.welch(ps)
 
+
+        if filter_state:
+            pass
+
+        else:
+            self.ax1.imshow(traces.T, cmap= 'plasma', aspect= 'auto', interpolation= 'none')
+            self.ax2.imshow(np.log10(np.abs(ps)).T[:, :Fmax], cmap= 'plasma', aspect= 'auto',
+                            interpolation= 'none', extent= [0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0] )
+
+        if scale == 'Linear':
+            pass
+        elif scale == 'Logarithmic':
+            self.ax3.set_xscale('log')
 
 
         mpl.axes.Axes.set_title(self.ax1, 'Normalized amplitude')
@@ -1354,6 +1402,50 @@ class SpectraFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'SNR')
 
         self.draw()
+
+    def data_select(self, data, freq, dt, L= 100, treshold= 5, medfilt_len= 10):
+
+        shape = np.shape(data)
+        N, M = shape[0], shape[1]
+        std_sig = np.zeros(M).T
+        ind_data_select = np.zeros(M, dtype= bool).T
+        ind_max = np.zeros(M).T
+        nb_p = np.round(1/(dt*freq))
+        if medfilt_len>0:
+            data = spy.signal.medfilt(data)
+
+        for i in range(M):
+            Amax        = np.amax(data[:, i])
+
+            ind1        = np.argmax(data[:, i])
+
+            ind_max[i]  = ind1
+
+            ind         = np.arange(ind1-nb_p, ind1+2*nb_p+1)
+
+            if ind[0] < 1:
+                ind = np.arange(1, ind1+60)
+
+            elif ind[-1] < 1:
+                ind = np.arange(ind1-60, ind1)
+
+
+
+            std_sig[0, i] = np.std(data[ind,i])
+
+
+        std_noise = np.std(data[-1-L: -1, :])
+        SNR = std_sig/std_noise
+        ind_data_select[SNR > treshold] = True
+
+        return SNR
+
+
+
+
+
+
+
 
 class ZOPFig(FigureCanvasQTAgg):
     def __init__(self):
@@ -1499,14 +1591,13 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_zs = Tx_Rx_zs.T
 
 
-        #for i in range(49): #demo
-         #   self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
+        self.ax.plot(xs= Tx_Rx_xs, ys= Tx_Rx_ys, zs= -1*Tx_Rx_zs)
 
         # 2D rapide
         #self.ax.plot(-1*Tx_Rx_zs)
 
-        for i in range(mog.data.ntrace): #complet
-            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
+        #for i in range(mog.data.ntrace): #complet
+        #    self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
@@ -1625,7 +1716,7 @@ class MergeMog(QtGui.QWidget):
             self.dialog.setIcon(QtGui.QMessageBox.Warning)
         if merge_name == None:
             dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG selected for merging",buttons= QtGui.QMessageBox.Ok)
-        if self.new_edit.text() == None:
+        if not self.new_edit.text():
             dialog = QtGui.QMessageBox.information(self, 'Warning', "Please enter a name for the new MOG",buttons= QtGui.QMessageBox.Ok)
 
 
@@ -1790,6 +1881,23 @@ class DeltaTMOG(QtGui.QWidget):
 
         else:
             self.show()
+
+    def done(self):
+        if len(self.sub_combo) == 0:
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+        if not self.name_edit.text():
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "Please enter a name for new MOG",buttons= QtGui.QMessageBox.Ok)
+
+        # Check if traveltimes were picked
+        n = self.min_combo.currentIndex()
+        refMog = self.mog.MOGs[n]
+        ind = refMog.tt == -1
+        if np.any(ind == True):
+            dialog = QtGui.QMessageBox.information(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)
+                                                   ,buttons= QtGui.QMessageBox.Ok)
+
+
+
 
     def initUI(self):
         #------- Widgets -------#
