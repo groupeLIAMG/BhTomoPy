@@ -105,6 +105,7 @@ class DatabaseUI(QtGui.QWidget):
 
     def openfile(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+        print(filename)
         self.load_file(filename)
     def load_file(self, filename):
         load_file = open(filename, 'rb')
@@ -251,6 +252,7 @@ if __name__ == '__main__':
     #Database_ui.model.load_model("t0302's model")
     #Database_ui.mog.plot_spectra()
     #Database_ui.mog.plot_zop()
+
     Database_ui.show()
 
 

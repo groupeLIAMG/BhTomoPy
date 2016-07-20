@@ -167,7 +167,15 @@ class gridUI(QtGui.QWidget):
     def plot_grid_view(self):
         bh = self.borehole_combo.currentText()
         state = self.flip_check.checkState()
-        self.gridviewFig.plot_grid(self.model.models[self.model_ind].mogs, bh, state)
+        pad_x_plus = float(self.pad_plus_x_edit.text())
+        pad_x_minus = float(self.pad_minus_x_edit.text())
+        pad_z_plus = float(self.pad_plus_z_edit.text())
+        pad_z_minus = float(self.pad_minus_z_edit.text())
+        x_cell_size = float(self.cell_size_x_edit.text())
+        z_cell_size = float(self.cell_size_z_edit.text())
+        self.gridviewFig.plot_grid(self.model.models[self.model_ind].mogs, bh, state,
+                                                    pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
+                                                                                        x_cell_size, z_cell_size)
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
@@ -193,7 +201,8 @@ class gridUI(QtGui.QWidget):
         self.origin_y_edit.setText(str(self.model.borehole.boreholes[ind].Y))
         self.origin_z_edit.setText(str(self.model.borehole.boreholes[ind].Z))
 
-
+    def start_constraints(self):
+        self.constraintseditor.constraintsFig.plot_constraints(self.model.models[self.model_ind].mogs[0])
 
     def initUI(self):
 
@@ -214,7 +223,7 @@ class gridUI(QtGui.QWidget):
         adjustment_btn          = QtGui.QPushButton('Adjustment of Best-Fit Plane')
         #- Buttons' Actions -#
         adjustment_btn.clicked.connect(self.plot_adjustment)
-        add_edit_btn.clicked.connect(self.constraintseditor.show)
+        add_edit_btn.clicked.connect(self.start_constraints)
         #--- Edits ---#
         self.pad_plus_x_edit    = QtGui.QLineEdit('1')
         self.pad_plus_z_edit    = QtGui.QLineEdit('1')
@@ -227,6 +236,20 @@ class gridUI(QtGui.QWidget):
         self.origin_x_edit      = QtGui.QLineEdit()
         self.origin_y_edit      = QtGui.QLineEdit()
         self.origin_z_edit      = QtGui.QLineEdit()
+
+        #- Edits' Actions -#
+        self.pad_plus_x_edit.editingFinished.connect(self.plot_grid_view)
+        self.pad_plus_z_edit.editingFinished.connect(self.plot_grid_view)
+        self.pad_minus_x_edit.editingFinished.connect(self.plot_grid_view)
+        self.pad_minus_z_edit.editingFinished.connect(self.plot_grid_view)
+
+        self.cell_size_x_edit.editingFinished.connect(self.plot_grid_view)
+        self.cell_size_z_edit.editingFinished.connect(self.plot_grid_view)
+
+        #- Edits' Diposition -#
+        self.origin_x_edit.setReadOnly(True)
+        self.origin_y_edit.setReadOnly(True)
+        self.origin_z_edit.setReadOnly(True)
 
 
         #--- Labels ---#
@@ -448,7 +471,7 @@ class GridViewFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.1, 0.1, 0.85, 0.85])
         self.ax.grid(True)
 
-    def plot_grid(self, mogs, origin, flip):
+    def plot_grid(self, mogs, origin, flip, pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus, x_cell_size, z_cell_size):
         self.ax.cla()
         for mog in mogs:
             Tx_zs = np.unique(mog.data.Tx_z)
@@ -463,20 +486,31 @@ class GridViewFig(FigureCanvasQTAgg):
 
                 if flip:
                     self.ax.plot((Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
-                    self.ax.set_xlim([(Tx_ys[0]-Rx_ys[0])-0.2, 0.2])
+                    self.ax.set_xlim([(Tx_ys[0]-Rx_ys[0])- pad_x_minus, pad_x_plus])
+                    self.ax.set_xlim(np.arange((Tx_ys[0] - Rx_ys[0]) - pad_x_minus, pad_x_plus, x_cell_size))
                 if not flip:
                     self.ax.plot(-(Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
-                    self.ax.set_xlim([-0.2, -(Tx_ys[0]-Rx_ys[0])+0.2])
-
+                    self.ax.set_xlim([-pad_x_minus, -(Tx_ys[0]-Rx_ys[0])+ pad_x_plus])
+                    self.ax.set_xticks(np.arange(-pad_x_minus, -(Tx_ys[0] - Rx_ys[0]) + pad_x_plus, x_cell_size))
             if origin == mog.Rx.name:
                 self.ax.plot(orig_Rx, -Rx_zs, '*', c='b')
 
                 if flip:
                     self.ax.plot((Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
-                    self.ax.set_xlim([-0.2, (Rx_ys[0] - Tx_ys[0])+0.2 ])
+                    self.ax.set_xlim([-pad_x_minus, (Rx_ys[0] - Tx_ys[0])+ pad_x_plus ])
+                    self.ax.set_xticks(-pad_x_minus, (Rx_ys[0] - Tx_ys[0]) + pad_x_plus, x_cell_size)
+
                 if not flip:
                     self.ax.plot(-(Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
-                    self.ax.set_xlim([-(Rx_ys[0] - Tx_ys[0])-0.2, 0.2])
+                    self.ax.set_xlim([-(Rx_ys[0] - Tx_ys[0])- pad_x_minus, pad_x_plus])
+                    self.ax.set_xticks(np.arange(-(Rx_ys[0] - Tx_ys[0]) - pad_x_minus, pad_x_plus, x_cell_size ))
+
+            if max(mog.data.Rx_z) > max(mog.data.Tx_z):
+                self.ax.set_ylim([-max(mog.data.Rx_z)-pad_z_minus, pad_z_plus])
+                self.ax.set_yticks(np.arange(-max(mog.data.Rx_z)-pad_z_minus,pad_z_plus , z_cell_size))
+            if max(mog.data.Tx_z) > max(mog.data.Rx_z):
+                self.ax.set_ylim([-max(mog.data.Tx_z) - pad_z_minus, pad_z_plus])
+                self.ax.set_yticks(np.arange(-max(mog.data.Tx_z) - pad_z_minus, pad_z_plus, z_cell_size))
 
             self.ax.set_xlabel('Y', fontsize= 16)
             self.ax.set_ylabel('Z', fontsize= 16)
@@ -488,7 +522,7 @@ class GridViewFig(FigureCanvasQTAgg):
 class ConstraintsEditorUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(ConstraintsEditorUI, self).__init__()
-
+        self.constraintsFig = ConstraintsFig(self)
         self.initUI()
 
     def initUI(self):
@@ -508,10 +542,16 @@ class ConstraintsEditorUI(QtGui.QWidget):
         variance_value_label        = MyQLabel('Value: ', ha= 'right')
 
         #--- Edits ---#
-        self.cmax_edit              = QtGui.QLineEdit()
-        self.cmin_edit              = QtGui.QLineEdit()
-        self.property_value_edit    = QtGui.QLineEdit()
-        self.variance_value_edit    = QtGui.QLineEdit()
+        self.cmax_edit              = QtGui.QLineEdit('1')
+        self.cmin_edit              = QtGui.QLineEdit('0')
+        self.property_value_edit    = QtGui.QLineEdit('0')
+        self.variance_value_edit    = QtGui.QLineEdit('0')
+
+        #- Edits Disposition -#
+        self.cmax_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.cmin_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.property_value_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.variance_value_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- ComboBox ---#
         self.property_combo         = QtGui.QComboBox()
@@ -542,7 +582,6 @@ class ConstraintsEditorUI(QtGui.QWidget):
 
         #------- GroupBoxes -------#
         #--- Constraints GroupBox ---#
-        self.constraintsFig = ConstraintsFig()
         constraints_group = QtGui.QGroupBox('Constraints')
         constraints_grid = QtGui.QGridLayout()
         constraints_grid.addWidget(self.constraintsFig, 0, 0, 8, 1)
@@ -551,6 +590,7 @@ class ConstraintsEditorUI(QtGui.QWidget):
         constraints_grid.addWidget(cmin_label, 6, 1)
         constraints_grid.addWidget(self.cmin_edit, 7, 1)
         constraints_grid.setColumnStretch(0, 100)
+        constraints_grid.setRowStretch(2, 100)
         constraints_group.setLayout(constraints_grid)
         #--- Variance GroupBox ---#
         variance_group              = QtGui.QGroupBox('Variance')
@@ -581,15 +621,27 @@ class ConstraintsEditorUI(QtGui.QWidget):
         self.setLayout(master_grid)
 
 class ConstraintsFig(FigureCanvasQTAgg):
-    def __init__(self, parent=None):
+    def __init__(self, ConstraintsEditor, parent=None):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(ConstraintsFig, self).__init__(fig)
+        self.constraints_editor = ConstraintsEditor
         self.initFig()
 
     def initFig(self):
-        ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
-        divider = make_axes_locatable(ax)
+        self.ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
+        divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
+
+    def plot_constraints(self, mog):
+        self.ax2 = self.figure.axes[1]
+        self.ax.cla()
+        self.ax2.cla()
+        cmin = self.constraints_editor.cmin_edit.text()
+        cmax = self.constraints_editor.cmax_edit.text()
+
+        #h= self.ax.imshow(data, aspect='auto')
+        #mpl.colorbar.Colorbar(self.ax2, h)
+
 
 
 class  MyQLabel(QtGui.QLabel):
