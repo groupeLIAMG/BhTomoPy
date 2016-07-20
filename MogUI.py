@@ -254,13 +254,6 @@ class MOGUI(QtGui.QWidget):
                         self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
 
 
-
-
-
-
-
-
-
     def detrend_rad(self, inp):
         """
 
@@ -341,10 +334,6 @@ class MOGUI(QtGui.QWidget):
         for bh in liste:
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
-
-
-
-
 
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
@@ -614,7 +603,6 @@ class MOGUI(QtGui.QWidget):
         # and the applicatiomn of a round facotr modifies the data itself so we had to put it in the plotting
 
 
-
     def update_prune_edits_info(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
@@ -672,16 +660,8 @@ class MOGUI(QtGui.QWidget):
 
         char1 = lookup("GREEK SMALL LETTER TAU")
         char2 = lookup("GREEK CAPITAL LETTER DELTA")
-        #--- Class For Alignment ---#
-        class  MyQLabel(QtGui.QLabel):
-            def __init__(self, label, ha='left',  parent=None):
-                super(MyQLabel, self).__init__(label,parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
+
+
 
         # -------- Creation of the manager for the Ray Coverage figure -------#
         self.zopraysFig = ZOPRaysFig()

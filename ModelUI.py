@@ -48,6 +48,11 @@ class ModelUI(QtGui.QWidget):
         self.model_mog_list.addItem(self.mog.MOGs[ind].name)
         self.models[n].mogs.append(self.mog.MOGs[ind])
 
+    def update_model_mog_list(self):
+        n = self.model_list.currentIndex().row()
+        for mog in self.models[n].mogs:
+            self.model_mog_list.addItem(mog.name)
+
 
     def update_model_list(self):
         self.model_list.clear()
@@ -146,6 +151,7 @@ class gridUI(QtGui.QWidget):
         self.model = model
 
         self.boreholes = self.model.borehole.boreholes
+
         self.MOGs = self.model.mog.MOGs
         self.initUI()
 
@@ -156,7 +162,7 @@ class gridUI(QtGui.QWidget):
     def plot_boreholes(self):
         self.model_ind = self.model.model_list.currentIndex().row()
         view = self.bhfig_combo.currentText()
-        self.bhsFig.plot_boreholes(self.boreholes, self.model.models[self.model_ind].mogs, view)
+        self.bhsFig.plot_boreholes(self.model.borehole.boreholes, self.model.models[self.model_ind].mogs, view)
 
     def plot_grid_view(self):
         bh = self.borehole_combo.currentText()
@@ -167,9 +173,9 @@ class gridUI(QtGui.QWidget):
         self.borehole_combo.clear()
         Tx_output = set()
         Rx_output = set()
-        for n in range(len(self.MOGs)):
-            Tx_output.add(self.MOGs[n].Tx.name)
-            Rx_output.add(self.MOGs[n].Rx.name)
+        for n in range(len(self.model.mog.MOGs)):
+            Tx_output.add(self.model.mog.MOGs[n].Tx.name)
+            Rx_output.add(self.model.mog.MOGs[n].Rx.name)
 
         Tx_output = list(Tx_output)
         Rx_output = list(Rx_output)
@@ -183,9 +189,9 @@ class gridUI(QtGui.QWidget):
     def update_origin(self):
         ind = self.borehole_combo.currentIndex()
 
-        self.origin_x_edit.setText(str(self.boreholes[ind].X))
-        self.origin_y_edit.setText(str(self.boreholes[ind].Y))
-        self.origin_z_edit.setText(str(self.boreholes[ind].Z))
+        self.origin_x_edit.setText(str(self.model.borehole.boreholes[ind].X))
+        self.origin_y_edit.setText(str(self.model.borehole.boreholes[ind].Y))
+        self.origin_z_edit.setText(str(self.model.borehole.boreholes[ind].Z))
 
 
 

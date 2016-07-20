@@ -27,16 +27,6 @@ class InfoUI(QtGui.QFrame):
 
     def initUI(self):
 
-        class  MyQLabel(QtGui.QLabel):
-            def __init__(self, label, ha='left',  parent=None):
-                super(MyQLabel, self).__init__(label,parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
-
         #--- Widget ---#
         self.database_label = QtGui.QLabel("Database : ")
         self.live_database_label = MyQLabel('',ha='left')
@@ -66,6 +56,15 @@ class InfoUI(QtGui.QFrame):
         self.setStyleSheet("background: white")
 
 
+class MyQLabel(QtGui.QLabel):
+    def __init__(self, label, ha='left', parent=None):
+        super(MyQLabel, self).__init__(label, parent)
+        if ha == 'center':
+            self.setAlignment(QtCore.Qt.AlignCenter)
+        elif ha == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
+        else:
+            self.setAlignment(QtCore.Qt.AlignLeft)
 
 
 

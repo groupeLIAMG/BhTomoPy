@@ -7,6 +7,7 @@ from MogUI import MOGUI, MergeMog
 from InfoUI import InfoUI
 from MogData import MogData
 import time
+import pickle
 
 class DatabaseUI(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -19,10 +20,13 @@ class DatabaseUI(QtGui.QWidget):
         self.model = ModelUI(borehole=self.bh, mog=self.mog)
         self.grid = gridUI(self.model)
         self.info = InfoUI()
-        self.mogdata = MogData()
         self.mergemog = MergeMog(self.mog.MOGs)
         self.initUI()
         self.action_list = []
+        self.models = self.model.models
+        self.boreholes = self.bh.boreholes
+        self.mogs = self.mog.MOGs
+        self.air = self.mog.air
 
         # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
         # modules in order to update them
@@ -101,9 +105,59 @@ class DatabaseUI(QtGui.QWidget):
 
     def openfile(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+        self.load_file(filename)
+    def load_file(self, filename):
+        load_file = open(filename, 'rb')
+
+        self.boreholes, self.mogs, self.air, self.models = pickle.load(load_file)
+
+        self.bh.boreholes = self.boreholes
+        self.mog.MOGs = self.mogs
+        self.model.models = self.models
+        self.grid.model = self.model
+
+
+        self.mog.air = self.air
+
+        self.bh.update_List_Widget()
+        self.bh.bh_list.setCurrentRow(0)
+        self.bh.update_List_Edits()
+
+        self.mog.update_List_Widget()
+        self.mog.update_edits()
+        self.mog.MOG_list.setCurrentRow(0)
+        self.mog.update_spectra_Tx_num_list()
+        self.mog.update_spectra_Tx_elev_value_label()
+        self.mog.update_edits()
+        self.mog.update_prune_edits_info()
+        self.mog.update_prune_info()
+
+        self.model.update_model_list()
+        self.model.update_model_mog_list()
+
+
+
+
+
 
     def saveasfile(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...')
+        try:
+            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', filter= 'pickle (*.p, *.pkl, *.pickle)', )
+            print(filename)
+            save_file = open(filename, 'wb')
+            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+            dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+                                                    ,buttons=QtGui.QMessageBox.Ok)
+        except:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
+                                                    , buttons=QtGui.QMessageBox.Ok)
+
+
+
+
+
+
+
 
     def save(self):
         # TODO
@@ -190,11 +244,11 @@ if __name__ == '__main__':
 
     Database_ui = DatabaseUI()
     Database_ui.action_list.append("[{}] Welcome to BH_TOMO Py " .format(Database_ui.actual_time))
-    Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
-    Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
-    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+    #Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
+    #Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+    #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
-    Database_ui.model.load_model("t0302's model")
+    #Database_ui.model.load_model("t0302's model")
     #Database_ui.mog.plot_spectra()
     #Database_ui.mog.plot_zop()
     Database_ui.show()
