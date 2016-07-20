@@ -12,6 +12,7 @@ import scipy as spy
 from scipy import signal
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
+from numpy import linalg
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 import re
@@ -457,9 +458,15 @@ class MOGUI(QtGui.QWidget):
 
     def plot_statstt(self):
         ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            self.statsttFig.plot_stats(self.MOGs[i.row()])
-            self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[i.row()].name))
+        mog = self.MOGs[ind[0].row()]
+        done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+        if len(np.nonzero(done == 1)[0]) == 0:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
+                                                   buttons=QtGui.QMessageBox.Ok)
+
+        else:
+            self.statsttFig.plot_stats(mog, self.air)
+            self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
             self.statsttmanager.showMaximized()
 
     def plot_statsamp(self):
@@ -1521,7 +1528,7 @@ class StatsttFig(FigureCanvasQTAgg):
 
     def initFig(self):
 
-        # horizontal
+
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
         self.ax3 = self.figure.add_axes([0.7, 0.1, 0.2, 0.25])
@@ -1529,11 +1536,39 @@ class StatsttFig(FigureCanvasQTAgg):
         self.ax5 = self.figure.add_axes([0.4, 0.55, 0.2, 0.25])
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
-    def plot_stats(self, mog):
+    def plot_stats(self, mog, airshots):
 
+        done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+        ind = np.nonzero(done == 1)[0]
 
+        tt, t0 = mog.getCorrectedTravelTimes(airshots)
+        et = mog.et[ind]
+        tt = tt[ind]
 
+        hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
+                      + (mog.data.Tx_y[ind] + mog.data.Rx_y[ind] )**2
+                      + (mog.data.Tx_z[ind] +  mog.data.Rx_z[ind] )**2)
+        dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
 
+        theta = 180/ np.pi * np.arcsin(dz/hyp)
+
+        vapp = hyp/(tt-t0[ind])
+        n = np.arange(len(ind))
+        n = n[ind]
+        ind2 = np.less(vapp, 0)
+        ind2 = np.nonzero(ind2)[0]
+
+        self.ax4.plot(hyp, tt, marker='o')
+        self.ax5.plot(theta, hyp/tt, marker='o')
+        self.ax2.plot(theta, vapp, marker='o')
+        self.ax6.plot(t0)
+        self.ax1.plot(hyp, et, marker='o')
+        self.ax3.plot(theta, et, marker='o')
+
+        vapp= hyp/tt
+        self.vappFig = VAppFig()
+        self.vappFig.plot_vapp(mog, vapp, ind)
+        self.vappFig.show()
 
 
 
@@ -1543,17 +1578,78 @@ class StatsttFig(FigureCanvasQTAgg):
 
         mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+
         mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
         mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+
         mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
         mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+
         mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
         mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+
         mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
+
+
+
+class VAppFig(FigureCanvasQTAgg):
+    def __init__(self, parent=None):
+        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
+        super(VAppFig, self).__init__(fig)
+        self.initFig()
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
+
+    def plot_vapp(self, mog, vapp, ind):
+        Tx = np.array([mog.data.Tx_x[ind].T, mog.data.Tx_y[ind].T, mog.data.Tx_z[ind].T ])
+        Rx = np.array([mog.data.Rx_x[ind].T, mog.data.Rx_y[ind].T, mog.data.Rx_z[ind].T ])
+
+        vmin = min(vapp)
+        vmax = max(vapp)
+        X = np.array([[Tx],
+                      [Rx]])
+        x0, a = self.lsplane(X)
+        el = (np.pi - a[2])*180/np.pi
+        az = np.arctan(np.cos(a[1])/np.cos(a[1])) * 180/np.pi
+
+        for n in range(len(vapp)):
+
+            self.ax.plot([Tx[0, n], Rx[0, n]], [Tx[0, n], Rx[0, n]], [Tx[0, n], Rx[0, n]])
+
+        self.ax.text2D(0.05, 0.95, "{} - Apparent Velocity".format(mog.name), transform=ax.transAxes)
+
+    def lsplane(self, X):
+        '''
+        Least-squares plane
+        :param X:
+        :return:
+        x0 : Centroid of the data = point on the best fit plane
+        a : Direction cosines of the normal to the best fit plane
+        '''
+
+        # First we check the number of data points
+        m = np.shape(X)[0]
+        if m < 3:
+            raise ValueError(' At least 3 data points required')
+
+        # Calculate centroid
+        x0 = np.mean(X).T
+
+        # Form a matrix A of translated points
+        A = np.array([X[:, 0] - x0[:,0], X[:, 1] - x0[:,1], X[:, 2] - x0[:,2]])
+
+        # Calculate the Single Valued Decomposition of A
+        U, S, V = np.linalg.svd(A, full_matrices= False)
+
+        s = min(np.diag(S))
+        i = np.nonzero(S == s)
+        a = V[:, i]
+
+        return x0, a
 
 class StatsAmpFig(FigureCanvasQTAgg):
     def __init__(self, parent = None):

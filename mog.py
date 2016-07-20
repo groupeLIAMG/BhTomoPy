@@ -55,8 +55,8 @@ class Mog:
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
         self.data                     = data          # Instance of MogData
-        self.av                       = ''            # Air shot before
-        self.ap                       = ''            # Airshot after
+        self.av                       = ''
+        self.ap                       = ''
         self.Tx                       = 1
         self.Rx                       = 1
         self.tau_params               = np.array([])
@@ -218,9 +218,29 @@ class Mog:
                 t0 = np.zeros(np.shape(tt))
                 return
             else:
-                airBefore = AirShots(self.av)
-                airAfter = AirShots(self.ap)
-                t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter, True)
+                airBefore = air[self.av]
+                airAfter = air[self.ap]
+                t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
+
+            if self.av != '':
+                air[self.av].fac_dt = fac_dt_av
+
+            if self.ap != '':
+                air[self.ap].fac_dt = fac_dt_ap
+
+            if self.user_fac_dt == 0:
+                if fac_dt_av != 1 and fac_dt_ap != 1:
+                    self.fac_dt = 0.5*(fac_dt_av + fac_dt_ap)
+                elif fac_dt_av != 1:
+                    self.fac_dt = fac_dt_av
+                elif fac_dt_ap != 1:
+                    self.fac_dt = fac_dt_ap
+                else:
+                    self.fac_dt = 1
+
+            t0 = self.fac_dt * t0
+            tt = self.fac_dt * self.tt - t0
+            return tt, t0
 
 
 class PruneParams:
