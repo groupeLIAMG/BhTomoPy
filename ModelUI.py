@@ -487,30 +487,30 @@ class GridViewFig(FigureCanvasQTAgg):
                 if flip:
                     self.ax.plot((Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
                     self.ax.set_xlim([(Tx_ys[0]-Rx_ys[0])- pad_x_minus, pad_x_plus])
-                    self.ax.set_xlim(np.arange((Tx_ys[0] - Rx_ys[0]) - pad_x_minus, pad_x_plus, x_cell_size))
+                    self.ax.set_xticks(np.arange((Tx_ys[0] - Rx_ys[0]) - pad_x_minus, pad_x_plus, x_cell_size), minor= True)
                 if not flip:
                     self.ax.plot(-(Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
                     self.ax.set_xlim([-pad_x_minus, -(Tx_ys[0]-Rx_ys[0])+ pad_x_plus])
-                    self.ax.set_xticks(np.arange(-pad_x_minus, -(Tx_ys[0] - Rx_ys[0]) + pad_x_plus, x_cell_size))
+                    self.ax.set_xticks(np.arange(-pad_x_minus, -(Tx_ys[0] - Rx_ys[0]) + pad_x_plus, x_cell_size), minor= True)
             if origin == mog.Rx.name:
                 self.ax.plot(orig_Rx, -Rx_zs, '*', c='b')
 
                 if flip:
                     self.ax.plot((Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
                     self.ax.set_xlim([-pad_x_minus, (Rx_ys[0] - Tx_ys[0])+ pad_x_plus ])
-                    self.ax.set_xticks(-pad_x_minus, (Rx_ys[0] - Tx_ys[0]) + pad_x_plus, x_cell_size)
+                    self.ax.set_xticks(np.arange(-pad_x_minus, (Rx_ys[0] - Tx_ys[0]) + pad_x_plus, x_cell_size), minor= True)
 
                 if not flip:
                     self.ax.plot(-(Rx_ys[0] - Tx_ys[0]) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
                     self.ax.set_xlim([-(Rx_ys[0] - Tx_ys[0])- pad_x_minus, pad_x_plus])
-                    self.ax.set_xticks(np.arange(-(Rx_ys[0] - Tx_ys[0]) - pad_x_minus, pad_x_plus, x_cell_size ))
+                    self.ax.set_xticks(np.arange(-(Rx_ys[0] - Tx_ys[0]) - pad_x_minus, pad_x_plus, x_cell_size ), minor= True)
 
             if max(mog.data.Rx_z) > max(mog.data.Tx_z):
                 self.ax.set_ylim([-max(mog.data.Rx_z)-pad_z_minus, pad_z_plus])
-                self.ax.set_yticks(np.arange(-max(mog.data.Rx_z)-pad_z_minus,pad_z_plus , z_cell_size))
+                self.ax.set_yticks(np.arange(-max(mog.data.Rx_z)-pad_z_minus,pad_z_plus , z_cell_size), minor= True)
             if max(mog.data.Tx_z) > max(mog.data.Rx_z):
                 self.ax.set_ylim([-max(mog.data.Tx_z) - pad_z_minus, pad_z_plus])
-                self.ax.set_yticks(np.arange(-max(mog.data.Tx_z) - pad_z_minus, pad_z_plus, z_cell_size))
+                self.ax.set_yticks(np.arange(-max(mog.data.Tx_z) - pad_z_minus, pad_z_plus, z_cell_size), minor= True)
 
             self.ax.set_xlabel('Y', fontsize= 16)
             self.ax.set_ylabel('Z', fontsize= 16)

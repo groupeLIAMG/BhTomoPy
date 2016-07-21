@@ -13,10 +13,12 @@ from scipy import signal
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 from numpy import linalg
+from numpy import matlib
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 import re
 
+#--- Class For Alignment ---#
 
 
 class MOGUI(QtGui.QWidget):
@@ -267,7 +269,13 @@ class MOGUI(QtGui.QWidget):
 
         dm = (m2 - m1)/(m-1)
 
-        out= inp - np.matlib.repmat(m1, m, 1) - np.arange(m)*dm
+        x = np.matlib.repmat(m1, m, 1)
+
+        subtract = np.add(x[0]*np.ones(m), np.arange(m)*dm)
+
+        out = np.zeros(np.shape(inp))
+        for n in range(np.shape(inp)[1]):
+            out[:, n]= np.subtract(inp[:, n], subtract)
 
         return out
 
@@ -430,9 +438,6 @@ class MOGUI(QtGui.QWidget):
         else:
             self.tol_edit.setText(str(mog.data.rstepsz * 0.5))
 
-
-
-
         self.zopFig.plot_zop(mog)
         self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
         self.zopmanager.showMaximized()
@@ -472,7 +477,7 @@ class MOGUI(QtGui.QWidget):
 
     def plot_prune(self):
         ind = self.MOG_list.selectedIndexes()
-        self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0)
+        self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0 )
         self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(self.MOGs[ind[0].row()].name))
         self.prunemanager.show()
 
@@ -492,6 +497,19 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
         SNR = np.ones(mog.data.ntrace)
+
+        max_amps = np.amax(np.abs(self.detrend_rad(mog.data.rdata)))
+        i = np.nonzero(np.abs(self.detrend_rad(mog.data.rdata)) == max_amps)[0]
+
+        width = 60
+
+        i1 = i - width / 2
+        i2 = i + width / 2
+        i1[i1 < 1] = 1
+        i2[i2 > mog.data.nptsptrc] = mog.data.nptsptrc
+
+        for n in range(mog.data.ntrace):
+            SNR[n] = np.std(mog.data.rdata[i1[n]:i2[n], n]) / np.std(mog.data.rdata[:width, n])
 
         return SNR
 
@@ -518,7 +536,8 @@ class MOGUI(QtGui.QWidget):
         skip_len_Rx = int(self.skip_Rx_edit.text())
         skip_len_Tx = int(self.skip_Tx_edit.text())
         round_factor = float(self.round_fac_edit.text())
-        SB_treshold = float(self.tresh_edit.text())
+        use_snr = self.tresh_check.isChecked()
+        treshold_snr = float(self.tresh_edit.text())
         ang_min = float(self.min_ang_edit.text())
         ang_max = float(self.max_ang_edit.text())
 
@@ -593,6 +612,13 @@ class MOGUI(QtGui.QWidget):
         for false_index in false_theta[0]:
             mog.in_Rx_vect[false_index] = False
 
+        if use_snr:
+            SNR = self.compute_SNR()
+
+
+
+
+
         mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1).astype(bool)
 
         # And then. when all of the steps have been done, we update the prune info subwidget and plot the graphic
@@ -621,14 +647,18 @@ class MOGUI(QtGui.QWidget):
     def update_prune_info(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
-
-
+        selected_angle = float(self.max_ang_edit.text()) - float(self.min_ang_edit.text())
+        removed_Tx = mog.data.ntrace - sum(mog.in_Tx_vect)
+        removed_Rx = mog.data.ntrace - sum(mog.in_Rx_vect)
+        removed_Tx_and_Rx = (removed_Tx + removed_Rx)/mog.data.ntrace * 100
         tot_traces = mog.data.ntrace
         selec_traces = sum(mog.in_vect)
         kept_traces = (selec_traces/tot_traces)*100
 
         self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
         self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
+        self.value_Tx_Rx_removed_label.setText(str(np.round(removed_Tx_and_Rx)))
+        self.value_ray_angle_removed_label.setText(str(np.round(((180-selected_angle)/180)*100)))
         self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
 
     def start_merge(self):
@@ -646,22 +676,16 @@ class MOGUI(QtGui.QWidget):
 
         self.mergemog.getcompat()
 
-
-
     def start_delta_t(self):
         self.deltat = DeltaTMOG(self)
         for mog in self.MOGs:
             self.deltat.min_combo.addItem(str(mog.name))
         self.deltat.getcompat()
 
-
-
     def initUI(self):
 
         char1 = lookup("GREEK SMALL LETTER TAU")
         char2 = lookup("GREEK CAPITAL LETTER DELTA")
-
-
 
         # -------- Creation of the manager for the Ray Coverage figure -------#
         self.zopraysFig = ZOPRaysFig()
@@ -756,6 +780,9 @@ class MOGUI(QtGui.QWidget):
 
         #--- CheckBox ---#
         self.tresh_check = QtGui.QCheckBox('Treshold - SNR')
+
+        #- CheckBox Action -#
+        self.tresh_check.stateChanged.connect(self.update_prune)
 
         #--- Button ---#
         btn_done = QtGui.QPushButton('Done')
@@ -1230,6 +1257,16 @@ class MOGUI(QtGui.QWidget):
         master_grid.setColumnStretch(1, 300)
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
+
+class  MyQLabel(QtGui.QLabel):
+    def __init__(self, label, ha='left',  parent= None):
+        super(MyQLabel, self).__init__(label,parent)
+        if ha == 'center':
+            self.setAlignment(QtCore.Qt.AlignCenter)
+        elif ha == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
+        else:
+            self.setAlignment(QtCore.Qt.AlignLeft)
 
 class RawDataFig(FigureCanvasQTAgg):
 
@@ -2052,16 +2089,7 @@ class DeltaTMOG(QtGui.QWidget):
 
 
 
-#--- Class For Alignment ---#
-class  MyQLabel(QtGui.QLabel):
-    def __init__(self, label, ha='left',  parent= None):
-        super(MyQLabel, self).__init__(label,parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
+
 
 if __name__ == '__main__':
 
