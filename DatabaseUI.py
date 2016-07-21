@@ -35,7 +35,6 @@ class DatabaseUI(QtGui.QWidget):
         self.bh.bhInfoSignal.connect(self.update_borehole_info)
         self.mog.mogInfoSignal.connect(self.update_mog_info)
         self.mog.ntraceSignal.connect(self.update_trace_info)
-        self.mog.databaseSignal.connect(self.update_database_info)
         self.model.modelInfoSignal.connect(self.update_model_info)
         self.bh.bhlogSignal.connect(self.update_log)
         self.mog.moglogSignal.connect(self.update_log)
@@ -105,12 +104,26 @@ class DatabaseUI(QtGui.QWidget):
 
     def openfile(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
-        print(filename)
-        self.load_file(filename)
-    def load_file(self, filename):
-        load_file = open(filename, 'rb')
 
-        self.boreholes, self.mogs, self.air, self.models = pickle.load(load_file)
+
+        self.load_file(filename)
+
+
+    def load_file(self, filename):
+
+        rname = filename.split('/')
+        rname = rname[-1]
+        if '.p' in rname:
+            rname = rname[:-2]
+        if '.pkl' in rname:
+            rname = rname[:-4]
+        if '.pickle' in rname:
+            rname = rname[:-7]
+        file = open(filename, 'rb')
+
+        self.boreholes, self.mogs, self.air, self.models = pickle.load(file)
+        self.update_database_info(rname)
+        self.update_log("Database '{}' was loaded successfully".format(rname))
 
         self.bh.boreholes = self.boreholes
         self.mog.MOGs = self.mogs
@@ -136,33 +149,50 @@ class DatabaseUI(QtGui.QWidget):
         self.model.update_model_list()
         self.model.update_model_mog_list()
 
+    def savefile(self):
+        try:
+            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database ...', filter= 'pickle (*.p *.pkl *.pickle)', )
+            save_file = open(filename, 'wb')
+            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+            dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+                                                    ,buttons=QtGui.QMessageBox.Ok)
+            rname = filename.split('/')
+            rname = rname[-1]
+            if '.p' in rname:
+                rname = rname[:-2]
+            if '.pkl' in rname:
+                rname = rname[:-4]
+            if '.pickle' in rname:
+                rname = rname[:-7]
+            file = open(filename, 'rb')
 
-
-
-
+            self.update_log("Database '{}' was saved successfully".format(rname))
+        except:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
+                                                    , buttons=QtGui.QMessageBox.Ok)
 
     def saveasfile(self):
         try:
-            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', filter= 'pickle (*.p, *.pkl, *.pickle)', )
+            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', filter= 'pickle (*.p *.pkl *.pickle)', )
             print(filename)
             save_file = open(filename, 'wb')
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
+            rname = filename.split('/')
+            rname = rname[-1]
+            if '.p' in rname:
+                rname = rname[:-2]
+            if '.pkl' in rname:
+                rname = rname[:-4]
+            if '.pickle' in rname:
+                rname = rname[:-7]
+            file = open(filename, 'rb')
+
+            self.update_log("Database '{}' was saved successfully".format(rname))
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
                                                     , buttons=QtGui.QMessageBox.Ok)
-
-
-
-
-
-
-
-
-    def save(self):
-        # TODO
-        pass
 
     def initUI(self):
 
@@ -178,6 +208,7 @@ class DatabaseUI(QtGui.QWidget):
 
         saveAction = QtGui.QAction('Save', self)
         saveAction.setShortcut('Ctrl+S')
+        saveAction.triggered.connect(self.savefile)
 
         saveasAction = QtGui.QAction('Save as', self)
         saveasAction.setShortcut('Ctrl+A')
@@ -244,7 +275,8 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
-    Database_ui.action_list.append("[{}] Welcome to BH_TOMO Py " .format(Database_ui.actual_time))
+    Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
+
     #Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     #Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
@@ -254,6 +286,7 @@ if __name__ == '__main__':
     #Database_ui.mog.plot_zop()
 
     Database_ui.show()
+
 
 
     sys.exit(app.exec_())

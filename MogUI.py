@@ -107,9 +107,11 @@ class MOGUI(QtGui.QWidget):
 
                 elif mog.Rx.name == self.borehole.boreholes[i].name:
                     self.Rx_combo.setCurrentIndex(i)
+            tot_traces = 0
+            for mog in self.MOGs:
+                tot_traces += mog.data.ntrace
+            self.ntraceSignal.emit(tot_traces)
 
-            self.ntraceSignal.emit(mog.data.ntrace)
-            self.databaseSignal.emit(mog.data.name)
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
