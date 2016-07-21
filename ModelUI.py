@@ -52,10 +52,15 @@ class ModelUI(QtGui.QWidget):
         self.update_mog_combo()
         self.chooseMog.show()
 
+    def remove_mog(self):
+        n = self.model_list.selectedIndexes()[0].row()
+        ind = self.model_mog_list.currentIndex().row()
 
-
+        del self.models[n].mogs[ind]
+        self.update_model_mog_list()
 
     def update_model_mog_list(self):
+        self.model_mog_list.clear()
         n = self.model_list.currentIndex().row()
         for mog in self.models[n].mogs:
             self.model_mog_list.addItem(mog.name)
@@ -104,6 +109,7 @@ class ModelUI(QtGui.QWidget):
         #--- Buttons Actions ---#
         btn_Add_Model.clicked.connect(self.add_model)
         btn_Remove_Model.clicked.connect(self.del_model)
+        btn_Remove_MOG.clicked.connect(self.remove_mog)
         btn_Add_MOG.clicked.connect(self.add_mog)
         btn_Edit_Grid.clicked.connect(self.start_grid)
 
