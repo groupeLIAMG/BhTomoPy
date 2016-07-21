@@ -20,6 +20,7 @@ class ModelUI(QtGui.QWidget):
         self.mog = mog
         self.models = []
         self.grid = gridUI(self)
+        self.update_mog_combo()
         self.initUI()
 
     def add_model(self):
@@ -39,9 +40,18 @@ class ModelUI(QtGui.QWidget):
             del self.models[int(i.row())]
         self.update_model_list()
 
+    def update_mog_combo(self):
+        self.chooseMog = ChooseModelMOG(self)
+        self.chooseMog.mog_combo.clear()
+        for mog in self.mog.MOGs:
+            self.chooseMog.mog_combo.addItem(mog.name)
+
+
+
     def add_mog(self):
-        ind = self.mog.MOG_list.currentIndex().row()
-        n = self.model_list.currentIndex().row()
+        self.update_mog_combo()
+        self.chooseMog.show()
+
         self.load_mog(ind, n)
 
     def load_mog(self, ind, n):
@@ -52,7 +62,6 @@ class ModelUI(QtGui.QWidget):
         n = self.model_list.currentIndex().row()
         for mog in self.models[n].mogs:
             self.model_mog_list.addItem(mog.name)
-
 
     def update_model_list(self):
         self.model_list.clear()
@@ -141,6 +150,34 @@ class ModelUI(QtGui.QWidget):
         self.setLayout(master_grid)
 
 
+class ChooseModelMOG(QtGui.QWidget):
+    def __init__(self, model, parent=None):
+        super(ChooseModelMOG, self).__init__()
+        self.setWindowTitle("bh_thomoPy/Choose MOGs")
+        self.model= model
+        self.initUI()
+
+    def initUI(self):
+        #------- Widgets -------#
+        #--- ComboBox ---#
+        self.mog_combo = QtGui.QComboBox()
+        #--- Buttons ---#
+        ok_btn = QtGui.QPushButton('Ok')
+        cancel_btn = QtGui.QPushButton('Cancel')
+
+        #--- Buttons SubWidget ---#
+        sub_btn_widget = QtGui.QWidget()
+        sub_btn_grid = QtGui.QGridLayout()
+        sub_btn_grid.addWidget(ok_btn, 0, 0)
+        sub_btn_grid.addWidget(cancel_btn, 0, 1)
+        sub_btn_widget.setLayout(sub_btn_grid)
+
+        #--- Master Grid ---#
+        master_grid = QtGui.QGridLayout()
+        master_grid.addWidget(self.mog_combo, 0, 0)
+        master_grid.addWidget(sub_btn_widget, 1, 0)
+        self.setLayout(master_grid)
+
 class gridUI(QtGui.QWidget):
 
     def __init__(self, model, parent=None):
@@ -149,10 +186,6 @@ class gridUI(QtGui.QWidget):
         self.gridinfo = GridInfoUI()
         self.constraintseditor = ConstraintsEditorUI()
         self.model = model
-
-        self.boreholes = self.model.borehole.boreholes
-
-        self.MOGs = self.model.mog.MOGs
         self.initUI()
 
     def plot_adjustment(self):
