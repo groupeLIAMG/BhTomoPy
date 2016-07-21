@@ -663,6 +663,7 @@ class MOGUI(QtGui.QWidget):
 
     def start_merge(self):
         self.mergemog = MergeMog(self)
+        self.mergemog.ref_combo.clear()
 
         if len(self.MOG_list) == 0:
             dialog = QtGui.QMessageBox.information(self, 'Warning', "No MOG in Database",buttons= QtGui.QMessageBox.Ok )

@@ -52,11 +52,8 @@ class ModelUI(QtGui.QWidget):
         self.update_mog_combo()
         self.chooseMog.show()
 
-        self.load_mog(ind, n)
 
-    def load_mog(self, ind, n):
-        self.model_mog_list.addItem(self.mog.MOGs[ind].name)
-        self.models[n].mogs.append(self.mog.MOGs[ind])
+
 
     def update_model_mog_list(self):
         n = self.model_list.currentIndex().row()
@@ -156,6 +153,14 @@ class ChooseModelMOG(QtGui.QWidget):
         self.setWindowTitle("bh_thomoPy/Choose MOGs")
         self.model= model
         self.initUI()
+    def add_mog(self):
+        n = self.model.model_list.currentIndex().row()
+        ind = self.mog_combo.currentIndex()
+        self.load_mog(ind, n)
+
+    def load_mog(self, ind, n):
+        self.model.model_mog_list.addItem(self.model.mog.MOGs[ind].name)
+        self.model.models[n].mogs.append(self.model.mog.MOGs[ind])
 
     def initUI(self):
         #------- Widgets -------#
@@ -164,6 +169,9 @@ class ChooseModelMOG(QtGui.QWidget):
         #--- Buttons ---#
         ok_btn = QtGui.QPushButton('Ok')
         cancel_btn = QtGui.QPushButton('Cancel')
+
+        #- Buttons Actions -#
+        ok_btn.clicked.connect(self.add_mog)
 
         #--- Buttons SubWidget ---#
         sub_btn_widget = QtGui.QWidget()
