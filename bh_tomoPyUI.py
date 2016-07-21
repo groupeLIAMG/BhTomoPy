@@ -6,6 +6,7 @@ from covarUI import CovarUI
 from inversionUI import InversionUI
 from interpUI import InterpretationUI
 from semi_auto_ttUI import SemiAutottUI
+import os
 
 class Bh_ThomoPyUI(QtGui.QWidget):
 
@@ -22,14 +23,39 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
     def choosedb(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Choose Database')
+
         self.laoddb(filename)
 
     def laoddb(self, filename):
         # We create a load db methods to be able to load databases in the main
         rname = filename.split('/')
         rname = rname[-1]
+        if '.p' in rname:
+            rname = rname[:-2]
+        if '.pkl' in rname:
+            rname = rname[:-4]
+        if '.pickle' in rname:
+            rname = rname[:-7]
 
         self.current_db.setText(str(rname))
+        self.database.load_file(filename)
+
+    def show(self):
+        super(Bh_ThomoPyUI, self).show()
+
+        # Get initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Show it at the center of the screen
+        cp = QtGui.QDesktopWidget().availableGeometry().center()
+
+        # Move the window's center at the center of the screen
+        qr.moveCenter(cp)
+
+        # Then move it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
 
     def initUI(self):
 
@@ -78,7 +104,13 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         btn_Inversion.clicked.connect(self.inv.show)
         btn_Interpretation.clicked.connect(self.interp.show)
 
-        #--- Label ---#
+        #--- Image ---#
+        pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
+        image_label = QtGui.QLabel()
+        image_label.setPixmap(pic.scaled(250, 250, QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.FastTransformation))
+        image_label.setAlignment(QtCore.Qt.AlignCenter)
+
+        #--- Title(if logo isnt ok) ---#
         Title = QtGui.QLabel('BH TOMO \n Borehole Radar/Seismic Data Processing Center')
         Title.setAlignment(QtCore.Qt.AlignHCenter)
         Title.setContentsMargins(10, 10, 10, 30)
@@ -92,7 +124,14 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         #- Edit Disposition -#
         self.current_db.setReadOnly(True)
+        self.current_db.setAlignment(QtCore.Qt.AlignHCenter)
 
+        #--- Image SubWidget ---#
+        sub_image_widget = QtGui.QWidget()
+        sub_image_grid = QtGui.QGridLayout()
+        sub_image_grid.addWidget(image_label, 0, 0)
+        sub_image_grid.setContentsMargins(50, 0, 50, 0)
+        sub_image_widget.setLayout(sub_image_grid)
         #--- Buttons SubWidget ---#
         Sub_button_widget = QtGui.QGroupBox()
         sub_button_grid = QtGui.QGridLayout()
@@ -113,7 +152,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         bh_tomo = QtGui.QWidget()
         master_grid   = QtGui.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 4)
-        master_grid.addWidget(Title, 2, 0, 1, 4)
+        master_grid.addWidget(sub_image_widget, 2, 0, 1, 4)
         master_grid.addWidget(self.current_db, 3, 1, 1, 2)
         master_grid.addWidget(Sub_button_widget, 4, 0, 1, 4)
         master_grid.setContentsMargins(0, 0, 0, 0)

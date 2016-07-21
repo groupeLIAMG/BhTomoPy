@@ -18,9 +18,12 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 import re
 
-#--- Class For Alignment ---#
 
-
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Multi Offset Gather User Interface (MOGUI) Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class MOGUI(QtGui.QWidget):
 
     mogInfoSignal = QtCore.pyqtSignal(int)
@@ -616,10 +619,6 @@ class MOGUI(QtGui.QWidget):
 
         if use_snr:
             SNR = self.compute_SNR()
-
-
-
-
 
         mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1).astype(bool)
 
@@ -1260,7 +1259,11 @@ class MOGUI(QtGui.QWidget):
         master_grid.setColumnStretch(1, 300)
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
-
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       MyQLabel Class for easy Label Alignment
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class  MyQLabel(QtGui.QLabel):
     def __init__(self, label, ha='left',  parent= None):
         super(MyQLabel, self).__init__(label,parent)
@@ -1271,6 +1274,12 @@ class  MyQLabel(QtGui.QLabel):
         else:
             self.setAlignment(QtCore.Qt.AlignLeft)
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Raw Data Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class RawDataFig(FigureCanvasQTAgg):
 
     def __init__(self):
@@ -1278,14 +1287,11 @@ class RawDataFig(FigureCanvasQTAgg):
         super(RawDataFig, self).__init__(fig)
         self.initFig()
 
-
     def initFig(self):
         ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
         divider = make_axes_locatable(ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
         ax.set_axisbelow(True)
-
-
 
     def plot_raw_data(self, mogd):
         ax1 = self.figure.axes[0]
@@ -1300,6 +1306,12 @@ class RawDataFig(FigureCanvasQTAgg):
 
         self.draw()
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Spectra Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class SpectraFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor= 'white')
@@ -1443,6 +1455,11 @@ class SpectraFig(FigureCanvasQTAgg):
         return SNR
 
 
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Zero Offset Profile (ZOP) Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class ZOPFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor= 'white')
@@ -1474,6 +1491,12 @@ class ZOPFig(FigureCanvasQTAgg):
         self.ax3.spines['bottom'].set_color('blue')
         self.draw()
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Zero Offset Profile (ZOP) Rays Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class ZOPRaysFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(figsize=(6,8), facecolor='white')
@@ -1539,6 +1562,12 @@ class ZOPRaysFig(FigureCanvasQTAgg):
 
         self.draw()
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Traveltime Statistics Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class StatsttFig(FigureCanvasQTAgg):
     def __init__(self, parent = None):
 
@@ -1615,7 +1644,11 @@ class StatsttFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
 
-
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Apparent Velocity Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class VAppFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
@@ -1671,6 +1704,12 @@ class VAppFig(FigureCanvasQTAgg):
 
         return x0, a
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Amplitude Statistics Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class StatsAmpFig(FigureCanvasQTAgg):
     def __init__(self, parent = None):
 
@@ -1709,6 +1748,12 @@ class StatsAmpFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
         mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Ray Coverage Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class RayCoverageFig(FigureCanvasQTAgg):
     def __init__(self, parent= None):
         fig = mpl.figure.Figure(figsize= (6, 8), facecolor='white')
@@ -1761,6 +1806,13 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
+
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Prune Figure Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class PruneFig(FigureCanvasQTAgg):
     def __init__(self, parent= None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
@@ -1813,8 +1865,11 @@ class PruneFig(FigureCanvasQTAgg):
         self.draw()
 
 
-
-
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Merge MOG Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class MergeMog(QtGui.QWidget):
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
@@ -1831,9 +1886,11 @@ class MergeMog(QtGui.QWidget):
         ref_mog = self.mog.MOGs[n]
         ids = []
         nc = 0
+
         if n == len(self.mog.MOGs):
             dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
             return
+
         for mog in self.mog.MOGs:
             if mog != ref_mog:
                 test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
@@ -1938,13 +1995,7 @@ class MergeMog(QtGui.QWidget):
             self.mog.update_List_Widget()
             self.close()
 
-
-
-
-
-
     def initUI(self):
-
 
         #------- Widgets -------#
         #--- Labels ---#
@@ -1992,6 +2043,12 @@ class MergeMog(QtGui.QWidget):
 
         self.setLayout(master_grid)
 
+
+#-----------------------------------------------------------------------------------------------------------------------
+#
+#                       Delta T MOG Class
+#
+#-----------------------------------------------------------------------------------------------------------------------
 class DeltaTMOG(QtGui.QWidget):
     def __init__(self, mog, parent=None):
         super(DeltaTMOG, self).__init__()
@@ -2098,20 +2155,9 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    #zopFig = ZOPFig()
-    #zopFig.show()
     MOGUI_ui = MOGUI()
     MOGUI_ui.show()
 
-
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
-
-    #MOGUI_ui.plot_spectra()
-    #MOGUI_ui.plot_rawdata()
-    #MOGUI_ui.plot_zop()
-    #MOGUI_ui.plot_statsamp()
-    #MOGUI_ui.plot_ray_coverage()
-    #MOGUI_ui.plot_prune()
-
 
     sys.exit(app.exec_())

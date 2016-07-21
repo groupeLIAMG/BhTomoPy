@@ -7,6 +7,7 @@ from MogUI import MOGUI, MergeMog
 from InfoUI import InfoUI
 from MogData import MogData
 import time
+import matplotlib.image as mpimg
 import pickle
 
 class DatabaseUI(QtGui.QWidget):
