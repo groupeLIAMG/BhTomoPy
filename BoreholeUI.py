@@ -32,8 +32,11 @@ class BoreholeUI(QtGui.QWidget):
 
         """
         filename              = QtGui.QFileDialog.getOpenFileName(self, 'Import Borehole')
-        if filename:
-            self.load_bh(filename)
+        try:
+            if filename:
+                self.load_bh(filename)
+        except:
+            self.bhlogSignal.emit('Error: Borehole file must have *.xyz extension')
 
     def load_bh(self, filename):
         rname             = filename.split('/')

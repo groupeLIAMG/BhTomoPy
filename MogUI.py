@@ -173,8 +173,12 @@ class MOGUI(QtGui.QWidget):
 
                     # because of the fact that Airshots files are either rd3, tlf or rad , we apply the method read
                     # ramac to get the informations frome these files
-                    data = MogData()
-                    data.readRAMAC(basename)
+                    try:
+                        data = MogData()
+                        data.readRAMAC(basename)
+                    except:
+                        self.moglogSignal.emit('Error: AirShot File must have *.rad, *.tlf or *.rd3 extension')
+                        return
 
                     # Then we ask if the airshots were done in a sucession of positions or at a fixed posisitons
                     distance, ok = QtGui.QInputDialog.getText(self, 'Aishots Before', 'Distance between Tx and Rx :')
@@ -1172,6 +1176,7 @@ class MOGUI(QtGui.QWidget):
         btn_Raw_Data.clicked.connect(self.plot_rawdata)
         btn_Spectra.clicked.connect(self.plot_spectra)
         btn_Air_Shot_Before.clicked.connect(self.airBefore)
+        btn_Air_Shot_After.clicked.connect(self.airAfter)
         btn_Merge.clicked.connect(self.start_merge)
         btn_Trace_ZOP.clicked.connect(self.plot_zop)
         btn_Stats_tt.clicked.connect(self.plot_statstt)
@@ -1181,8 +1186,9 @@ class MOGUI(QtGui.QWidget):
         btn_export_tau.clicked.connect(self.export_tau)
         btn_Prune.clicked.connect(self.plot_prune)
         btn_delta_t_mog.clicked.connect(self.start_delta_t)
-        #--- Sub Widgets ---#
 
+
+        #--- Sub Widgets ---#
         #- Sub AirShots Widget-#
         Sub_AirShots_Widget                 = QtGui.QWidget()
         Sub_AirShots_Grid                   = QtGui.QGridLayout()
@@ -1259,6 +1265,8 @@ class MOGUI(QtGui.QWidget):
         master_grid.setColumnStretch(1, 300)
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
+
+
 #-----------------------------------------------------------------------------------------------------------------------
 #
 #                       MyQLabel Class for easy Label Alignment
@@ -1587,7 +1595,7 @@ class StatsttFig(FigureCanvasQTAgg):
 
     def plot_stats(self, mog, airshots):
 
-        done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+        done = (mog.tt_done + mog.in_vect.astype(int)) - 1
         ind = np.nonzero(done == 1)[0]
 
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
@@ -1765,6 +1773,9 @@ class RayCoverageFig(FigureCanvasQTAgg):
 
     def plot_ray_coverage(self, mog):
         self.ax.cla()
+        ind1 = mog.tt + mog.in_vect.astype(int)
+        ind1 = np.nonzero(ind1 == 0)[0]
+        ind2 = np.nonzero(ind1 == 1)[0]
 
 
         Tx_xs = mog.data.Tx_x
@@ -1791,15 +1802,15 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_xs = Tx_Rx_xs.T
         Tx_Rx_ys = Tx_Rx_ys.T
         Tx_Rx_zs = Tx_Rx_zs.T
+        print(ind1)
+        print(Tx_Rx_xs[:, 0])
+        print(Tx_Rx_ys[:, 0])
+        print(Tx_Rx_zs[:, 0])
+        self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind1], Y= Tx_Rx_ys[:, ind1], Z= -1*Tx_Rx_zs[:, ind1], rstride=1, cstride=1, color='red')
+        self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind2], Y= Tx_Rx_ys[:, ind2], Z= -1*Tx_Rx_zs[:, ind2], rstride=1, cstride=1, color='red')
 
-
-        self.ax.plot(xs= Tx_Rx_xs, ys= Tx_Rx_ys, zs= -1*Tx_Rx_zs)
-
-        # 2D rapide
-        #self.ax.plot(-1*Tx_Rx_zs)
-
-        #for i in range(mog.data.ntrace): #complet
-        #    self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
+        percent_coverage = 100* np.round(len(ind2)/mog.data.ntrace)
+        self.ax.set_title(str(percent_coverage) + ' %')
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
