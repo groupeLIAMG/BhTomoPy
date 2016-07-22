@@ -44,17 +44,17 @@ class BoreholeUI(QtGui.QWidget):
         rname             = rname.strip('.xyz')
         bh                = Borehole(str(rname))
         bh.fdata          = np.loadtxt(filename)
-        bh.X              = bh.fdata[0,0]
-        bh.Y              = bh.fdata[0,1]
-        bh.Z              = bh.fdata[0,2]
-        bh.Xmax           = bh.fdata[-1,0]
-        bh.Ymax           = bh.fdata[-1,1]
-        bh.Zmax           = bh.fdata[-1,2]
+        bh.X              = bh.fdata[0, 0]
+        bh.Y              = bh.fdata[0, 1]
+        bh.Z              = bh.fdata[0, 2]
+        bh.Xmax           = bh.fdata[-1, 0]
+        bh.Ymax           = bh.fdata[-1, 1]
+        bh.Zmax           = bh.fdata[-1, 2]
         self.boreholes.append(bh)
         self.update_List_Widget()
         self.bh_list.setCurrentRow(len(self.boreholes) - 1)
         self.update_List_Edits()
-        self.bhlogSignal.emit("{}.xyz as been loaded succesfully".format(rname))
+        self.bhlogSignal.emit("{}.xyz as been loaded successfully".format(rname))
 
 
 
@@ -136,6 +136,7 @@ class BoreholeUI(QtGui.QWidget):
             bh.fdata[-1,0]    = bh.Xmax
             bh.fdata[-1,1]    = bh.Ymax
             bh.fdata[-1,2]    = bh.Zmax
+
 
 
     def plot(self):

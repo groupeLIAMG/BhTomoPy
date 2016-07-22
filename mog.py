@@ -31,7 +31,7 @@ class AirShots:
         self.et = np.array([])     # traveltime standard vector deviation
         self.data = MogData()      # MogData instance
         self.d_TxRx = 0            # Distance between Tx and Rx
-        self.fac_dt = 0            #
+        self.fac_dt = 1            #
         self.ing = 0               #à vérifier avec Bernard (ing et method)
         self.method = 0
 
