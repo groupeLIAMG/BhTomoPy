@@ -8,12 +8,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/BhTomoPy.iml" afterPath="$PROJECT_DIR$/.idea/BhTomoPy.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BoreholeUI.py" afterPath="$PROJECT_DIR$/BoreholeUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
     </list>
     <ignored path="BhTomoPy.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -480,13 +475,6 @@
       <option name="presentableId" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00052" summary="début de classe database et essai de faire rester la scrollbar du log en haut sans enlever le rouge des messages d'erreur non concluant">
-      <created>1464729643038</created>
-      <option name="number" value="00052" />
-      <option name="presentableId" value="LOCAL-00052" />
-      <option name="project" value="LOCAL" />
-      <updated>1464729643038</updated>
-    </task>
     <task id="LOCAL-00053" summary="début du module semi-auto tt">
       <created>1464793100753</created>
       <option name="number" value="00053" />
@@ -823,7 +811,14 @@
       <option name="project" value="LOCAL" />
       <updated>1469137445212</updated>
     </task>
-    <option name="localTasksCounter" value="101" />
+    <task id="LOCAL-00101" summary="Ray coverage fontionnel">
+      <created>1469192490563</created>
+      <option name="number" value="00101" />
+      <option name="presentableId" value="LOCAL-00101" />
+      <option name="project" value="LOCAL" />
+      <updated>1469192490563</updated>
+    </task>
+    <option name="localTasksCounter" value="102" />
     <servers />
   </component>
   <component name="TodoView">
@@ -893,7 +888,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="commentaires par rapport à update prune" />
     <MESSAGE value="restrictions par rapport à theta fonctionelles et ajour de commentaires" />
     <MESSAGE value="début de merge mog" />
     <MESSAGE value="plot de ray coverage modifié (pas encore fonctionnel à 100%)" />
@@ -918,7 +912,8 @@
     <MESSAGE value="remove mog dans modelUI fonctionnel" />
     <MESSAGE value="Sauvegarde et messages de confirmation" />
     <MESSAGE value="Logo BH TOMO dans l'interface d'accueil,&#10;load database dans l'interface d'accueil fonctionnel,&#10;segmentation des classes dans MogUI&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="Logo BH TOMO dans l'interface d'accueil,&#10;load database dans l'interface d'accueil fonctionnel,&#10;segmentation des classes dans MogUI&#10;" />
+    <MESSAGE value="Ray coverage fontionnel" />
+    <option name="LAST_COMMIT_MESSAGE" value="Ray coverage fontionnel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
