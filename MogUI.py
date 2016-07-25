@@ -92,15 +92,19 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             mog = self.MOGs[i.row()]
+
             self.Rx_Offset_edit.clear()
             self.Tx_Offset_edit.clear()
             self.Correction_Factor_edit.clear()
             self.Multiplication_Factor_edit.clear()
             self.Nominal_Frequency_edit.clear()
-
             self.Nominal_Frequency_edit.setText(str(mog.data.rnomfreq))
             self.Rx_Offset_edit.setText(str(mog.data.RxOffset))
             self.Tx_Offset_edit.setText(str(mog.data.TxOffset))
+            self.Correction_Factor_edit.setText(str(mog.user_fac_dt))
+            self.Multiplication_Factor_edit.setText(str(mog.f_et))
+            self.Date_edit.setText(mog.date)
+
 
             for i in range(len(self.borehole.boreholes)):
                 if mog.Tx ==1 and mog.Rx ==1 :
@@ -115,6 +119,17 @@ class MOGUI(QtGui.QWidget):
                 tot_traces += mog.data.ntrace
             self.ntraceSignal.emit(tot_traces)
 
+    def update_mog_info(self):
+        ind = self.MOG_list.selectedIndexes()
+        for i in ind:
+            mog = self.MOGs[i.row()]
+
+            mog.data.rnomfreq = float(self.Nominal_Frequency_edit.text())
+            mog.data.RxOffset = float(self.Rx_Offset_edit.text())
+            mog.data.TxOffset = float(self.Tx_Offset_edit.text())
+            mog.user_fac_dt = float(self.Correction_Factor_edit.text())
+            mog.f_et = float(self.Multiplication_Factor_edit.text())
+            mog.date = self.Date_edit.text()
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
@@ -173,8 +188,12 @@ class MOGUI(QtGui.QWidget):
 
                     # because of the fact that Airshots files are either rd3, tlf or rad , we apply the method read
                     # ramac to get the informations frome these files
-                    data = MogData()
-                    data.readRAMAC(basename)
+                    try:
+                        data = MogData()
+                        data.readRAMAC(basename)
+                    except:
+                        self.moglogSignal.emit('Error: AirShot File must have *.rad, *.tlf or *.rd3 extension')
+                        return
 
                     # Then we ask if the airshots were done in a sucession of positions or at a fixed posisitons
                     distance, ok = QtGui.QInputDialog.getText(self, 'Aishots Before', 'Distance between Tx and Rx :')
@@ -456,17 +475,23 @@ class MOGUI(QtGui.QWidget):
 
 
     def plot_statstt(self):
-        ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-        done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
-        if len(np.nonzero(done == 1)[0]) == 0:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
-                                                   buttons=QtGui.QMessageBox.Ok)
+        try:
+            ind = self.MOG_list.selectedIndexes()
+            mog = self.MOGs[ind[0].row()]
+            done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+            if len(np.nonzero(done == 1)[0]) == 0:
+                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
+                                                       buttons=QtGui.QMessageBox.Ok)
 
-        else:
-            self.statsttFig.plot_stats(mog, self.air)
-            self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
-            self.statsttmanager.showMaximized()
+            else:
+                self.statsttFig.plot_stats(mog, self.air)
+                self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
+                self.statsttmanager.showMaximized()
+        except:
+
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOG selected",
+                                                        buttons=QtGui.QMessageBox.Ok)
+
 
     def plot_statsamp(self):
         ind = self.MOG_list.selectedIndexes()
@@ -1162,8 +1187,18 @@ class MOGUI(QtGui.QWidget):
         self.Multiplication_Factor_edit          = QtGui.QLineEdit()
         self.Date_edit                           = QtGui.QLineEdit()
 
+        #- Edits Actions -#
+        self.Air_Shot_Before_edit.editingFinished.connect(self.update_mog_info)
+        self.Air_Shot_After_edit.editingFinished.connect(self.update_mog_info)
+        self.Nominal_Frequency_edit.editingFinished.connect(self.update_mog_info)
+        self.Rx_Offset_edit.editingFinished.connect(self.update_mog_info)
+        self.Tx_Offset_edit.editingFinished.connect(self.update_mog_info)
+        self.Correction_Factor_edit.editingFinished.connect(self.update_mog_info)
+        self.Multiplication_Factor_edit.editingFinished.connect(self.update_mog_info)
+        self.Date_edit.editingFinished.connect(self.update_mog_info)
+
         #- Edits Disposition -#
-        self.Date_edit.setReadOnly(True)
+        self.Date_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- Buttons actions ---#
         btn_Add_MOG.clicked.connect(self.add_MOG)
@@ -1172,6 +1207,7 @@ class MOGUI(QtGui.QWidget):
         btn_Raw_Data.clicked.connect(self.plot_rawdata)
         btn_Spectra.clicked.connect(self.plot_spectra)
         btn_Air_Shot_Before.clicked.connect(self.airBefore)
+        btn_Air_Shot_After.clicked.connect(self.airAfter)
         btn_Merge.clicked.connect(self.start_merge)
         btn_Trace_ZOP.clicked.connect(self.plot_zop)
         btn_Stats_tt.clicked.connect(self.plot_statstt)
@@ -1181,8 +1217,9 @@ class MOGUI(QtGui.QWidget):
         btn_export_tau.clicked.connect(self.export_tau)
         btn_Prune.clicked.connect(self.plot_prune)
         btn_delta_t_mog.clicked.connect(self.start_delta_t)
-        #--- Sub Widgets ---#
 
+
+        #--- Sub Widgets ---#
         #- Sub AirShots Widget-#
         Sub_AirShots_Widget                 = QtGui.QWidget()
         Sub_AirShots_Grid                   = QtGui.QGridLayout()
@@ -1259,6 +1296,8 @@ class MOGUI(QtGui.QWidget):
         master_grid.setColumnStretch(1, 300)
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
+
+
 #-----------------------------------------------------------------------------------------------------------------------
 #
 #                       MyQLabel Class for easy Label Alignment
@@ -1588,7 +1627,7 @@ class StatsttFig(FigureCanvasQTAgg):
 
     def plot_stats(self, mog, airshots):
 
-        done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+        done = (mog.tt_done + mog.in_vect.astype(int)) - 1
         ind = np.nonzero(done == 1)[0]
 
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
@@ -1596,8 +1635,8 @@ class StatsttFig(FigureCanvasQTAgg):
         tt = tt[ind]
 
         hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
-                      + (mog.data.Tx_y[ind] + mog.data.Rx_y[ind] )**2
-                      + (mog.data.Tx_z[ind] +  mog.data.Rx_z[ind] )**2)
+                      + (mog.data.Tx_y[ind] - mog.data.Rx_y[ind] )**2
+                      + (mog.data.Tx_z[ind] -  mog.data.Rx_z[ind] )**2)
         dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
@@ -1729,6 +1768,16 @@ class StatsAmpFig(FigureCanvasQTAgg):
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
     def plot_stats(self, mog):
+        hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x) ** 2
+                      + (mog.data.Tx_y - mog.data.Rx_y) ** 2
+                      + (mog.data.Tx_z - mog.data.Rx_z) ** 2)
+
+        dz = mog.data.Rx_z - mog.data.Tx_z
+
+        theta = 180 / np.pi * np.arcsin(dz / hyp)
+
+        ind = np.nonzero(mog.amp_tmax != -1)[0] == np.nonzero(mog.tauApp != -1)[0]
+
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
         mpl.axes.Axes.set_ylabel(self.ax4, r'$\tau_a$')
         mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
@@ -1766,6 +1815,9 @@ class RayCoverageFig(FigureCanvasQTAgg):
 
     def plot_ray_coverage(self, mog):
         self.ax.cla()
+        ind1 = mog.tt + mog.in_vect.astype(int)
+        ind1 = np.nonzero(ind1 == 0)[0]
+        ind2 = np.nonzero(ind1 == 1)[0]
 
 
         Tx_xs = mog.data.Tx_x
@@ -1793,14 +1845,11 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_ys = Tx_Rx_ys.T
         Tx_Rx_zs = Tx_Rx_zs.T
 
+        self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind1], Y= Tx_Rx_ys[:, ind1], Z= -1*Tx_Rx_zs[:, ind1], rstride=1, cstride=1, color='red')
+        self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind2], Y= Tx_Rx_ys[:, ind2], Z= -1*Tx_Rx_zs[:, ind2], rstride=1, cstride=1, color='red')
 
-        self.ax.plot(xs= Tx_Rx_xs, ys= Tx_Rx_ys, zs= -1*Tx_Rx_zs)
-
-        # 2D rapide
-        #self.ax.plot(-1*Tx_Rx_zs)
-
-        #for i in range(mog.data.ntrace): #complet
-        #    self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i])
+        percent_coverage = 100* np.round(len(ind2)/mog.data.ntrace)
+        self.ax.set_title(str(percent_coverage) + ' %')
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
@@ -1939,9 +1988,9 @@ class MergeMog(QtGui.QWidget):
             if self.mog.MOGs[i].name == merge_name:
                 merging_mog = self.mog.MOGs[i]
                 merge_ind = i
-
+        newName = self.new_edit.text()
         refMog = self.mog.MOGs[num]
-        newMog = Mog(self.new_edit.text(), refMog.data)
+        newMog = Mog(newName, refMog.data)
 
         newMog.av           = np.array([refMog.av, merging_mog.av])
         newMog.ap           = np.array([refMog.ap, merging_mog.ap])
@@ -1984,6 +2033,10 @@ class MergeMog(QtGui.QWidget):
             ret = self.dialog.exec_()
 
             if ret == QtGui.QMessageBox.Ok:
+                self.mergemoglogSignal.emit(
+                    " {} and {} have been merged and erased to create {}".format(merging_mog.name,
+                                                                                 refMog.name,
+                                                                                 newName))
                 self.mog.MOGs.remove(refMog)
                 self.mog.MOGs.remove(merging_mog)
                 self.mog.MOGs.append(newMog)
@@ -1991,10 +2044,15 @@ class MergeMog(QtGui.QWidget):
                 self.close()
 
 
+
         elif self.erase_check.isChecked() == False:
             self.mog.MOGs.append(newMog)
+            self.mergemoglogSignal.emit("MOG {} have been created by the merge of {} and {}".format(newName,
+                                                                                                    refMog.name,
+                                                                                                    merging_mog.name))
             self.mog.update_List_Widget()
             self.close()
+
 
     def initUI(self):
 
@@ -2064,8 +2122,8 @@ class DeltaTMOG(QtGui.QWidget):
         ref_mog = self.mog.MOGs[n]
         ids = []
         nc = 0
-        if n == len(self.mog.MOGs):
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+        if len(self.mog.MOGs) == 1:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database",buttons= QtGui.QMessageBox.Ok)
             return
         for mog in self.mog.MOGs:
             if mog != ref_mog:
@@ -2092,23 +2150,23 @@ class DeltaTMOG(QtGui.QWidget):
             else:
                 pass
         if nc == 0 :
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
 
         else:
             self.show()
 
     def done(self):
         if len(self.sub_combo) == 0:
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
         if not self.name_edit.text():
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "Please enter a name for new MOG",buttons= QtGui.QMessageBox.Ok)
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please enter a name for new MOG",buttons= QtGui.QMessageBox.Ok)
 
         # Check if traveltimes were picked
         n = self.min_combo.currentIndex()
         refMog = self.mog.MOGs[n]
         ind = refMog.tt == -1
         if np.any(ind == True):
-            dialog = QtGui.QMessageBox.information(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)
                                                    ,buttons= QtGui.QMessageBox.Ok)
 
 

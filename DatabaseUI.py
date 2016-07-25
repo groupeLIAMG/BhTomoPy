@@ -37,10 +37,11 @@ class DatabaseUI(QtGui.QWidget):
         self.mog.mogInfoSignal.connect(self.update_mog_info)
         self.mog.ntraceSignal.connect(self.update_trace_info)
         self.model.modelInfoSignal.connect(self.update_model_info)
+        self.mergemog.mergemoglogSignal.connect(self.update_log)
         self.bh.bhlogSignal.connect(self.update_log)
         self.mog.moglogSignal.connect(self.update_log)
         self.model.modellogSignal.connect(self.update_log)
-        self.mergemog.mergemoglogSignal.connect(self.update_log)
+
 
     def update_spectra(self, Tx_list):
         self.mog.update_spectra_Tx_num_combo(Tx_list)
@@ -111,44 +112,46 @@ class DatabaseUI(QtGui.QWidget):
 
 
     def load_file(self, filename):
+        try:
+            rname = filename.split('/')
+            rname = rname[-1]
+            if '.p' in rname:
+                rname = rname[:-2]
+            if '.pkl' in rname:
+                rname = rname[:-4]
+            if '.pickle' in rname:
+                rname = rname[:-7]
+            file = open(filename, 'rb')
 
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
+            self.boreholes, self.mogs, self.air, self.models = pickle.load(file)
+            self.update_database_info(rname)
+            self.update_log("Database '{}' was loaded successfully".format(rname))
 
-        self.boreholes, self.mogs, self.air, self.models = pickle.load(file)
-        self.update_database_info(rname)
-        self.update_log("Database '{}' was loaded successfully".format(rname))
-
-        self.bh.boreholes = self.boreholes
-        self.mog.MOGs = self.mogs
-        self.model.models = self.models
-        self.grid.model = self.model
+            self.bh.boreholes = self.boreholes
+            self.mog.MOGs = self.mogs
+            self.model.models = self.models
+            self.grid.model = self.model
 
 
-        self.mog.air = self.air
+            self.mog.air = self.air
 
-        self.bh.update_List_Widget()
-        self.bh.bh_list.setCurrentRow(0)
-        self.bh.update_List_Edits()
+            self.bh.update_List_Widget()
+            self.bh.bh_list.setCurrentRow(0)
+            self.bh.update_List_Edits()
 
-        self.mog.update_List_Widget()
-        self.mog.update_edits()
-        self.mog.MOG_list.setCurrentRow(0)
-        self.mog.update_spectra_Tx_num_list()
-        self.mog.update_spectra_Tx_elev_value_label()
-        self.mog.update_edits()
-        self.mog.update_prune_edits_info()
-        self.mog.update_prune_info()
+            self.mog.update_List_Widget()
+            self.mog.update_edits()
+            self.mog.MOG_list.setCurrentRow(0)
+            self.mog.update_spectra_Tx_num_list()
+            self.mog.update_spectra_Tx_elev_value_label()
+            self.mog.update_edits()
+            self.mog.update_prune_edits_info()
+            self.mog.update_prune_info()
 
-        self.model.update_model_list()
-        self.model.update_model_mog_list()
+            self.model.update_model_list()
+            self.model.update_model_mog_list()
+        except:
+            self.update_log('Error: Database file must be of pickle type')
 
     def savefile(self):
         try:
@@ -171,6 +174,7 @@ class DatabaseUI(QtGui.QWidget):
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
                                                     , buttons=QtGui.QMessageBox.Ok)
+            self.update_log('Error: Database could not be saved')
 
     def saveasfile(self):
         try:
@@ -194,6 +198,8 @@ class DatabaseUI(QtGui.QWidget):
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
                                                     , buttons=QtGui.QMessageBox.Ok)
+
+            self.update_log('Error: Database could not be saved')
 
     def initUI(self):
 
