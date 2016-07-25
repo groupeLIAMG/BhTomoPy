@@ -3,6 +3,10 @@ import sys
 from PyQt4 import QtGui, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+import pickle
+import numpy as np
+
+
 
 
 
@@ -10,23 +14,59 @@ class ManualttUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(ManualttUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Manual Traveltime Picking")
-        self.openmain = OpenMainData()
+        self.openmain = OpenMainData(self)
+        self.mogs = []
+        self.air = []
         self.initUI()
+    def next_trace(self):
+        n = int(self.Tnum_Edit.text())
+        n += 1
+        self.Tnum_Edit.setText(str(n))
+        self.plot_upper_fig()
+        self.update_control_center()
+
+    def prev_trace(self):
+        n = int(self.Tnum_Edit.text())
+        n -= 1
+        self.Tnum_Edit.setText(str(n))
+        self.plot_upper_fig()
+        self.update_control_center()
+
+    def update_control_center(self):
+        n = int(self.Tnum_Edit.text())-1
+        ind = self.openmain.mog_combo.currentIndex()
+        mog = self.mogs[ind]
+        self.xRx_label.setText(str(mog.data.Rx_x[n]))
+        self.xTx_label.setText(str(mog.data.Tx_x[n]))
+        self.yRx_label.setText(str(mog.data.Rx_y[n]))
+        self.yTx_label.setText(str(mog.data.Tx_y[n]))
+        self.zRx_label.setText(str(mog.data.Rx_z[n]))
+        self.zTx_label.setText(str(mog.data.Tx_z[n]))
+        self.ntrace_label.setText(str(mog.data.ntrace))
+        self.plot_upper_fig()
+        self.plot_lower_fig()
+
+    def plot_upper_fig(self):
+        n = int(self.Tnum_Edit.text())
+        ind = self.openmain.mog_combo.currentIndex()
+        mog = self.mogs[ind]
+        A_min = float(self.A_min_Edit.text())
+        A_max = float(self.A_max_Edit.text())
+        t_min = float(self.t_min_Edit.text())
+        t_max = float(self.t_max_Edit.text())
+        self.upperFig.plot_amplitude(mog, n, A_min, A_max, t_min, t_max)
+
+    def plot_lower_fig(self):
+        n = int(self.Tnum_Edit.text())
+        ind = self.openmain.mog_combo.currentIndex()
+        mog = self.mogs[ind]
+        self.lowerFig.plot_trace_data(mog, n)
+
 
     def initUI(self):
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
 
-        #--- Class For Alignment ---#
-        class  MyQLabel(QtGui.QLabel):
-            def __init__(self, label, ha='left',  parent=None):
-                super(MyQLabel, self).__init__(label,parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
 
         #------ Creation of the Manager for the Lower figure -------#
         self.lowerFig = LowerFig()
@@ -54,6 +94,11 @@ class ManualttUI(QtGui.QFrame):
         btn_Upper = QtGui.QPushButton("Activate Picking - Upper Trace")
         btn_Conti = QtGui.QPushButton("Activate Picking - Contiguous Trace")
         btn_Stats = QtGui.QPushButton("Statistics")
+
+        #- Buttons' Actions -#
+        btn_Next.clicked.connect(self.next_trace)
+        btn_Prev.clicked.connect(self.prev_trace)
+        btn_Upper.clicked.connect(self.upperFig.plot_picked_trace)
 
         #--- Label ---#
         trc_Label = MyQLabel("Trace number :", ha= 'right')
@@ -99,16 +144,30 @@ class ManualttUI(QtGui.QFrame):
 
 
         #--- Edits ---#
-        Tnum_Edit = QtGui.QLineEdit()
-        Tnum_Edit.setFixedWidth(100)
-        t_min_Edit = QtGui.QLineEdit()
-        t_min_Edit.setFixedWidth(50)
-        t_max_Edit = QtGui.QLineEdit()
-        t_max_Edit.setFixedWidth(50)
-        A_min_Edit = QtGui.QLineEdit()
-        A_min_Edit.setFixedWidth(50)
-        A_max_Edit = QtGui.QLineEdit()
-        A_max_Edit.setFixedWidth(50)
+        self.Tnum_Edit = QtGui.QLineEdit('1')
+        self.t_min_Edit = QtGui.QLineEdit('0')
+        self.t_max_Edit = QtGui.QLineEdit('300')
+        self.A_min_Edit = QtGui.QLineEdit('-1000')
+        self.A_max_Edit = QtGui.QLineEdit('1000')
+
+        #- Edits' Disposition -#
+        self.Tnum_Edit.setFixedWidth(100)
+        self.Tnum_Edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.t_min_Edit.setFixedWidth(50)
+        self.t_min_Edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.t_max_Edit.setFixedWidth(50)
+        self.t_max_Edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.A_min_Edit.setFixedWidth(50)
+        self.A_min_Edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.A_max_Edit.setFixedWidth(50)
+        self.A_max_Edit.setAlignment(QtCore.Qt.AlignHCenter)
+
+        #- Edits' Actions -#
+        self.Tnum_Edit.editingFinished.connect(self.update_control_center)
+        self.t_min_Edit.editingFinished.connect(self.plot_upper_fig)
+        self.t_max_Edit.editingFinished.connect(self.plot_upper_fig)
+        self.A_min_Edit.editingFinished.connect(self.plot_upper_fig)
+        self.A_max_Edit.editingFinished.connect(self.plot_upper_fig)
 
         #--- Checkboxes ---#
         Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
@@ -127,11 +186,10 @@ class ManualttUI(QtGui.QFrame):
         std_dev_radio = QtGui.QRadioButton("Std deviation picking")
         trace_selec_radio = QtGui.QRadioButton("Trace selection")
 
+        #- Radio Buttons' Actions -#
+        main_data_radio.setChecked(True)
+
         #--- Text Edits ---#
-        futur_Graph1 = QtGui.QTextEdit()
-        futur_Graph1.setReadOnly(True)
-        futur_Graph2 = QtGui.QTextEdit()
-        futur_Graph2.setReadOnly(True)
         info_Tedit = QtGui.QTextEdit()
         info_Tedit.setReadOnly(True)
         PTime_Tedit = QtGui.QTextEdit()
@@ -177,24 +235,32 @@ class ManualttUI(QtGui.QFrame):
         Sub_Trace_Widget = QtGui.QWidget()
         Sub_Trace_Grid = QtGui.QGridLayout()
         Sub_Trace_Grid.addWidget(trc_Label, 0, 0)
-        Sub_Trace_Grid.addWidget(Tnum_Edit, 0, 1)
+        Sub_Trace_Grid.addWidget(self.Tnum_Edit, 0, 1)
         Sub_Trace_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_Trace_Widget.setLayout(Sub_Trace_Grid)
+
+        #--- Prev Next SubWidget ---#
+        sub_prev_next_widget = QtGui.QWidget()
+        sub_prev_next_grid = QtGui.QGridLayout()
+        sub_prev_next_grid.addWidget(btn_Prev, 0, 0)
+        sub_prev_next_grid.addWidget(btn_Next, 0, 1)
+        sub_prev_next_grid.setContentsMargins(0, 0, 0, 0)
+        sub_prev_next_widget.setLayout(sub_prev_next_grid)
+
         #--- Left Part SubWidget ---#
         Sub_left_Part_Widget = QtGui.QWidget()
         Sub_left_Part_Grid = QtGui.QGridLayout()
-        Sub_left_Part_Grid.addWidget(Sub_Info_widget, 0, 0)
-        Sub_left_Part_Grid.addWidget(Sub_picked_widget, 1, 0)
+        Sub_left_Part_Grid.addWidget(Sub_Info_widget, 0, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(Sub_picked_widget, 1, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(Sub_Trace_Widget, 2, 0)
-        Sub_left_Part_Grid.addWidget(btn_Prev, 3, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(btn_Next, 3, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(btn_Next_Pick, 3, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(btn_Reini, 3, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(Wave_checkbox, 4, 0)
-        Sub_left_Part_Grid.addWidget(veloc_checkbox, 5, 0)
-        Sub_left_Part_Grid.addWidget(lim_checkbox, 6, 0)
-        Sub_left_Part_Grid.addWidget(save_checkbox, 7, 0)
-        Sub_left_Part_Grid.addWidget(jump_checkbox, 8, 0)
+        Sub_left_Part_Grid.addWidget(sub_prev_next_widget, 3, 0)
+        Sub_left_Part_Grid.addWidget(btn_Next_Pick, 5, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(btn_Reini, 6, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(Wave_checkbox, 7, 0)
+        Sub_left_Part_Grid.addWidget(veloc_checkbox, 8, 0)
+        Sub_left_Part_Grid.addWidget(lim_checkbox, 9, 0)
+        Sub_left_Part_Grid.addWidget(save_checkbox, 10, 0)
+        Sub_left_Part_Grid.addWidget(jump_checkbox, 11, 0)
         Sub_left_Part_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_left_Part_Widget.setLayout(Sub_left_Part_Grid)
 
@@ -234,11 +300,11 @@ class ManualttUI(QtGui.QFrame):
         #--- Time and Amplitude Edits SubWidget ---#
         Sub_T_and_A_Edits_Widget = QtGui.QWidget()
         Sub_T_and_A_Edits_Grid = QtGui.QGridLayout()
-        Sub_T_and_A_Edits_Grid.addWidget(t_min_Edit, 0, 0)
-        Sub_T_and_A_Edits_Grid.addWidget(t_max_Edit, 0, 1)
-        Sub_T_and_A_Edits_Grid.addWidget(A_min_Edit, 0, 2)
-        Sub_T_and_A_Edits_Grid.addWidget(A_max_Edit, 0, 3)
-        Sub_T_and_A_Edits_Grid.addWidget(btn_Stats, 1, 0, 1, 2)
+        Sub_T_and_A_Edits_Grid.addWidget(self.t_min_Edit, 0, 0)
+        Sub_T_and_A_Edits_Grid.addWidget(self.t_max_Edit, 0, 1)
+        Sub_T_and_A_Edits_Grid.addWidget(self.A_min_Edit, 0, 2)
+        Sub_T_and_A_Edits_Grid.addWidget(self.A_max_Edit, 0, 3)
+        Sub_T_and_A_Edits_Grid.addWidget(btn_Stats, 1, 0, 1, 4)
         Sub_T_and_A_Edits_Grid.setHorizontalSpacing(0)
         Sub_T_and_A_Edits_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_T_and_A_Edits_Widget.setLayout(Sub_T_and_A_Edits_Grid)
@@ -276,18 +342,43 @@ class ManualttUI(QtGui.QFrame):
 
 
 class OpenMainData(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, tt, parent=None):
         super(OpenMainData, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Info")
+        self.setWindowTitle("Choose Data")
         self.database_list = []
+        self.tt = tt
         self.initUI()
 
-    def open_database(self):
+    def openfile(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
-        if filename:
-            rname = filename.split('/')
-            rname = rname[-1]
+
+        self.load_file(filename)
+
+    def load_file(self, filename):
+
+        rname = filename.split('/')
+        rname = rname[-1]
+        if '.p' in rname:
+            rname = rname[:-2]
+        if '.pkl' in rname:
             rname = rname[:-4]
+        if '.pickle' in rname:
+            rname = rname[:-7]
+        file = open(filename, 'rb')
+
+        boreholes, self.tt.mogs, self.tt.air, models = pickle.load(file)
+
+        self.database_edit.setText(rname)
+        for mog in self.tt.mogs:
+            self.mog_combo.addItem(mog.name)
+
+
+    def cancel(self):
+        self.close()
+
+    def ok(self):
+        self.tt.update_control_center()
+        self.close()
 
     def initUI(self):
 
@@ -302,10 +393,15 @@ class OpenMainData(QtGui.QWidget):
         self.btn_cancel = QtGui.QPushButton('Cancel')
 
         #- Buttons' Actions -#
-        self.btn_cancel.clicked.connect(self.close)
+        self.btn_cancel.clicked.connect(self.cancel)
+        self.btn_database.clicked.connect(self.openfile)
+        self.btn_ok.clicked.connect(self.ok)
 
         #--- Combobox ---#
         self.mog_combo = QtGui.QComboBox()
+
+        #- Combobox's Action -#
+        self.mog_combo.activated.connect(self.tt.update_control_center)
 
         master_grid = QtGui.QGridLayout()
         master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
@@ -324,15 +420,41 @@ class UpperFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
-        ax.yaxis.set_ticks_position('left')
-        ax.xaxis.set_ticks_position('bottom')
+        self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
+        self.ax.yaxis.set_ticks_position('left')
+        self.ax.xaxis.set_ticks_position('bottom')
 
-    def plot_amplitude(self, mogd):
-        ax = self.figure.axes[0]
-        ax.cla()
-        mpl.axes.Axes.set_xlabel(ax, ' Time [{}]'.format(mogd.tunits))
-        mpl.axes.Axes.set_ylabel(ax, 'Amplitude')
+    def plot_amplitude(self, mog, n, A_min, A_max, t_min, t_max, transf_state):
+        self.ax.cla()
+        trace = mog.data.rdata[:, n]
+
+        self.ax.plot(trace)
+        self.ax.set_ylim(A_min, A_max)
+        self.ax.set_xlim(t_min, t_max)
+
+        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
+
+        if transf_state:
+            ind, wavelet = self.wavelet_filtering(mog.data.rdata)
+
+        self.draw()
+    def wavelet_filtering(self, rdata):
+        shape = np.shape(rdata)
+        nptsptrc, ntrace = shape[0], shape[1]
+        N = 3
+        npts = np.ceil(nptsptrc/2**N)*2**N
+        d= npts - nptsptrc
+
+
+
+
+
+    def plot_picked_trace(self):
+        position = ginput(1)
+        print(position)
+
+
 
 class LowerFig(FigureCanvasQTAgg):
     def __init__(self):
@@ -342,24 +464,40 @@ class LowerFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
-        ax.yaxis.set_ticks_position('left')
-        ax.xaxis.set_ticks_position('bottom')
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
+        self.ax2 = self.ax.twiny()
+        self.ax.yaxis.set_ticks_position('left')
+        self.ax.xaxis.set_ticks_position('bottom')
 
-    def plot_trace_data(self, mogd):
-        ax = self.figure.axes[0]
-        ax.cla()
-        mpl.axes.Axes.set_ylabel(ax, 'Time [{}]'.format(mogd.tunits))
-        mpl.axes.Axes.set_xlabel(ax, 'Trace No')
+    def plot_trace_data(self, mog, n):
+        self.ax.cla()
+        current_trc = mog.data.Tx_z[n]
+        z = np.where(mog.data.Tx_z == current_trc)[0]
+        data = mog.data.rdata[:, z[0]:z[-1]]
+        self.ax.plot([n-1, n-1], [0, np.shape(mog.data.rdata)[0]])
+        self.ax.imshow(data, interpolation= 'none', aspect= 'auto', extent= [z[0], z[-1], 0, np.shape(mog.data.rdata)[0]])
+        mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
+        self.draw()
 
 
+#--- Class For Alignment ---#
+class  MyQLabel(QtGui.QLabel):
+    def __init__(self, label, ha='left',  parent=None):
+        super(MyQLabel, self).__init__(label,parent)
+        if ha == 'center':
+            self.setAlignment(QtCore.Qt.AlignCenter)
+        elif ha == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
+        else:
+            self.setAlignment(QtCore.Qt.AlignLeft)
 
 
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    Model_ui = ManualttUI()
-    Model_ui.showMaximized()
+    manual_ui = ManualttUI()
+    manual_ui.showMaximized()
 
     sys.exit(app.exec_())

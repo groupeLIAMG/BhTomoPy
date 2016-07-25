@@ -1425,6 +1425,7 @@ class SpectraFig(FigureCanvasQTAgg):
         ind_data_select = np.zeros(M, dtype= bool).T
         ind_max = np.zeros(M).T
         nb_p = np.round(1/(dt*freq))
+        width = 60
         if medfilt_len>0:
             data = spy.signal.medfilt(data)
 
@@ -1438,10 +1439,10 @@ class SpectraFig(FigureCanvasQTAgg):
             ind         = np.arange(ind1-nb_p, ind1+2*nb_p+1)
 
             if ind[0] < 1:
-                ind = np.arange(1, ind1+60)
+                ind = np.arange(1, ind1+width)
 
             elif ind[-1] < 1:
-                ind = np.arange(ind1-60, ind1)
+                ind = np.arange(ind1-width, ind1)
 
 
 

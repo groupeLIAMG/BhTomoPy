@@ -132,24 +132,39 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         sub_image_grid.addWidget(image_label, 0, 0)
         sub_image_grid.setContentsMargins(50, 0, 50, 0)
         sub_image_widget.setLayout(sub_image_grid)
+        #--- Traveltime ToolBox ---#
+        travel_time_tool = QtGui.QWidget()
+        travel_time_grid = QtGui.QGridLayout()
+        travel_time_grid.addWidget(btn_Manual_Traveltime_Picking, 0, 0)
+        travel_time_grid.addWidget(btn_Semi_Automatic_Traveltime_Picking, 1, 0)
+        travel_time_grid.addWidget(btn_Automatic_Traveltime_Picking, 2, 0)
+        travel_time_tool.setLayout(travel_time_grid)
+
+        #--- Time Lapse Tool ---#
+        time_lapse_tool = QtGui.QWidget()
+        time_lapse_grid = QtGui.QGridLayout()
+        time_lapse_grid.addWidget(btn_Time_Lapse_Inversion)
+        time_lapse_grid.addWidget(btn_Time_Lapse_Visualisation)
+        time_lapse_tool.setLayout(time_lapse_grid)
+
+        #--- BH TOMO ToolBox ---#
+        bh_tomo_tool = MyQToolBox()
+        bh_tomo_tool.addItem(travel_time_tool, 'Travel Time')
+        bh_tomo_tool.addItem(time_lapse_tool, 'Time Lapse')
+
         #--- Buttons SubWidget ---#
         Sub_button_widget = QtGui.QGroupBox()
         sub_button_grid = QtGui.QGridLayout()
         sub_button_grid.addWidget(btn_Database, 0, 0)
-        sub_button_grid.addWidget(btn_Automatic_Traveltime_Picking, 1, 0)
-        sub_button_grid.addWidget(btn_Semi_Automatic_Traveltime_Picking, 2, 0)
-        sub_button_grid.addWidget(btn_Manual_Traveltime_Picking, 3, 0)
-        sub_button_grid.addWidget(btn_Manual_Amplitude_Picking, 4, 0)
-        sub_button_grid.addWidget(btn_Cov_Mod, 5, 0)
-        sub_button_grid.addWidget(btn_Inversion, 6, 0)
-        sub_button_grid.addWidget(btn_Interpretation, 7, 0)
-        sub_button_grid.addWidget(btn_Time_Lapse_Inversion, 8, 0)
-        sub_button_grid.addWidget(btn_Time_Lapse_Visualisation, 9, 0)
-        sub_button_grid.addWidget(btn_Nano_Fluid, 10, 0)
+        sub_button_grid.addWidget(bh_tomo_tool, 1, 0)
+        sub_button_grid.addWidget(btn_Manual_Amplitude_Picking, 2, 0)
+        sub_button_grid.addWidget(btn_Cov_Mod, 3, 0)
+        sub_button_grid.addWidget(btn_Inversion, 4, 0)
+        sub_button_grid.addWidget(btn_Interpretation, 5, 0)
+        sub_button_grid.addWidget(btn_Nano_Fluid, 6, 0)
         Sub_button_widget.setLayout(sub_button_grid)
 
         #--- Main Widget---#
-        bh_tomo = QtGui.QWidget()
         master_grid   = QtGui.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 4)
         master_grid.addWidget(sub_image_widget, 2, 0, 1, 4)
@@ -161,6 +176,91 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         self.setLayout(master_grid)
 
+
+class MyQToolBox(QtGui.QWidget):
+
+    """
+    A custom widget that mimicks the behavior of the "Tools" sidepanel in
+    Adobe Acrobat. It is derived from a QToolBox with the following variants:
+
+    1. Only one tool can be displayed at a time.
+    2. Unlike the stock QToolBox widget, it is possible to hide all the tools.
+    3. It is also possible to hide the current displayed tool by clicking on
+       its header.
+    4. The tools that are hidden are marked by a right-arrow icon, while the
+       tool that is currently displayed is marked with a down-arrow icon.
+    5. Closed and Expanded arrows can be set from custom icons.
+    """
+# =============================================================================
+
+    def __init__(self, parent=None):
+        super(MyQToolBox, self).__init__(parent)
+
+        self.__iclosed = QtGui.QWidget().style().standardIcon(
+            QtGui.QStyle.SP_ToolBarHorizontalExtensionButton)
+        self.__iexpand = QtGui.QWidget().style().standardIcon(
+            QtGui.QStyle.SP_ToolBarVerticalExtensionButton)
+
+        self.setLayout(QtGui.QGridLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.__currentIndex = -1
+
+    def setIcons(self, ar_right, ar_down):  # =================================
+        self.__iclosed = ar_right
+        self.__iexpand = ar_down
+
+    def addItem(self, tool, text):  # =========================================
+
+        N = self.layout().rowCount()
+
+        #---- Add Header ----
+
+        head = QtGui.QPushButton(text)
+        head.setIcon(self.__iclosed)
+        head.clicked.connect(self.__isClicked__)
+        head.setStyleSheet("QPushButton {text-align:left;}")
+
+        self.layout().addWidget(head, N-1, 0)
+
+        #---- Add Item in a ScrollArea ----
+
+        scrollarea = QtGui.QScrollArea()
+        scrollarea.setFrameStyle(0)
+        scrollarea.hide()
+        scrollarea.setStyleSheet("QScrollArea {background-color:transparent;}")
+        scrollarea.setWidgetResizable(True)
+
+        tool.setObjectName("myViewport")
+        tool.setStyleSheet("#myViewport {background-color:transparent;}")
+        scrollarea.setWidget(tool)
+
+        self.layout().addWidget(scrollarea, N, 0)
+        self.layout().setRowStretch(N+1, 100)
+
+    def __isClicked__(self):  # ===============================================
+
+        for row in range(0, self.layout().rowCount()-1, 2):
+
+            head = self.layout().itemAtPosition(row, 0).widget()
+            tool = self.layout().itemAtPosition(row+1, 0).widget()
+
+            if head == self.sender():
+                if self.__currentIndex == row:
+                    # if clicked tool is open, close it
+                    head.setIcon(self.__iclosed)
+                    tool.hide()
+                    self.__currentIndex = -1
+                else:
+                    # if clicked tool is closed, expand it
+                    head.setIcon(self.__iexpand)
+                    tool.show()
+                    self.__currentIndex = row
+            else:
+                # close all the other tools so that only one tool can be
+                # expanded at a time.
+                head.setIcon(self.__iclosed)
+                tool.hide()
 
 if __name__ == '__main__':
 
