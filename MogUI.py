@@ -1634,8 +1634,8 @@ class StatsttFig(FigureCanvasQTAgg):
         tt = tt[ind]
 
         hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
-                      + (mog.data.Tx_y[ind] + mog.data.Rx_y[ind] )**2
-                      + (mog.data.Tx_z[ind] +  mog.data.Rx_z[ind] )**2)
+                      + (mog.data.Tx_y[ind] - mog.data.Rx_y[ind] )**2
+                      + (mog.data.Tx_z[ind] -  mog.data.Rx_z[ind] )**2)
         dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
@@ -1767,6 +1767,16 @@ class StatsAmpFig(FigureCanvasQTAgg):
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
     def plot_stats(self, mog):
+        hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x) ** 2
+                      + (mog.data.Tx_y - mog.data.Rx_y) ** 2
+                      + (mog.data.Tx_z - mog.data.Rx_z) ** 2)
+
+        dz = mog.data.Rx_z - mog.data.Tx_z
+
+        theta = 180 / np.pi * np.arcsin(dz / hyp)
+
+        ind = np.nonzero(mog.amp_tmax != -1)[0] == np.nonzero(mog.tauApp != -1)[0]
+
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
         mpl.axes.Axes.set_ylabel(self.ax4, r'$\tau_a$')
         mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
