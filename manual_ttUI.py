@@ -54,7 +54,8 @@ class ManualttUI(QtGui.QFrame):
         A_max = float(self.A_max_Edit.text())
         t_min = float(self.t_min_Edit.text())
         t_max = float(self.t_max_Edit.text())
-        self.upperFig.plot_amplitude(mog, n, A_min, A_max, t_min, t_max)
+        transf_state = self.Wave_checkbox.isChecked()
+        self.upperFig.plot_amplitude(mog, n, A_min, A_max, t_min, t_max, transf_state)
 
     def plot_lower_fig(self):
         n = int(self.Tnum_Edit.text())
@@ -170,7 +171,7 @@ class ManualttUI(QtGui.QFrame):
         self.A_max_Edit.editingFinished.connect(self.plot_upper_fig)
 
         #--- Checkboxes ---#
-        Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
+        self.Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
         veloc_checkbox = QtGui.QCheckBox("Show apparent velocity")
         lim_checkbox = QtGui.QCheckBox("A-dynamic limit")
         save_checkbox = QtGui.QCheckBox("Intermediate saves")
@@ -256,7 +257,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_left_Part_Grid.addWidget(sub_prev_next_widget, 3, 0)
         Sub_left_Part_Grid.addWidget(btn_Next_Pick, 5, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(btn_Reini, 6, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(Wave_checkbox, 7, 0)
+        Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 7, 0)
         Sub_left_Part_Grid.addWidget(veloc_checkbox, 8, 0)
         Sub_left_Part_Grid.addWidget(lim_checkbox, 9, 0)
         Sub_left_Part_Grid.addWidget(save_checkbox, 10, 0)
@@ -451,8 +452,7 @@ class UpperFig(FigureCanvasQTAgg):
 
 
     def plot_picked_trace(self):
-        position = ginput(1)
-        print(position)
+        pass
 
 
 
