@@ -113,7 +113,7 @@ class DatabaseUI(QtGui.QWidget):
 
     def load_file(self, filename):
         try:
-            rname = filename.split('/')
+            rname = filename.split('\\')
             rname = rname[-1]
             if '.p' in rname:
                 rname = rname[:-2]
@@ -291,6 +291,7 @@ if __name__ == '__main__':
     #Database_ui.model.load_model("t0302's model")
     #Database_ui.mog.plot_spectra()
     #Database_ui.mog.plot_zop()
+    Database_ui.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
 
     Database_ui.show()
 

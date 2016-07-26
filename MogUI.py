@@ -104,6 +104,8 @@ class MOGUI(QtGui.QWidget):
             self.Correction_Factor_edit.setText(str(mog.user_fac_dt))
             self.Multiplication_Factor_edit.setText(str(mog.f_et))
             self.Date_edit.setText(mog.date)
+            self.Air_Shot_Before_edit.setText(self.air[mog.av].name[:-4])
+            self.Air_Shot_After_edit.setText(self.air[mog.ap].name[:-4])
 
 
             for i in range(len(self.borehole.boreholes)):
@@ -151,15 +153,10 @@ class MOGUI(QtGui.QWidget):
 
 
     def airBefore(self):
-        # this operation gets the first directory
-        old_rep = os.getcwd()
-        if len(self.data_rep) != 0 :
-            # if one have already  uploaded a file, the next time will be at the same path
-            os.chdir(self.data_rep)
 
         # then we get the filename to process
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
-        os.chdir(old_rep)
+
         if not filename:
             # security for an empty filename
             return
@@ -217,7 +214,7 @@ class MOGUI(QtGui.QWidget):
                         self.air[n].d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
                         self.air[n].fac_dt = 1  # to be defined
                         self.air[n].in_vect = np.ones(data.ntrace, dtype= bool) # in_vect is the vector which help to plot the figures of Airshots
-
+                        self.MOGs[i.row()].av = n
                         if len(distance_list) == 1:
                             self.air[n].method ='fixed_antenna'
                         else:
@@ -227,12 +224,9 @@ class MOGUI(QtGui.QWidget):
 
     def airAfter(self):
         # As you can see, the air After method is almost the same as airBefore (refer to airBefore for any questions)
-        old_rep = os.getcwd()
-        if len(self.mogdata.data_rep) != 0 :
-            os.chdir(self.mogdata.data_rep)
 
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
-        os.chdir(old_rep)
+
         if not filename:
             return
         else:
@@ -250,7 +244,7 @@ class MOGUI(QtGui.QWidget):
                         break
 
                 if not found:
-                    n = len(self.air) + 1
+                    n = len(self.air)
 
                     data = MogData()
                     data.readRAMAC(basename)
@@ -264,7 +258,7 @@ class MOGUI(QtGui.QWidget):
                                 self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
 
-                        self.air[n] = AirShots(str(rname))
+                        self.air.append(AirShots(str(rname)))
                         self.air[n].data = data
                         self.air[n].tt = -1* np.ones((1, data.ntrace))
                         self.air[n].et = -1* np.ones((1, data.ntrace))
@@ -272,12 +266,14 @@ class MOGUI(QtGui.QWidget):
                         self.air[n].d_TxRx = distance_list
                         self.air[n].fac_dt = 1
                         self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
-
+                        self.MOGs[i.row()].ap = n
                         if len(distance_list) == 1:
                             self.air[n].method ='fixed_antenna'
                         else:
                             self.air[n].method ='walkaway'
                         self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
+
+                        print(self.air)
 
 
     def detrend_rad(self, inp):

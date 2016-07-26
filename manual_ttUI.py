@@ -33,18 +33,30 @@ class ManualttUI(QtGui.QFrame):
         self.update_control_center()
 
     def update_control_center(self):
-        n = int(self.Tnum_Edit.text())-1
-        ind = self.openmain.mog_combo.currentIndex()
-        mog = self.mogs[ind]
-        self.xRx_label.setText(str(mog.data.Rx_x[n]))
-        self.xTx_label.setText(str(mog.data.Tx_x[n]))
-        self.yRx_label.setText(str(mog.data.Rx_y[n]))
-        self.yTx_label.setText(str(mog.data.Tx_y[n]))
-        self.zRx_label.setText(str(mog.data.Rx_z[n]))
-        self.zTx_label.setText(str(mog.data.Tx_z[n]))
-        self.ntrace_label.setText(str(mog.data.ntrace))
+        try:
+            n = int(self.Tnum_Edit.text())-1
+
+            ind = self.openmain.mog_combo.currentIndex()
+
+            if len(self.mogs) == 0:
+                return
+            else:
+                mog = self.mogs[ind]
+                done = np.round(len(mog.tt[mog.tt != -1])/len(mog.tt) * 100)
+                self.xRx_label.setText(str(mog.data.Rx_x[n]))
+                self.xTx_label.setText(str(mog.data.Tx_x[n]))
+                self.yRx_label.setText(str(mog.data.Rx_y[n]))
+                self.yTx_label.setText(str(mog.data.Tx_y[n]))
+                self.zRx_label.setText(str(mog.data.Rx_z[n]))
+                self.zTx_label.setText(str(mog.data.Tx_z[n]))
+                self.ntrace_label.setText(str(mog.data.ntrace))
+                self.percent_done_label.setText(str(done))
+        except:
+            pass
         self.plot_upper_fig()
         self.plot_lower_fig()
+
+
 
     def plot_upper_fig(self):
         n = int(self.Tnum_Edit.text())
@@ -55,13 +67,20 @@ class ManualttUI(QtGui.QFrame):
         t_min = float(self.t_min_Edit.text())
         t_max = float(self.t_max_Edit.text())
         transf_state = self.Wave_checkbox.isChecked()
-        self.upperFig.plot_amplitude(mog, n, A_min, A_max, t_min, t_max, transf_state)
+        dynamic_state = self.lim_checkbox.isChecked()
+        self.upperFig.plot_amplitude(mog, n, A_min, A_max, t_min, t_max, transf_state, dynamic_state)
 
     def plot_lower_fig(self):
         n = int(self.Tnum_Edit.text())
         ind = self.openmain.mog_combo.currentIndex()
         mog = self.mogs[ind]
         self.lowerFig.plot_trace_data(mog, n)
+
+    def plot_stats(self):
+        ind = self.openmain.mog_combo.currentIndex()
+        mog = self.mogs[ind]
+        self.statsFig1 = StatsFig1()
+        self.statsFig1.plot_stats(mog, self.air)
 
 
     def initUI(self):
@@ -108,20 +127,22 @@ class ManualttUI(QtGui.QFrame):
         A_min_label = MyQLabel("A min", ha= 'center')
         A_max_label = MyQLabel("A max", ha= 'center')
         position_label = MyQLabel(("Position Tx--Rx"), ha='center')
-        x_label = MyQLabel(("x"), ha= 'center')
-        y_label = MyQLabel(("y"), ha= 'center')
-        z_label = MyQLabel(("z"), ha= 'center')
-        Tx_label = MyQLabel(("Tx:"), ha= 'right')
-        Rx_label = MyQLabel(("Rx:"), ha= 'right')
-        self.xTx_label = MyQLabel((""), ha= 'right')
-        self.yTx_label = MyQLabel((""), ha= 'right')
-        self.zTx_label = MyQLabel((""), ha= 'right')
-        self.xRx_label = MyQLabel((""), ha= 'right')
-        self.yRx_label = MyQLabel((""), ha= 'right')
-        self.zRx_label = MyQLabel((""), ha= 'right')
-        self.ntrace_label = MyQLabel((""), ha= 'right')
-        trace_label = MyQLabel(("traces"), ha= 'left')
-        picked_label = MyQLabel(("Picked Time:"), ha= 'right')
+        x_label = MyQLabel("x", ha= 'center')
+        y_label = MyQLabel("y", ha= 'center')
+        z_label = MyQLabel("z", ha= 'center')
+        Tx_label = MyQLabel("Tx:", ha= 'right')
+        Rx_label = MyQLabel("Rx:", ha= 'right')
+        done_label = MyQLabel('% Done', ha= 'left')
+        self.xTx_label = MyQLabel("", ha= 'right')
+        self.yTx_label = MyQLabel("", ha= 'right')
+        self.zTx_label = MyQLabel("", ha= 'right')
+        self.xRx_label = MyQLabel("", ha= 'right')
+        self.yRx_label = MyQLabel("", ha= 'right')
+        self.zRx_label = MyQLabel("", ha= 'right')
+        self.ntrace_label = MyQLabel("", ha= 'right')
+        self.percent_done_label = MyQLabel('', ha= 'right')
+        trace_label = MyQLabel("traces", ha= 'left')
+        picked_label = MyQLabel("Picked Time:", ha= 'right')
         self.time = QtGui.QLabel("")
         incertitude_label = QtGui.QLabel("±")
         self.incertitude_value_label = QtGui.QLabel("")
@@ -173,11 +194,14 @@ class ManualttUI(QtGui.QFrame):
         #--- Checkboxes ---#
         self.Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
         veloc_checkbox = QtGui.QCheckBox("Show apparent velocity")
-        lim_checkbox = QtGui.QCheckBox("A-dynamic limit")
+        self.lim_checkbox = QtGui.QCheckBox("A-dynamic limit")
         save_checkbox = QtGui.QCheckBox("Intermediate saves")
         jump_checkbox = QtGui.QCheckBox("Jump to nex unpicked Trace")
         pick_checkbox = QtGui.QCheckBox("Pick Tx Data")
         pick_checkbox.setDisabled(True)
+
+        #- CheckBoxes' Actions -#
+        self.lim_checkbox.stateChanged.connect(self.plot_upper_fig)
 
         #--- Radio Buttons ---#
         main_data_radio = QtGui.QRadioButton("Main Data file")
@@ -219,6 +243,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_Info_grid.addWidget(self.zRx_label, 4, 3)
         Sub_Info_grid.addWidget(self.ntrace_label, 5, 1)
         Sub_Info_grid.addWidget(trace_label, 5, 2)
+        Sub_Info_grid.addWidget(done_label, 6, 2)
+        Sub_Info_grid.addWidget(self.percent_done_label, 6, 1)
         Sub_Info_widget.setLayout(Sub_Info_grid)
         Sub_Info_widget.setStyleSheet("background: white")
 
@@ -259,7 +285,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_left_Part_Grid.addWidget(btn_Reini, 6, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 7, 0)
         Sub_left_Part_Grid.addWidget(veloc_checkbox, 8, 0)
-        Sub_left_Part_Grid.addWidget(lim_checkbox, 9, 0)
+        Sub_left_Part_Grid.addWidget(self.lim_checkbox, 9, 0)
         Sub_left_Part_Grid.addWidget(save_checkbox, 10, 0)
         Sub_left_Part_Grid.addWidget(jump_checkbox, 11, 0)
         Sub_left_Part_Grid.setContentsMargins(0, 0, 0, 0)
@@ -425,27 +451,40 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
-    def plot_amplitude(self, mog, n, A_min, A_max, t_min, t_max, transf_state):
+    def plot_amplitude(self, mog, n, A_min, A_max, t_min, t_max, transf_state, dyn_state):
         self.ax.cla()
         trace = mog.data.rdata[:, n]
 
         self.ax.plot(trace)
-        self.ax.set_ylim(A_min, A_max)
-        self.ax.set_xlim(t_min, t_max)
 
-        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
+        if not dyn_state:
+            self.ax.set_ylim(A_min, A_max)
+            self.ax.set_xlim(t_min, t_max)
 
         if transf_state:
             ind, wavelet = self.wavelet_filtering(mog.data.rdata)
 
+
+        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
         self.draw()
+
+
     def wavelet_filtering(self, rdata):
         shape = np.shape(rdata)
         nptsptrc, ntrace = shape[0], shape[1]
         N = 3
         npts = np.ceil(nptsptrc/2**N)*2**N
         d= npts - nptsptrc
+        rdata = np.array([[rdata],
+                          [rdata[-1-d:-1, :]]])
+        ind_max = np.zeros(ntrace)
+        inc_wb = np.round(ntrace/100)
+        for n in range(ntrace):
+            trace2 = self.denoise(rdata[:, n], wavelet, N)
+
+    def denoise(self, trace, wavelet, N):
+        swc = swt(trace, N, wavelet)
 
 
 
@@ -465,7 +504,6 @@ class LowerFig(FigureCanvasQTAgg):
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
-        self.ax2 = self.ax.twiny()
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
@@ -474,11 +512,109 @@ class LowerFig(FigureCanvasQTAgg):
         current_trc = mog.data.Tx_z[n]
         z = np.where(mog.data.Tx_z == current_trc)[0]
         data = mog.data.rdata[:, z[0]:z[-1]]
-        self.ax.plot([n-1, n-1], [0, np.shape(mog.data.rdata)[0]])
-        self.ax.imshow(data, interpolation= 'none', aspect= 'auto', extent= [z[0], z[-1], 0, np.shape(mog.data.rdata)[0]])
+        unpicked_ind = np.where(mog.tt == -1)[0]
+        picked_ind = np.where(mog.tt == 1)[0]
+        cmax = np.abs(max(mog.data.rdata.flatten()))
+
+        self.ax.plot([n-1, n-1],
+                     [0, np.shape(mog.data.rdata)[0]],
+                     color= 'black')
+
+        self.ax.plot(unpicked_ind,
+                     np.zeros(len(unpicked_ind)),
+                     marker= 's',
+                     color='red',
+                     markersize= 10,
+                     lw= 0)
+
+        self.ax.imshow(data,
+                       interpolation= 'none',
+                       cmap= 'seismic',
+                       aspect= 'auto',
+                       extent= [z[0], z[-1], 0, np.shape(mog.data.rdata)[0]],
+                       vmin= -cmax,
+                       vmax= cmax)
+
+
         mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
         self.draw()
+
+class StatsFig1:
+    def __init__(self, parent = None):
+
+        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        super(StatsttFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+
+
+        self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
+        self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
+        self.ax3 = self.figure.add_axes([0.7, 0.1, 0.2, 0.25])
+        self.ax4 = self.figure.add_axes([0.1, 0.55, 0.2, 0.25])
+        self.ax5 = self.figure.add_axes([0.4, 0.55, 0.2, 0.25])
+        self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
+
+    def plot_stats(self, mog, airshots):
+
+        done = (mog.tt_done + mog.in_vect.astype(int)) - 1
+        ind = np.nonzero(done == 1)[0]
+
+        tt, t0 = mog.getCorrectedTravelTimes(airshots)
+        et = mog.et[ind]
+        tt = tt[ind]
+
+        hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
+                      + (mog.data.Tx_y[ind] - mog.data.Rx_y[ind] )**2
+                      + (mog.data.Tx_z[ind] -  mog.data.Rx_z[ind] )**2)
+        dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
+
+        theta = 180/ np.pi * np.arcsin(dz/hyp)
+
+        vapp = hyp/(tt-t0[ind])
+        n = np.arange(len(ind))
+        n = n[ind]
+        ind2 = np.less(vapp, 0)
+        ind2 = np.nonzero(ind2)[0]
+
+        self.ax4.plot(hyp, tt, marker='o')
+        self.ax5.plot(theta, hyp/tt, marker='o')
+        self.ax2.plot(theta, vapp, marker='o')
+        self.ax6.plot(t0)
+        self.ax1.plot(hyp, et, marker='o')
+        self.ax3.plot(theta, et, marker='o')
+
+        vapp= hyp/tt
+        self.vappFig = VAppFig()
+        self.vappFig.plot_vapp(mog, vapp, ind)
+        self.vappFig.show()
+
+
+
+        self.figure.suptitle('{}'.format(mog.name), fontsize=20)
+        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+
+        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
+        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+
+        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+
+        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+
+        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
+        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+
+        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
+
 
 
 #--- Class For Alignment ---#
@@ -498,6 +634,8 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualttUI()
+    manual_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
+    manual_ui.update_control_center()
     manual_ui.showMaximized()
 
     sys.exit(app.exec_())
