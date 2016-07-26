@@ -260,12 +260,12 @@ class MOGUI(QtGui.QWidget):
 
                         self.air.append(AirShots(str(rname)))
                         self.air[n].data = data
-                        self.air[n].tt = -1* np.ones((1, data.ntrace))
-                        self.air[n].et = -1* np.ones((1, data.ntrace))
-                        self.air[n].tt_done = np.zeros((1, data.ntrace), dtype=bool)
+                        self.air[n].tt = -1* np.ones(data.ntrace)
+                        self.air[n].et = -1* np.ones(data.ntrace)
+                        self.air[n].tt_done = np.zeros( data.ntrace, dtype=bool)
                         self.air[n].d_TxRx = distance_list
                         self.air[n].fac_dt = 1
-                        self.air[n].ing = np.ones((1, data.ntrace), dtype= bool)
+                        self.air[n].ing = np.ones(data.ntrace, dtype= bool)
                         self.MOGs[i.row()].ap = n
                         if len(distance_list) == 1:
                             self.air[n].method ='fixed_antenna'

@@ -47,7 +47,7 @@ class ManualttUI(QtGui.QFrame):
                 self.xTx_label.setText(str(mog.data.Tx_x[n]))
                 self.yRx_label.setText(str(mog.data.Rx_y[n]))
                 self.yTx_label.setText(str(mog.data.Tx_y[n]))
-                self.zRx_label.setText(str(mog.data.Rx_z[n]))
+                self.zRx_label.setText(str(np.round(mog.data.Rx_z[n], 3)))
                 self.zTx_label.setText(str(mog.data.Tx_z[n]))
                 self.ntrace_label.setText(str(mog.data.ntrace))
                 self.percent_done_label.setText(str(done))
@@ -68,13 +68,22 @@ class ManualttUI(QtGui.QFrame):
         t_max = float(self.t_max_Edit.text())
         transf_state = self.Wave_checkbox.isChecked()
         dynamic_state = self.lim_checkbox.isChecked()
-        self.upperFig.plot_amplitude(mog, n, A_min, A_max, t_min, t_max, transf_state, dynamic_state)
+        main_data_state = self.main_data_radio.isChecked()
+        bef_state = self.t0_before_radio.isChecked()
+        aft_state = self.t0_after_radio.isChecked()
+        self.upperFig.plot_amplitude(mog, self.air, n, A_min, A_max, t_min, t_max, transf_state, dynamic_state, main_data_state,
+                                     bef_state, aft_state)
+    def reinit_tnum(self):
+        self.Tnum_Edit.setText('1')
 
     def plot_lower_fig(self):
         n = int(self.Tnum_Edit.text())
         ind = self.openmain.mog_combo.currentIndex()
         mog = self.mogs[ind]
-        self.lowerFig.plot_trace_data(mog, n)
+        main_data_state = self.main_data_radio.isChecked()
+        bef_state = self.t0_before_radio.isChecked()
+        aft_state = self.t0_after_radio.isChecked()
+        self.lowerFig.plot_trace_data(mog,self.air, n, main_data_state, bef_state, aft_state)
 
     def plot_stats(self):
         ind = self.openmain.mog_combo.currentIndex()
@@ -118,7 +127,8 @@ class ManualttUI(QtGui.QFrame):
         #- Buttons' Actions -#
         btn_Next.clicked.connect(self.next_trace)
         btn_Prev.clicked.connect(self.prev_trace)
-        btn_Upper.clicked.connect(self.upperFig.plot_picked_trace)
+        btn_Upper.clicked.connect(self.upperFig.onclick)
+        #btn_Upper.toggled.disconnect(self.upperFig.onclick)
 
         #--- Label ---#
         trc_Label = MyQLabel("Trace number :", ha= 'right')
@@ -204,16 +214,28 @@ class ManualttUI(QtGui.QFrame):
         self.lim_checkbox.stateChanged.connect(self.plot_upper_fig)
 
         #--- Radio Buttons ---#
-        main_data_radio = QtGui.QRadioButton("Main Data file")
-        t0_before_radio = QtGui.QRadioButton("t0 Before")
-        t0_after_radio = QtGui.QRadioButton("t0 After")
-        tt_picking_radio = QtGui.QRadioButton("Traveltime picking")
-        std_dev_radio = QtGui.QRadioButton("Std deviation picking")
-        trace_selec_radio = QtGui.QRadioButton("Trace selection")
+        self.main_data_radio = QtGui.QRadioButton("Main Data file")
+        self.t0_before_radio = QtGui.QRadioButton("t0 Before")
+        self.t0_after_radio = QtGui.QRadioButton("t0 After")
+        self.tt_picking_radio = QtGui.QRadioButton("Traveltime picking")
+        self.std_dev_radio = QtGui.QRadioButton("Std deviation picking")
+        self.trace_selec_radio = QtGui.QRadioButton("Trace selection")
+
+        #- Radio Buttons' Disposition -#
+        self.main_data_radio.setChecked(True)
 
         #- Radio Buttons' Actions -#
-        main_data_radio.setChecked(True)
+        self.main_data_radio.toggled.connect(self.plot_upper_fig)
+        self.t0_before_radio.toggled.connect(self.plot_upper_fig)
+        self.t0_after_radio.toggled.connect(self.plot_upper_fig)
 
+        self.main_data_radio.toggled.connect(self.plot_lower_fig)
+        self.t0_before_radio.toggled.connect(self.plot_lower_fig)
+        self.t0_after_radio.toggled.connect(self.plot_lower_fig)
+
+        self.main_data_radio.toggled.connect(self.reinit_tnum)
+        self.t0_before_radio.toggled.connect(self.reinit_tnum)
+        self.t0_after_radio.toggled.connect(self.reinit_tnum)
         #--- Text Edits ---#
         info_Tedit = QtGui.QTextEdit()
         info_Tedit.setReadOnly(True)
@@ -295,9 +317,9 @@ class ManualttUI(QtGui.QFrame):
         Sub_upper_right_Widget = QtGui.QWidget()
         Sub_upper_right_Grid = QtGui.QGridLayout()
         Sub_upper_right_Grid.addWidget(pick_checkbox, 0, 0)
-        Sub_upper_right_Grid.addWidget(main_data_radio, 1, 0)
-        Sub_upper_right_Grid.addWidget(t0_before_radio, 2, 0)
-        Sub_upper_right_Grid.addWidget(t0_after_radio, 3, 0)
+        Sub_upper_right_Grid.addWidget(self.main_data_radio, 1, 0)
+        Sub_upper_right_Grid.addWidget(self.t0_before_radio, 2, 0)
+        Sub_upper_right_Grid.addWidget(self.t0_after_radio, 3, 0)
         Sub_upper_right_Grid.addWidget(pick_combo, 4, 0, 1, 2)
         Sub_upper_right_Grid.addWidget(btn_Upper, 6, 0, 1, 2)
         Sub_upper_right_Grid.addWidget(btn_Conti, 7, 0, 1, 2)
@@ -307,9 +329,9 @@ class ManualttUI(QtGui.QFrame):
         #--- Contiguous Trace Groupbox ---#
         Conti_Groupbox = QtGui.QGroupBox("Contiguous Traces")
         Conti_Grid = QtGui.QGridLayout()
-        Conti_Grid.addWidget(tt_picking_radio, 0, 0)
-        Conti_Grid.addWidget(std_dev_radio, 1, 0)
-        Conti_Grid.addWidget(trace_selec_radio, 2, 0)
+        Conti_Grid.addWidget(self.tt_picking_radio, 0, 0)
+        Conti_Grid.addWidget(self.std_dev_radio, 1, 0)
+        Conti_Grid.addWidget(self.trace_selec_radio, 2, 0)
         Conti_Grid.setColumnStretch(1, 100)
         Conti_Grid.setContentsMargins(0, 0, 0, 0)
         Conti_Groupbox.setLayout(Conti_Grid)
@@ -445,21 +467,43 @@ class UpperFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(UpperFig, self).__init__(fig)
         self.initFig()
+        self.pick_pos = []
+        self.trc_number = 0
+
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
+        self.ax2 = self.ax.twiny()
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
-    def plot_amplitude(self, mog, n, A_min, A_max, t_min, t_max, transf_state, dyn_state):
+    def plot_amplitude(self, mog, air, n, A_min, A_max, t_min, t_max, transf_state, dyn_state, main_data_state, bef_state, aft_state):
         self.ax.cla()
-        trace = mog.data.rdata[:, n]
+        self.ax2.cla()
+        self.trc_number = n-1
+        if main_data_state:
+            trace = mog.data.rdata[:, n-1]
+        if bef_state:
+            airshot_before = air[mog.av]
+            trace = airshot_before.data.rdata[:,n-1]
 
-        self.ax.plot(trace)
+
+        if aft_state:
+            airshot_after = air[mog.ap]
+            trace = airshot_after.data.rdata[:,n-1]
+
+
+
 
         if not dyn_state:
             self.ax.set_ylim(A_min, A_max)
-            self.ax.set_xlim(t_min, t_max)
+        self.ax2.set_xlim(t_min, t_max)
+        self.ax.set_xlim(t_min, t_max)
+
+        self.ax.plot(trace)
+        y_lim = self.ax.get_ylim()
+        if len(self.pick_pos) > self.trc_number:
+            self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]])
 
         if transf_state:
             ind, wavelet = self.wavelet_filtering(mog.data.rdata)
@@ -468,7 +512,6 @@ class UpperFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
         self.draw()
-
 
     def wavelet_filtering(self, rdata):
         shape = np.shape(rdata)
@@ -488,11 +531,28 @@ class UpperFig(FigureCanvasQTAgg):
 
 
 
+    def onclick(self, event):
+
+        self.mpl_connect('button_press_event', self.onclick)
+
+        self.x, self.y = event.x, event.y
 
 
-    def plot_picked_trace(self):
-        pass
-
+        if self.x != None and self.y != None:
+            self.ax2.cla()
+            if len(self.pick_pos) != 0:
+                if self.pick_pos[self.trc_number] != event.xdata:
+                    del self.pick_pos[self.trc_number]
+            self.pick_pos.insert(self.trc_number, event.xdata)
+            print(event.xdata)
+            print(self.pick_pos)
+            print(self.pick_pos[self.trc_number])
+            y_lim = self.ax.get_ylim()
+            x_lim = self.ax.get_xlim()
+            self.ax2.set_xlim(x_lim[0], x_lim[-1])
+            self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
+            self.ax.set_ylim(y_lim[0], y_lim[-1])
+            self.draw()
 
 
 class LowerFig(FigureCanvasQTAgg):
@@ -507,33 +567,110 @@ class LowerFig(FigureCanvasQTAgg):
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
-    def plot_trace_data(self, mog, n):
+    def plot_trace_data(self, mog, air, n, main_data_state, bef_state, aft_state):
         self.ax.cla()
-        current_trc = mog.data.Tx_z[n]
-        z = np.where(mog.data.Tx_z == current_trc)[0]
-        data = mog.data.rdata[:, z[0]:z[-1]]
-        unpicked_ind = np.where(mog.tt == -1)[0]
-        picked_ind = np.where(mog.tt == 1)[0]
-        cmax = np.abs(max(mog.data.rdata.flatten()))
 
-        self.ax.plot([n-1, n-1],
-                     [0, np.shape(mog.data.rdata)[0]],
+        if main_data_state:
+            current_trc = mog.data.Tx_z[n]
+            z = np.where(mog.data.Tx_z == current_trc)[0]
+            data = mog.data.rdata[:, z[0]:z[-1]]
+
+            unpicked_ind = np.where(mog.tt == -1)[0]
+            picked_ind = np.where(mog.tt == 1)[0]
+
+            cmax = np.abs(max(mog.data.rdata.flatten()))
+
+            actual_data = mog.data.rdata
+
+            self.ax.plot([n-1, n-1],
+                     [0, np.shape(actual_data)[0]],
                      color= 'black')
 
-        self.ax.plot(unpicked_ind,
-                     np.zeros(len(unpicked_ind)),
-                     marker= 's',
-                     color='red',
-                     markersize= 10,
-                     lw= 0)
+            self.ax.plot(unpicked_ind,
+                         np.zeros(len(unpicked_ind)),
+                         marker= 's',
+                         color='red',
+                         markersize= 10,
+                         lw= 0)
 
-        self.ax.imshow(data,
+            self.ax.imshow(data,
                        interpolation= 'none',
                        cmap= 'seismic',
                        aspect= 'auto',
-                       extent= [z[0], z[-1], 0, np.shape(mog.data.rdata)[0]],
+                       extent= [z[0], z[-1], 0, np.shape(actual_data)[0]],
                        vmin= -cmax,
                        vmax= cmax)
+
+
+
+        elif bef_state:
+            airshot_before = air[mog.av]
+            data = airshot_before.data.rdata
+
+            unpicked_ind = np.where(airshot_before.tt == -1)[0]
+            picked_ind = np.where(airshot_before.tt == 1)[0]
+
+            cmax = np.abs(max(airshot_before.data.rdata.flatten()))
+
+            actual_data = data
+
+            self.ax.plot([n-1, n-1],
+                     [0, np.shape(actual_data)[0]],
+                     color= 'black')
+
+            self.ax.plot(unpicked_ind,
+                         np.zeros(len(unpicked_ind)),
+                         marker= 's',
+                         color='red',
+                         markersize= 10,
+                         lw= 0)
+
+            self.ax.imshow(data,
+                       interpolation= 'none',
+                       cmap= 'seismic',
+                       aspect= 'auto',
+                       vmin= -cmax,
+                       vmax= cmax)
+
+
+
+        elif aft_state:
+            airshot_after = air[mog.ap]
+            data = airshot_after.data.rdata
+
+            unpicked_ind = np.where(airshot_after.tt == -1)[0]
+            picked_ind = np.where(airshot_after.tt == 1)[0]
+
+            cmax = np.abs(max(airshot_after.data.rdata.flatten()))
+
+            actual_data = data
+
+            self.ax.plot([n-1, n-1],
+                     [0, np.shape(actual_data)[0]],
+                     color= 'black')
+
+            self.ax.plot(unpicked_ind,
+                         np.zeros(len(unpicked_ind)),
+                         marker= 's',
+                         color='red',
+                         markersize= 10,
+                         lw= 0)
+
+            self.ax.imshow(data,
+                       interpolation= 'none',
+                       cmap= 'seismic',
+                       aspect= 'auto',
+                       vmin= -cmax,
+                       vmax= cmax)
+
+
+
+
+
+
+
+
+
 
 
         mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))

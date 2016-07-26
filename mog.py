@@ -24,27 +24,14 @@ from MogData import MogData
 
 
 class AirShots:
-    def __init__(self, name=''):
+    def __init__(self, name='', data= MogData()):
         self.mog = Mog()
         self.name = name
-        self.tt = np.array([])     # traveltime vector
-        self.et = np.array([])     # traveltime standard vector deviation
-        self.data = MogData()      # MogData instance
+        self.data = data           # MogData instance
         self.d_TxRx = 0            # Distance between Tx and Rx
-        self.fac_dt = 1            #
-        self.ing = 0               #à vérifier avec Bernard (ing et method)
+        self.fac_dt = 1
+        self.ing = 0
         self.method = 0
-
-
-        self.initialize()
-
-    def initialize(self):
-        """
-        We initialize two vectors(i.e. self.tt and self.et) which have a value of -1 for each trace and a vector(i.e. self.tt_done)
-        which as a false value for each trace until one actually arrives to the receptor
-        """
-        if self.data.rdata == 0 :
-            return
         self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
         self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
