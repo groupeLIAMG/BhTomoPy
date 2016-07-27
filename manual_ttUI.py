@@ -18,6 +18,9 @@ class ManualttUI(QtGui.QFrame):
         self.mogs = []
         self.air = []
         self.initUI()
+
+        self.upperFig.TraveltimeSignal.connect(self.update_travel_time)
+
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
         n += 1
@@ -73,6 +76,27 @@ class ManualttUI(QtGui.QFrame):
         aft_state = self.t0_after_radio.isChecked()
         self.upperFig.plot_amplitude(mog, self.air, n, A_min, A_max, t_min, t_max, transf_state, dynamic_state, main_data_state,
                                      bef_state, aft_state)
+
+    def update_a_and_t_edits(self):
+        n = int(self.Tnum_Edit.text())
+        ind = self.openmain.mog_combo.currentIndex()
+        mog = self.mogs[ind]
+        if self.lim_checkbox.isChecked():
+            A_max = max(mog.data.rdata[:, n].flatten())
+            A_min = min(mog.data.rdata[:, n].flatten())
+            t_min = 0
+            t_max = np.shape(mog.data.rdata[:, n])[0]
+
+            self.A_min_Edit.setText(str(A_min))
+            self.A_max_Edit.setText(str(A_max))
+            self.t_min_Edit.setText(str(t_min))
+            self.t_max_Edit.setText(str(t_max))
+        else:
+            self.A_min_Edit.setText(str(-1000))
+            self.A_max_Edit.setText(str(1000))
+            self.t_min_Edit.setText(str(0))
+            self.t_max_Edit.setText(str(300))
+
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
@@ -83,7 +107,9 @@ class ManualttUI(QtGui.QFrame):
         main_data_state = self.main_data_radio.isChecked()
         bef_state = self.t0_before_radio.isChecked()
         aft_state = self.t0_after_radio.isChecked()
-        self.lowerFig.plot_trace_data(mog,self.air, n, main_data_state, bef_state, aft_state)
+        t_min = float(self.t_min_Edit.text())
+        t_max = float(self.t_max_Edit.text())
+        self.lowerFig.plot_trace_data(mog,self.air, n, main_data_state, bef_state, aft_state, t_min, t_max)
 
     def plot_stats(self):
         ind = self.openmain.mog_combo.currentIndex()
@@ -91,18 +117,20 @@ class ManualttUI(QtGui.QFrame):
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(mog, self.air)
 
+    def update_travel_time(self, pos_list):
+        n = int(self.Tnum_Edit.text())
+        self.time.clear()
+        if n-1 < len(pos_list):
+            info = pos_list[n-1]
+            pos = info[0]
+            self.time.setText(str(np.round(pos, 4)))
+        else:
+            return
+
 
     def initUI(self):
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
-
-
-        #------ Creation of the Manager for the Lower figure -------#
-        self.lowerFig = LowerFig()
-        self.lowermanager = QtGui.QWidget()
-        lowermanagergrid = QtGui.QGridLayout()
-        lowermanagergrid.addWidget(self.lowerFig, 0, 0)
-        self.lowermanager.setLayout(lowermanagergrid)
 
         #------ Creation of the Manager for the Upper figure -------#
         self.upperFig = UpperFig()
@@ -114,6 +142,14 @@ class ManualttUI(QtGui.QFrame):
         uppermanagergrid.setContentsMargins(0, 0, 0, 0)
         uppermanagergrid.setVerticalSpacing(3)
         self.uppermanager.setLayout(uppermanagergrid)
+
+        #------ Creation of the Manager for the Lower figure -------#
+        self.lowerFig = LowerFig(self.upperFig)
+        self.lowermanager = QtGui.QWidget()
+        lowermanagergrid = QtGui.QGridLayout()
+        lowermanagergrid.addWidget(self.lowerFig, 0, 0)
+        self.lowermanager.setLayout(lowermanagergrid)
+
         #------- Widgets Creation -------#
         #--- Buttons ---#
         btn_Prev = QtGui.QPushButton("Previous Trace")
@@ -128,8 +164,6 @@ class ManualttUI(QtGui.QFrame):
         btn_Next.clicked.connect(self.next_trace)
         btn_Prev.clicked.connect(self.prev_trace)
         btn_Upper.clicked.connect(self.trace_isClicked)
-
-        #btn_Upper.toggled.disconnect(self.upperFig.onclick)
 
         #--- Label ---#
         trc_Label = MyQLabel("Trace number :", ha= 'right')
@@ -175,7 +209,6 @@ class ManualttUI(QtGui.QFrame):
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
 
-
         #--- Edits ---#
         self.Tnum_Edit = QtGui.QLineEdit('1')
         self.t_min_Edit = QtGui.QLineEdit('0')
@@ -212,7 +245,9 @@ class ManualttUI(QtGui.QFrame):
         pick_checkbox.setDisabled(True)
 
         #- CheckBoxes' Actions -#
+        self.lim_checkbox.stateChanged.connect(self.update_a_and_t_edits)
         self.lim_checkbox.stateChanged.connect(self.plot_upper_fig)
+
 
         #--- Radio Buttons ---#
         self.main_data_radio = QtGui.QRadioButton("Main Data file")
@@ -471,6 +506,7 @@ class OpenMainData(QtGui.QWidget):
 
 
 class UpperFig(FigureCanvasQTAgg):
+    TraveltimeSignal = QtCore.pyqtSignal(list)
     def __init__(self):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
@@ -502,17 +538,15 @@ class UpperFig(FigureCanvasQTAgg):
             y_lim = self.ax.get_ylim()
             for pos in self.pick_pos:
                 if self.trc_number in pos:
-                    self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]], color = 'green')
+                    self.ax2.plot([self.pick_pos[self.trc_number][0], self.pick_pos[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
 
         if bef_state:
             airshot_before = air[mog.av]
             trace = airshot_before.data.rdata[:,n-1]
 
-
         if aft_state:
             airshot_after = air[mog.ap]
             trace = airshot_after.data.rdata[:,n-1]
-
 
         if not dyn_state:
             self.ax.set_ylim(A_min, A_max)
@@ -528,6 +562,7 @@ class UpperFig(FigureCanvasQTAgg):
 
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
+        self.TraveltimeSignal.emit(self.pick_pos)
         self.draw()
 
     def wavelet_filtering(self, rdata):
@@ -549,7 +584,6 @@ class UpperFig(FigureCanvasQTAgg):
 
     def onclick(self, event):
 
-        print(self.isTracingOn)
         if self.isTracingOn is False:
             return
 
@@ -564,34 +598,39 @@ class UpperFig(FigureCanvasQTAgg):
                     if self.trc_number in self.pick_pos[i]:
                         del self.pick_pos[i]
             self.pick_pos.insert(self.trc_number, (event.xdata, self.trc_number))
+            self.TraveltimeSignal.emit(self.pick_pos)
 
             y_lim = self.ax.get_ylim()
             x_lim = self.ax.get_xlim()
             self.ax2.set_xlim(x_lim[0], x_lim[-1])
-            self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
+            self.ax2.plot([self.pick_pos[self.trc_number][0], self.pick_pos[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
             self.ax.set_ylim(y_lim[0], y_lim[-1])
+
+
             self.draw()
 
 
 class LowerFig(FigureCanvasQTAgg):
-    def __init__(self):
+    def __init__(self, upper):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(LowerFig, self).__init__(fig)
         self.initFig()
+        self.upper = upper
+        print(self.upper.pick_pos)
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
-    def plot_trace_data(self, mog, air, n, main_data_state, bef_state, aft_state):
+    def plot_trace_data(self, mog, air, n, main_data_state, bef_state, aft_state, t_min, t_max):
         self.ax.cla()
 
         if main_data_state:
             current_trc = mog.data.Tx_z[n]
             z = np.where(mog.data.Tx_z == current_trc)[0]
-            data = mog.data.rdata[:, z[0]:z[-1]]
+            data = mog.data.rdata[t_min:t_max, z[0]:z[-1]]
 
             unpicked_ind = np.where(mog.tt == -1)[0]
             picked_ind = np.where(mog.tt == 1)[0]
@@ -600,12 +639,15 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = mog.data.rdata
 
+            for pick_info in self.upper.pick_pos:
+                self.ax.plot(pick_info[-1], pick_info[0], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
+
             self.ax.plot([n-1, n-1],
                      [0, np.shape(actual_data)[0]],
                      color= 'black')
 
             self.ax.plot(unpicked_ind,
-                         np.zeros(len(unpicked_ind)),
+                         t_max*np.ones(len(unpicked_ind)),
                          marker= 's',
                          color='red',
                          markersize= 10,
@@ -615,7 +657,7 @@ class LowerFig(FigureCanvasQTAgg):
                        interpolation= 'none',
                        cmap= 'seismic',
                        aspect= 'auto',
-                       extent= [z[0], z[-1], 0, np.shape(actual_data)[0]],
+                       extent= [z[0], z[-1], t_max, t_min],
                        vmin= -cmax,
                        vmax= cmax)
 
@@ -681,21 +723,11 @@ class LowerFig(FigureCanvasQTAgg):
                        vmin= -cmax,
                        vmax= cmax)
 
-
-
-
-
-
-
-
-
-
-
         mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
         self.draw()
 
-class StatsFig1:
+class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent = None):
 
         fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
