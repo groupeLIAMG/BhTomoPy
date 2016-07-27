@@ -502,8 +502,9 @@ class UpperFig(FigureCanvasQTAgg):
 
         self.ax.plot(trace)
         y_lim = self.ax.get_ylim()
-        if len(self.pick_pos) > self.trc_number:
-            self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]])
+        for pos in self.pick_pos:
+            if self.trc_number in pos:
+                self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]], color = 'green')
 
         if transf_state:
             ind, wavelet = self.wavelet_filtering(mog.data.rdata)
@@ -541,12 +542,11 @@ class UpperFig(FigureCanvasQTAgg):
         if self.x != None and self.y != None:
             self.ax2.cla()
             if len(self.pick_pos) != 0:
-                if self.pick_pos[self.trc_number] != event.xdata:
-                    del self.pick_pos[self.trc_number]
-            self.pick_pos.insert(self.trc_number, event.xdata)
-            print(event.xdata)
-            print(self.pick_pos)
-            print(self.pick_pos[self.trc_number])
+                for i in range(len(self.pick_pos)):
+                    if self.trc_number in self.pick_pos[i]:
+                        del self.pick_pos[i]
+            self.pick_pos.insert(self.trc_number, (event.xdata, self.trc_number))
+
             y_lim = self.ax.get_ylim()
             x_lim = self.ax.get_xlim()
             self.ax2.set_xlim(x_lim[0], x_lim[-1])
