@@ -39,6 +39,8 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         self.current_db.setText(str(rname))
         self.database.load_file(filename)
+        self.manual_tt.openmain.load_file(filename)
+        self.manual_tt.update_control_center()
 
     def show(self):
         super(Bh_ThomoPyUI, self).show()
@@ -78,15 +80,15 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         #--- Buttons ---#
         btn_Database                            = QtGui.QPushButton("Database")
-        btn_Automatic_Traveltime_Picking        = QtGui.QPushButton("Automatic Traveltime Picking (AIC-CWT)")
-        btn_Semi_Automatic_Traveltime_Picking   = QtGui.QPushButton("Semi-Automatic Traveltime Picking (x-corr)")
-        btn_Manual_Traveltime_Picking           = QtGui.QPushButton("Manual Traveltime Picking")
+        btn_Automatic_Traveltime_Picking        = QtGui.QPushButton("Automatic (AIC-CWT)")
+        btn_Semi_Automatic_Traveltime_Picking   = QtGui.QPushButton("Semi-Automatic (x-corr)")
+        btn_Manual_Traveltime_Picking           = QtGui.QPushButton("Manual")
         btn_Manual_Amplitude_Picking            = QtGui.QPushButton("Manual Amplitude Picking")
         btn_Cov_Mod                             = QtGui.QPushButton("Covariance Model")
         btn_Inversion                           = QtGui.QPushButton("Inversion")
         btn_Interpretation                      = QtGui.QPushButton("Interpretation (GPR)")
-        btn_Time_Lapse_Inversion                = QtGui.QPushButton("Time-Lapse Inversion")
-        btn_Time_Lapse_Visualisation            = QtGui.QPushButton("Time-Lapse Visualisation")
+        btn_Time_Lapse_Inversion                = QtGui.QPushButton("Inversion")
+        btn_Time_Lapse_Visualisation            = QtGui.QPushButton("Visualisation")
         btn_Nano_Fluid                          = QtGui.QPushButton("Magnetic Nano Fluid Saturation")
 
         #- Buttons Disposition -#
@@ -149,7 +151,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         #--- BH TOMO ToolBox ---#
         bh_tomo_tool = MyQToolBox()
-        bh_tomo_tool.addItem(travel_time_tool, 'Travel Time')
+        bh_tomo_tool.addItem(travel_time_tool, 'Travel Time Picking')
         bh_tomo_tool.addItem(time_lapse_tool, 'Time Lapse')
 
         #--- Buttons SubWidget ---#
@@ -162,6 +164,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         sub_button_grid.addWidget(btn_Inversion, 4, 0)
         sub_button_grid.addWidget(btn_Interpretation, 5, 0)
         sub_button_grid.addWidget(btn_Nano_Fluid, 6, 0)
+        sub_button_grid.setRowStretch(7, 100)
         Sub_button_widget.setLayout(sub_button_grid)
 
         #--- Main Widget---#

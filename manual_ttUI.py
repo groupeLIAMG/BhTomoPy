@@ -474,8 +474,12 @@ class UpperFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
         self.ax2 = self.ax.twiny()
+
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
+
+        self.ax2.yaxis.set_ticks_position('none')
+        self.ax2.xaxis.set_ticks_position('none')
 
     def plot_amplitude(self, mog, air, n, A_min, A_max, t_min, t_max, transf_state, dyn_state, main_data_state, bef_state, aft_state):
         self.ax.cla()
@@ -483,6 +487,11 @@ class UpperFig(FigureCanvasQTAgg):
         self.trc_number = n-1
         if main_data_state:
             trace = mog.data.rdata[:, n-1]
+            y_lim = self.ax.get_ylim()
+            for pos in self.pick_pos:
+                if self.trc_number in pos:
+                    self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]], color = 'green')
+
         if bef_state:
             airshot_before = air[mog.av]
             trace = airshot_before.data.rdata[:,n-1]
@@ -501,10 +510,7 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax.set_xlim(t_min, t_max)
 
         self.ax.plot(trace)
-        y_lim = self.ax.get_ylim()
-        for pos in self.pick_pos:
-            if self.trc_number in pos:
-                self.ax2.plot([self.pick_pos[self.trc_number], self.pick_pos[self.trc_number]], [y_lim[0], y_lim[-1]], color = 'green')
+
 
         if transf_state:
             ind, wavelet = self.wavelet_filtering(mog.data.rdata)
