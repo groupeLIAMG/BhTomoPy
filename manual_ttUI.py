@@ -127,7 +127,8 @@ class ManualttUI(QtGui.QFrame):
         #- Buttons' Actions -#
         btn_Next.clicked.connect(self.next_trace)
         btn_Prev.clicked.connect(self.prev_trace)
-        btn_Upper.clicked.connect(self.upperFig.onclick)
+        btn_Upper.clicked.connect(self.trace_isClicked)
+
         #btn_Upper.toggled.disconnect(self.upperFig.onclick)
 
         #--- Label ---#
@@ -389,6 +390,14 @@ class ManualttUI(QtGui.QFrame):
         master_grid.setVerticalSpacing(0)
         self.setLayout(master_grid)
 
+    def trace_isClicked(self):
+        if self.sender().isFlat():
+            self.sender().setFlat(False)
+            self.upperFig.isTracingOn = False
+        else:
+            self.sender().setFlat(True)
+            self.upperFig.isTracingOn = True
+
 
 class OpenMainData(QtGui.QWidget):
     def __init__(self, tt, parent=None):
@@ -470,6 +479,9 @@ class UpperFig(FigureCanvasQTAgg):
         self.pick_pos = []
         self.trc_number = 0
 
+        self.mpl_connect('button_press_event', self.onclick)
+        self.isTracingOn = False
+
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
@@ -500,8 +512,6 @@ class UpperFig(FigureCanvasQTAgg):
         if aft_state:
             airshot_after = air[mog.ap]
             trace = airshot_after.data.rdata[:,n-1]
-
-
 
 
         if not dyn_state:
@@ -537,10 +547,12 @@ class UpperFig(FigureCanvasQTAgg):
         swc = swt(trace, N, wavelet)
 
 
-
     def onclick(self, event):
 
-        self.mpl_connect('button_press_event', self.onclick)
+        print(self.isTracingOn)
+        if self.isTracingOn is False:
+            return
+
 
         self.x, self.y = event.x, event.y
 
@@ -777,7 +789,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualttUI()
-    manual_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
+    manual_ui.openmain.load_file('save test.p')
     manual_ui.update_control_center()
     manual_ui.showMaximized()
 
