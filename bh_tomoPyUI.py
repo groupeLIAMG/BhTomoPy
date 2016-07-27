@@ -8,11 +8,13 @@ from interpUI import InterpretationUI
 from semi_auto_ttUI import SemiAutottUI
 import os
 
+
 class Bh_ThomoPyUI(QtGui.QWidget):
 
     def __init__(self, parent=None):
         super(Bh_ThomoPyUI, self).__init__()
         self.setWindowTitle("bh_thomoPy")
+
         self.database = DatabaseUI()
         self.manual_tt = ManualttUI()
         self.semi_tt = SemiAutottUI()
@@ -20,6 +22,9 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         self.inv = InversionUI()
         self.interp = InterpretationUI()
         self.initUI()
+
+        self.setSizePolicy(QtGui.QSizePolicy.Minimum,
+                           QtGui.QSizePolicy.Minimum)
 
     def choosedb(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Choose Database')
@@ -58,6 +63,11 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         translation = qr.topLeft()
 
         self.move(translation)
+
+        self.setFixedSize(self.size())
+
+        self.__h1 = self.size().height()
+        self.__h2 = self.bh_tomo_tool.size().height()
 
     def initUI(self):
 
@@ -100,8 +110,10 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         #- Buttons Actions -#
         btn_Database.clicked.connect(self.database.show)
-        btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt.showMaximized)
-        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(self.semi_tt.showMaximized)
+        btn_Manual_Traveltime_Picking.clicked.connect(
+            self.manual_tt.showMaximized)
+        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(
+            self.semi_tt.showMaximized)
         btn_Cov_Mod.clicked.connect(self.covar.show)
         btn_Inversion.clicked.connect(self.inv.show)
         btn_Interpretation.clicked.connect(self.interp.show)
@@ -109,11 +121,14 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         #--- Image ---#
         pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
         image_label = QtGui.QLabel()
-        image_label.setPixmap(pic.scaled(250, 250, QtCore.Qt.IgnoreAspectRatio, QtCore.Qt.FastTransformation))
+        image_label.setPixmap(pic.scaled(250, 250,
+                                         QtCore.Qt.IgnoreAspectRatio,
+                                         QtCore.Qt.FastTransformation))
         image_label.setAlignment(QtCore.Qt.AlignCenter)
 
         #--- Title(if logo isnt ok) ---#
-        Title = QtGui.QLabel('BH TOMO \n Borehole Radar/Seismic Data Processing Center')
+        Title = QtGui.QLabel(
+            'BH TOMO \n Borehole Radar/Seismic Data Processing Center')
         Title.setAlignment(QtCore.Qt.AlignHCenter)
         Title.setContentsMargins(10, 10, 10, 30)
         Title.setStyleSheet('color: Darkcyan')
@@ -153,6 +168,8 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         bh_tomo_tool = MyQToolBox()
         bh_tomo_tool.addItem(travel_time_tool, 'Travel Time Picking')
         bh_tomo_tool.addItem(time_lapse_tool, 'Time Lapse')
+        bh_tomo_tool.sizeChanged.connect(self.fitHeight)
+        self.bh_tomo_tool = bh_tomo_tool
 
         #--- Buttons SubWidget ---#
         Sub_button_widget = QtGui.QGroupBox()
@@ -168,7 +185,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         Sub_button_widget.setLayout(sub_button_grid)
 
         #--- Main Widget---#
-        master_grid   = QtGui.QGridLayout()
+        master_grid = QtGui.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 4)
         master_grid.addWidget(sub_image_widget, 2, 0, 1, 4)
         master_grid.addWidget(self.current_db, 3, 1, 1, 2)
@@ -176,8 +193,12 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         master_grid.setContentsMargins(0, 0, 0, 0)
         master_grid.setVerticalSpacing(3)
 
-
         self.setLayout(master_grid)
+
+    def fitHeight(self):
+        # shrink or expand height to fit the toolbox
+        h = self.__h1 + self.bh_tomo_tool.sizeHint().height() - self.__h2
+        self.setFixedHeight(h)
 
 
 class MyQToolBox(QtGui.QWidget):
@@ -195,6 +216,8 @@ class MyQToolBox(QtGui.QWidget):
     5. Closed and Expanded arrows can be set from custom icons.
     """
 # =============================================================================
+
+    sizeChanged = QtCore.pyqtSignal(bool)
 
     def __init__(self, parent=None):
         super(MyQToolBox, self).__init__(parent)
@@ -254,16 +277,21 @@ class MyQToolBox(QtGui.QWidget):
                     head.setIcon(self.__iclosed)
                     tool.hide()
                     self.__currentIndex = -1
+
                 else:
                     # if clicked tool is closed, expand it
                     head.setIcon(self.__iexpand)
                     tool.show()
                     self.__currentIndex = row
+
             else:
                 # close all the other tools so that only one tool can be
                 # expanded at a time.
                 head.setIcon(self.__iclosed)
                 tool.hide()
+
+        self.sizeChanged.emit(True)
+
 
 if __name__ == '__main__':
 
