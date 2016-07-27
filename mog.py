@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2016 Bernard Giroux
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -19,103 +19,162 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
+from PyQt4 import QtGui, QtCore
+from MogData import MogData
+
+
 class AirShots:
-    def __init__(self, name=None):
+    def __init__(self, name='', data= MogData()):
+        self.mog = Mog()
         self.name = name
-        self.tt = np.array([])     # traveltime vector
-        self.et = np.array([])     # traveltime standard vector deviation
-        self.data = None
-
-    @property
-    def name(self):
-        return self.__name
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self.__name = str(name)
-        else:
-            raise TypeError("Please enter a valid borehole name(i.e. a str)")
-
-    @property
-    def data(self):
-        return self.__data
-    @data.setter
-    def data(self,data):
-        if isinstance(data, MogData):
-            self.__data = data
-            self.initialize()
-        else:
-            raise TypeError("Please enter valid data of type MogData")
-
-    def initialize(self):
-        if self.data == None :
-            return self.data
+        self.data = data           # MogData instance
+        self.d_TxRx = 0            # Distance between Tx and Rx
+        self.fac_dt = 1
+        self.ing = 0
+        self.method = 0
         self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
         self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
 
 
-class MogData:
-    """
-    Class to hold multi-offset gather (mog) data
-    """
-    def __init__(self, name=None, date=None):
-        self.name = name
-        self.date = date
-        self.av = None             # index of air shot before survey
-        self.ap = None             # index of air shot after survey
-        self.tt = np.array([])     # traveltime vector
-        self.et = np.array([])     # traveltime standard vector deviation
-        self.ntrace      = 0       # number of traces in MOG
-        self.nptsptrc    = 0       # number of sample per trace
-        self.rstepsz     = 0       # theoretical spatial step size between traces
-        self.cunits      = ''      # spatial units
-        self.rnomfreq    = 0       # nominal frequency of source
-        self.csurvmod    = ''      # type of survey
-        self.timec       = 0       # sampling period
-        self.rdata       = 0       # raw data
-        self.timestp     = 0       # time vector
-        self.Tx_x        = 0       # x coordinate of source
-        self.Tx_z        = 0       # z coordinate of source
-        self.TxCosDir    = 0       # direction cosine of source
-        self.Rx_x        = 0       # x coordinate of receiver
-        self.Rx_z        = 0       # z coordinate of receiver
-        self.RxCosDir    = 0       # direction cosine of receiver
-        self.antennas    = ''      # type of antenna
-        self.synthetique = 0       # true of synthetic data
-        self.tunits      = ''      # time units
+class Mog:
+    def __init__(self, name= '', data= MogData()):
+        self.pruneParams              = PruneParams()
+        self.name                     = name          # Name of the multi offset-gather
+        self.data                     = data          # Instance of MogData
+        self.av                       = ''
+        self.ap                       = ''
+        self.Tx                       = 1
+        self.Rx                       = 1
+        self.tau_params               = np.array([])
+        self.fw                       = np.array([])
+        self.f_et                     = 1
+        self.amp_name_Ldc             = []
+        self.type                     = 1
+        self.fac_dt                   = 1
+        self.user_fac_dt              = 0
+        self.pruneParams.stepTx       = 0
+        self.pruneParams.stepRx       = 0
+        self.pruneParams.round_factor = 0
+        self.pruneParams.use_SNR      = 0
+        self.pruneParams.treshold_SNR = 0
+        self.pruneParams.zmin         = -1e99
+        self.pruneParams.zmax         = 1e99
+        self.pruneParams.thetaMin     = -90
+        self.pruneParams.thetaMax     = 90
+        self.useAirShots              = 0
+        self.TxCosDir                 = np.array([])
+        self.RxCosDir                 = np.array([])
+        self.ID                       = Mog.getID()
+        self.in_Rx_vect           = np.ones(self.data.ntrace, dtype= bool)
+        self.in_Tx_vect           = np.ones(self.data.ntrace, dtype= bool)
+        self.in_vect              = np.ones(self.data.ntrace, dtype= bool)
+        self.date                     = self.data.date
+        self.tt                       = -1*np.ones(self.data.ntrace, dtype= float)
+        self.et                       = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tt_done                  = np.zeros(self.data.ntrace, dtype = bool)
 
-
-    # vérification d'entrées
-    @property
-    def name(self):
-        return self.__name
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self.__name = str(name)
+        if self.data.tdata == None:
+            self.ttTx                 = np.array([])
+            self.ttTx_done            = np.array([])
         else:
-            raise TypeError("Please enter a valid borehole name(i.e. a str)")
+            self.ttTx                 = np.zeros(self.data.ntrace)
+            self.ttTx_done            = np.zeros(self.data.ntrace, dtype= bool)
 
-    @property
-    def date(self):
-        return self.__date
-    @date.setter
-    def date(self, date):
-        if isinstance(date, str):
-            self.__date = date
-        else:
-            raise TypeError("please enter a valid date")
+        self.amp_tmin             = -1*np.ones(self.data.ntrace, dtype= float)   # à Définir avec Bernard
+        self.amp_tmax             = -1*np.ones(self.data.ntrace, dtype= float)
+        self.amp_done             = np.zeros(self.data.ntrace, dtype= bool)
+        self.App                  = np.zeros(self.data.ntrace, dtype= float)
+        self.fcentroid            = np.zeros(self.data.ntrace, dtype= float)
+        self.scentroid            = np.zeros(self.data.ntrace, dtype= float)
+        self.tauApp              = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauApp_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauFce               = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauFce_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauHyb               = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.Tx_z_orig            = self.data.Tx_z
+        self.Rx_z_orig            = self.data.Rx_z
 
-    @property
-    def data(self):
-        return self.__data
-    @data.setter
-    def data(self,data):
-        if isinstance(data, MogData):
-            self.__data = data
+        self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+        self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+
+
+    def correction_t0(self, ndata, air_before, air_after):
+        """
+        :param ndata:
+        :param air_before: instance of class Airshots
+        :param air_after: instance of class Airshots
+        """
+
+        show = False
+        fac_dt_av = 1
+        fac_dt_ap = 1
+        if self.useAirShots == 0:
+            t0 = np.zeros(ndata)
+            return
+        elif air_before.name == '' and air_after.name == ''  and self.useAirShots == 1 :
+            t0 = np.zeros(ndata)
+            raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
+
+        v_air = 0.2998
+        t0av = np.array([])
+        t0ap = np.array([])
+
+        if air_before.name != '' :
+            if 'fixed_antenna' in air_before.method:
+                t0av = self.get_t0_fixed(air_before, v_air)
+            if 'walkaway' in air_before.method:
+                pass #TODO get_t0_wa
+
+        if air_after != '':
+            if 'fixed_antenna' in air_before.method:
+                t0ap = self.get_t0_fixed(air_after, v_air)
+
+            if 'walkaway' in air_before.method:
+                pass #TODO get_t0_wa
+
+        if np.isnan(t0av) or np.isnan(t0ap):
+            t0 = np.zeros((1, ndata))
+            raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
+
+        if np.all(t0av == 0) and np.all(t0ap == 0):
+            t0 = np.zeros((1, ndata))
+        elif len(t0av) == 0:
+            t0 = t0ap*np.zeros((1, ndata))
+        elif len(t0ap) == 0:
+            t0 = t0av*np.zeros((1, ndata))
         else:
-            raise TypeError("Please enter valid data of type MogData")
+            dt0 = t0av - t0ap
+            ddt0 = dt0/(ndata-1)
+            t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
+
+        return t0
+    @staticmethod
+    def load_self(mog):
+        Mog.getID(mog.ID)
+
+    @staticmethod
+    def get_t0_fixed(shot, v):
+        times = shot.tt # à vérifier
+        std_times = shot.et
+        ind = []
+        for i in range(len(times.flatten())):
+            if times[i] != -1:
+                ind.append(i)
+        minus_ind = np.transpose(np.nonzero(std_times))
+
+        if len(minus_ind) == 0:
+            times = np.mean(times[ind])
+        else:
+            std_tot = 0
+            for i in ind:
+                std_tot = std_tot + std_times[i]
+            times = sum(times[ind]*std_times[ind]/std_tot)
+
+        t0 = times - shot.d_TxRx/v
+        return  t0
 
     @staticmethod
     def getID(*args):
@@ -139,51 +198,58 @@ class MogData:
             if isinstance(element, AirShots):
                 pass
             else:
-                raise TypeError ("air shot should be instance of class AirShots")
+                raise TypeError("air shot should be instance of class AirShots")
 
             if self.data.synthetique == 1:
                 tt = self.tt
-                t0 = np.zeros(tt.size)
-                return tt and t0
+                t0 = np.zeros(np.shape(tt))
+                return
             else:
-                airBefore = air(self.av)
-                airAfter = air(self.ap)
+                airBefore = air[self.av]
+                airAfter = air[self.ap]
+                t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
+
+            if self.av != '':
+                air[self.av].fac_dt = fac_dt_av
+
+            if self.ap != '':
+                air[self.ap].fac_dt = fac_dt_ap
+
+            if self.user_fac_dt == 0:
+                if fac_dt_av != 1 and fac_dt_ap != 1:
+                    self.fac_dt = 0.5*(fac_dt_av + fac_dt_ap)
+                elif fac_dt_av != 1:
+                    self.fac_dt = fac_dt_av
+                elif fac_dt_ap != 1:
+                    self.fac_dt = fac_dt_ap
+                else:
+                    self.fac_dt = 1
+
+            t0 = self.fac_dt * t0
+            tt = self.fac_dt * self.tt - t0
+            return tt, t0
 
 
-
-
-
-
-
-
-
-
-
-
-
-    def readRAMAC(self, basename):
-        """
-        load data in Malå RAMAC format
-        """
-
-        self.tunits = 'ns'
-        self.cunits = 'm'
-
-        self.readRAD(basename)
-
-
-    def readRAD(self, basename):
-        """
-        load content of Malå header file (*.rad extension)
-        """
-
-
-
-
-
-
-
+class PruneParams:
+    def __init__(self):
+        self.stepTx = 0
+        self.stepRx = 0
+        self.round_factor = 0
+        self.use_SNR = 0
+        self.treshold_SNR = 0
+        self.zmin = -1e99
+        self.zmax = 1e99
+        self.thetaMin = -90
+        self.thetaMax = 90
 
 if __name__ == '__main__':
 
-    m = MogData('M01' )
+    m = Mog('M01')
+    md = MogData()
+    md.readRAMAC('testData/formats/ramac/t0102')
+    m.data = md
+    m.initialize()
+
+
+
+

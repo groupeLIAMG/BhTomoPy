@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import matplotlib as mpl
+mpl.rcParams['backend.qt4']='PyQt4'
 
 """
-Copyright 2016 Bernard Giroux
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -26,164 +28,21 @@ class Borehole:
     Class to hold borehole data
     """
 
-    def __init__(self, name=None, X=0, Y=0, Z=0, Xmax=0, Ymax=0, Zmax=0, Z_surf=0, Z_water="", diam=0,
-                 scont=np.array([]), acont=np.array([]), fdata=np.array([[0, 0, 0], [0, 0, 0]])):
-        """Attributes:
-        name: name of the borehole(BH)
-        X, Y and Z: the BH's top cartesian coordinates
-        Xmax, Ymax and Zmax : the BH's bottom cartesian coordinates
-        Z_surf:
-        Z_water: elevation of the water table
-        diam: the BH's diameter
-        scont:
-        acont:
-        fdata: the BH's trajectory's coordinates discrete evolution"""
+    def __init__(self, name=''):
 
-        self.name = name
-        self.X = X
-        self.Y = Y
-        self.Z = Z
-        self.Xmax = Xmax
-        self.Ymax = Ymax
-        self.Zmax = Zmax
-        self.Z_surf = Z_surf
-        self.Z_water = Z_water
-        self.scont = scont
-        self.acont = acont
-        self.diam = diam
-        self.fdata = fdata
-
-
-    @property
-    def name(self):
-        return self.__name
-
-    @name.setter
-    def name(self, name):
-        if isinstance(name, str):
-            self.__name = name
-        else:
-            raise TypeError
-
-    @property
-    def X(self):
-        return self.__X
-
-    @X.setter
-    def X(self, X):
-        if isinstance(X, float or int):
-            self.__X = X
-        else:
-            raise TypeError
-
-    @property
-    def Y(self):
-        return self.__Y
-
-    @Y.setter
-    def Y(self, Y):
-        if isinstance(Y, float or int):
-            self.__Y = Y
-        else:
-            raise TypeError
-
-    @property
-    def Z(self):
-        return self.__Z
-
-    @Z.setter
-    def Z(self, Z):
-        if isinstance(Z, float or int):
-            self.__Z = Z
-        else:
-            raise TypeError
-
-    @property
-    def Xmax(self):
-        return self.__Xmax
-
-    @Xmax.setter
-    def Xmax(self, Xmax):
-        if isinstance(Xmax, float or int):
-            self.__Xmax = Xmax
-        else:
-            raise TypeError
-
-    @property
-    def Ymax(self):
-        return self.__Ymax
-
-    @Ymax.setter
-    def Ymax(self, Ymax):
-        if isinstance(Ymax, float or int):
-            self.__Ymax = Ymax
-        else:
-            raise TypeError
-
-    @property
-    def Zmax(self):
-        return self.__Zmax
-
-    @Zmax.setter
-    def Zmax(self, Zmax):
-        if isinstance(Zmax, float or int):
-            self.__Zmax = Zmax
-        else:
-            raise TypeError
-
-    @property
-    def Z_surf(self):
-        return self.__Z_surf
-
-    @Z_surf.setter
-    def Z_surf(self, Z_surf):
-        if isinstance(Z_surf, float or int):
-            self.__Z_surf = Z_surf
-        else:
-            raise TypeError
-
-    @property
-    def Z_water(self):
-        return self.__Z_water
-
-    @Z_water.setter
-    def Z_water(self, Z_water):
-        if isinstance(Z_water, float or int):
-            self.__Z_water = Z_water
-        else:
-            raise TypeError
-
-    @property
-    def diam(self):
-        return self.__diam
-
-    @diam.setter
-    def diam(self, diam):
-        if isinstance(diam, float or int):
-            self.__diam = diam
-        else:
-            raise TypeError
-
-        # As you see, we set the @property and @something.setter to be able the either get the information from one attribute of the Borehole class
-        # or to change its value while verifying if the new value respects the criteria to be valid simply by calling Borehole.something. This
-        # will help one who wants to get access to this data, by shorting the syntax of the script
-
-    @property
-    def fdata(self):
-        return self.__fdata
-
-    @fdata.setter
-    def fdata(self, fdata):
-        l = fdata.shape
-        if len(l) == 2:
-            if l[1] == 3:
-            # We only verify the column index of the matrix to be sure the number of dimensions is 3
-            # We don't need to verifiy the line index because only the physical dimensions are in need to be restrained
-            # not the lenght of the trajectory
-                if isinstance(fdata, np.array):
-                    self.__fdata = fdata
-        else:
-            raise TypeError
+        self.name      = name           # name of the borehole(BH)
+        self.X         = 0.0            # X, Y and Z: the BH's top cartesian coordinates
+        self.Y         = 0.0
+        self.Z         = 0.0
+        self.Xmax      = 0.0            # Xmax, Ymax and Zmax : the BH's bottom cartesian coordinates
+        self.Ymax      = 0.0
+        self.Zmax      = 0.0
+        self.Z_surf    = 0.0            # BH's surface height
+        self.Z_water   = 0.0            # Elevation of the water table
+        self.diam      = 0.0            # BH's diameter
+        self.scont     = np.array([])   # Matrix containing the slowness for each point of the BH's trajectory
+        self.acont     = np.array([])   # Matrix containing the attenuation for each point of the BH's trajectory
+        self.fdata     = np.array([[0, 0, 0], [0, 0, 0]])    # Matrix containing the BH's trajectory in space
 
     @staticmethod
     def project(fdata, ldepth):
@@ -211,13 +70,12 @@ class Borehole:
         npts = ldepth.size
         # the x,y and z coordinates are initially a matrix which contains as much 0 as the number of measurement points
         # we can see the c value as the combination of the three cartesian coordinates in unitary form
-        x = np.zeros((1, npts))
-        y = np.zeros((1, npts))
-        z = np.zeros((1, npts))
+        x = np.zeros((npts,1))
+        y = np.zeros((npts,1))
+        z = np.zeros((npts,1))
         c = np.zeros((npts, 3))
-    #TODO:
-    #voir la sytaxe pour depthBH afin de vor si le résultat obtenu correspond à celui de la version mathlab.
-        depthBH = np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1)))
+
+        depthBH = np.append(np.array([[0]]),np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1))))
 
 
         #Knowing that de BH's depth is a matrix which contains the distance between every points of fdata, and that ldepth
@@ -228,20 +86,20 @@ class Borehole:
 
 
         for n in range(npts):
-            i1 = np.nonzero(ldepth[n] >= depthBH)
+            i1, = np.nonzero(ldepth[n] >= depthBH)
             if i1.size == 0:
-                x = np.zeros((1, npts))
-                y = np.zeros((1, npts))
-                z = np.zeros((1, npts))
+                x = np.zeros((npts,1))
+                y = np.zeros((npts,1))
+                z = np.zeros((npts,1))
                 c = np.zeros((npts, 3))
                 raise ValueError
             i1 = i1[-1]
 
-            i2 = np.nonzero(ldepth[n] < depthBH)
+            i2, = np.nonzero(ldepth[n] < depthBH)
             if i2.size == 0:
-                x = np.zeros((1, npts))
-                y = np.zeros((1, npts))
-                z = np.zeros((1, npts))
+                x = np.zeros((npts,1))
+                y = np.zeros((npts,1))
+                z = np.zeros((npts,1))
                 c = np.zeros((npts, 3))
                 raise ValueError
             i2 = i2[0]
@@ -261,9 +119,15 @@ class Borehole:
 
             #We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
             # the closest upper point's coordinates
-
+        return x, y, z, c
 
 if __name__ == '__main__':
-    ldepth = np.array([0, 1, 2, 3, 4, 5])
-
-    bh = Borehole('B01')
+    fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
+    ldepthtest = np.array([1, 2, 3, 4, 5])
+    bh1 = Borehole('BH1',0.0, 0.0, 0.0, 4.0, 4.0, 4.0)
+    bh1.fdata = fdatatest
+    x,y,z,c = Borehole.project(fdatatest,ldepthtest)
+    print(x)
+    print(y)
+    print(z)
+    print(c)
