@@ -65,7 +65,6 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         self.move(translation)
 
         self.setFixedSize(self.size())
-
         self.__h1 = self.size().height()
         self.__h2 = self.bh_tomo_tool.size().height()
 
@@ -166,6 +165,8 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         #--- BH TOMO ToolBox ---#
         bh_tomo_tool = MyQToolBox()
+        bh_tomo_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
+                              QtGui.QIcon('Icons/triangle_down.png'))
         bh_tomo_tool.addItem(travel_time_tool, 'Travel Time Picking')
         bh_tomo_tool.addItem(time_lapse_tool, 'Time Lapse')
         bh_tomo_tool.sizeChanged.connect(self.fitHeight)
@@ -195,9 +196,9 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         self.setLayout(master_grid)
 
-    def fitHeight(self):
+    def fitHeight(self, x):
         # shrink or expand height to fit the toolbox
-        h = self.__h1 + self.bh_tomo_tool.sizeHint().height() - self.__h2
+        h = self.__h1 + x - self.__h2
         self.setFixedHeight(h)
 
 
@@ -217,7 +218,7 @@ class MyQToolBox(QtGui.QWidget):
     """
 # =============================================================================
 
-    sizeChanged = QtCore.pyqtSignal(bool)
+    sizeChanged = QtCore.pyqtSignal(float)
 
     def __init__(self, parent=None):
         super(MyQToolBox, self).__init__(parent)
@@ -290,7 +291,7 @@ class MyQToolBox(QtGui.QWidget):
                 head.setIcon(self.__iclosed)
                 tool.hide()
 
-        self.sizeChanged.emit(True)
+        self.sizeChanged.emit(self.sizeHint().height())
 
 
 if __name__ == '__main__':
