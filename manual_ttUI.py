@@ -512,7 +512,8 @@ class UpperFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(UpperFig, self).__init__(fig)
         self.initFig()
-        self.pick_pos = []
+        self.pick_pos_tt = []
+        self.pick_pos_et = []
         self.trc_number = 0
 
         self.mpl_connect('button_press_event', self.onclick)
@@ -522,12 +523,16 @@ class UpperFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
         self.ax2 = self.ax.twiny()
+        self.ax3 = self.ax2.twiny()
 
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
         self.ax2.yaxis.set_ticks_position('none')
         self.ax2.xaxis.set_ticks_position('none')
+
+        self.ax3.yaxis.set_ticks_position('none')
+        self.ax3.xaxis.set_ticks_position('none')
 
     def plot_amplitude(self, mog, air, n, A_min, A_max, t_min, t_max, transf_state, dyn_state, main_data_state, bef_state, aft_state):
         self.ax.cla()
@@ -536,9 +541,9 @@ class UpperFig(FigureCanvasQTAgg):
         if main_data_state:
             trace = mog.data.rdata[:, n-1]
             y_lim = self.ax.get_ylim()
-            for pos in self.pick_pos:
+            for pos in self.pick_pos_tt:
                 if self.trc_number in pos:
-                    self.ax2.plot([self.pick_pos[self.trc_number][0], self.pick_pos[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
+                    self.ax2.plot([self.pick_pos_tt[self.trc_number][0], self.pick_pos_tt[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
 
         if bef_state:
             airshot_before = air[mog.av]
@@ -562,7 +567,7 @@ class UpperFig(FigureCanvasQTAgg):
 
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
-        self.TraveltimeSignal.emit(self.pick_pos)
+        self.TraveltimeSignal.emit(self.pick_pos_tt)
         self.draw()
 
     def wavelet_filtering(self, rdata):
@@ -592,21 +597,37 @@ class UpperFig(FigureCanvasQTAgg):
 
             if self.x != None and self.y != None:
                 self.ax2.cla()
-                if len(self.pick_pos) != 0:
-                    for i in range(len(self.pick_pos)):
-                        if self.trc_number in self.pick_pos[i]:
-                            del self.pick_pos[i]
-                self.pick_pos.insert(self.trc_number, (event.xdata, self.trc_number))
-                self.TraveltimeSignal.emit(self.pick_pos)
+                self.ax3.cla()
+                if len(self.pick_pos_tt) != 0:
+                    for i in range(len(self.pick_pos_tt)):
+                        if self.trc_number in self.pick_pos_tt[i]:
+                            del self.pick_pos_tt[i]
+                self.pick_pos_tt.insert(self.trc_number, (event.xdata, self.trc_number))
+                self.TraveltimeSignal.emit(self.pick_pos_tt)
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
                 self.ax2.set_xlim(x_lim[0], x_lim[-1])
-                self.ax2.plot([self.pick_pos[self.trc_number][0], self.pick_pos[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
+                self.ax2.plot([self.pick_pos_tt[self.trc_number][0], self.pick_pos_tt[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
         elif event.button == 3:
-            print(event.button)
+            if self.x != None and self.y != None:
+                self.ax3.cla()
+                if len(self.pick_pos_et) != 0:
+                    for i in range(len(self.pick_pos_et)):
+                        if self.trc_number in self.pick_pos_et[i]:
+                            del self.pick_pos_et[i]
+                self.pick_pos_et.insert(self.trc_number, (event.xdata, self.trc_number))
+
+                y_lim = self.ax.get_ylim()
+                x_lim = self.ax.get_xlim()
+                self.ax3.set_xlim(x_lim[0], x_lim[-1])
+                et = np.abs(self.pick_pos_tt[self.trc_number][0] - event.xdata)
+                self.ax3.plot([self.pick_pos_tt[self.trc_number][0] + et, self.pick_pos_tt[self.trc_number][0] + et], [y_lim[0], y_lim[-1]], color= 'red')
+                self.ax3.plot([self.pick_pos_tt[self.trc_number][0] - et, self.pick_pos_tt[self.trc_number][0] - et], [y_lim[0], y_lim[-1]], color= 'red')
+                self.ax.set_ylim(y_lim[0], y_lim[-1])
+
 
         self.draw()
 
@@ -618,7 +639,7 @@ class LowerFig(FigureCanvasQTAgg):
         super(LowerFig, self).__init__(fig)
         self.initFig()
         self.upper = upper
-        print(self.upper.pick_pos)
+
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
@@ -640,7 +661,7 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = mog.data.rdata
 
-            for pick_info in self.upper.pick_pos:
+            for pick_info in self.upper.pick_pos_tt:
                 self.ax.plot(pick_info[-1], pick_info[0], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
 
             self.ax.plot([n-1, n-1],
