@@ -581,33 +581,34 @@ class UpperFig(FigureCanvasQTAgg):
     def denoise(self, trace, wavelet, N):
         swc = swt(trace, N, wavelet)
 
-
     def onclick(self, event):
 
         if self.isTracingOn is False:
             return
 
-
         self.x, self.y = event.x, event.y
 
+        if event.button == 1:
 
-        if self.x != None and self.y != None:
-            self.ax2.cla()
-            if len(self.pick_pos) != 0:
-                for i in range(len(self.pick_pos)):
-                    if self.trc_number in self.pick_pos[i]:
-                        del self.pick_pos[i]
-            self.pick_pos.insert(self.trc_number, (event.xdata, self.trc_number))
-            self.TraveltimeSignal.emit(self.pick_pos)
+            if self.x != None and self.y != None:
+                self.ax2.cla()
+                if len(self.pick_pos) != 0:
+                    for i in range(len(self.pick_pos)):
+                        if self.trc_number in self.pick_pos[i]:
+                            del self.pick_pos[i]
+                self.pick_pos.insert(self.trc_number, (event.xdata, self.trc_number))
+                self.TraveltimeSignal.emit(self.pick_pos)
 
-            y_lim = self.ax.get_ylim()
-            x_lim = self.ax.get_xlim()
-            self.ax2.set_xlim(x_lim[0], x_lim[-1])
-            self.ax2.plot([self.pick_pos[self.trc_number][0], self.pick_pos[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
-            self.ax.set_ylim(y_lim[0], y_lim[-1])
+                y_lim = self.ax.get_ylim()
+                x_lim = self.ax.get_xlim()
+                self.ax2.set_xlim(x_lim[0], x_lim[-1])
+                self.ax2.plot([self.pick_pos[self.trc_number][0], self.pick_pos[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
+                self.ax.set_ylim(y_lim[0], y_lim[-1])
 
+        elif event.button == 3:
+            print(event.button)
 
-            self.draw()
+        self.draw()
 
 
 class LowerFig(FigureCanvasQTAgg):
