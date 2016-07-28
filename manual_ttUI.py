@@ -17,66 +17,49 @@ class ManualttUI(QtGui.QFrame):
         self.openmain = OpenMainData(self)
         self.mogs = []
         self.air = []
+        self.mog = 0
         self.initUI()
-
-        self.upperFig.TraveltimeSignal.connect(self.update_travel_time)
-        self.upperFig.etSignal.connect(self.update_et)
 
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
         n += 1
         self.Tnum_Edit.setText(str(n))
-        self.plot_upper_fig()
+        self.upperFig.plot_amplitude()
         self.update_control_center()
 
     def prev_trace(self):
         n = int(self.Tnum_Edit.text())
         n -= 1
         self.Tnum_Edit.setText(str(n))
-        self.plot_upper_fig()
+        self.upperFig.plot_amplitude()
         self.update_control_center()
 
     def update_control_center(self):
-        try:
-            n = int(self.Tnum_Edit.text())-1
+        n = int(self.Tnum_Edit.text())-1
 
-            ind = self.openmain.mog_combo.currentIndex()
-
-            if len(self.mogs) == 0:
-                return
-            else:
-                mog = self.mogs[ind]
-                done = np.round(len(mog.tt[mog.tt != -1])/len(mog.tt) * 100)
-                self.xRx_label.setText(str(mog.data.Rx_x[n]))
-                self.xTx_label.setText(str(mog.data.Tx_x[n]))
-                self.yRx_label.setText(str(mog.data.Rx_y[n]))
-                self.yTx_label.setText(str(mog.data.Tx_y[n]))
-                self.zRx_label.setText(str(np.round(mog.data.Rx_z[n], 3)))
-                self.zTx_label.setText(str(mog.data.Tx_z[n]))
-                self.ntrace_label.setText(str(mog.data.ntrace))
-                self.percent_done_label.setText(str(done))
-        except:
-            pass
-        self.plot_upper_fig()
-        self.plot_lower_fig()
-
-
-
-    def plot_upper_fig(self):
-        n = int(self.Tnum_Edit.text())
         ind = self.openmain.mog_combo.currentIndex()
-        mog = self.mogs[ind]
-        A_min = float(self.A_min_Edit.text())
-        A_max = float(self.A_max_Edit.text())
-        t_min = float(self.t_min_Edit.text())
-        t_max = float(self.t_max_Edit.text())
-        transf_state = self.Wave_checkbox.isChecked()
-        dynamic_state = self.lim_checkbox.isChecked()
-        main_data_state = self.main_data_radio.isChecked()
-        bef_state = self.t0_before_radio.isChecked()
-        aft_state = self.t0_after_radio.isChecked()
-        self.upperFig.plot_amplitude(mog, self.air, n, A_min, A_max, t_min, t_max, transf_state, dynamic_state, main_data_state,
-                                     bef_state, aft_state)
+
+        if len(self.mogs) == 0:
+            return
+        else:
+            self.mog = self.mogs[ind]
+            done = np.round(len(self.mog.tt[self.mog.tt != -1])/len(self.mog.tt) * 100)
+            self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
+            self.xTx_label.setText(str(self.mog.data.Tx_x[n]))
+            self.yRx_label.setText(str(self.mog.data.Rx_y[n]))
+            self.yTx_label.setText(str(self.mog.data.Tx_y[n]))
+            self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
+            self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
+            self.ntrace_label.setText(str(self.mog.data.ntrace))
+            self.percent_done_label.setText(str(done))
+            self.time.setText(str(np.round(self.mog.tt[n], 4)))
+            self.incertitude_value_label.setText(str(np.round(self.mog.et[n], 4)))
+
+        self.upperFig.plot_amplitude()
+        self.lowerFig.plot_trace_data()
+
+
+
 
     def update_a_and_t_edits(self):
         n = int(self.Tnum_Edit.text())
@@ -101,52 +84,18 @@ class ManualttUI(QtGui.QFrame):
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
-    def plot_lower_fig(self):
-        n = int(self.Tnum_Edit.text())
-        ind = self.openmain.mog_combo.currentIndex()
-        mog = self.mogs[ind]
-        main_data_state = self.main_data_radio.isChecked()
-        bef_state = self.t0_before_radio.isChecked()
-        aft_state = self.t0_after_radio.isChecked()
-        t_min = float(self.t_min_Edit.text())
-        t_max = float(self.t_max_Edit.text())
-        self.lowerFig.plot_trace_data(mog,self.air, n, main_data_state, bef_state, aft_state, t_min, t_max)
-
     def plot_stats(self):
         ind = self.openmain.mog_combo.currentIndex()
         mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(mog, self.air)
 
-    def update_travel_time(self, pos_list):
-        n = int(self.Tnum_Edit.text())
-        self.time.clear()
-        if n-1 < len(pos_list):
-            info = pos_list[n-1]
-            pos = info[0]
-            self.time.setText(str(np.round(pos, 4)))
-        else:
-            return
-
-    def update_et(self, pos_list):
-        n = int(self.Tnum_Edit.text())
-        self.incertitude_value_label.clear()
-        if n-1 < len(pos_list):
-            info = pos_list[n-1]
-            pos = info[0]
-            self.incertitude_value_label.setText(str(np.round(pos, 4)))
-        else:
-            return
-
-
-
-
     def initUI(self):
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
 
         #------ Creation of the Manager for the Upper figure -------#
-        self.upperFig = UpperFig()
+        self.upperFig = UpperFig(self)
         self.uppertool = NavigationToolbar2QT(self.upperFig, self)
         self.uppermanager = QtGui.QWidget()
         uppermanagergrid = QtGui.QGridLayout()
@@ -157,7 +106,7 @@ class ManualttUI(QtGui.QFrame):
         self.uppermanager.setLayout(uppermanagergrid)
 
         #------ Creation of the Manager for the Lower figure -------#
-        self.lowerFig = LowerFig(self.upperFig)
+        self.lowerFig = LowerFig(self)
         self.lowermanager = QtGui.QWidget()
         lowermanagergrid = QtGui.QGridLayout()
         lowermanagergrid.addWidget(self.lowerFig, 0, 0)
@@ -177,6 +126,7 @@ class ManualttUI(QtGui.QFrame):
         btn_Next.clicked.connect(self.next_trace)
         btn_Prev.clicked.connect(self.prev_trace)
         btn_Upper.clicked.connect(self.trace_isClicked)
+        btn_Stats.clicked.connect(self.plot_stats)
 
         #--- Label ---#
         trc_Label = MyQLabel("Trace number :", ha= 'right')
@@ -243,10 +193,10 @@ class ManualttUI(QtGui.QFrame):
 
         #- Edits' Actions -#
         self.Tnum_Edit.editingFinished.connect(self.update_control_center)
-        self.t_min_Edit.editingFinished.connect(self.plot_upper_fig)
-        self.t_max_Edit.editingFinished.connect(self.plot_upper_fig)
-        self.A_min_Edit.editingFinished.connect(self.plot_upper_fig)
-        self.A_max_Edit.editingFinished.connect(self.plot_upper_fig)
+        self.t_min_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
+        self.t_max_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
+        self.A_min_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
+        self.A_max_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
 
         #--- Checkboxes ---#
         self.Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
@@ -259,7 +209,7 @@ class ManualttUI(QtGui.QFrame):
 
         #- CheckBoxes' Actions -#
         self.lim_checkbox.stateChanged.connect(self.update_a_and_t_edits)
-        self.lim_checkbox.stateChanged.connect(self.plot_upper_fig)
+        self.lim_checkbox.stateChanged.connect(self.upperFig.plot_amplitude)
 
 
         #--- Radio Buttons ---#
@@ -274,13 +224,13 @@ class ManualttUI(QtGui.QFrame):
         self.main_data_radio.setChecked(True)
 
         #- Radio Buttons' Actions -#
-        self.main_data_radio.toggled.connect(self.plot_upper_fig)
-        self.t0_before_radio.toggled.connect(self.plot_upper_fig)
-        self.t0_after_radio.toggled.connect(self.plot_upper_fig)
+        self.main_data_radio.toggled.connect(self.upperFig.plot_amplitude)
+        self.t0_before_radio.toggled.connect(self.upperFig.plot_amplitude)
+        self.t0_after_radio.toggled.connect(self.upperFig.plot_amplitude)
 
-        self.main_data_radio.toggled.connect(self.plot_lower_fig)
-        self.t0_before_radio.toggled.connect(self.plot_lower_fig)
-        self.t0_after_radio.toggled.connect(self.plot_lower_fig)
+        self.main_data_radio.toggled.connect(self.upperFig.plot_amplitude)
+        self.t0_before_radio.toggled.connect(self.upperFig.plot_amplitude)
+        self.t0_after_radio.toggled.connect(self.upperFig.plot_amplitude)
 
         self.main_data_radio.toggled.connect(self.reinit_tnum)
         self.t0_before_radio.toggled.connect(self.reinit_tnum)
@@ -521,7 +471,7 @@ class OpenMainData(QtGui.QWidget):
 class UpperFig(FigureCanvasQTAgg):
     TraveltimeSignal = QtCore.pyqtSignal(list)
     etSignal = QtCore.pyqtSignal(list)
-    def __init__(self):
+    def __init__(self, tt):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(UpperFig, self).__init__(fig)
@@ -529,7 +479,7 @@ class UpperFig(FigureCanvasQTAgg):
         self.pick_pos_tt = []
         self.pick_pos_et = []
         self.trc_number = 0
-
+        self.tt = tt
         self.mpl_connect('button_press_event', self.onclick)
         self.isTracingOn = False
 
@@ -548,31 +498,44 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax3.yaxis.set_ticks_position('none')
         self.ax3.xaxis.set_ticks_position('none')
 
-    def plot_amplitude(self, mog, air, n, A_min, A_max, t_min, t_max, transf_state, dyn_state, main_data_state, bef_state, aft_state):
+    def plot_amplitude(self):
         self.ax.cla()
         self.ax2.cla()
         self.ax3.cla()
-        self.trc_number = n-1
-        if main_data_state:
-            trace = mog.data.rdata[:, n-1]
-            y_lim = self.ax.get_ylim()
-            for pos in self.pick_pos_tt:
-                if self.trc_number in pos:
-                    self.ax2.plot([self.pick_pos_tt[self.trc_number][0], self.pick_pos_tt[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
-            for pos in self.pick_pos_et:
-                if self.trc_number in pos:
-                    self.ax3.plot([self.pick_pos_tt[self.trc_number][0] - self.pick_pos_et[self.trc_number][0], self.pick_pos_tt[self.trc_number][0] - self.pick_pos_et[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'red')
-                    self.ax3.plot([self.pick_pos_tt[self.trc_number][0] + self.pick_pos_et[self.trc_number][0], self.pick_pos_tt[self.trc_number][0] + self.pick_pos_et[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'red')
 
-        if bef_state:
-            airshot_before = air[mog.av]
+        n = int(self.tt.Tnum_Edit.text())
+        A_min = float(self.tt.A_min_Edit.text())
+        A_max = float(self.tt.A_max_Edit.text())
+        t_min = float(self.tt.t_min_Edit.text())
+        t_max = float(self.tt.t_max_Edit.text())
+
+
+        self.trc_number = n-1
+
+        if self.tt.main_data_radio.isChecked():
+            trace = self.tt.mog.data.rdata[:, n-1]
+            y_lim = self.ax.get_ylim()
+            self.ax2.plot([self.tt.mog.tt[self.trc_number], self.tt.mog.tt[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
+
+            self.ax3.plot([self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number],
+                           self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number]],
+                          [y_lim[0], y_lim[-1]],
+                          color= 'red')
+
+            self.ax3.plot([self.tt.mog.tt[self.trc_number] + self.tt.mog.et[self.trc_number],
+                           self.tt.mog.tt[self.trc_number] + self.tt.mog.et[self.trc_number]],
+                          [y_lim[0], y_lim[-1]],
+                          color= 'red')
+
+        if self.tt.t0_before_radio.isChecked():
+            airshot_before = self.tt.air[mog.av]
             trace = airshot_before.data.rdata[:,n-1]
 
-        if aft_state:
-            airshot_after = air[mog.ap]
+        if self.tt.t0_after_radio.isChecked():
+            airshot_after = self.tt.air[mog.ap]
             trace = airshot_after.data.rdata[:,n-1]
 
-        if not dyn_state:
+        if not self.tt.lim_checkbox.isChecked():
             self.ax.set_ylim(A_min, A_max)
         self.ax3.set_xlim(t_min, t_max)
         self.ax2.set_xlim(t_min, t_max)
@@ -581,11 +544,11 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax.plot(trace)
 
         #TODO
-        if transf_state:
+        if self.tt.Wave_checkbox.isChecked():
             ind, wavelet = self.wavelet_filtering(mog.data.rdata)
 
 
-        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
         self.TraveltimeSignal.emit(self.pick_pos_tt)
         self.etSignal.emit(self.pick_pos_et)
@@ -619,35 +582,28 @@ class UpperFig(FigureCanvasQTAgg):
             if self.x != None and self.y != None:
                 self.ax2.cla()
                 self.ax3.cla()
-                if len(self.pick_pos_tt) != 0:
-                    for i in range(len(self.pick_pos_tt)):
-                        if self.trc_number in self.pick_pos_tt[i]:
-                            del self.pick_pos_tt[i]
-                self.pick_pos_tt.insert(self.trc_number, (event.xdata, self.trc_number))
-                self.TraveltimeSignal.emit(self.pick_pos_tt)
+
+                self.tt.mog.tt[self.trc_number] = event.xdata
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
                 self.ax2.set_xlim(x_lim[0], x_lim[-1])
-                self.ax2.plot([self.pick_pos_tt[self.trc_number][0], self.pick_pos_tt[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
+                self.ax2.plot([self.tt.mog.tt[self.trc_number], self.tt.mog.tt[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
         elif event.button == 3:
             if self.x != None and self.y != None:
                 self.ax3.cla()
-                if len(self.pick_pos_et) != 0:
-                    for i in range(len(self.pick_pos_et)):
-                        if self.trc_number in self.pick_pos_et[i]:
-                            del self.pick_pos_et[i]
-                self.pick_pos_et.insert(self.trc_number, (np.abs(self.pick_pos_tt[self.trc_number][0] -event.xdata), self.trc_number))
-                self.etSignal.emit(self.pick_pos_et)
+
+                self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.xdata)
+
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
                 self.ax3.set_xlim(x_lim[0], x_lim[-1])
-                et = np.abs(self.pick_pos_tt[self.trc_number][0] - event.xdata)
-                self.ax3.plot([self.pick_pos_tt[self.trc_number][0] + et, self.pick_pos_tt[self.trc_number][0] + et], [y_lim[0], y_lim[-1]], color= 'red')
-                self.ax3.plot([self.pick_pos_tt[self.trc_number][0] - et, self.pick_pos_tt[self.trc_number][0] - et], [y_lim[0], y_lim[-1]], color= 'red')
+                et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
+                self.ax3.plot([self.tt.mog.tt[self.trc_number] + et, self.tt.mog.tt[self.trc_number] + et], [y_lim[0], y_lim[-1]], color= 'red')
+                self.ax3.plot([self.tt.mog.tt[self.trc_number] - et, self.tt.mog.tt[self.trc_number] - et], [y_lim[0], y_lim[-1]], color= 'red')
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
 
@@ -655,12 +611,12 @@ class UpperFig(FigureCanvasQTAgg):
 
 
 class LowerFig(FigureCanvasQTAgg):
-    def __init__(self, upper):
+    def __init__(self, tt):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(LowerFig, self).__init__(fig)
         self.initFig()
-        self.upper = upper
+        self.tt = tt
 
 
     def initFig(self):
@@ -668,37 +624,52 @@ class LowerFig(FigureCanvasQTAgg):
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
-    def plot_trace_data(self, mog, air, n, main_data_state, bef_state, aft_state, t_min, t_max):
+    def plot_trace_data(self):
         self.ax.cla()
+        n = int(self.tt.Tnum_Edit.text())
+        mog  = self.tt.mog
 
-        if main_data_state:
+        t_min = float(self.tt.t_min_Edit.text())
+        t_max = float(self.tt.t_max_Edit.text())
+
+        if self.tt.main_data_radio.isChecked():
             current_trc = mog.data.Tx_z[n]
             z = np.where(mog.data.Tx_z == current_trc)[0]
             data = mog.data.rdata[t_min:t_max, z[0]:z[-1]]
 
-            unpicked_ind = np.where(mog.tt == -1)[0]
-            picked_ind = np.where(mog.tt == 1)[0]
+            unpicked_tt_ind = np.where(mog.tt == -1)[0]
+            picked_tt_ind = np.where(mog.tt != -1)[0]
+
+            unpicked_et_ind = np.where(mog.et == -1)[0]
+            picked_et_ind = np.where(mog.et != -1)[0]
+
 
             cmax = np.abs(max(mog.data.rdata.flatten()))
 
             actual_data = mog.data.rdata
 
-            for pick_tt_info in self.upper.pick_pos_tt:
-                self.ax.plot(pick_tt_info[-1], pick_tt_info[0], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
+            for ind in picked_tt_ind:
+                self.ax.plot(ind, self.tt.mog.tt[ind], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
 
-            for i in range(len(self.upper.pick_pos_et)):
-                self.ax.plot(self.upper.pick_pos_et[i][-1], self.upper.pick_pos_tt[i][0] + self.upper.pick_pos_et[i][0], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
-                self.ax.plot(self.upper.pick_pos_et[i][-1], self.upper.pick_pos_tt[i][0] - self.upper.pick_pos_et[i][0], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
+            for ind in picked_et_ind:
+                self.ax.plot(ind, self.tt.mog.tt[ind] + self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
+                self.ax.plot(ind, self.tt.mog.tt[ind] - self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
 
 
             self.ax.plot([n-1, n-1],
                      [0, np.shape(actual_data)[0]],
                      color= 'black')
 
-            self.ax.plot(unpicked_ind,
-                         t_max*np.ones(len(unpicked_ind)),
+            self.ax.plot(unpicked_tt_ind,
+                         t_max*np.ones(len(unpicked_tt_ind)),
                          marker= 's',
                          color='red',
+                         markersize= 10,
+                         lw= 0)
+            self.ax.plot(picked_tt_ind,
+                         t_max*np.ones(len(picked_tt_ind)),
+                         marker= 's',
+                         color='green',
                          markersize= 10,
                          lw= 0)
 
@@ -711,9 +682,8 @@ class LowerFig(FigureCanvasQTAgg):
                        vmax= cmax)
 
 
-
-        elif bef_state:
-            airshot_before = air[mog.av]
+        elif self.tt.t0_before_radio.isChecked():
+            airshot_before = self.tt.air[mog.av]
             data = airshot_before.data.rdata
 
             unpicked_ind = np.where(airshot_before.tt == -1)[0]
@@ -743,8 +713,8 @@ class LowerFig(FigureCanvasQTAgg):
 
 
 
-        elif aft_state:
-            airshot_after = air[mog.ap]
+        elif self.tt.t0_after_radio.isChecked():
+            airshot_after = self.tt.air[mog.ap]
             data = airshot_after.data.rdata
 
             unpicked_ind = np.where(airshot_after.tt == -1)[0]
@@ -780,7 +750,7 @@ class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent = None):
 
         fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
-        super(StatsttFig, self).__init__(fig)
+        super(StatsFig1, self).__init__(fig)
         self.initFig()
 
     def initFig(self):
