@@ -499,6 +499,8 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
+        self.trace, = self.ax.plot([], [], color='b')
+
         self.ax2.yaxis.set_ticks_position('none')
         self.ax2.xaxis.set_ticks_position('none')
 
@@ -506,7 +508,7 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax3.xaxis.set_ticks_position('none')
 
     def plot_amplitude(self):
-        self.ax.cla()
+#        self.ax.cla()
         self.ax2.cla()
         self.ax3.cla()
 
@@ -522,7 +524,9 @@ class UpperFig(FigureCanvasQTAgg):
         if self.tt.main_data_radio.isChecked():
             trace = self.tt.mog.data.rdata[:, n-1]
             y_lim = self.ax.get_ylim()
-            self.ax2.plot([self.tt.mog.tt[self.trc_number], self.tt.mog.tt[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
+            self.ax2.plot([self.tt.mog.tt[self.trc_number],
+                           self.tt.mog.tt[self.trc_number]],
+                           [y_lim[0], y_lim[-1]], color= 'green')
 
             self.ax3.plot([self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number],
                            self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number]],
@@ -546,9 +550,13 @@ class UpperFig(FigureCanvasQTAgg):
             self.ax.set_ylim(A_min, A_max)
         self.ax3.set_xlim(t_min, t_max)
         self.ax2.set_xlim(t_min, t_max)
-        self.ax.set_xlim(t_min, t_max)
 
-        self.ax.plot(trace)
+#        self.ax.plot(trace)
+        self.trace.set_xdata(range(len(trace)))
+        self.trace.set_ydata(trace)
+        print('replotting trace')
+
+        self.ax.set_xlim(t_min, t_max)
 
         #TODO
         if self.tt.Wave_checkbox.isChecked():
@@ -603,7 +611,6 @@ class UpperFig(FigureCanvasQTAgg):
                 self.ax3.cla()
 
                 self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.xdata)
-
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
