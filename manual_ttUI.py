@@ -20,6 +20,10 @@ class ManualttUI(QtGui.QFrame):
         self.mog = 0
         self.initUI()
 
+        self.upperFig.TracePickedSignal.connect(self.lowerFig.plot_trace_data)
+        self.upperFig.TracePickedSignal.connect(self.update_control_center)
+
+
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
         n += 1
@@ -125,7 +129,8 @@ class ManualttUI(QtGui.QFrame):
         #- Buttons' Actions -#
         btn_Next.clicked.connect(self.next_trace)
         btn_Prev.clicked.connect(self.prev_trace)
-        btn_Upper.clicked.connect(self.trace_isClicked)
+        btn_Upper.clicked.connect(self.upper_trace_isClicked)
+        btn_Conti.clicked.connect(self.lower_trace_isClicked)
         btn_Stats.clicked.connect(self.plot_stats)
 
         #--- Label ---#
@@ -222,15 +227,16 @@ class ManualttUI(QtGui.QFrame):
 
         #- Radio Buttons' Disposition -#
         self.main_data_radio.setChecked(True)
+        self.tt_picking_radio.setChecked(True)
 
         #- Radio Buttons' Actions -#
         self.main_data_radio.toggled.connect(self.upperFig.plot_amplitude)
         self.t0_before_radio.toggled.connect(self.upperFig.plot_amplitude)
         self.t0_after_radio.toggled.connect(self.upperFig.plot_amplitude)
 
-        self.main_data_radio.toggled.connect(self.upperFig.plot_amplitude)
-        self.t0_before_radio.toggled.connect(self.upperFig.plot_amplitude)
-        self.t0_after_radio.toggled.connect(self.upperFig.plot_amplitude)
+        self.main_data_radio.toggled.connect(self.lowerFig.plot_trace_data)
+        self.t0_before_radio.toggled.connect(self.lowerFig.plot_trace_data)
+        self.t0_after_radio.toggled.connect(self.lowerFig.plot_trace_data)
 
         self.main_data_radio.toggled.connect(self.reinit_tnum)
         self.t0_before_radio.toggled.connect(self.reinit_tnum)
@@ -242,9 +248,9 @@ class ManualttUI(QtGui.QFrame):
         PTime_Tedit.setReadOnly(True)
 
         #--- combobox ---#
-        pick_combo = QtGui.QComboBox()
-        pick_combo.addItem("Pick with std deviation")
-        pick_combo.addItem("Simple Picking")
+        self.pick_combo = QtGui.QComboBox()
+        self.pick_combo.addItem("Pick with std deviation")
+        self.pick_combo.addItem("Simple Picking")
 
         #------- subWidgets -------#
         #--- Info Subwidget ---#
@@ -319,7 +325,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_upper_right_Grid.addWidget(self.main_data_radio, 1, 0)
         Sub_upper_right_Grid.addWidget(self.t0_before_radio, 2, 0)
         Sub_upper_right_Grid.addWidget(self.t0_after_radio, 3, 0)
-        Sub_upper_right_Grid.addWidget(pick_combo, 4, 0, 1, 2)
+        Sub_upper_right_Grid.addWidget(self.pick_combo, 4, 0, 1, 2)
         Sub_upper_right_Grid.addWidget(btn_Upper, 6, 0, 1, 2)
         Sub_upper_right_Grid.addWidget(btn_Conti, 7, 0, 1, 2)
         Sub_upper_right_Grid.setContentsMargins(0, 0, 0, 0)
@@ -388,7 +394,7 @@ class ManualttUI(QtGui.QFrame):
         master_grid.setVerticalSpacing(0)
         self.setLayout(master_grid)
 
-    def trace_isClicked(self):
+    def upper_trace_isClicked(self):
         if self.sender().isFlat():
             self.sender().setFlat(False)
             self.upperFig.isTracingOn = False
@@ -396,13 +402,13 @@ class ManualttUI(QtGui.QFrame):
             self.sender().setFlat(True)
             self.upperFig.isTracingOn = True
 
-    def trace_isClicked(self):
+    def lower_trace_isClicked(self):
         if self.sender().isFlat():
             self.sender().setFlat(False)
-            self.upperFig.isTracingOn = False
+            self.lowerFig.isTracingOn = False
         else:
             self.sender().setFlat(True)
-            self.upperFig.isTracingOn = True
+            self.lowerFig.isTracingOn = True
 
 class OpenMainData(QtGui.QWidget):
     def __init__(self, tt, parent=None):
@@ -476,15 +482,14 @@ class OpenMainData(QtGui.QWidget):
 
 
 class UpperFig(FigureCanvasQTAgg):
-    TraveltimeSignal = QtCore.pyqtSignal(list)
-    etSignal = QtCore.pyqtSignal(list)
+
+    TracePickedSignal = QtCore.pyqtSignal(bool)
+
     def __init__(self, tt):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(UpperFig, self).__init__(fig)
         self.initFig()
-        self.pick_pos_tt = []
-        self.pick_pos_et = []
         self.trc_number = 0
         self.tt = tt
         self.mpl_connect('button_press_event', self.onclick)
@@ -514,9 +519,6 @@ class UpperFig(FigureCanvasQTAgg):
         self.picket2 = self.ax2.axvline(-100, ymin=0, ymax=1, color='r')
 
     def plot_amplitude(self):
-#        self.ax.cla()
-#        self.ax2.cla()
-#        self.ax3.cla()
 
         n = int(self.tt.Tnum_Edit.text())
         A_min = float(self.tt.A_min_Edit.text())
@@ -532,10 +534,18 @@ class UpperFig(FigureCanvasQTAgg):
 
             if self.tt.mog.tt[self.trc_number] != -1:
                 self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
-                self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                       self.tt.mog.et[self.trc_number])
-                self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                       self.tt.mog.et[self.trc_number])
+
+                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.mog.et[self.trc_number] != -1.0:
+                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
+                                           self.tt.mog.et[self.trc_number])
+                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
+                                           self.tt.mog.et[self.trc_number])
+                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
+                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
+                                           self.tt.mog.et[self.trc_number])
+                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
+                                           self.tt.mog.et[self.trc_number])
+
             else:
                 self.picktt.set_xdata(-100)
                 self.picket1.set_xdata(-100)
@@ -551,7 +561,13 @@ class UpperFig(FigureCanvasQTAgg):
             trace = airshot_after.data.rdata[:,n-1]
 
         if not self.tt.lim_checkbox.isChecked():
+            print('coucou')
             self.ax.set_ylim(A_min, A_max)
+        else:
+            self.ax.set_ylim( min(trace.flatten()), max(trace.flatten()))
+
+
+
         self.ax3.set_xlim(t_min, t_max)
         self.ax2.set_xlim(t_min, t_max)
 
@@ -566,8 +582,7 @@ class UpperFig(FigureCanvasQTAgg):
 
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))
 
-        self.TraveltimeSignal.emit(self.pick_pos_tt)
-        self.etSignal.emit(self.pick_pos_et)
+
         self.draw()
 
     def wavelet_filtering(self, rdata):
@@ -596,8 +611,6 @@ class UpperFig(FigureCanvasQTAgg):
         if event.button == 1:
 
             if self.x != None and self.y != None:
-#                self.ax2.cla()
-#                self.ax3.cla()
 
                 self.tt.mog.tt[self.trc_number] = event.xdata
 
@@ -605,14 +618,26 @@ class UpperFig(FigureCanvasQTAgg):
                 x_lim = self.ax.get_xlim()
                 self.ax2.set_xlim(x_lim[0], x_lim[-1])
 
-                self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                if self.tt.pick_combo.currentText() == "Simple Picking":
 
-#                self.ax2.plot([self.tt.mog.tt[self.trc_number], self.tt.mog.tt[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
+                    self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+
+                elif self.tt.pick_combo.currentText() == "Pick with std deviation":
+
+                    self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
+                                            self.tt.mog.et[self.trc_number])
+                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
+                                            self.tt.mog.et[self.trc_number])
+
+
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
+
+
+                self.TracePickedSignal.emit(True)
 
         elif event.button == 3:
             if self.x != None and self.y != None:
-#                self.ax3.cla()
 
                 self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.xdata)
 
@@ -622,9 +647,9 @@ class UpperFig(FigureCanvasQTAgg):
                 et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
                 self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] - et)
                 self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
-#                self.ax3.plot([self.tt.mog.tt[self.trc_number] + et, self.tt.mog.tt[self.trc_number] + et], [y_lim[0], y_lim[-1]], color= 'red')
-#                self.ax3.plot([self.tt.mog.tt[self.trc_number] - et, self.tt.mog.tt[self.trc_number] - et], [y_lim[0], y_lim[-1]], color= 'red')
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
+
+                self.TracePickedSignal.emit(True)
 
 
         self.draw()
@@ -637,12 +662,20 @@ class LowerFig(FigureCanvasQTAgg):
         super(LowerFig, self).__init__(fig)
         self.initFig()
         self.tt = tt
+        self.mpl_connect('button_press_event', self.onclick)
+        self.isTracingOn = False
+
 
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
+        self.shot_gather = self.ax.imshow(np.zeros((2,2)),
+                                          interpolation= 'none',
+                                          cmap= 'seismic',
+                                          aspect= 'auto')
+
 
     def plot_trace_data(self):
         self.ax.cla()
@@ -656,15 +689,12 @@ class LowerFig(FigureCanvasQTAgg):
             current_trc = mog.data.Tx_z[n]
             z = np.where(mog.data.Tx_z == current_trc)[0]
             data = mog.data.rdata[t_min:t_max, z[0]:z[-1]]
-
+            cmax = max(np.abs(mog.data.rdata.flatten()))
             unpicked_tt_ind = np.where(mog.tt == -1)[0]
             picked_tt_ind = np.where(mog.tt != -1)[0]
 
             unpicked_et_ind = np.where(mog.et == -1)[0]
             picked_et_ind = np.where(mog.et != -1)[0]
-
-
-            cmax = np.abs(max(mog.data.rdata.flatten()))
 
             actual_data = mog.data.rdata
 
@@ -693,13 +723,21 @@ class LowerFig(FigureCanvasQTAgg):
                          markersize= 10,
                          lw= 0)
 
-            self.ax.imshow(data,
-                       interpolation= 'none',
-                       cmap= 'seismic',
-                       aspect= 'auto',
-                       extent= [z[0], z[-1], t_max, t_min],
-                       vmin= -cmax,
-                       vmax= cmax)
+            #self.ax.imshow(data,
+            #           interpolation= 'none',
+            #           cmap= 'seismic',
+            #           aspect= 'auto',
+            #           extent= [z[0], z[-1], t_max, t_min],
+            #          vmin= -cmax,
+            #           vmax= cmax)
+
+            self.shot_gather.set_data(data)
+            #self.shot_gather.autoscale()
+            self.shot_gather.set_extent([z[0], z[-1], t_max, t_min])
+            #self.shot_gather.set_vmin(-cmax)
+            #self.shot_gather.set_vmax(cmax)
+            self.draw()
+
 
 
         elif self.tt.t0_before_radio.isChecked():
@@ -765,6 +803,64 @@ class LowerFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
         self.draw()
+
+    def onclick(self, event):
+
+        if self.isTracingOn is False:
+            return
+
+        self.x, self.y = event.x, event.y
+
+        if event.button == 1:
+            if self.x != None and self.y != None:
+
+                self.tt.mog.tt[self.trc_number] = event.ydata
+
+                y_lim = self.ax.get_ylim()
+                x_lim = self.ax.get_xlim()
+                self.ax2.set_xlim(x_lim[0], x_lim[-1])
+
+
+
+                if self.tt.tt_picking_radio.isChecked():
+                    pass
+
+
+                elif self.tt.std_dev_radio.isChecked():
+
+                    self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
+                                            self.tt.mog.et[self.trc_number])
+                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
+                                            self.tt.mog.et[self.trc_number])
+
+                elif self.tt.trace_selec_radio.isChecked():
+                    pass
+
+
+                self.ax.set_ylim(y_lim[0], y_lim[-1])
+
+
+                self.TracePickedSignal.emit(True)
+
+        elif event.button == 3:
+            if self.x != None and self.y != None:
+
+                self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.xdata)
+
+                y_lim = self.ax.get_ylim()
+                x_lim = self.ax.get_xlim()
+                self.ax3.set_xlim(x_lim[0], x_lim[-1])
+                et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
+                self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] - et)
+                self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
+                self.ax.set_ylim(y_lim[0], y_lim[-1])
+
+                self.TracePickedSignal.emit(True)
+
+
+        self.draw()
+
 
 class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent = None):
