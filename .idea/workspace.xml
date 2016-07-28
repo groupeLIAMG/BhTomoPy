@@ -81,8 +81,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.7038123">
-              <caret line="671" column="37" selection-start-line="671" selection-start-column="37" selection-end-line="671" selection-end-column="37" />
+            <state vertical-scroll-proportion="-10.832845">
+              <caret line="248" column="36" selection-start-line="248" selection-start-column="36" selection-end-line="248" selection-end-column="36" />
               <folding />
             </state>
           </provider>
@@ -521,12 +521,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00062" summary="statsttFig bug fix">
-      <created>1464980582006</created>
-      <option name="number" value="00062" />
-      <option name="project" value="LOCAL" />
-      <updated>1464980582008</updated>
-    </task>
     <task id="LOCAL-00063" summary="squelette prune fini (Ajout d'un modele 3d)">
       <created>1465061883244</created>
       <option name="number" value="00063" />
@@ -815,7 +809,13 @@
       <option name="project" value="LOCAL" />
       <updated>1469715080671</updated>
     </task>
-    <option name="localTasksCounter" value="111" />
+    <task id="LOCAL-00111" summary="update tt fonctionnel avec mog">
+      <created>1469719662843</created>
+      <option name="number" value="00111" />
+      <option name="project" value="LOCAL" />
+      <updated>1469719662844</updated>
+    </task>
+    <option name="localTasksCounter" value="112" />
     <servers />
   </component>
   <component name="TodoView">
@@ -885,7 +885,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="changement du signal de Tx et Rx combo afin de ne pas avoir d'erreur lors de l'ajout ou de l'importation de bhs" />
     <MESSAGE value="update du lien entre les mogs et Tx/Rx combo" />
     <MESSAGE value="création de delta t mog et fonction getcompat fonctionelle" />
     <MESSAGE value="Merge Mog fonctionnel" />
@@ -910,7 +909,8 @@
     <MESSAGE value="update tt" />
     <MESSAGE value="picking de l'écart type fonctionnel" />
     <MESSAGE value="update sélection de l'écart type" />
-    <option name="LAST_COMMIT_MESSAGE" value="update sélection de l'écart type" />
+    <MESSAGE value="update tt fonctionnel avec mog" />
+    <option name="LAST_COMMIT_MESSAGE" value="update tt fonctionnel avec mog" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1181,8 +1181,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7038123">
-          <caret line="671" column="37" selection-start-line="671" selection-start-column="37" selection-end-line="671" selection-end-column="37" />
+        <state vertical-scroll-proportion="-10.832845">
+          <caret line="248" column="36" selection-start-line="248" selection-start-column="36" selection-end-line="248" selection-end-column="36" />
           <folding />
         </state>
       </provider>

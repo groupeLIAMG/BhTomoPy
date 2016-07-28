@@ -396,6 +396,13 @@ class ManualttUI(QtGui.QFrame):
             self.sender().setFlat(True)
             self.upperFig.isTracingOn = True
 
+    def trace_isClicked(self):
+        if self.sender().isFlat():
+            self.sender().setFlat(False)
+            self.upperFig.isTracingOn = False
+        else:
+            self.sender().setFlat(True)
+            self.upperFig.isTracingOn = True
 
 class OpenMainData(QtGui.QWidget):
     def __init__(self, tt, parent=None):
