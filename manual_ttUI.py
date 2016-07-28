@@ -20,6 +20,7 @@ class ManualttUI(QtGui.QFrame):
         self.initUI()
 
         self.upperFig.TraveltimeSignal.connect(self.update_travel_time)
+        self.upperFig.etSignal.connect(self.update_et)
 
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
@@ -126,6 +127,18 @@ class ManualttUI(QtGui.QFrame):
             self.time.setText(str(np.round(pos, 4)))
         else:
             return
+
+    def update_et(self, pos_list):
+        n = int(self.Tnum_Edit.text())
+        self.incertitude_value_label.clear()
+        if n-1 < len(pos_list):
+            info = pos_list[n-1]
+            pos = info[0]
+            self.incertitude_value_label.setText(str(np.round(pos, 4)))
+        else:
+            return
+
+
 
 
     def initUI(self):
@@ -507,6 +520,7 @@ class OpenMainData(QtGui.QWidget):
 
 class UpperFig(FigureCanvasQTAgg):
     TraveltimeSignal = QtCore.pyqtSignal(list)
+    etSignal = QtCore.pyqtSignal(list)
     def __init__(self):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
@@ -537,6 +551,7 @@ class UpperFig(FigureCanvasQTAgg):
     def plot_amplitude(self, mog, air, n, A_min, A_max, t_min, t_max, transf_state, dyn_state, main_data_state, bef_state, aft_state):
         self.ax.cla()
         self.ax2.cla()
+        self.ax3.cla()
         self.trc_number = n-1
         if main_data_state:
             trace = mog.data.rdata[:, n-1]
@@ -544,6 +559,10 @@ class UpperFig(FigureCanvasQTAgg):
             for pos in self.pick_pos_tt:
                 if self.trc_number in pos:
                     self.ax2.plot([self.pick_pos_tt[self.trc_number][0], self.pick_pos_tt[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'green')
+            for pos in self.pick_pos_et:
+                if self.trc_number in pos:
+                    self.ax3.plot([self.pick_pos_tt[self.trc_number][0] - self.pick_pos_et[self.trc_number][0], self.pick_pos_tt[self.trc_number][0] - self.pick_pos_et[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'red')
+                    self.ax3.plot([self.pick_pos_tt[self.trc_number][0] + self.pick_pos_et[self.trc_number][0], self.pick_pos_tt[self.trc_number][0] + self.pick_pos_et[self.trc_number][0]], [y_lim[0], y_lim[-1]], color= 'red')
 
         if bef_state:
             airshot_before = air[mog.av]
@@ -555,12 +574,13 @@ class UpperFig(FigureCanvasQTAgg):
 
         if not dyn_state:
             self.ax.set_ylim(A_min, A_max)
+        self.ax3.set_xlim(t_min, t_max)
         self.ax2.set_xlim(t_min, t_max)
         self.ax.set_xlim(t_min, t_max)
 
         self.ax.plot(trace)
 
-
+        #TODO
         if transf_state:
             ind, wavelet = self.wavelet_filtering(mog.data.rdata)
 
@@ -568,6 +588,7 @@ class UpperFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
         self.TraveltimeSignal.emit(self.pick_pos_tt)
+        self.etSignal.emit(self.pick_pos_et)
         self.draw()
 
     def wavelet_filtering(self, rdata):
@@ -618,7 +639,8 @@ class UpperFig(FigureCanvasQTAgg):
                     for i in range(len(self.pick_pos_et)):
                         if self.trc_number in self.pick_pos_et[i]:
                             del self.pick_pos_et[i]
-                self.pick_pos_et.insert(self.trc_number, (event.xdata, self.trc_number))
+                self.pick_pos_et.insert(self.trc_number, (np.abs(self.pick_pos_tt[self.trc_number][0] -event.xdata), self.trc_number))
+                self.etSignal.emit(self.pick_pos_et)
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
@@ -661,8 +683,13 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = mog.data.rdata
 
-            for pick_info in self.upper.pick_pos_tt:
-                self.ax.plot(pick_info[-1], pick_info[0], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
+            for pick_tt_info in self.upper.pick_pos_tt:
+                self.ax.plot(pick_tt_info[-1], pick_tt_info[0], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
+
+            for i in range(len(self.upper.pick_pos_et)):
+                self.ax.plot(self.upper.pick_pos_et[i][-1], self.upper.pick_pos_tt[i][0] + self.upper.pick_pos_et[i][0], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
+                self.ax.plot(self.upper.pick_pos_et[i][-1], self.upper.pick_pos_tt[i][0] - self.upper.pick_pos_et[i][0], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
+
 
             self.ax.plot([n-1, n-1],
                      [0, np.shape(actual_data)[0]],
