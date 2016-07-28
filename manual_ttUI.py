@@ -675,8 +675,12 @@ class LowerFig(FigureCanvasQTAgg):
                                           interpolation= 'none',
                                           cmap= 'seismic',
                                           aspect= 'auto')
-        self.actual_line = self.ax.
-
+        self.actual_line = self.ax.axvline(-100, ymin=0, ymax=1, color='black')
+        self.unpicked_square, = self.ax.plot(-100, -100, marker= 's',color='red', markersize= 10, lw= 0)
+        self.picked_square, = self.ax.plot(-100, -100, marker= 's',color='green', markersize= 10, lw= 0)
+        self.picked_tt_circle, = self.ax.plot(-100, -100, marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
+        self.picked_et_circle1, = self.ax.plot(-100, -100, marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2)
+        self.picked_et_circle2, = self.ax.plot(-100, -100, marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2)
 
     def plot_trace_data(self):
         #self.ax.cla()
@@ -699,32 +703,27 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = mog.data.rdata
 
-            for ind in picked_tt_ind:
-                self.ax.plot(ind, self.tt.mog.tt[ind], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
+            #for ind in picked_tt_ind:
+            #    self.ax.plot(ind, self.tt.mog.tt[ind], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
+            self.picked_tt_circle.set_xdata(picked_tt_ind)
+            self.picked_tt_circle.set_ydata(self.tt.mog.tt[picked_tt_ind])
+            #for ind in picked_et_ind:
+            #    self.ax.plot(ind, self.tt.mog.tt[ind] + self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
+            #    self.ax.plot(ind, self.tt.mog.tt[ind] - self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
 
-            for ind in picked_et_ind:
-                self.ax.plot(ind, self.tt.mog.tt[ind] + self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
-                self.ax.plot(ind, self.tt.mog.tt[ind] - self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
+            self.picked_et_circle1.set_xdata(picked_et_ind)
+            self.picked_et_circle1.set_ydata( self.tt.mog.tt[picked_et_ind] + self.tt.mog.et[picked_et_ind])
 
+            self.picked_et_circle2.set_xdata(picked_et_ind)
+            self.picked_et_circle2.set_ydata( self.tt.mog.tt[picked_et_ind] - self.tt.mog.et[picked_et_ind])
 
-            self.ax.plot([n-1, n-1],
-                     [0, np.shape(actual_data)[0]],
-                     color= 'black')
+            self.actual_line.set_xdata(n-1)
 
-            self.ax.plot(unpicked_tt_ind,
-                         t_max*np.ones(len(unpicked_tt_ind)),
-                         marker= 's',
-                         color='red',
-                         markersize= 10,
-                         lw= 0)
-            self.ax.plot(picked_tt_ind,
-                         t_max*np.ones(len(picked_tt_ind)),
-                         marker= 's',
-                         color='green',
-                         markersize= 10,
-                         lw= 0)
+            self.unpicked_square.set_xdata(unpicked_tt_ind)
+            self.unpicked_square.set_ydata(t_max*np.ones(len(unpicked_tt_ind)))
 
-
+            self.picked_square.set_xdata(picked_tt_ind)
+            self.picked_square.set_ydata(t_max*np.ones(len(picked_tt_ind)))
 
             self.shot_gather.set_data(data)
             self.shot_gather.autoscale()

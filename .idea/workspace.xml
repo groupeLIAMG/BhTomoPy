@@ -81,8 +81,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.59530795">
-              <caret line="677" column="35" selection-start-line="677" selection-start-column="35" selection-end-line="677" selection-end-column="35" />
+            <state vertical-scroll-proportion="0.8240469">
+              <caret line="717" column="106" selection-start-line="717" selection-start-column="106" selection-end-line="717" selection-end-column="106" />
               <folding />
             </state>
           </provider>
@@ -621,12 +621,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00065" summary="ajout démo dans prune">
-      <created>1465415705174</created>
-      <option name="number" value="00065" />
-      <option name="project" value="LOCAL" />
-      <updated>1465415705176</updated>
-    </task>
     <task id="LOCAL-00066" summary="ajout démo dans prune">
       <created>1465419435696</created>
       <option name="number" value="00066" />
@@ -915,7 +909,13 @@
       <option name="project" value="LOCAL" />
       <updated>1469735077228</updated>
     </task>
-    <option name="localTasksCounter" value="114" />
+    <task id="LOCAL-00114" summary="update tt interaction entre lower fig et upper fig">
+      <created>1469735383787</created>
+      <option name="number" value="00114" />
+      <option name="project" value="LOCAL" />
+      <updated>1469735383787</updated>
+    </task>
+    <option name="localTasksCounter" value="115" />
     <servers />
   </component>
   <component name="TodoView">
@@ -1283,8 +1283,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.59530795">
-          <caret line="677" column="35" selection-start-line="677" selection-start-column="35" selection-end-line="677" selection-end-column="35" />
+        <state vertical-scroll-proportion="0.8240469">
+          <caret line="717" column="106" selection-start-line="717" selection-start-column="106" selection-end-line="717" selection-end-column="106" />
           <folding />
         </state>
       </provider>
