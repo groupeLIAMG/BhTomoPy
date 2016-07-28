@@ -498,19 +498,25 @@ class UpperFig(FigureCanvasQTAgg):
 
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
+        self.ax.set_ylabel('Amplitude')
 
         self.trace, = self.ax.plot([], [], color='b')
 
         self.ax2.yaxis.set_ticks_position('none')
         self.ax2.xaxis.set_ticks_position('none')
 
+        self.picktt = self.ax2.axvline(-100, ymin=0, ymax=1, color='g')
+
         self.ax3.yaxis.set_ticks_position('none')
         self.ax3.xaxis.set_ticks_position('none')
 
+        self.picket1 = self.ax2.axvline(-100, ymin=0, ymax=1, color='r')
+        self.picket2 = self.ax2.axvline(-100, ymin=0, ymax=1, color='r')
+
     def plot_amplitude(self):
 #        self.ax.cla()
-        self.ax2.cla()
-        self.ax3.cla()
+#        self.ax2.cla()
+#        self.ax3.cla()
 
         n = int(self.tt.Tnum_Edit.text())
         A_min = float(self.tt.A_min_Edit.text())
@@ -518,32 +524,30 @@ class UpperFig(FigureCanvasQTAgg):
         t_min = float(self.tt.t_min_Edit.text())
         t_max = float(self.tt.t_max_Edit.text())
 
-
         self.trc_number = n-1
 
         if self.tt.main_data_radio.isChecked():
             trace = self.tt.mog.data.rdata[:, n-1]
             y_lim = self.ax.get_ylim()
-            self.ax2.plot([self.tt.mog.tt[self.trc_number],
-                           self.tt.mog.tt[self.trc_number]],
-                           [y_lim[0], y_lim[-1]], color= 'green')
 
-            self.ax3.plot([self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number],
-                           self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number]],
-                          [y_lim[0], y_lim[-1]],
-                          color= 'red')
+            if self.tt.mog.tt[self.trc_number] != -1:
+                self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
+                                       self.tt.mog.et[self.trc_number])
+                self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
+                                       self.tt.mog.et[self.trc_number])
+            else:
+                self.picktt.set_xdata(-100)
+                self.picket1.set_xdata(-100)
+                self.picket2.set_xdata(-100)
 
-            self.ax3.plot([self.tt.mog.tt[self.trc_number] + self.tt.mog.et[self.trc_number],
-                           self.tt.mog.tt[self.trc_number] + self.tt.mog.et[self.trc_number]],
-                          [y_lim[0], y_lim[-1]],
-                          color= 'red')
 
         if self.tt.t0_before_radio.isChecked():
-            airshot_before = self.tt.air[mog.av]
+            airshot_before = self.tt.air[self.tt.mog.av]
             trace = airshot_before.data.rdata[:,n-1]
 
         if self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.air[mog.ap]
+            airshot_after = self.tt.air[self.tt.mog.ap]
             trace = airshot_after.data.rdata[:,n-1]
 
         if not self.tt.lim_checkbox.isChecked():
@@ -551,10 +555,8 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax3.set_xlim(t_min, t_max)
         self.ax2.set_xlim(t_min, t_max)
 
-#        self.ax.plot(trace)
         self.trace.set_xdata(range(len(trace)))
         self.trace.set_ydata(trace)
-        print('replotting trace')
 
         self.ax.set_xlim(t_min, t_max)
 
@@ -562,9 +564,8 @@ class UpperFig(FigureCanvasQTAgg):
         if self.tt.Wave_checkbox.isChecked():
             ind, wavelet = self.wavelet_filtering(mog.data.rdata)
 
-
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))
-        mpl.axes.Axes.set_ylabel(self.ax, 'Amplitude')
+
         self.TraveltimeSignal.emit(self.pick_pos_tt)
         self.etSignal.emit(self.pick_pos_et)
         self.draw()
@@ -595,20 +596,23 @@ class UpperFig(FigureCanvasQTAgg):
         if event.button == 1:
 
             if self.x != None and self.y != None:
-                self.ax2.cla()
-                self.ax3.cla()
+#                self.ax2.cla()
+#                self.ax3.cla()
 
                 self.tt.mog.tt[self.trc_number] = event.xdata
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
                 self.ax2.set_xlim(x_lim[0], x_lim[-1])
-                self.ax2.plot([self.tt.mog.tt[self.trc_number], self.tt.mog.tt[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
+
+                self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+
+#                self.ax2.plot([self.tt.mog.tt[self.trc_number], self.tt.mog.tt[self.trc_number]], [y_lim[0], y_lim[-1]], color= 'green')
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
         elif event.button == 3:
             if self.x != None and self.y != None:
-                self.ax3.cla()
+#                self.ax3.cla()
 
                 self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.xdata)
 
@@ -616,8 +620,10 @@ class UpperFig(FigureCanvasQTAgg):
                 x_lim = self.ax.get_xlim()
                 self.ax3.set_xlim(x_lim[0], x_lim[-1])
                 et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
-                self.ax3.plot([self.tt.mog.tt[self.trc_number] + et, self.tt.mog.tt[self.trc_number] + et], [y_lim[0], y_lim[-1]], color= 'red')
-                self.ax3.plot([self.tt.mog.tt[self.trc_number] - et, self.tt.mog.tt[self.trc_number] - et], [y_lim[0], y_lim[-1]], color= 'red')
+                self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] - et)
+                self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
+#                self.ax3.plot([self.tt.mog.tt[self.trc_number] + et, self.tt.mog.tt[self.trc_number] + et], [y_lim[0], y_lim[-1]], color= 'red')
+#                self.ax3.plot([self.tt.mog.tt[self.trc_number] - et, self.tt.mog.tt[self.trc_number] - et], [y_lim[0], y_lim[-1]], color= 'red')
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
 
@@ -697,7 +703,7 @@ class LowerFig(FigureCanvasQTAgg):
 
 
         elif self.tt.t0_before_radio.isChecked():
-            airshot_before = self.tt.air[mog.av]
+            airshot_before = self.tt.air[self.tt.mog.av]
             data = airshot_before.data.rdata
 
             unpicked_ind = np.where(airshot_before.tt == -1)[0]
@@ -728,7 +734,7 @@ class LowerFig(FigureCanvasQTAgg):
 
 
         elif self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.air[mog.ap]
+            airshot_after = self.tt.air[self.mog.ap]
             data = airshot_after.data.rdata
 
             unpicked_ind = np.where(airshot_after.tt == -1)[0]
