@@ -82,7 +82,7 @@
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.59530795">
-              <caret line="735" column="12" selection-start-line="735" selection-start-column="12" selection-end-line="735" selection-end-column="12" />
+              <caret line="677" column="35" selection-start-line="677" selection-start-column="35" selection-end-line="677" selection-end-column="35" />
               <folding />
             </state>
           </provider>
@@ -621,12 +621,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00064" summary="ajout axes dans pruneFig">
-      <created>1465062052668</created>
-      <option name="number" value="00064" />
-      <option name="project" value="LOCAL" />
-      <updated>1465062052669</updated>
-    </task>
     <task id="LOCAL-00065" summary="ajout démo dans prune">
       <created>1465415705174</created>
       <option name="number" value="00065" />
@@ -915,7 +909,13 @@
       <option name="project" value="LOCAL" />
       <updated>1469720603555</updated>
     </task>
-    <option name="localTasksCounter" value="113" />
+    <task id="LOCAL-00113" summary="update tt interaction entre lower fig et upper fig">
+      <created>1469735077228</created>
+      <option name="number" value="00113" />
+      <option name="project" value="LOCAL" />
+      <updated>1469735077228</updated>
+    </task>
+    <option name="localTasksCounter" value="114" />
     <servers />
   </component>
   <component name="TodoView">
@@ -985,7 +985,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update du lien entre les mogs et Tx/Rx combo" />
     <MESSAGE value="création de delta t mog et fonction getcompat fonctionelle" />
     <MESSAGE value="Merge Mog fonctionnel" />
     <MESSAGE value="gestions derreurs avec merge mog" />
@@ -1010,7 +1009,8 @@
     <MESSAGE value="picking de l'écart type fonctionnel" />
     <MESSAGE value="update sélection de l'écart type" />
     <MESSAGE value="update tt fonctionnel avec mog" />
-    <option name="LAST_COMMIT_MESSAGE" value="update tt fonctionnel avec mog" />
+    <MESSAGE value="update tt interaction entre lower fig et upper fig" />
+    <option name="LAST_COMMIT_MESSAGE" value="update tt interaction entre lower fig et upper fig" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1284,7 +1284,7 @@
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.59530795">
-          <caret line="735" column="12" selection-start-line="735" selection-start-column="12" selection-end-line="735" selection-end-column="12" />
+          <caret line="677" column="35" selection-start-line="677" selection-start-column="35" selection-end-line="677" selection-end-column="35" />
           <folding />
         </state>
       </provider>

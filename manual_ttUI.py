@@ -675,10 +675,11 @@ class LowerFig(FigureCanvasQTAgg):
                                           interpolation= 'none',
                                           cmap= 'seismic',
                                           aspect= 'auto')
+        self.actual_line = self.ax.
 
 
     def plot_trace_data(self):
-        self.ax.cla()
+        #self.ax.cla()
         n = int(self.tt.Tnum_Edit.text())
         mog  = self.tt.mog
 
@@ -723,19 +724,11 @@ class LowerFig(FigureCanvasQTAgg):
                          markersize= 10,
                          lw= 0)
 
-            #self.ax.imshow(data,
-            #           interpolation= 'none',
-            #           cmap= 'seismic',
-            #           aspect= 'auto',
-            #           extent= [z[0], z[-1], t_max, t_min],
-            #          vmin= -cmax,
-            #           vmax= cmax)
+
 
             self.shot_gather.set_data(data)
-            #self.shot_gather.autoscale()
+            self.shot_gather.autoscale()
             self.shot_gather.set_extent([z[0], z[-1], t_max, t_min])
-            #self.shot_gather.set_vmin(-cmax)
-            #self.shot_gather.set_vmax(cmax)
             self.draw()
 
 
