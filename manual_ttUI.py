@@ -703,13 +703,8 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = mog.data.rdata
 
-            #for ind in picked_tt_ind:
-            #    self.ax.plot(ind, self.tt.mog.tt[ind], marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
             self.picked_tt_circle.set_xdata(picked_tt_ind)
             self.picked_tt_circle.set_ydata(self.tt.mog.tt[picked_tt_ind])
-            #for ind in picked_et_ind:
-            #    self.ax.plot(ind, self.tt.mog.tt[ind] + self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
-            #    self.ax.plot(ind, self.tt.mog.tt[ind] - self.tt.mog.et[ind], marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2 )
 
             self.picked_et_circle1.set_xdata(picked_et_ind)
             self.picked_et_circle1.set_ydata( self.tt.mog.tt[picked_et_ind] + self.tt.mog.et[picked_et_ind])
@@ -743,28 +738,30 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = data
 
-            self.ax.plot([n-1, n-1],
-                     [0, np.shape(actual_data)[0]],
-                     color= 'black')
+            #self.picked_tt_circle.set_xdata(picked_tt_ind)
+            #self.picked_tt_circle.set_ydata(self.tt.mog.tt[picked_tt_ind])
 
-            self.ax.plot(unpicked_ind,
-                         np.zeros(len(unpicked_ind)),
-                         marker= 's',
-                         color='red',
-                         markersize= 10,
-                         lw= 0)
+            #self.picked_et_circle1.set_xdata(picked_et_ind)
+            #self.picked_et_circle1.set_ydata( self.tt.mog.tt[picked_et_ind] + self.tt.mog.et[picked_et_ind])
 
-            self.ax.imshow(data,
-                       interpolation= 'none',
-                       cmap= 'seismic',
-                       aspect= 'auto',
-                       vmin= -cmax,
-                       vmax= cmax)
+            #self.picked_et_circle2.set_xdata(picked_et_ind)
+            #self.picked_et_circle2.set_ydata( self.tt.mog.tt[picked_et_ind] - self.tt.mog.et[picked_et_ind])
 
+            self.actual_line.set_xdata(n-1)
+
+            self.unpicked_square.set_xdata(unpicked_ind)
+            self.unpicked_square.set_ydata(t_max*np.ones(len(unpicked_ind)))
+
+            self.shot_gather.set_data(data)
+            self.shot_gather.autoscale()
+            self.shot_gather.set_extent([0, airshot_before.data.ntrace, t_max, t_min])
+
+
+            self.draw()
 
 
         elif self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.air[self.mog.ap]
+            airshot_after = self.tt.air[self.tt.mog.ap]
             data = airshot_after.data.rdata
 
             unpicked_ind = np.where(airshot_after.tt == -1)[0]
@@ -774,23 +771,14 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = data
 
-            self.ax.plot([n-1, n-1],
-                     [0, np.shape(actual_data)[0]],
-                     color= 'black')
+            self.actual_line.set_xdata(n-1)
 
-            self.ax.plot(unpicked_ind,
-                         np.zeros(len(unpicked_ind)),
-                         marker= 's',
-                         color='red',
-                         markersize= 10,
-                         lw= 0)
+            self.unpicked_square.set_xdata(unpicked_ind)
+            self.unpicked_square.set_ydata(t_max*np.ones(len(unpicked_ind)))
 
-            self.ax.imshow(data,
-                       interpolation= 'none',
-                       cmap= 'seismic',
-                       aspect= 'auto',
-                       vmin= -cmax,
-                       vmax= cmax)
+            self.shot_gather.set_data(data)
+            self.shot_gather.autoscale()
+            self.shot_gather.set_extent([0, airshot_after.data.ntrace, t_max, t_min])
 
         mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
