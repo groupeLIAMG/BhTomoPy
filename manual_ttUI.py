@@ -556,12 +556,49 @@ class UpperFig(FigureCanvasQTAgg):
             airshot_before = self.tt.air[self.tt.mog.av]
             trace = airshot_before.data.rdata[:,n-1]
 
+            if airshot_before.tt[self.trc_number] != -1:
+                self.picktt.set_xdata(airshot_before.tt[self.trc_number])
+
+                if self.tt.pick_combo.currentText() == 'Simple Picking' and airshot_before.tt[self.trc_number] != -1.0:
+                    self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
+                                           airshot_before.tt[self.trc_number])
+                    self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
+                                           airshot_before.tt[self.trc_number])
+                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
+                    self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
+                                           airshot_before.tt[self.trc_number])
+                    self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
+                                           airshot_before.tt[self.trc_number])
+
+            else:
+                self.picktt.set_xdata(-100)
+                self.picket1.set_xdata(-100)
+                self.picket2.set_xdata(-100)
+
         if self.tt.t0_after_radio.isChecked():
             airshot_after = self.tt.air[self.tt.mog.ap]
             trace = airshot_after.data.rdata[:,n-1]
+            if airshot_after.tt[self.trc_number] != -1:
+                self.picktt.set_xdata(airshot_after.tt[self.trc_number])
+
+                if self.tt.pick_combo.currentText() == 'Simple Picking' and airshot_after.tt[self.trc_number] != -1.0:
+                    self.picket1.set_xdata(airshot_after.tt[self.trc_number] -
+                                           airshot_after.tt[self.trc_number])
+                    self.picket2.set_xdata(airshot_after.tt[self.trc_number] +
+                                           airshot_after.tt[self.trc_number])
+                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
+                    self.picket1.set_xdata(airshot_after.tt[self.trc_number] -
+                                           airshot_after.tt[self.trc_number])
+                    self.picket2.set_xdata(airshot_after.tt[self.trc_number] +
+                                           airshot_after.tt[self.trc_number])
+
+            else:
+                self.picktt.set_xdata(-100)
+                self.picket1.set_xdata(-100)
+                self.picket2.set_xdata(-100)
 
         if not self.tt.lim_checkbox.isChecked():
-            print('coucou')
+
             self.ax.set_ylim(A_min, A_max)
         else:
             self.ax.set_ylim( min(trace.flatten()), max(trace.flatten()))
@@ -570,11 +607,11 @@ class UpperFig(FigureCanvasQTAgg):
 
         self.ax3.set_xlim(t_min, t_max)
         self.ax2.set_xlim(t_min, t_max)
-
+        self.ax.set_xlim(t_min, t_max)
         self.trace.set_xdata(range(len(trace)))
         self.trace.set_ydata(trace)
 
-        self.ax.set_xlim(t_min, t_max)
+
 
         #TODO
         if self.tt.Wave_checkbox.isChecked():
@@ -612,23 +649,56 @@ class UpperFig(FigureCanvasQTAgg):
 
             if self.x != None and self.y != None:
 
-                self.tt.mog.tt[self.trc_number] = event.xdata
+                if self.tt.main_data_radio.isChecked():
+                    self.tt.mog.tt[self.trc_number] = event.xdata
+
+                if self.tt.t0_before_radio.isChecked():
+                    self.tt.air[self.tt.mog.av].tt[self.trc_number] = event.xdata
+
+                if self.tt.t0_after_radio.isChecked():
+                    self.tt.air[self.tt.mog.ap].tt[self.trc_number] = event.xdata
+
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
                 self.ax2.set_xlim(x_lim[0], x_lim[-1])
 
                 if self.tt.pick_combo.currentText() == "Simple Picking":
+                    if self.tt.main_data_radio.isChecked():
+                        self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
 
-                    self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                    if self.tt.t0_before_radio.isChecked():
+                        self.picktt.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
+
+                    if self.tt.t0_after_radio.isChecked():
+                        self.picktt.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number])
+
 
                 elif self.tt.pick_combo.currentText() == "Pick with std deviation":
+                    if self.tt.main_data_radio.isChecked():
+                        self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                        self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
+                                                self.tt.mog.et[self.trc_number])
+                        self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
+                                                self.tt.mog.et[self.trc_number])
 
-                    self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
-                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                            self.tt.mog.et[self.trc_number])
-                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                            self.tt.mog.et[self.trc_number])
+                if self.tt.t0_before_radio.isChecked():
+                    print('coucou')
+                    print(self.tt.air[self.tt.mog.av].tt[self.trc_number])
+                    print(self.tt.air[self.tt.mog.av].et[self.trc_number])
+                    self.picktt.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
+                    self.picket1.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] -
+                                           self.tt.air[self.tt.mog.av].et[self.trc_number])
+                    self.picket2.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] +
+                                           self.tt.air[self.tt.mog.av].et[self.trc_number])
+
+                if self.tt.t0_after_radio.isChecked():
+                    self.picktt.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number])
+                    self.picket1.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] -
+                                           self.tt.air[self.tt.mog.ap].et[self.trc_number])
+                    self.picket2.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] +
+                                           self.tt.air[self.tt.mog.ap].et[self.trc_number])
+
 
 
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
@@ -639,14 +709,35 @@ class UpperFig(FigureCanvasQTAgg):
         elif event.button == 3:
             if self.x != None and self.y != None:
 
-                self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.xdata)
+                if self.tt.main_data_radio.isChecked():
+                    self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
+
+                if self.tt.t0_before_radio.isChecked():
+                    self.tt.air[self.tt.mog.av].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.xdata)
+
+                if self.tt.t0_after_radio.isChecked():
+                    self.tt.air[self.tt.mog.ap].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.xdata)
+
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
                 self.ax3.set_xlim(x_lim[0], x_lim[-1])
-                et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
-                self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] - et)
-                self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
+
+                if self.tt.main_data_radio.isChecked():
+                    et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
+                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] - et)
+                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
+
+                if self.tt.t0_before_radio.isChecked():
+                    et = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.xdata)
+                    self.picket1.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] - et)
+                    self.picket2.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] + et)
+
+                if self.tt.t0_after_radio.isChecked():
+                    et = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.xdata)
+                    self.picket1.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - et)
+                    self.picket2.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] + et)
+
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
                 self.TracePickedSignal.emit(True)
