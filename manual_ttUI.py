@@ -20,8 +20,10 @@ class ManualttUI(QtGui.QFrame):
         self.mog = 0
         self.initUI()
 
-        self.upperFig.TracePickedSignal.connect(self.lowerFig.plot_trace_data)
-        self.upperFig.TracePickedSignal.connect(self.update_control_center)
+        self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
+        self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
+        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
+        self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
 
 
     def next_trace(self):
@@ -61,9 +63,6 @@ class ManualttUI(QtGui.QFrame):
 
         self.upperFig.plot_amplitude()
         self.lowerFig.plot_trace_data()
-
-
-
 
     def update_a_and_t_edits(self):
         n = int(self.Tnum_Edit.text())
@@ -123,7 +122,7 @@ class ManualttUI(QtGui.QFrame):
         btn_Next_Pick = QtGui.QPushButton("Next Trace to Pick")
         btn_Reini = QtGui.QPushButton("Reinitialize Trace")
         btn_Upper = QtGui.QPushButton("Activate Picking - Upper Trace")
-        btn_Conti = QtGui.QPushButton("Activate Picking - Contiguous Trace")
+        btn_Conti = QtGui.QPushButton("Activate Picking - Shot Gather")
         btn_Stats = QtGui.QPushButton("Statistics")
 
         #- Buttons' Actions -#
@@ -332,7 +331,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_upper_right_Widget.setLayout(Sub_upper_right_Grid)
 
         #--- Contiguous Trace Groupbox ---#
-        Conti_Groupbox = QtGui.QGroupBox("Contiguous Traces")
+        Conti_Groupbox = QtGui.QGroupBox("Shot Gather")
         Conti_Grid = QtGui.QGridLayout()
         Conti_Grid.addWidget(self.tt_picking_radio, 0, 0)
         Conti_Grid.addWidget(self.std_dev_radio, 1, 0)
@@ -483,7 +482,7 @@ class OpenMainData(QtGui.QWidget):
 
 class UpperFig(FigureCanvasQTAgg):
 
-    TracePickedSignal = QtCore.pyqtSignal(bool)
+    UpperTracePickedSignal = QtCore.pyqtSignal(bool)
 
     def __init__(self, tt):
         fig_width, fig_height = 4, 4
@@ -704,7 +703,7 @@ class UpperFig(FigureCanvasQTAgg):
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
 
-                self.TracePickedSignal.emit(True)
+                self.UpperTracePickedSignal.emit(True)
 
         elif event.button == 3:
             if self.x != None and self.y != None:
@@ -740,13 +739,14 @@ class UpperFig(FigureCanvasQTAgg):
 
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
-                self.TracePickedSignal.emit(True)
+                self.UpperTracePickedSignal.emit(True)
 
 
         self.draw()
 
 
 class LowerFig(FigureCanvasQTAgg):
+    LowerTracePickedSignal = QtCore.pyqtSignal(bool)
     def __init__(self, tt):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
@@ -756,36 +756,70 @@ class LowerFig(FigureCanvasQTAgg):
         self.mpl_connect('button_press_event', self.onclick)
         self.isTracingOn = False
 
-
-
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
-        self.shot_gather = self.ax.imshow(np.zeros((2,2)),
-                                          interpolation= 'none',
-                                          cmap= 'seismic',
-                                          aspect= 'auto')
-        self.actual_line = self.ax.axvline(-100, ymin=0, ymax=1, color='black')
-        self.unpicked_square, = self.ax.plot(-100, -100, marker= 's',color='red', markersize= 10, lw= 0)
-        self.picked_square, = self.ax.plot(-100, -100, marker= 's',color='green', markersize= 10, lw= 0)
-        self.picked_tt_circle, = self.ax.plot(-100, -100, marker = 'o', fillstyle= 'none', color= 'green', markersize= 5, mew= 2)
-        self.picked_et_circle1, = self.ax.plot(-100, -100, marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2)
-        self.picked_et_circle2, = self.ax.plot(-100, -100, marker = 'o', fillstyle= 'none', color= 'red', markersize= 5, mew= 2)
+
+        self.shot_gather        = self.ax.imshow(np.zeros((2,2)),
+                                                interpolation= 'none',
+                                                cmap= 'seismic',
+                                                aspect= 'auto')
+
+        self.actual_line        = self.ax.axvline(-100,
+                                                ymin=0,
+                                                ymax=1,
+                                                color='black')
+
+        self.unpicked_square,   = self.ax.plot(-100, -100,
+                                                marker= 's',
+                                                color='red',
+                                                markersize= 10,
+                                                lw= 0)
+
+        self.picked_square,     = self.ax.plot(-100, -100,
+                                                marker= 's',
+                                                color='green',
+                                                markersize= 10,
+                                                lw= 0)
+
+        self.picked_tt_circle,  = self.ax.plot(-100, -100,
+                                                marker = 'o',
+                                                fillstyle= 'none',
+                                                color= 'green',
+                                                markersize= 5,
+                                                mew= 2)
+
+        self.picked_et_circle1, = self.ax.plot(-100, -100,
+                                                marker = 'o',
+                                                fillstyle= 'none',
+                                                color= 'red',
+                                                markersize= 5,
+                                                mew= 2)
+
+        self.picked_et_circle2, = self.ax.plot(-100, -100,
+                                                marker = 'o',
+                                                fillstyle= 'none',
+                                                color= 'red',
+                                                markersize= 5,
+                                                mew= 2)
 
     def plot_trace_data(self):
-        #self.ax.cla()
+
         n = int(self.tt.Tnum_Edit.text())
         mog  = self.tt.mog
+        self.trc_number = n-1
 
         t_min = float(self.tt.t_min_Edit.text())
         t_max = float(self.tt.t_max_Edit.text())
 
         if self.tt.main_data_radio.isChecked():
+            print('main data')
             current_trc = mog.data.Tx_z[n]
             z = np.where(mog.data.Tx_z == current_trc)[0]
             data = mog.data.rdata[t_min:t_max, z[0]:z[-1]]
             cmax = max(np.abs(mog.data.rdata.flatten()))
+
             unpicked_tt_ind = np.where(mog.tt == -1)[0]
             picked_tt_ind = np.where(mog.tt != -1)[0]
 
@@ -885,49 +919,48 @@ class LowerFig(FigureCanvasQTAgg):
         if event.button == 1:
             if self.x != None and self.y != None:
 
-                self.tt.mog.tt[self.trc_number] = event.ydata
+
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
-                self.ax2.set_xlim(x_lim[0], x_lim[-1])
-
-
+                self.ax.set_xlim(x_lim[0], x_lim[-1])
 
                 if self.tt.tt_picking_radio.isChecked():
-                    pass
 
+                    self.tt.mog.tt[self.trc_number] = event.ydata
+
+                    if self.tt.main_data_radio.isChecked():
+                        print('Traveltime being picked')
+                        self.picked_tt_circle.set_ydata(self.tt.mog.tt[self.trc_number])
 
                 elif self.tt.std_dev_radio.isChecked():
-
-                    self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
-                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                            self.tt.mog.et[self.trc_number])
-                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                            self.tt.mog.et[self.trc_number])
+                    print('Std being picked')
+                    self.picked_et_circle1.set_ydata(self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number])
+                    self.picked_et_circle1.set_xdata(self.trc_number)
+                    self.picked_et_circle2.set_ydata(self.tt.mog.tt[self.trc_number] + self.tt.mog.et[self.trc_number])
+                    self.picked_et_circle2.set_xdata(self.trc_number)
 
                 elif self.tt.trace_selec_radio.isChecked():
                     pass
 
-
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
-
-
-                self.TracePickedSignal.emit(True)
+                self.LowerTracePickedSignal.emit(True)
 
         elif event.button == 3:
             if self.x != None and self.y != None:
 
-                self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.xdata)
+                self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.ydata)
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
-                self.ax3.set_xlim(x_lim[0], x_lim[-1])
-                et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
-                self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] - et)
-                self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
+                self.ax.set_xlim(x_lim[0], x_lim[-1])
+                et = np.abs(self.tt.mog.tt[self.trc_number] - event.ydata)
+                self.picked_et_circle1.set_ydata(self.tt.mog.tt[self.trc_number] - et)
+                self.picked_et_circle2.set_ydata(self.tt.mog.tt[self.trc_number] + et)
+
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
-                self.TracePickedSignal.emit(True)
+                self.LowerTracePickedSignal.emit(True)
 
 
         self.draw()

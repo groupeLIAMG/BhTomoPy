@@ -1370,6 +1370,7 @@ class SpectraFig(FigureCanvasQTAgg):
 
         ind = Tx[n] == mog.data.Tx_z
 
+
         fac_f = 1
         fac_t = 1
         if 'ns' in mog.data.tunits:
@@ -1428,17 +1429,17 @@ class SpectraFig(FigureCanvasQTAgg):
         SNR = SNR[::-1]
 
 
-        self.ax1.imshow(traces.T, cmap= 'plasma', aspect= 'auto', interpolation= 'none')
+        self.ax1.imshow(traces.T,extent= [0, mog.data.nptsptrc, -mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0]], cmap= 'plasma', aspect= 'auto', interpolation= 'none')
         #self.ax2.imshow(np.log10(np.abs(ps)).T[:, :Fmax], cmap= 'plasma', aspect= 'auto',
          #                   interpolation= 'none', extent= [0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0] )
 
 
         if scale == 'Linear':
-            self.ax3.plot(SNR, range(len(SNR)))
+            self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
 
 
         elif scale == 'Logarithmic':
-            self.ax3.plot(SNR, range(len(SNR)))
+            self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
             self.ax3.set_xscale('log')
 
 
