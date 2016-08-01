@@ -879,7 +879,7 @@ class LowerFig(FigureCanvasQTAgg):
             self.picked_square.set_xdata(picked_tt_ind)
             self.picked_square.set_ydata(t_max*np.ones(len(picked_tt_ind)))
 
-            #self.draw()
+            self.draw()
 
         elif self.tt.t0_before_radio.isChecked():
             #print('hello moto')
@@ -919,32 +919,48 @@ class LowerFig(FigureCanvasQTAgg):
             self.shot_gather.set_extent([0, airshot_before.data.ntrace -1, t_max, t_min])
 
 
-            #self.draw()
+            self.draw()
 
 
         elif self.tt.t0_after_radio.isChecked():
             airshot_after = self.tt.air[self.tt.mog.ap]
             data = airshot_after.data.rdata
 
-            unpicked_ind = np.where(airshot_after.tt == -1)[0]
-            picked_ind = np.where(airshot_after.tt == 1)[0]
+            unpicked_tt_ind = np.where(airshot_after.tt == -1)[0]
+            picked_tt_ind = np.where(airshot_after.tt != -1)[0]
+
+            unpicked_et_ind = np.where(airshot_after.et == -1)[0]
+            picked_et_ind = np.where(airshot_after.et != -1)[0]
 
             cmax = np.abs(max(airshot_after.data.rdata.flatten()))
 
             actual_data = data
 
+            self.picked_tt_circle.set_xdata(picked_tt_ind)
+            self.picked_tt_circle.set_ydata(airshot_after.tt[picked_tt_ind])
+
+            self.picked_et_circle1.set_xdata(picked_et_ind)
+            self.picked_et_circle1.set_ydata(airshot_after.tt[picked_et_ind] + airshot_after.et[picked_et_ind])
+
+            self.picked_et_circle2.set_xdata(picked_et_ind)
+            self.picked_et_circle2.set_ydata(airshot_after.tt[picked_et_ind] - airshot_after.et[picked_et_ind])
+
             self.actual_line.set_xdata(n-1)
 
-            self.unpicked_square.set_xdata(unpicked_ind)
-            self.unpicked_square.set_ydata(t_max*np.ones(len(unpicked_ind)))
+            self.unpicked_square.set_xdata(unpicked_tt_ind)
+            self.unpicked_square.set_ydata(t_max*np.ones(len(unpicked_tt_ind)))
+
+            self.picked_square.set_xdata(picked_tt_ind)
+            self.picked_square.set_ydata(t_max*np.ones(len(picked_tt_ind)))
 
             self.shot_gather.set_data(data)
             self.shot_gather.autoscale()
             self.shot_gather.set_extent([0, airshot_after.data.ntrace -1, t_max, t_min])
+            self.draw()
 
         mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
-        self.draw()
+
 
     def onclick(self, event):
 
