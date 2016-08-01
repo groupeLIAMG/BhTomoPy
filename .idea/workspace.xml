@@ -81,8 +81,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.29618767">
-              <caret line="973" column="42" selection-start-line="973" selection-start-column="42" selection-end-line="973" selection-end-column="42" />
+            <state vertical-scroll-proportion="2.803519">
+              <caret line="994" column="12" selection-start-line="994" selection-start-column="12" selection-end-line="994" selection-end-column="12" />
               <folding />
             </state>
           </provider>
@@ -501,12 +501,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00071" summary="début update coords">
-      <created>1466601143632</created>
-      <option name="number" value="00071" />
-      <option name="project" value="LOCAL" />
-      <updated>1466601143634</updated>
-    </task>
     <task id="LOCAL-00072" summary="Ajout de la liste boreholes lié dans mog ui et changement du main pour faciliter les tests">
       <created>1466603488009</created>
       <option name="number" value="00072" />
@@ -795,7 +789,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470071577006</updated>
     </task>
-    <option name="localTasksCounter" value="120" />
+    <task id="LOCAL-00120" summary="picking dans le shot gather fonctionnel">
+      <created>1470072354385</created>
+      <option name="number" value="00120" />
+      <option name="project" value="LOCAL" />
+      <updated>1470072354385</updated>
+    </task>
+    <option name="localTasksCounter" value="121" />
     <servers />
   </component>
   <component name="TodoView">
@@ -865,7 +865,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="stats tt complété, reste à tester lorsque le pointé sera fait" />
     <MESSAGE value="sauvegarde de type enregistrer sous et ouverture de fichier fonctionelle" />
     <MESSAGE value="début grid dans GridUI" />
     <MESSAGE value="update de linformationdans prune (reste S/M ratio)" />
@@ -890,7 +889,8 @@
     <MESSAGE value="attempt debug manualtt pour air before et after" />
     <MESSAGE value="picking du temps pour t0 before fonctionnel" />
     <MESSAGE value="picking de t0 after fonctionnel" />
-    <option name="LAST_COMMIT_MESSAGE" value="picking de t0 after fonctionnel" />
+    <MESSAGE value="picking dans le shot gather fonctionnel" />
+    <option name="LAST_COMMIT_MESSAGE" value="picking dans le shot gather fonctionnel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1148,8 +1148,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.29618767">
-          <caret line="973" column="42" selection-start-line="973" selection-start-column="42" selection-end-line="973" selection-end-column="42" />
+        <state vertical-scroll-proportion="2.803519">
+          <caret line="994" column="12" selection-start-line="994" selection-start-column="12" selection-end-line="994" selection-end-column="12" />
           <folding />
         </state>
       </provider>

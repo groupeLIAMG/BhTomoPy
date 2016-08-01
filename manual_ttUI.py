@@ -961,7 +961,7 @@ class LowerFig(FigureCanvasQTAgg):
 
 
     def onclick(self, event):
-
+        print(event.button)
         if self.isTracingOn is False:
             return
 
@@ -989,6 +989,10 @@ class LowerFig(FigureCanvasQTAgg):
 
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
                 self.LowerTracePickedSignal.emit(True)
+
+        elif event.button == 2:
+            self.tt.next_trace()
+
 
         elif event.button == 3:
             if self.x != None and self.y != None:
