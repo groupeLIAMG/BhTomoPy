@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="249" />
+    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="262" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="239" />
     <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="876" />
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="124" />
@@ -81,8 +81,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5601173">
-              <caret line="1037" column="56" selection-start-line="1037" selection-start-column="56" selection-end-line="1037" selection-end-column="56" />
+            <state vertical-scroll-proportion="0.7360704">
+              <caret line="98" column="79" selection-start-line="98" selection-start-column="79" selection-end-line="98" selection-end-column="79" />
               <folding />
             </state>
           </provider>
@@ -501,12 +501,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00075" summary="début de l'implémentation des méthodes pour min et max theta">
-      <created>1467924094666</created>
-      <option name="number" value="00075" />
-      <option name="project" value="LOCAL" />
-      <updated>1467924094666</updated>
-    </task>
     <task id="LOCAL-00076" summary="commentaires par rapport à update prune">
       <created>1467926950674</created>
       <option name="number" value="00076" />
@@ -795,7 +789,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470078700134</updated>
     </task>
-    <option name="localTasksCounter" value="124" />
+    <task id="LOCAL-00124" summary="trace select fonctionnel">
+      <created>1470079135206</created>
+      <option name="number" value="00124" />
+      <option name="project" value="LOCAL" />
+      <updated>1470079135207</updated>
+    </task>
+    <option name="localTasksCounter" value="125" />
     <servers />
   </component>
   <component name="TodoView">
@@ -865,7 +865,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update pour l'ajout d'un mog dans model" />
     <MESSAGE value="remove mog dans modelUI fonctionnel" />
     <MESSAGE value="Sauvegarde et messages de confirmation" />
     <MESSAGE value="Logo BH TOMO dans l'interface d'accueil,&#10;load database dans l'interface d'accueil fonctionnel,&#10;segmentation des classes dans MogUI&#10;" />
@@ -890,7 +889,8 @@
     <MESSAGE value="manualtt version alpha" />
     <MESSAGE value="reinitialize trace fonctionel" />
     <MESSAGE value="Next trace to pick fonctionel" />
-    <option name="LAST_COMMIT_MESSAGE" value="Next trace to pick fonctionel" />
+    <MESSAGE value="trace select fonctionnel" />
+    <option name="LAST_COMMIT_MESSAGE" value="trace select fonctionnel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1148,8 +1148,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5601173">
-          <caret line="1037" column="56" selection-start-line="1037" selection-start-column="56" selection-end-line="1037" selection-end-column="56" />
+        <state vertical-scroll-proportion="0.7360704">
+          <caret line="98" column="79" selection-start-line="98" selection-start-column="79" selection-end-line="98" selection-end-column="79" />
           <folding />
         </state>
       </provider>

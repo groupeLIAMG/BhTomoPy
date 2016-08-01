@@ -85,6 +85,19 @@ class ManualttUI(QtGui.QFrame):
                 self.time.setText(str(np.round(airshot_before.tt[n], 4)))
                 self.incertitude_value_label.setText(str(np.round(airshot_before.et[n], 4)))
 
+            if self.t0_after_radio.isChecked():
+                done = np.round(len(airshot_after.tt[airshot_after.tt != -1])/len(airshot_after.tt) * 100)
+                self.xRx_label.setText(str(airshot_after.data.Rx_x[n]))
+                self.xTx_label.setText(str(airshot_after.data.Tx_x[n]))
+                self.yRx_label.setText(str(airshot_after.data.Rx_y[n]))
+                self.yTx_label.setText(str(airshot_after.data.Tx_y[n]))
+                self.zRx_label.setText(str(np.round(airshot_after.data.Rx_z[n], 3)))
+                self.zTx_label.setText(str(airshot_after.data.Tx_z[n]))
+                self.ntrace_label.setText(str(airshot_after.data.ntrace))
+                self.percent_done_label.setText(str(done))
+                self.time.setText(str(np.round(airshot_before.tt[n], 4)))
+                self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
+
 
         self.upperFig.plot_amplitude()
         self.lowerFig.plot_trace_data()
@@ -287,17 +300,14 @@ class ManualttUI(QtGui.QFrame):
         self.tt_picking_radio.setChecked(True)
 
         #- Radio Buttons' Actions -#
-        self.main_data_radio.toggled.connect(self.upperFig.plot_amplitude)
-        self.t0_before_radio.toggled.connect(self.upperFig.plot_amplitude)
-        self.t0_after_radio.toggled.connect(self.upperFig.plot_amplitude)
-
-        self.main_data_radio.toggled.connect(self.lowerFig.plot_trace_data)
-        self.t0_before_radio.toggled.connect(self.lowerFig.plot_trace_data)
-        self.t0_after_radio.toggled.connect(self.lowerFig.plot_trace_data)
 
         self.main_data_radio.toggled.connect(self.reinit_tnum)
         self.t0_before_radio.toggled.connect(self.reinit_tnum)
         self.t0_after_radio.toggled.connect(self.reinit_tnum)
+
+        self.main_data_radio.toggled.connect(self.update_control_center)
+        self.t0_before_radio.toggled.connect(self.update_control_center)
+        self.t0_after_radio.toggled.connect(self.update_control_center)
         #--- Text Edits ---#
         info_Tedit = QtGui.QTextEdit()
         info_Tedit.setReadOnly(True)
