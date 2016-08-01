@@ -81,8 +81,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4398827">
-              <caret line="881" column="12" selection-start-line="881" selection-start-column="12" selection-end-line="881" selection-end-column="12" />
+            <state vertical-scroll-proportion="0.29618767">
+              <caret line="973" column="42" selection-start-line="973" selection-start-column="42" selection-end-line="973" selection-end-column="42" />
               <folding />
             </state>
           </provider>
@@ -501,12 +501,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00070" summary="update elev dans le module prune et debut de rounding factor">
-      <created>1466519882245</created>
-      <option name="number" value="00070" />
-      <option name="project" value="LOCAL" />
-      <updated>1466519882246</updated>
-    </task>
     <task id="LOCAL-00071" summary="début update coords">
       <created>1466601143632</created>
       <option name="number" value="00071" />
@@ -795,7 +789,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470067211667</updated>
     </task>
-    <option name="localTasksCounter" value="119" />
+    <task id="LOCAL-00119" summary="picking de t0 after fonctionnel">
+      <created>1470071577005</created>
+      <option name="number" value="00119" />
+      <option name="project" value="LOCAL" />
+      <updated>1470071577006</updated>
+    </task>
+    <option name="localTasksCounter" value="120" />
     <servers />
   </component>
   <component name="TodoView">
@@ -865,7 +865,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Spectra fonctionel avec méthode welch et fourier" />
     <MESSAGE value="stats tt complété, reste à tester lorsque le pointé sera fait" />
     <MESSAGE value="sauvegarde de type enregistrer sous et ouverture de fichier fonctionelle" />
     <MESSAGE value="début grid dans GridUI" />
@@ -890,7 +889,8 @@
     <MESSAGE value="update axes dans spectra,&#10;update picking du temps et de l'écart type dans le shot gather de manual tt UI" />
     <MESSAGE value="attempt debug manualtt pour air before et after" />
     <MESSAGE value="picking du temps pour t0 before fonctionnel" />
-    <option name="LAST_COMMIT_MESSAGE" value="picking du temps pour t0 before fonctionnel" />
+    <MESSAGE value="picking de t0 after fonctionnel" />
+    <option name="LAST_COMMIT_MESSAGE" value="picking de t0 after fonctionnel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1058,14 +1058,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="26" column="46" selection-start-line="26" selection-start-column="46" selection-end-line="26" selection-end-column="46" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1146,10 +1138,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/mog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="26" column="46" selection-start-line="26" selection-start-column="46" selection-end-line="26" selection-end-column="46" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4398827">
-          <caret line="881" column="12" selection-start-line="881" selection-start-column="12" selection-end-line="881" selection-end-column="12" />
+        <state vertical-scroll-proportion="0.29618767">
+          <caret line="973" column="42" selection-start-line="973" selection-start-column="42" selection-end-line="973" selection-end-column="42" />
           <folding />
         </state>
       </provider>

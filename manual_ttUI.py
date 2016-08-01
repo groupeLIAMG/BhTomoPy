@@ -243,8 +243,8 @@ class ManualttUI(QtGui.QFrame):
         self.trace_selec_radio = QtGui.QRadioButton("Trace selection")
 
         #- Radio Buttons' Disposition -#
-        #self.main_data_radio.setChecked(True)
-        self.t0_before_radio.setChecked(True)
+        self.main_data_radio.setChecked(True)
+        #self.t0_before_radio.setChecked(True)
         self.tt_picking_radio.setChecked(True)
 
         #- Radio Buttons' Actions -#
@@ -857,16 +857,11 @@ class LowerFig(FigureCanvasQTAgg):
 
             actual_data = mog.data.rdata
 
-            self.shot_gather.set_data(data)
-            self.shot_gather.autoscale()
-            self.shot_gather.set_extent([z[0], z[-1], t_max, t_min])
-
-
             self.picked_tt_circle.set_xdata(picked_tt_ind)
             self.picked_tt_circle.set_ydata(self.tt.mog.tt[picked_tt_ind])
 
             self.picked_et_circle1.set_xdata(picked_et_ind)
-            self.picked_et_circle1.set_ydata( self.tt.mog.tt[picked_et_ind] + self.tt.mog.et[picked_et_ind])
+            self.picked_et_circle1.set_ydata(self.tt.mog.tt[picked_et_ind] + self.tt.mog.et[picked_et_ind])
 
             self.picked_et_circle2.set_xdata(picked_et_ind)
             self.picked_et_circle2.set_ydata( self.tt.mog.tt[picked_et_ind] - self.tt.mog.et[picked_et_ind])
@@ -879,10 +874,13 @@ class LowerFig(FigureCanvasQTAgg):
             self.picked_square.set_xdata(picked_tt_ind)
             self.picked_square.set_ydata(t_max*np.ones(len(picked_tt_ind)))
 
+            self.shot_gather.set_data(data)
+            self.shot_gather.autoscale()
+            self.shot_gather.set_extent([z[0], z[-1], t_max, t_min])
+
             self.draw()
 
         elif self.tt.t0_before_radio.isChecked():
-            #print('hello moto')
             airshot_before = self.tt.air[self.tt.mog.av]
             data = airshot_before.data.rdata
 
@@ -974,7 +972,6 @@ class LowerFig(FigureCanvasQTAgg):
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
-                self.ax.set_xlim(x_lim[0], x_lim[-1])
 
                 if self.tt.tt_picking_radio.isChecked():
 
@@ -987,14 +984,6 @@ class LowerFig(FigureCanvasQTAgg):
                         self.tt.air[self.tt.mog.av].tt[self.trc_number] = event.ydata
                         self.picked_tt_circle.set_ydata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
 
-
-                elif self.tt.std_dev_radio.isChecked():
-                    print('Std being picked')
-                    self.picked_et_circle1.set_ydata(self.tt.mog.tt[self.trc_number] - self.tt.mog.et[self.trc_number])
-                    self.picked_et_circle1.set_xdata(self.trc_number)
-                    self.picked_et_circle2.set_ydata(self.tt.mog.tt[self.trc_number] + self.tt.mog.et[self.trc_number])
-                    self.picked_et_circle2.set_xdata(self.trc_number)
-
                 elif self.tt.trace_selec_radio.isChecked():
                     pass
 
@@ -1005,15 +994,6 @@ class LowerFig(FigureCanvasQTAgg):
             if self.x != None and self.y != None:
 
                 self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.ydata)
-
-                y_lim = self.ax.get_ylim()
-                x_lim = self.ax.get_xlim()
-                self.ax.set_xlim(x_lim[0], x_lim[-1])
-                et = np.abs(self.tt.mog.tt[self.trc_number] - event.ydata)
-                self.picked_et_circle1.set_ydata(self.tt.mog.tt[self.trc_number] - et)
-                self.picked_et_circle2.set_ydata(self.tt.mog.tt[self.trc_number] + et)
-
-                self.ax.set_ylim(y_lim[0], y_lim[-1])
 
                 self.LowerTracePickedSignal.emit(True)
 
