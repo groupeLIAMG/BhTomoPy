@@ -1033,7 +1033,10 @@ class LowerFig(FigureCanvasQTAgg):
                         self.picked_tt_circle.set_ydata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
 
                 elif self.tt.trace_selec_radio.isChecked():
-                    pass
+
+                    idx = np.argmin((np.abs(np.arange(self.tt.mog.data.ntrace) - event.xdata)))
+                    self.tt.Tnum_Edit.setText(str(idx + 1))
+                    self.tt.update_control_center()
 
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
                 self.LowerTracePickedSignal.emit(True)

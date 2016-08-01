@@ -7,8 +7,7 @@
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="124" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="reinitialize trace fonctionel">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/save test.p" afterPath="$PROJECT_DIR$/save test.p" />
+    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/manual_ttUI.py" afterPath="$PROJECT_DIR$/manual_ttUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -71,7 +70,7 @@
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1818" column="24" selection-start-line="1818" selection-start-column="24" selection-end-line="1818" selection-end-column="24" />
+              <caret line="333" column="20" selection-start-line="333" selection-start-column="20" selection-end-line="333" selection-end-column="85" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -82,8 +81,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4398827">
-              <caret line="122" column="27" selection-start-line="122" selection-start-column="27" selection-end-line="122" selection-end-column="27" />
+            <state vertical-scroll-proportion="0.5601173">
+              <caret line="1037" column="56" selection-start-line="1037" selection-start-column="56" selection-end-line="1037" selection-end-column="56" />
               <folding />
             </state>
           </provider>
@@ -502,12 +501,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00074" summary="round factor de prune est fonctionnel">
-      <created>1467848300338</created>
-      <option name="number" value="00074" />
-      <option name="project" value="LOCAL" />
-      <updated>1467848300338</updated>
-    </task>
     <task id="LOCAL-00075" summary="début de l'implémentation des méthodes pour min et max theta">
       <created>1467924094666</created>
       <option name="number" value="00075" />
@@ -796,7 +789,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470076209126</updated>
     </task>
-    <option name="localTasksCounter" value="123" />
+    <task id="LOCAL-00123" summary="Next trace to pick fonctionel">
+      <created>1470078700133</created>
+      <option name="number" value="00123" />
+      <option name="project" value="LOCAL" />
+      <updated>1470078700134</updated>
+    </task>
+    <option name="localTasksCounter" value="124" />
     <servers />
   </component>
   <component name="TodoView">
@@ -866,7 +865,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update de linformationdans prune (reste S/M ratio)" />
     <MESSAGE value="update pour l'ajout d'un mog dans model" />
     <MESSAGE value="remove mog dans modelUI fonctionnel" />
     <MESSAGE value="Sauvegarde et messages de confirmation" />
@@ -891,7 +889,8 @@
     <MESSAGE value="picking dans le shot gather fonctionnel" />
     <MESSAGE value="manualtt version alpha" />
     <MESSAGE value="reinitialize trace fonctionel" />
-    <option name="LAST_COMMIT_MESSAGE" value="reinitialize trace fonctionel" />
+    <MESSAGE value="Next trace to pick fonctionel" />
+    <option name="LAST_COMMIT_MESSAGE" value="Next trace to pick fonctionel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1129,16 +1128,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MogUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1818" column="24" selection-start-line="1818" selection-start-column="24" selection-end-line="1818" selection-end-column="24" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/mog.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1147,10 +1136,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/MogUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="333" column="20" selection-start-line="333" selection-start-column="20" selection-end-line="333" selection-end-column="85" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4398827">
-          <caret line="122" column="27" selection-start-line="122" selection-start-column="27" selection-end-line="122" selection-end-column="27" />
+        <state vertical-scroll-proportion="0.5601173">
+          <caret line="1037" column="56" selection-start-line="1037" selection-start-column="56" selection-end-line="1037" selection-end-column="56" />
           <folding />
         </state>
       </provider>
