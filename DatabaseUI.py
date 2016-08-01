@@ -168,7 +168,7 @@ class DatabaseUI(QtGui.QWidget):
                 rname = rname[:-4]
             if '.pickle' in rname:
                 rname = rname[:-7]
-            file = open(filename, 'rb')
+
 
             self.update_log("Database '{}' was saved successfully".format(rname))
         except:
@@ -192,7 +192,7 @@ class DatabaseUI(QtGui.QWidget):
                 rname = rname[:-4]
             if '.pickle' in rname:
                 rname = rname[:-7]
-            file = open(filename, 'rb')
+
 
             self.update_log("Database '{}' was saved successfully".format(rname))
         except:
@@ -289,10 +289,10 @@ if __name__ == '__main__':
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
     #Database_ui.model.load_model("t0302's model")
-    Database_ui.mog.plot_spectra()
+    #Database_ui.mog.plot_spectra()
     #Database_ui.mog.plot_zop()
 
-    #Database_ui.show()
+    Database_ui.show()
 
 
 

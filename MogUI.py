@@ -1812,10 +1812,12 @@ class RayCoverageFig(FigureCanvasQTAgg):
 
     def plot_ray_coverage(self, mog):
         self.ax.cla()
-        ind1 = mog.tt + mog.in_vect.astype(int)
-        ind1 = np.nonzero(ind1 == 0)[0]
-        ind2 = np.nonzero(ind1 == 1)[0]
+        picked_tt = np.where(mog.tt != -1)
+        unpicked_tt = np.where(mog.tt == -1)
+        picked = np.where(mog.in_vect == 1)
 
+        print(picked_tt)
+        print(unpicked_tt)
 
         Tx_xs = mog.data.Tx_x
         Rx_xs = mog.data.Rx_x
@@ -1842,10 +1844,12 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_ys = Tx_Rx_ys.T
         Tx_Rx_zs = Tx_Rx_zs.T
 
-        self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind1], Y= Tx_Rx_ys[:, ind1], Z= -1*Tx_Rx_zs[:, ind1], rstride=1, cstride=1, color='red')
-        self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind2], Y= Tx_Rx_ys[:, ind2], Z= -1*Tx_Rx_zs[:, ind2], rstride=1, cstride=1, color='red')
 
-        percent_coverage = 100* np.round(len(ind2)/mog.data.ntrace)
+
+        self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt[0]], Y= Tx_Rx_ys[:, unpicked_tt[0]], Z= -1*Tx_Rx_zs[:, unpicked_tt[0]], rstride=1, cstride=1, color='red')
+        self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt[0]], Y= Tx_Rx_ys[:, picked_tt[0]], Z= -1*Tx_Rx_zs[:, picked_tt[0]], rstride=1, cstride=1, color='green')
+
+        percent_coverage = 100* np.round(len(picked_tt)/mog.data.ntrace)
         self.ax.set_title(str(percent_coverage) + ' %')
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)

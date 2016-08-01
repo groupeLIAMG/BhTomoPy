@@ -18,6 +18,8 @@ class ManualttUI(QtGui.QFrame):
         self.openmain = OpenMainData(self)
         self.mogs = []
         self.air = []
+        self.boreholes = []
+        self.models = []
         self.mog = 0
         self.initUI()
 
@@ -96,6 +98,20 @@ class ManualttUI(QtGui.QFrame):
             self.t_min_Edit.setText(str(0))
             self.t_max_Edit.setText(str(300))
 
+    def reinit_trace(self):
+        n = int(self.Tnum_Edit.text()) - 1
+        if self.main_data_radio.isChecked():
+            self.mog.tt[n] = -1.0
+            self.mog.et[n] = -1.0
+        if self.t0_before_radio.isChecked():
+            self.air[self.mog.av].tt[n] = -1.0
+            self.air[self.mog.av].et[n] = -1.0
+        if self.t0_after_radio.isChecked():
+            self.air[self.mog.ap].tt[n] = -1.0
+            self.air[self.mog.ap].et[n] = -1.0
+        self.update_control_center()
+
+
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
@@ -105,13 +121,21 @@ class ManualttUI(QtGui.QFrame):
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(mog, self.air)
 
-    #def KeyPressEvent(self, event):
-    #    super(ManualttUI, self).keyPressEvent(event)
-    #    self.KeyPressed.emit()
-
-    #def onkey(self, event):
-    #    print(event.key())
-
+    def savefile(self):
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', filter= 'pickle (*.p *.pkl *.pickle)', )
+        print(filename)
+        save_file = open(filename, 'wb')
+        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+        dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+                                                ,buttons=QtGui.QMessageBox.Ok)
+        rname = filename.split('/')
+        rname = rname[-1]
+        if '.p' in rname:
+            rname = rname[:-2]
+        if '.pkl' in rname:
+            rname = rname[:-4]
+        if '.pickle' in rname:
+            rname = rname[:-7]
 
     def initUI(self):
         blue_palette = QtGui.QPalette()
@@ -151,6 +175,7 @@ class ManualttUI(QtGui.QFrame):
         btn_Upper.clicked.connect(self.upper_trace_isClicked)
         btn_Conti.clicked.connect(self.lower_trace_isClicked)
         btn_Stats.clicked.connect(self.plot_stats)
+        btn_Reini.clicked.connect(self.reinit_trace)
 
         #--- Label ---#
         trc_Label = MyQLabel("Trace number :", ha= 'right')
@@ -190,6 +215,7 @@ class ManualttUI(QtGui.QFrame):
         openAction.triggered.connect(self.openmain.show)
 
         saveAction = QtGui.QAction('Save', self)
+        saveAction.triggered.connect(self.savefile)
         #--- ToolBar ---#
         self.tool = QtGui.QMenuBar()
         filemenu = self.tool.addMenu('&File')
@@ -452,7 +478,7 @@ class OpenMainData(QtGui.QWidget):
             rname = rname[:-7]
         file = open(filename, 'rb')
 
-        boreholes, self.tt.mogs, self.tt.air, models = pickle.load(file)
+        self.tt.boreholes, self.tt.mogs, self.tt.air, self.tt.models = pickle.load(file)
 
         self.database_edit.setText(rname)
         for mog in self.tt.mogs:
@@ -961,7 +987,6 @@ class LowerFig(FigureCanvasQTAgg):
 
 
     def onclick(self, event):
-        print(event.button)
         if self.isTracingOn is False:
             return
 
