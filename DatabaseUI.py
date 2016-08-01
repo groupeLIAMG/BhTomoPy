@@ -150,6 +150,7 @@ class DatabaseUI(QtGui.QWidget):
 
             self.model.update_model_list()
             self.model.update_model_mog_list()
+
         except:
             self.update_log('Error: Database file must be of pickle type')
 

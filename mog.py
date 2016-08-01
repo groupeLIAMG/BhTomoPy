@@ -113,7 +113,7 @@ class Mog:
         fac_dt_ap = 1
         if self.useAirShots == 0:
             t0 = np.zeros(ndata)
-            return
+            return t0, fac_dt_av, fac_dt_ap
         elif air_before.name == '' and air_after.name == ''  and self.useAirShots == 1 :
             t0 = np.zeros(ndata)
             raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
@@ -150,7 +150,7 @@ class Mog:
             ddt0 = dt0/(ndata-1)
             t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
 
-        return t0
+        return t0, fac_dt_av, fac_dt_ap
     @staticmethod
     def load_self(mog):
         Mog.getID(mog.ID)
@@ -207,6 +207,7 @@ class Mog:
             else:
                 airBefore = air[self.av]
                 airAfter = air[self.ap]
+
                 t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
 
             if self.av != '':

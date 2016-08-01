@@ -107,6 +107,9 @@ class MOGUI(QtGui.QWidget):
             self.Air_Shot_Before_edit.setText(self.air[mog.av].name[:-4])
             self.Air_Shot_After_edit.setText(self.air[mog.ap].name[:-4])
 
+            if mog.useAirShots == 1:
+                self.Air_shots_checkbox.setChecked(True)
+
 
             for i in range(len(self.borehole.boreholes)):
                 if mog.Tx ==1 and mog.Rx ==1 :
@@ -150,7 +153,15 @@ class MOGUI(QtGui.QWidget):
                 self.MOGs[int(i.row())].name = new_name
         self.update_List_Widget()
 
+    def use_air(self):
+        ind = self.MOG_list.currentRow()
+        mog = self.MOGs[ind]
 
+        if self.Air_shots_checkbox.isChecked():
+            mog.useAirShots = 1
+
+        else:
+            mog.useAirShots = 0
 
     def airBefore(self):
 
@@ -1159,9 +1170,12 @@ class MOGUI(QtGui.QWidget):
         self.Tx_combo.activated.connect(self.updateCoords)
         self.Rx_combo.activated.connect(self.updateCoords)
 
-        #--- Checkbox ---#
-        Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")
+        #--- CheckBox ---#
+        self.Air_shots_checkbox                  = QtGui.QCheckBox("Use Air Shots")
         Correction_Factor_checkbox          = QtGui.QCheckBox("Fixed Time Step Correction Factor")
+
+        #- CheckBoxes' Actions -#
+        self.Air_shots_checkbox.stateChanged.connect(self.use_air)
 
         #--- Labels ---#
         Type_label                          = MyQLabel('Type:', ha='right')
@@ -1225,7 +1239,7 @@ class MOGUI(QtGui.QWidget):
         Sub_AirShots_Grid.addWidget(self.Type_combo, 0, 2, 1, 2)
         Sub_AirShots_Grid.addWidget(self.Tx_combo, 1, 2, 1, 2)
         Sub_AirShots_Grid.addWidget(self.Rx_combo, 2, 2, 1, 2)
-        Sub_AirShots_Grid.addWidget(Air_shots_checkbox, 3, 0)
+        Sub_AirShots_Grid.addWidget(self.Air_shots_checkbox, 3, 0)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_Before, 4, 0, 1, 2)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_After, 5, 0, 1, 2)
         Sub_AirShots_Grid.addWidget(self.Air_Shot_Before_edit, 4, 2, 1, 2)

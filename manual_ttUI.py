@@ -145,6 +145,7 @@ class ManualttUI(QtGui.QFrame):
         mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(mog, self.air)
+        self.statsFig1.showMaximized()
 
     def savefile(self):
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', filter= 'pickle (*.p *.pkl *.pickle)', )
@@ -161,6 +162,10 @@ class ManualttUI(QtGui.QFrame):
             rname = rname[:-4]
         if '.pickle' in rname:
             rname = rname[:-7]
+
+    def import_tt_file(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Import')
+
 
     def initUI(self):
         blue_palette = QtGui.QPalette()
@@ -237,16 +242,20 @@ class ManualttUI(QtGui.QFrame):
         self.incertitude_value_label.setPalette(blue_palette)
 
         #--- Actions ---#
-        openAction = QtGui.QAction(' Open main data file', self)
+        openAction = QtGui.QAction('Open main data file', self)
         openAction.triggered.connect(self.openmain.show)
 
         saveAction = QtGui.QAction('Save', self)
         saveAction.triggered.connect(self.savefile)
+
+        importAction = QtGui.QAction('Import ...', self)
+        importAction.triggered.connect(self.import_tt_file)
         #--- ToolBar ---#
         self.tool = QtGui.QMenuBar()
         filemenu = self.tool.addMenu('&File')
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
+        filemenu.addAction(importAction)
 
         #--- Edits ---#
         self.Tnum_Edit = QtGui.QLineEdit('1')
@@ -277,7 +286,7 @@ class ManualttUI(QtGui.QFrame):
         #--- Checkboxes ---#
         self.Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
         veloc_checkbox = QtGui.QCheckBox("Show apparent velocity")
-        self.lim_checkbox = QtGui.QCheckBox("A-dynamic limit")
+        self.lim_checkbox = QtGui.QCheckBox("Dynamic amplitude limits")
         save_checkbox = QtGui.QCheckBox("Intermediate saves")
         jump_checkbox = QtGui.QCheckBox("Jump to nex unpicked Trace")
         pick_checkbox = QtGui.QCheckBox("Pick Tx Data")
@@ -1117,10 +1126,10 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax1.plot(hyp, et, marker='o')
         self.ax3.plot(theta, et, marker='o')
 
-        vapp= hyp/tt
-        self.vappFig = VAppFig()
-        self.vappFig.plot_vapp(mog, vapp, ind)
-        self.vappFig.show()
+        #vapp= hyp/tt
+        #self.vappFig = VAppFig()
+        #self.vappFig.plot_vapp(mog, vapp, ind)
+        #self.vappFig.show()
 
 
 
