@@ -128,7 +128,7 @@ class Mog:
             if 'walkaway' in air_before.method:
                 pass #TODO get_t0_wa
 
-        if air_after != '':
+        if air_after.name != '':
             if 'fixed_antenna' in air_before.method:
                 t0ap = self.get_t0_fixed(air_after, v_air)
 
@@ -141,9 +141,9 @@ class Mog:
 
         if np.all(t0av == 0) and np.all(t0ap == 0):
             t0 = np.zeros((1, ndata))
-        elif len(t0av) == 0:
+        elif t0av == 0:
             t0 = t0ap*np.zeros((1, ndata))
-        elif len(t0ap) == 0:
+        elif t0ap == 0:
             t0 = t0av*np.zeros((1, ndata))
         else:
             dt0 = t0av - t0ap
@@ -173,7 +173,7 @@ class Mog:
                 std_tot = std_tot + std_times[i]
             times = sum(times[ind]*std_times[ind]/std_tot)
 
-        t0 = times - shot.d_TxRx/v
+        t0 = times - int(shot.d_TxRx[0])/v
         return  t0
 
     @staticmethod

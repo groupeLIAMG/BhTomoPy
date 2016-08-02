@@ -5,7 +5,7 @@ import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import pickle
 import numpy as np
-
+import re
 
 
 
@@ -116,7 +116,7 @@ class ManualttUI(QtGui.QFrame):
             self.A_min_Edit.setText(str(-1000))
             self.A_max_Edit.setText(str(1000))
             self.t_min_Edit.setText(str(0))
-            self.t_max_Edit.setText(str(300))
+            self.t_max_Edit.setText(str(269))
 
     def reinit_trace(self):
         n = int(self.Tnum_Edit.text()) - 1
@@ -165,6 +165,30 @@ class ManualttUI(QtGui.QFrame):
 
     def import_tt_file(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Import')
+        self.load_tt_file(filename)
+    def load_tt_file(self, filename):
+        try:
+            file = open(filename, 'r')
+        except:
+            try:
+                file = open(filename + ".dat", 'r')
+            except:
+                try:
+                    file = open(filename + ".DAT", 'r')
+                except:
+                    dialog = QtGui.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtGui.QMessageBox.Ok)
+
+        info_tt = np.loadtxt(filename)
+        for row in info_tt:
+            trc_number = int(float(row[0]))
+            tt = float(row[1])
+            et = float(row[2])
+
+            self.mog.tt[trc_number -1] = tt
+            self.mog.et[trc_number -1] = et
+
+
+        self.update_control_center()
 
 
     def initUI(self):
@@ -260,7 +284,7 @@ class ManualttUI(QtGui.QFrame):
         #--- Edits ---#
         self.Tnum_Edit = QtGui.QLineEdit('1')
         self.t_min_Edit = QtGui.QLineEdit('0')
-        self.t_max_Edit = QtGui.QLineEdit('300')
+        self.t_max_Edit = QtGui.QLineEdit('269')
         self.A_min_Edit = QtGui.QLineEdit('-1000')
         self.A_max_Edit = QtGui.QLineEdit('1000')
 
@@ -514,6 +538,7 @@ class OpenMainData(QtGui.QWidget):
 
         self.database_edit.setText(rname)
         for mog in self.tt.mogs:
+
             self.mog_combo.addItem(mog.name)
 
 
@@ -691,7 +716,7 @@ class UpperFig(FigureCanvasQTAgg):
 
         self.ax2.set_xlim(t_min, t_max)
         self.ax.set_xlim(t_min, t_max)
-        self.trace.set_xdata(range(len(trace)))
+        self.trace.set_xdata(self.tt.mog.data.timestp)
         self.trace.set_ydata(trace)
 
         #TODO
@@ -1101,10 +1126,13 @@ class StatsFig1(FigureCanvasQTAgg):
 
         done = (mog.tt_done + mog.in_vect.astype(int)) - 1
         ind = np.nonzero(done == 1)[0]
+        print(ind)
 
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
+        print(tt)
         et = mog.et[ind]
-        tt = tt[ind]
+        tt = tt[0, ind]
+
 
         hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
                       + (mog.data.Tx_y[ind] - mog.data.Rx_y[ind] )**2
@@ -1113,18 +1141,19 @@ class StatsFig1(FigureCanvasQTAgg):
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
 
-        vapp = hyp/(tt-t0[ind])
-        n = np.arange(len(ind))
+        vapp = hyp/(tt-t0[0, ind])
+
+        n = np.arange(np.shape(ind)[0])
         n = n[ind]
         ind2 = np.less(vapp, 0)
         ind2 = np.nonzero(ind2)[0]
 
-        self.ax4.plot(hyp, tt, marker='o')
-        self.ax5.plot(theta, hyp/tt, marker='o')
-        self.ax2.plot(theta, vapp, marker='o')
+        self.ax4.plot(hyp, tt, marker='o', ls= 'None')
+        self.ax5.plot(theta, hyp/tt, marker='o', ls= 'None')
+        self.ax2.plot(theta, vapp, marker='o', ls= 'None')
         self.ax6.plot(t0)
-        self.ax1.plot(hyp, et, marker='o')
-        self.ax3.plot(theta, et, marker='o')
+        self.ax1.plot(hyp, et, marker='o', ls= 'None')
+        self.ax3.plot(theta, et, marker='o', ls= 'None')
 
         #vapp= hyp/tt
         #self.vappFig = VAppFig()
@@ -1177,5 +1206,6 @@ if __name__ == '__main__':
     manual_ui.openmain.load_file('save test.p')
     manual_ui.update_control_center()
     manual_ui.showMaximized()
+    #manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
     sys.exit(app.exec_())

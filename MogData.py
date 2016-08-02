@@ -11,8 +11,6 @@ class MogData:
     Class to hold multi-offset gather (mog) data
     """
 
-    Tx_zSignal = QtCore.pyqtSignal(list)
-
     def __init__(self, name='', date=None):
         self.ntrace       = 0       # number of traces
         self.nptsptrc     = 0       # number of points per trace
@@ -117,8 +115,9 @@ class MogData:
             elif "LAST TRACE" in line:
                 self.ntrace = int(re.search('\d+', line).group())
 
-        self.timec = self.timec/1000
+        self.timec = 1000.0/self.timec
         self.timestp = self.timec*np.arange(self.nptsptrc)
+        print(self.timestp)
 
         if self.synthetique == False :
           self.antennas = self.antennas + "  - Ramac"
