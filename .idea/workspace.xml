@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="298" />
+    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="296" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="239" />
     <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="888" />
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="124" />
@@ -82,8 +82,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.88757396">
-              <caret line="528" column="35" selection-start-line="528" selection-start-column="35" selection-end-line="528" selection-end-column="35" />
+            <state vertical-scroll-proportion="0.7307692">
+              <caret line="995" column="45" selection-start-line="995" selection-start-column="45" selection-end-line="995" selection-end-column="45" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -514,12 +514,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00080" summary="Ajout de messages pour le log et solutions pour ray coverage">
-      <created>1468335658365</created>
-      <option name="number" value="00080" />
-      <option name="project" value="LOCAL" />
-      <updated>1468335658367</updated>
-    </task>
     <task id="LOCAL-00081" summary="debut spectra">
       <created>1468349620440</created>
       <option name="number" value="00081" />
@@ -808,7 +802,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470164283137</updated>
     </task>
-    <option name="localTasksCounter" value="129" />
+    <task id="LOCAL-00129" summary="intermediate saves fonctionnel">
+      <created>1470164874308</created>
+      <option name="number" value="00129" />
+      <option name="project" value="LOCAL" />
+      <updated>1470164874308</updated>
+    </task>
+    <option name="localTasksCounter" value="130" />
     <servers />
   </component>
   <component name="TodoView">
@@ -878,7 +878,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Gestion d'erreurs d'importation de fichiers dans database" />
     <MESSAGE value="gestion d'erreurs &#10;" />
     <MESSAGE value="manual tt" />
     <MESSAGE value="Correction airshots dans MogUI, changement du main de manual tt et database afin de pouvoir accéder directement au fichier de sauvegarde, ajout de carrés pour les traces non pointées" />
@@ -903,7 +902,8 @@
     <MESSAGE value="implémentation de use airshots" />
     <MESSAGE value="changement dans mogdata pour timestp&#10;update du pas d'échantillonnage dans upper fig&#10;et plus" />
     <MESSAGE value="Stats fonctionelles" />
-    <option name="LAST_COMMIT_MESSAGE" value="Stats fonctionelles" />
+    <MESSAGE value="intermediate saves fonctionnel" />
+    <option name="LAST_COMMIT_MESSAGE" value="intermediate saves fonctionnel" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1162,8 +1162,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.88757396">
-          <caret line="528" column="35" selection-start-line="528" selection-start-column="35" selection-end-line="528" selection-end-column="35" />
+        <state vertical-scroll-proportion="0.7307692">
+          <caret line="995" column="45" selection-start-line="995" selection-start-column="45" selection-end-line="995" selection-end-column="45" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>

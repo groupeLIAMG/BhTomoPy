@@ -143,7 +143,7 @@ class ManualttUI(QtGui.QFrame):
             self.intermediate_saves()
 
     def intermediate_saves(self):
-        if float(self.Tnum_Edit.text()) % 3 == 0:
+        if float(self.Tnum_Edit.text()) % 50 == 0:
             save_file = open(self.filename, 'wb')
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             print('saved')
@@ -159,9 +159,7 @@ class ManualttUI(QtGui.QFrame):
         self.statsFig1.showMaximized()
 
     def savefile(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', filter= 'pickle (*.p *.pkl *.pickle)', )
-        print(filename)
-        save_file = open(filename, 'wb')
+        save_file = open(self.filename, 'wb')
         pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
         dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
@@ -322,6 +320,7 @@ class ManualttUI(QtGui.QFrame):
         #- CheckBoxes' Actions -#
         self.lim_checkbox.stateChanged.connect(self.update_a_and_t_edits)
         self.lim_checkbox.stateChanged.connect(self.upperFig.plot_amplitude)
+        self.veloc_checkbox.stateChanged.connect(self.update_control_center)
 
         #--- Radio Buttons ---#
         self.main_data_radio = QtGui.QRadioButton("Main Data file")
@@ -926,6 +925,14 @@ class LowerFig(FigureCanvasQTAgg):
                                                 mew= 2,
                                                 ls = 'None')
 
+        self.vapp_plot,         = self.ax.plot(-100, -100,
+                                                marker = 'o',
+                                                fillstyle= 'none',
+                                                color= 'yellow',
+                                                markersize= 5,
+                                                mew= 2,
+                                                ls = 'None')
+
     def plot_trace_data(self):
 
         n = int(self.tt.Tnum_Edit.text())
@@ -977,6 +984,16 @@ class LowerFig(FigureCanvasQTAgg):
 
             if self.tt.veloc_checkbox.isChecked():
                 vapp = self.calculate_Vapp()
+                hyp = np.sqrt((mog.data.Tx_x[picked_tt_ind]-mog.data.Rx_x[picked_tt_ind])**2
+                      + (mog.data.Tx_y[picked_tt_ind] - mog.data.Rx_y[picked_tt_ind] )**2
+                      + (mog.data.Tx_z[picked_tt_ind] -  mog.data.Rx_z[picked_tt_ind] )**2)
+                tvapp = hyp/vapp
+
+                self.vapp_plot.set_ydata(tvapp)
+                self.vapp_plot.set_xdata(picked_tt_ind)
+            else:
+                self.vapp_plot.set_xdata(-100)
+                self.vapp_plot.set_ydata(-100)
 
             self.draw()
 
@@ -1078,8 +1095,8 @@ class LowerFig(FigureCanvasQTAgg):
                       + (mog.data.Tx_y[ind2] - mog.data.Rx_y[ind2] )**2
                       + (mog.data.Tx_z[ind2] -  mog.data.Rx_z[ind2] )**2)
 
-        tt = mog.tt[ind]
-        et = mog.et[ind]
+        tt = mog.tt[ind2]
+        et = mog.et[ind2]
 
         vapp = hyp/tt
         if np.all(et == 0):
@@ -1131,7 +1148,11 @@ class LowerFig(FigureCanvasQTAgg):
                 self.LowerTracePickedSignal.emit(True)
 
         elif event.button == 2:
-            self.tt.next_trace()
+            if self.tt.jump_checkbox.isChecked():
+
+                self.tt.next_trace_to_pick()
+            else:
+                self.tt.next_trace()
 
 
         elif event.button == 3:
