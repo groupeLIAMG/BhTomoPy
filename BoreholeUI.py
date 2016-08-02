@@ -99,7 +99,6 @@ class BoreholeUI(QtGui.QWidget):
             self.Zmax_edit.setText(str(bh.Zmax))
             self.Z_surf_edit.setText(str(bh.Z_surf))
             self.Z_water_edit.setText(str(bh.Z_water))
-            self.Diam_edit.setText(str(bh.diam))
 
 
     def del_bhole(self):
@@ -253,7 +252,7 @@ class BoreholeUI(QtGui.QWidget):
         Elev_label               = MyQLabel('Elevation:', ha='right')
         Elev_surf_label          = QtGui.QLabel("Elevation at surface:")
         Elev_water_label         = MyQLabel('water elevation:', ha='right')
-        Diam_label               = MyQLabel('Diameter:', ha='right')
+
 
         #--- Edits ---#
         self.X_edit              = QtGui.QLineEdit()
@@ -264,11 +263,6 @@ class BoreholeUI(QtGui.QWidget):
         self.Zmax_edit           = QtGui.QLineEdit()
         self.Z_surf_edit         = QtGui.QLineEdit()
         self.Z_water_edit        = QtGui.QLineEdit()
-        self.Diam_edit           = QtGui.QLineEdit()
-
-        #--- Edits Settings ---#
-
-        self.Diam_edit.setFixedSize(90, 20)
 
         #--- List Actions ---#
         self.bh_list.itemSelectionChanged.connect(self.update_List_Edits)
@@ -282,7 +276,6 @@ class BoreholeUI(QtGui.QWidget):
         self.Zmax_edit.editingFinished.connect(self.update_bhole_data)
         self.Z_surf_edit.editingFinished.connect(self.update_bhole_data)
         self.Z_water_edit.editingFinished.connect(self.update_bhole_data)
-        self.Diam_edit.editingFinished.connect(self.update_bhole_data)
 
         #--- Buttons Actions ---#
         btn_Add.clicked.connect(self.add_bhole)
@@ -292,16 +285,7 @@ class BoreholeUI(QtGui.QWidget):
         btn_Constraints_atten.clicked.connect(self.attenuation_constraints)
         btn_Constraints_veloc.clicked.connect(self.slowness_constraints)
 
-        #--- sub widgets ---#
-        #--- Diam ---#
-        sub_Diam_widget          = QtGui.QWidget()
-        sub_Diam_Grid            = QtGui.QGridLayout()
-        sub_Diam_Grid.addWidget(Diam_label, 0, 0)
-        sub_Diam_Grid.addWidget(self.Diam_edit, 0, 1)
-        sub_Diam_Grid.setContentsMargins(0, 0, 0, 0)
-        sub_Diam_Grid.setAlignment(QtCore.Qt.AlignLeft)
-        sub_Diam_widget.setLayout(sub_Diam_Grid)
-
+        #--- SubWidgets ---#
         #--- Edits and Labels SubWidget ---#
         sub_E_and_L_widget          = QtGui.QWidget()
         sub_E_and_L_grid            = QtGui.QGridLayout()
@@ -346,7 +330,6 @@ class BoreholeUI(QtGui.QWidget):
         master_grid.addWidget(sub_upper_buttons_widget, 0, 0)
         master_grid.addWidget(self.bh_list, 1, 0)
         master_grid.addWidget(sub_E_and_L_widget, 2, 0)
-        master_grid.addWidget(sub_Diam_widget, 3, 0)
         master_grid.addWidget(sub_lower_buttons_widget, 4, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
 

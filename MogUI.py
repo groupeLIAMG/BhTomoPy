@@ -483,22 +483,19 @@ class MOGUI(QtGui.QWidget):
 
 
     def plot_statstt(self):
-        try:
-            ind = self.MOG_list.selectedIndexes()
-            mog = self.MOGs[ind[0].row()]
-            done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
-            if len(np.nonzero(done == 1)[0]) == 0:
-                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
-                                                       buttons=QtGui.QMessageBox.Ok)
 
-            else:
-                self.statsttFig.plot_stats(mog, self.air)
-                self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
-                self.statsttmanager.showMaximized()
-        except:
+        ind = self.MOG_list.selectedIndexes()
+        mog = self.MOGs[ind[0].row()]
+        done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+        if len(np.nonzero(done == 1)[0]) == 0:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
+                                                   buttons=QtGui.QMessageBox.Ok)
 
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOG selected",
-                                                        buttons=QtGui.QMessageBox.Ok)
+        else:
+            self.statsttFig.plot_stats(mog, self.air)
+            self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
+            self.statsttmanager.showMaximized()
+
 
 
     def plot_statsamp(self):
@@ -1461,17 +1458,23 @@ class SpectraFig(FigureCanvasQTAgg):
         if scale == 'Linear':
             if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
                 self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
+                self.ax3.set_ylim(-mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0])
             else:
                 self.ax3.plot(SNR, -mog.data.Rx_z[ind])
+                self.ax3.set_ylim(-mog.data.Rx_z[ind][0], -mog.data.Rx_z[ind][-1])
 
 
         elif scale == 'Logarithmic':
             if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
                 self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
+                self.ax3.set_ylim(-mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0])
             else:
                 self.ax3.plot(SNR, -mog.data.Rx_z[ind])
+                self.ax3.set_ylim(-mog.data.Rx_z[ind][0], -mog.data.Rx_z[ind][-1])
 
             self.ax3.set_xscale('log')
+
+
 
 
         mpl.axes.Axes.set_title(self.ax1, 'Normalized amplitude')
@@ -1670,17 +1673,17 @@ class StatsttFig(FigureCanvasQTAgg):
         theta = 180/ np.pi * np.arcsin(dz/hyp)
 
         vapp = hyp/(tt-t0[ind])
-        n = np.arange(len(ind))
-        n = n[ind]
+        #n = np.arange(len(ind))
+        #n = n[ind]
         ind2 = np.less(vapp, 0)
         ind2 = np.nonzero(ind2)[0]
 
-        self.ax4.plot(hyp, tt, marker='o')
-        self.ax5.plot(theta, hyp/tt, marker='o')
-        self.ax2.plot(theta, vapp, marker='o')
+        self.ax4.plot(hyp, tt, marker='o', ls= 'None')
+        self.ax5.plot(theta, hyp/tt, marker='o', ls= 'None')
+        self.ax2.plot(theta, vapp, marker='o', ls= 'None')
         self.ax6.plot(t0)
-        self.ax1.plot(hyp, et, marker='o')
-        self.ax3.plot(theta, et, marker='o')
+        self.ax1.plot(hyp, et, marker='o', ls= 'None')
+        self.ax3.plot(theta, et, marker='o', ls= 'None')
 
         vapp= hyp/tt
         self.vappFig = VAppFig()
@@ -1726,13 +1729,13 @@ class VAppFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_vapp(self, mog, vapp, ind):
-        Tx = np.array([mog.data.Tx_x[ind].T, mog.data.Tx_y[ind].T, mog.data.Tx_z[ind].T ])
-        Rx = np.array([mog.data.Rx_x[ind].T, mog.data.Rx_y[ind].T, mog.data.Rx_z[ind].T ])
+        Tx = np.array([mog.data.Tx_x[ind], mog.data.Tx_y[ind], mog.data.Tx_z[ind]]).T
+        Rx = np.array([mog.data.Rx_x[ind], mog.data.Rx_y[ind], mog.data.Rx_z[ind]]).T
 
         vmin = min(vapp)
         vmax = max(vapp)
-        X = np.array([[Tx],
-                      [Rx]])
+        X = np.concatenate((Tx, Rx), axis= 0)
+
         x0, a = self.lsplane(X)
         el = (np.pi - a[2])*180/np.pi
         az = np.arctan(np.cos(a[1])/np.cos(a[1])) * 180/np.pi
@@ -1880,7 +1883,8 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt[0]], Y= Tx_Rx_ys[:, unpicked_tt[0]], Z= -1*Tx_Rx_zs[:, unpicked_tt[0]], rstride=1, cstride=1, color='red')
         self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt[0]], Y= Tx_Rx_ys[:, picked_tt[0]], Z= -1*Tx_Rx_zs[:, picked_tt[0]], rstride=1, cstride=1, color='green')
 
-        percent_coverage = 100* np.round(len(picked_tt)/mog.data.ntrace)
+        percent_coverage = 100* np.round((len(picked_tt[0])/mog.data.ntrace), 4)
+        print(percent_coverage)
         self.ax.set_title(str(percent_coverage) + ' %')
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
