@@ -99,7 +99,7 @@ class ManualttUI(QtGui.QFrame):
                 self.time.setText(str(np.round(airshot_before.tt[n], 4)))
                 self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
 
-
+        self.check_save()
         self.upperFig.plot_amplitude()
         self.lowerFig.plot_trace_data()
 
@@ -138,6 +138,16 @@ class ManualttUI(QtGui.QFrame):
         self.Tnum_Edit.setText(str(to_pick))
         self.update_control_center()
 
+    def check_save(self):
+        if self.save_checkbox.isChecked():
+            self.intermediate_saves()
+
+    def intermediate_saves(self):
+        if float(self.Tnum_Edit.text()) % 3 == 0:
+            save_file = open(self.filename, 'wb')
+            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+            print('saved')
+
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
@@ -155,14 +165,6 @@ class ManualttUI(QtGui.QFrame):
         pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
         dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
 
     def import_tt_file(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Import')
@@ -524,7 +526,7 @@ class OpenMainData(QtGui.QWidget):
         self.load_file(filename)
 
     def load_file(self, filename):
-
+        self.tt.filename = filename
         rname = filename.split('/')
         rname = rname[-1]
         if '.p' in rname:
