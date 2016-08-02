@@ -20,6 +20,7 @@ class ManualttUI(QtGui.QFrame):
         self.air = []
         self.boreholes = []
         self.models = []
+        self.filename = ''
         self.mog = 0
         self.initUI()
 
@@ -116,7 +117,7 @@ class ManualttUI(QtGui.QFrame):
             self.A_min_Edit.setText(str(-1000))
             self.A_max_Edit.setText(str(1000))
             self.t_min_Edit.setText(str(0))
-            self.t_max_Edit.setText(str(269))
+            self.t_max_Edit.setText(str(int(np.round(self.mog.data.timestp[-1]))))
 
     def reinit_trace(self):
         n = int(self.Tnum_Edit.text()) - 1
@@ -183,9 +184,9 @@ class ManualttUI(QtGui.QFrame):
             trc_number = int(float(row[0]))
             tt = float(row[1])
             et = float(row[2])
-
-            self.mog.tt[trc_number -1] = tt
-            self.mog.et[trc_number -1] = et
+            self.mog.tt_done[trc_number - 1] = 1
+            self.mog.tt[trc_number - 1] = tt
+            self.mog.et[trc_number - 1] = et
 
 
         self.update_control_center()
@@ -284,7 +285,7 @@ class ManualttUI(QtGui.QFrame):
         #--- Edits ---#
         self.Tnum_Edit = QtGui.QLineEdit('1')
         self.t_min_Edit = QtGui.QLineEdit('0')
-        self.t_max_Edit = QtGui.QLineEdit('269')
+        self.t_max_Edit = QtGui.QLineEdit('300')
         self.A_min_Edit = QtGui.QLineEdit('-1000')
         self.A_max_Edit = QtGui.QLineEdit('1000')
 
@@ -309,12 +310,12 @@ class ManualttUI(QtGui.QFrame):
 
         #--- Checkboxes ---#
         self.Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
-        veloc_checkbox = QtGui.QCheckBox("Show apparent velocity")
+        self.veloc_checkbox = QtGui.QCheckBox("Show apparent velocity")
         self.lim_checkbox = QtGui.QCheckBox("Dynamic amplitude limits")
-        save_checkbox = QtGui.QCheckBox("Intermediate saves")
-        jump_checkbox = QtGui.QCheckBox("Jump to nex unpicked Trace")
-        pick_checkbox = QtGui.QCheckBox("Pick Tx Data")
-        pick_checkbox.setDisabled(True)
+        self.save_checkbox = QtGui.QCheckBox("Intermediate saves")
+        self.jump_checkbox = QtGui.QCheckBox("Jump to next unpicked Trace")
+        self.pick_checkbox = QtGui.QCheckBox("Pick Tx Data")
+        self.pick_checkbox.setDisabled(True)
 
         #- CheckBoxes' Actions -#
         self.lim_checkbox.stateChanged.connect(self.update_a_and_t_edits)
@@ -411,17 +412,17 @@ class ManualttUI(QtGui.QFrame):
         Sub_left_Part_Grid.addWidget(btn_Next_Pick, 5, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(btn_Reini, 6, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 7, 0)
-        Sub_left_Part_Grid.addWidget(veloc_checkbox, 8, 0)
+        Sub_left_Part_Grid.addWidget(self.veloc_checkbox, 8, 0)
         Sub_left_Part_Grid.addWidget(self.lim_checkbox, 9, 0)
-        Sub_left_Part_Grid.addWidget(save_checkbox, 10, 0)
-        Sub_left_Part_Grid.addWidget(jump_checkbox, 11, 0)
+        Sub_left_Part_Grid.addWidget(self.save_checkbox, 10, 0)
+        Sub_left_Part_Grid.addWidget(self.jump_checkbox, 11, 0)
         Sub_left_Part_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_left_Part_Widget.setLayout(Sub_left_Part_Grid)
 
         #--- upper right subWidget ---#
         Sub_upper_right_Widget = QtGui.QWidget()
         Sub_upper_right_Grid = QtGui.QGridLayout()
-        Sub_upper_right_Grid.addWidget(pick_checkbox, 0, 0)
+        Sub_upper_right_Grid.addWidget(self.pick_checkbox, 0, 0)
         Sub_upper_right_Grid.addWidget(self.main_data_radio, 1, 0)
         Sub_upper_right_Grid.addWidget(self.t0_before_radio, 2, 0)
         Sub_upper_right_Grid.addWidget(self.t0_after_radio, 3, 0)
@@ -716,7 +717,12 @@ class UpperFig(FigureCanvasQTAgg):
 
         self.ax2.set_xlim(t_min, t_max)
         self.ax.set_xlim(t_min, t_max)
-        self.trace.set_xdata(self.tt.mog.data.timestp)
+        if self.tt.main_data_radio.isChecked():
+            self.trace.set_xdata(self.tt.mog.data.timestp)
+        if self.tt.t0_before_radio.isChecked():
+            self.trace.set_xdata(self.tt.air[self.tt.mog.av].data.timestp)
+        if self.tt.t0_after_radio.isChecked():
+            self.trace.set_xdata(self.tt.air[self.tt.mog.ap].data.timestp)
         self.trace.set_ydata(trace)
 
         #TODO
@@ -810,7 +816,12 @@ class UpperFig(FigureCanvasQTAgg):
             self.UpperTracePickedSignal.emit(True)
 
         elif event.button == 2:
-            self.tt.next_trace()
+
+            if self.tt.jump_checkbox.isChecked():
+
+                self.tt.next_trace_to_pick()
+            else:
+                self.tt.next_trace()
 
         elif event.button == 3:
             if self.x != None and self.y != None:
@@ -894,21 +905,24 @@ class LowerFig(FigureCanvasQTAgg):
                                                 fillstyle= 'none',
                                                 color= 'green',
                                                 markersize= 5,
-                                                mew= 2)
+                                                mew= 2,
+                                                ls = 'None')
 
         self.picked_et_circle1, = self.ax.plot(-100, -100,
                                                 marker = 'o',
                                                 fillstyle= 'none',
                                                 color= 'red',
                                                 markersize= 5,
-                                                mew= 2)
+                                                mew= 2,
+                                                ls = 'None')
 
         self.picked_et_circle2, = self.ax.plot(-100, -100,
                                                 marker = 'o',
                                                 fillstyle= 'none',
                                                 color= 'red',
                                                 markersize= 5,
-                                                mew= 2)
+                                                mew= 2,
+                                                ls = 'None')
 
     def plot_trace_data(self):
 
@@ -923,7 +937,8 @@ class LowerFig(FigureCanvasQTAgg):
             #print('main data')
             current_trc = mog.data.Tx_z[n]
             z = np.where(mog.data.Tx_z == current_trc)[0]
-            data = mog.data.rdata[t_min:t_max, z[0]:z[-1]]
+
+            data = mog.data.rdata[:, z[0]:z[-1]]
             cmax = max(np.abs(mog.data.rdata.flatten()))
 
             unpicked_tt_ind = np.where(mog.tt == -1)[0]
@@ -956,7 +971,10 @@ class LowerFig(FigureCanvasQTAgg):
 
             self.shot_gather.set_data(data)
             self.shot_gather.autoscale()
-            self.shot_gather.set_extent([z[0], z[-1], t_max, t_min])
+            self.shot_gather.set_extent([z[0], z[-1], self.tt.mog.data.timestp[-1], self.tt.mog.data.timestp[0]])
+
+            if self.tt.veloc_checkbox.isChecked():
+                vapp = self.calculate_Vapp()
 
             self.draw()
 
@@ -1045,6 +1063,31 @@ class LowerFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
 
+    def calculate_Vapp(self):
+        mog = self.tt.mog
+        ind1 = np.not_equal(mog.tt, -1)
+        ind2 = np.equal(mog.tt_done, 1).astype(int) + ind1.astype(int) + np.equal(mog.in_vect, 1).astype(int)
+        ind2 = np.where(ind2 == 3)
+        if len(ind2) == 0 :
+            vapp = 0
+            return vapp
+
+        hyp = np.sqrt((mog.data.Tx_x[ind2]-mog.data.Rx_x[ind2])**2
+                      + (mog.data.Tx_y[ind2] - mog.data.Rx_y[ind2] )**2
+                      + (mog.data.Tx_z[ind2] -  mog.data.Rx_z[ind2] )**2)
+
+        tt = mog.tt[ind]
+        et = mog.et[ind]
+
+        vapp = hyp/tt
+        if np.all(et == 0):
+            vapp = np.mean(vapp)
+        else:
+            w = 1/et
+            vapp = sum(vapp*w)/sum(w)
+
+        return vapp
+
 
     def onclick(self, event):
         if self.isTracingOn is False:
@@ -1131,7 +1174,7 @@ class StatsFig1(FigureCanvasQTAgg):
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
         print(tt)
         et = mog.et[ind]
-        tt = tt[0, ind]
+        tt = tt[ind]
 
 
         hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
@@ -1141,10 +1184,10 @@ class StatsFig1(FigureCanvasQTAgg):
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
 
-        vapp = hyp/(tt-t0[0, ind])
+        vapp = hyp/(tt-t0[ind])
 
-        n = np.arange(np.shape(ind)[0])
-        n = n[ind]
+        #n = np.arange(len(ind)-1)
+        #n = n[ind]
         ind2 = np.less(vapp, 0)
         ind2 = np.nonzero(ind2)[0]
 
@@ -1205,6 +1248,9 @@ if __name__ == '__main__':
     manual_ui = ManualttUI()
     manual_ui.openmain.load_file('save test.p')
     manual_ui.update_control_center()
+    manual_ui.update_a_and_t_edits()
+    manual_ui.upperFig.plot_amplitude()
+    manual_ui.lowerFig.plot_trace_data()
     manual_ui.showMaximized()
     #manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 

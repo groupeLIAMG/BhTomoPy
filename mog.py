@@ -173,7 +173,7 @@ class Mog:
                 std_tot = std_tot + std_times[i]
             times = sum(times[ind]*std_times[ind]/std_tot)
 
-        t0 = times - int(shot.d_TxRx[0])/v
+        t0 = times - float(shot.d_TxRx[0])/v
         return  t0
 
     @staticmethod

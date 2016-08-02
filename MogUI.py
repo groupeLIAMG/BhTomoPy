@@ -210,6 +210,7 @@ class MOGUI(QtGui.QWidget):
                     # (i.e. if the ok button is clicked, it returns True)
                     if ok :
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
+                        distance_list = [float(i) for i in distance_list]
 
                         if len(distance_list) > 1:
                             if len(distance_list)!= data.ntrace:

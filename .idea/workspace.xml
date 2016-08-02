@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="295" />
+    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="296" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="239" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="887" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="888" />
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="124" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/save test.p" afterPath="$PROJECT_DIR$/save test.p" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogData.py" afterPath="$PROJECT_DIR$/MogData.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/manual_ttUI.py" afterPath="$PROJECT_DIR$/manual_ttUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
@@ -73,8 +71,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-4.0689654">
-              <caret line="1952" column="14" selection-start-line="1952" selection-start-column="14" selection-end-line="1952" selection-end-column="14" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="214" column="50" selection-start-line="214" selection-start-column="50" selection-end-line="214" selection-end-column="50" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -85,8 +83,8 @@
       <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.2662722">
-              <caret line="286" column="46" selection-start-line="286" selection-start-column="46" selection-end-line="286" selection-end-column="46" />
+            <state vertical-scroll-proportion="0.19822486">
+              <caret line="1189" column="9" selection-start-line="1189" selection-start-column="9" selection-end-line="1189" selection-end-column="9" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -108,7 +106,7 @@
         <entry file="file://$PROJECT_DIR$/mog.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="145" column="17" selection-start-line="145" selection-start-column="17" selection-end-line="145" selection-end-column="17" />
+              <caret line="175" column="42" selection-start-line="175" selection-start-column="42" selection-end-line="175" selection-end-column="42" />
               <folding />
             </state>
           </provider>
@@ -174,10 +172,10 @@
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/semi_auto_ttUI.py" />
         <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
-        <option value="$PROJECT_DIR$/MogUI.py" />
-        <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/MogData.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
+        <option value="$PROJECT_DIR$/MogUI.py" />
+        <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
       </list>
     </option>
@@ -517,12 +515,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00078" summary="début de merge mog">
-      <created>1468257824951</created>
-      <option name="number" value="00078" />
-      <option name="project" value="LOCAL" />
-      <updated>1468257824953</updated>
-    </task>
     <task id="LOCAL-00079" summary="plot de ray coverage modifié (pas encore fonctionnel à 100%)">
       <created>1468326641405</created>
       <option name="number" value="00079" />
@@ -811,7 +803,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470082411454</updated>
     </task>
-    <option name="localTasksCounter" value="127" />
+    <task id="LOCAL-00127" summary="changement dans mogdata pour timestp&#10;update du pas d'échantillonnage dans upper fig&#10;et plus">
+      <created>1470153683069</created>
+      <option name="number" value="00127" />
+      <option name="project" value="LOCAL" />
+      <updated>1470153683070</updated>
+    </task>
+    <option name="localTasksCounter" value="128" />
     <servers />
   </component>
   <component name="TodoView">
@@ -881,7 +879,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Logo BH TOMO dans l'interface d'accueil,&#10;load database dans l'interface d'accueil fonctionnel,&#10;segmentation des classes dans MogUI&#10;" />
     <MESSAGE value="Ray coverage fontionnel" />
     <MESSAGE value="Gestion d'erreurs d'importation de fichiers dans database" />
     <MESSAGE value="gestion d'erreurs &#10;" />
@@ -906,7 +903,8 @@
     <MESSAGE value="trace select fonctionnel" />
     <MESSAGE value="update control center fixed" />
     <MESSAGE value="implémentation de use airshots" />
-    <option name="LAST_COMMIT_MESSAGE" value="implémentation de use airshots" />
+    <MESSAGE value="changement dans mogdata pour timestp&#10;update du pas d'échantillonnage dans upper fig&#10;et plus" />
+    <option name="LAST_COMMIT_MESSAGE" value="changement dans mogdata pour timestp&#10;update du pas d'échantillonnage dans upper fig&#10;et plus" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1107,16 +1105,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="359" column="42" selection-start-line="359" selection-start-column="42" selection-end-line="359" selection-end-column="42" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1124,24 +1112,6 @@
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MogUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.0689654">
-          <caret line="1952" column="14" selection-start-line="1952" selection-start-column="14" selection-end-line="1952" selection-end-column="14" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="145" column="17" selection-start-line="145" selection-start-column="17" selection-end-line="145" selection-end-column="17" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1163,10 +1133,38 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="359" column="42" selection-start-line="359" selection-start-column="42" selection-end-line="359" selection-end-column="42" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MogUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="214" column="50" selection-start-line="214" selection-start-column="50" selection-end-line="214" selection-end-column="50" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="175" column="42" selection-start-line="175" selection-start-column="42" selection-end-line="175" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.2662722">
-          <caret line="286" column="46" selection-start-line="286" selection-start-column="46" selection-end-line="286" selection-end-column="46" />
+        <state vertical-scroll-proportion="0.19822486">
+          <caret line="1189" column="9" selection-start-line="1189" selection-start-column="9" selection-end-line="1189" selection-end-column="9" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
