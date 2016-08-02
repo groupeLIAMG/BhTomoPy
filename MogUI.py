@@ -521,7 +521,16 @@ class MOGUI(QtGui.QWidget):
 
 
     def export_tt(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tt')
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Export tt')
+
+
+        mog = self.MOGs[self.MOG_list.currentRow()]
+        ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
+        ind = np.where(ind == 2)[0]
+        export_file = open(filename, 'w')
+        data = np.array([ind, mog.tt[ind], mog.et[ind]]).T
+        np.savetxt(filename, data)
+        export_file.close()
         self.moglogSignal.emit('Exporting Traveltime file ...')
         self.moglogSignal.emit('File exported succesfully ')
 

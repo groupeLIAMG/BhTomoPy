@@ -24,6 +24,7 @@ class DatabaseUI(QtGui.QWidget):
         self.mergemog = MergeMog(self.mog.MOGs)
         self.initUI()
         self.action_list = []
+        self.filename = ''
         self.models = self.model.models
         self.boreholes = self.bh.boreholes
         self.mogs = self.mog.MOGs
@@ -112,8 +113,13 @@ class DatabaseUI(QtGui.QWidget):
 
 
     def load_file(self, filename):
+        self.filename = filename
         try:
-            rname = filename.split('\\')
+            if '\\' in filename:
+                rname = filename.split('\\')
+            elif '/' in filename:
+                rname = filename.split('/')
+
             rname = rname[-1]
             if '.p' in rname:
                 rname = rname[:-2]
@@ -156,20 +162,11 @@ class DatabaseUI(QtGui.QWidget):
 
     def savefile(self):
         try:
-            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database ...', filter= 'pickle (*.p *.pkl *.pickle)', )
-            save_file = open(filename, 'wb')
+
+            save_file = open(self.filename, 'wb')
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
-            rname = filename.split('/')
-            rname = rname[-1]
-            if '.p' in rname:
-                rname = rname[:-2]
-            if '.pkl' in rname:
-                rname = rname[:-4]
-            if '.pickle' in rname:
-                rname = rname[:-7]
-
 
             self.update_log("Database '{}' was saved successfully".format(rname))
         except:
@@ -185,15 +182,6 @@ class DatabaseUI(QtGui.QWidget):
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
-            rname = filename.split('/')
-            rname = rname[-1]
-            if '.p' in rname:
-                rname = rname[:-2]
-            if '.pkl' in rname:
-                rname = rname[:-4]
-            if '.pickle' in rname:
-                rname = rname[:-7]
-
 
             self.update_log("Database '{}' was saved successfully".format(rname))
         except:
@@ -201,6 +189,8 @@ class DatabaseUI(QtGui.QWidget):
                                                     , buttons=QtGui.QMessageBox.Ok)
 
             self.update_log('Error: Database could not be saved')
+
+
 
     def initUI(self):
 
@@ -284,7 +274,7 @@ if __name__ == '__main__':
 
     Database_ui = DatabaseUI()
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    #Database_ui.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
+    Database_ui.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
     #Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     #Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
