@@ -522,7 +522,7 @@ class MOGUI(QtGui.QWidget):
 
     def export_tt(self):
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Export tt')
-
+        self.moglogSignal.emit('Exporting Traveltime file ...')
 
         mog = self.MOGs[self.MOG_list.currentRow()]
         ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
@@ -531,7 +531,7 @@ class MOGUI(QtGui.QWidget):
         data = np.array([ind, mog.tt[ind], mog.et[ind]]).T
         np.savetxt(filename, data)
         export_file.close()
-        self.moglogSignal.emit('Exporting Traveltime file ...')
+
         self.moglogSignal.emit('File exported succesfully ')
 
     def export_tau(self):
@@ -1452,18 +1452,25 @@ class SpectraFig(FigureCanvasQTAgg):
         SNR = self.data_select(traces, f0, dt, win_snr)
         SNR = SNR[::-1]
 
-
-        self.ax1.imshow(traces.T,extent= [0, mog.data.nptsptrc, -mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0]], cmap= 'plasma', aspect= 'auto', interpolation= 'none')
-        #self.ax2.imshow(np.log10(np.abs(ps)).T[:, :Fmax], cmap= 'plasma', aspect= 'auto',
-         #                   interpolation= 'none', extent= [0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0] )
+        if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
+            self.ax1.imshow(traces.T,extent= [0, mog.data.nptsptrc, -mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0]], cmap= 'plasma', aspect= 'auto', interpolation= 'none')
+        else:
+            self.ax1.imshow(traces[::1].T,extent= [0, mog.data.nptsptrc, -mog.data.Rx_z[ind][0] , -mog.data.Rx_z[ind][-1]], cmap= 'plasma', aspect= 'auto', interpolation= 'none')
 
 
         if scale == 'Linear':
-            self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
+            if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
+                self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
+            else:
+                self.ax3.plot(SNR, -mog.data.Rx_z[ind])
 
 
         elif scale == 'Logarithmic':
-            self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
+            if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
+                self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
+            else:
+                self.ax3.plot(SNR, -mog.data.Rx_z[ind])
+
             self.ax3.set_xscale('log')
 
 
