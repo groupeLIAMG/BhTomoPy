@@ -157,24 +157,15 @@ class Mog:
 
     @staticmethod
     def get_t0_fixed(shot, v):
-        times = shot.tt # à vérifier
+        times = shot.tt
         std_times = shot.et
-        ind = []
-        for i in range(len(times.flatten())):
-            if times[i] != -1:
-                ind.append(i)
-        minus_ind = np.transpose(np.nonzero(std_times))
-
-        if len(minus_ind) == 0:
+        ind = np.where(times != -1.0)[0]
+        if np.all(std_times == -1.0):
             times = np.mean(times[ind])
         else:
-            std_tot = 0
-            for i in ind:
-                std_tot = std_tot + std_times[i]
-            times = sum(times[ind]*std_times[ind]/std_tot)
-
+            times = sum(times[ind] * std_times[ind])/sum(std_times[ind])
         t0 = times - float(shot.d_TxRx[0])/v
-        return  t0
+        return t0
 
     @staticmethod
     def getID(*args):
@@ -203,7 +194,7 @@ class Mog:
             if self.data.synthetique == 1:
                 tt = self.tt
                 t0 = np.zeros(np.shape(tt))
-                return
+                return tt, t0
             else:
                 airBefore = air[self.av]
                 airAfter = air[self.ap]
@@ -228,6 +219,7 @@ class Mog:
 
             t0 = self.fac_dt * t0
             tt = self.fac_dt * self.tt - t0
+            print(t0)
             return tt, t0
 
 

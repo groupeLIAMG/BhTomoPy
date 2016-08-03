@@ -1658,16 +1658,19 @@ class StatsttFig(FigureCanvasQTAgg):
 
     def plot_stats(self, mog, airshots):
 
-        done = (mog.tt_done + mog.in_vect.astype(int)) - 1
-        ind = np.nonzero(done == 1)[0]
+        done = (mog.tt_done + mog.in_vect.astype(int))
+        ind = np.where(done == 2)[0]
+
 
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
         et = mog.et[ind]
         tt = tt[ind]
 
+
         hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
                       + (mog.data.Tx_y[ind] - mog.data.Rx_y[ind] )**2
                       + (mog.data.Tx_z[ind] -  mog.data.Rx_z[ind] )**2)
+
         dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
@@ -1729,9 +1732,10 @@ class VAppFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_vapp(self, mog, vapp, ind):
+        #for n in vapp:
+         #   print(n)
         Tx = np.array([mog.data.Tx_x[ind], mog.data.Tx_y[ind], mog.data.Tx_z[ind]]).T
         Rx = np.array([mog.data.Rx_x[ind], mog.data.Rx_y[ind], mog.data.Rx_z[ind]]).T
-
         vmin = min(vapp)
         vmax = max(vapp)
         X = np.concatenate((Tx, Rx), axis= 0)
@@ -1739,12 +1743,13 @@ class VAppFig(FigureCanvasQTAgg):
         x0, a = self.lsplane(X)
         el = (np.pi - a[2])*180/np.pi
         az = np.arctan(np.cos(a[1])/np.cos(a[1])) * 180/np.pi
-
+        vapp /= max(vapp)
         for n in range(len(vapp)):
 
-            self.ax.plot([Tx[0, n], Rx[0, n]], [Tx[0, n], Rx[0, n]], [Tx[0, n], Rx[0, n]])
+            self.ax.plot([Tx[n, 0], Rx[n, 0]], [Tx[n, 1], Rx[n, 1]], [Tx[n, 2], Rx[n, 2]], c= (vapp[n], 0, 0))
 
-        self.ax.text2D(0.05, 0.95, "{} - Apparent Velocity".format(mog.name), transform=ax.transAxes)
+        self.ax.text2D(0.05, 0.95, "{} - Apparent Velocity".format(mog.name), transform=self.ax.transAxes)
+
 
     def lsplane(self, X):
         '''
@@ -1761,15 +1766,16 @@ class VAppFig(FigureCanvasQTAgg):
             raise ValueError(' At least 3 data points required')
 
         # Calculate centroid
-        x0 = np.mean(X).T
+        x0 = np.mean(X, axis= 0)
 
         # Form a matrix A of translated points
-        A = np.array([X[:, 0] - x0[:,0], X[:, 1] - x0[:,1], X[:, 2] - x0[:,2]])
+        A = np.array([X[:, 0] - x0[0], X[:, 1] - x0[1], X[:, 2] - x0[2]])
 
         # Calculate the Single Valued Decomposition of A
         U, S, V = np.linalg.svd(A, full_matrices= False)
 
-        s = min(np.diag(S))
+        s = np.amax(np.diag(S), axis= -1)
+        s = min(s)
         i = np.nonzero(S == s)
         a = V[:, i]
 

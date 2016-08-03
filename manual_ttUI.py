@@ -96,7 +96,7 @@ class ManualttUI(QtGui.QFrame):
                 self.zTx_label.setText(str(airshot_after.data.Tx_z[n]))
                 self.ntrace_label.setText(str(airshot_after.data.ntrace))
                 self.percent_done_label.setText(str(done))
-                self.time.setText(str(np.round(airshot_before.tt[n], 4)))
+                self.time.setText(str(np.round(airshot_after.tt[n], 4)))
                 self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
 
         self.check_save()
@@ -124,12 +124,15 @@ class ManualttUI(QtGui.QFrame):
         if self.main_data_radio.isChecked():
             self.mog.tt[n] = -1.0
             self.mog.et[n] = -1.0
+            self.mog.tt_done[n] = -1.0
         if self.t0_before_radio.isChecked():
             self.air[self.mog.av].tt[n] = -1.0
             self.air[self.mog.av].et[n] = -1.0
+            self.air[self.mog.av].tt_done[n] = -1.0
         if self.t0_after_radio.isChecked():
             self.air[self.mog.ap].tt[n] = -1.0
             self.air[self.mog.ap].et[n] = -1.0
+            self.air[self.mog.ap].tt_done[n] = -1.0
         self.update_control_center()
 
     def next_trace_to_pick(self):
@@ -775,7 +778,7 @@ class UpperFig(FigureCanvasQTAgg):
 
                 if self.tt.t0_after_radio.isChecked():
                     self.tt.air[self.tt.mog.ap].tt[self.trc_number] = event.xdata
-                    self.tt.air[self.tt.mog.av].tt_done[self.trc_number] = 1
+                    self.tt.air[self.tt.mog.ap].tt_done[self.trc_number] = 1
                     self.ax2.set_xlim(x_lim[0], x_lim[-1])
                     self.ax.set_ylim(y_lim[0], y_lim[-1])
 
@@ -1221,10 +1224,7 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax1.plot(hyp, et, marker='o', ls= 'None')
         self.ax3.plot(theta, et, marker='o', ls= 'None')
 
-        #vapp= hyp/tt
-        #self.vappFig = VAppFig()
-        #self.vappFig.plot_vapp(mog, vapp, ind)
-        #self.vappFig.show()
+
 
 
 
