@@ -146,7 +146,7 @@ class Mog:
         elif t0ap == 0:
             t0 = t0av*np.zeros((1, ndata))
         else:
-            dt0 = t0av - t0ap
+            dt0 = t0ap - t0av
             ddt0 = dt0/(ndata-1)
             t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
 
