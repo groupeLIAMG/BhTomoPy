@@ -1585,8 +1585,9 @@ class ZOPFig(FigureCanvasQTAgg):
         zop_picked_ind = np.where(zop_picked_ind == 2)[0]
 
 
+
         if velocity_state:
-            vapp = self.calculate_Vapp(mog, air)
+            in_plus, in_minus, vapp = self.calculate_Vapp(mog, air)
             self.ax2.plot(vapp[zop_picked_ind], -mog.data.Rx_z[zop_picked_ind],
                           marker = 'o',
                           fillstyle= 'none',
@@ -1594,12 +1595,13 @@ class ZOPFig(FigureCanvasQTAgg):
                           markersize= 5,
                           mew= 1,
                           ls = 'None')
-            #self.ax2.errorbar(vapp[zop_ind], -mog.data.Rx_z[zop_ind], xerr= [mog.et[zop_ind], 2*mog.et[zop_ind]])
+
+            self.ax2.plot([in_plus[zop_picked_ind], in_minus[zop_picked_ind]], [-mog.data.Rx_z[zop_ind], -mog.data.Rx_z[zop_ind]], color= 'grey' )
             self.ax2.set_xlabel('Apparent velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
 
 
         if scont_state:
-            self.ax2.plot(1/mog.Tx.scont.valeur, mog.Tx.scont.z)
+            self.ax2.plot(1/mog.Tx.scont.valeur, mog.Tx.scont.z, color= 'black')
 
 
         self.zop_shot_gather.set_data(mog.data.rdata[:, zop_ind].T)
@@ -1620,10 +1622,11 @@ class ZOPFig(FigureCanvasQTAgg):
                       + (mog.data.Tx_z -  mog.data.Rx_z )**2)
 
         tt, t0 = mog.getCorrectedTravelTimes(air)
-
+        et = mog.et
         vapp = hyp/tt
-
-        return vapp
+        in_minus = hyp/(tt-et)
+        in_plus = hyp/(tt+et)
+        return in_plus, in_minus, vapp
 
 
 #-----------------------------------------------------------------------------------------------------------------------

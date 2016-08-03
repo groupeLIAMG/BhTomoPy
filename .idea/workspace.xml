@@ -8,9 +8,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/save test.p" afterPath="$PROJECT_DIR$/save test.p" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/BoreholeUI.py" afterPath="$PROJECT_DIR$/BoreholeUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -48,8 +45,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.8356165">
-              <caret line="1621" column="14" selection-start-line="1621" selection-start-column="14" selection-end-line="1621" selection-end-column="14" />
+            <state vertical-scroll-proportion="0.5976331">
+              <caret line="1603" column="72" selection-start-line="1603" selection-start-column="72" selection-end-line="1603" selection-end-column="72" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -472,12 +469,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00087" summary="update du lien entre les mogs et Tx/Rx combo">
-      <created>1468530062155</created>
-      <option name="number" value="00087" />
-      <option name="project" value="LOCAL" />
-      <updated>1468530062155</updated>
-    </task>
     <task id="LOCAL-00088" summary="création de delta t mog et fonction getcompat fonctionelle">
       <created>1468604521560</created>
       <option name="number" value="00088" />
@@ -766,7 +757,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470244857636</updated>
     </task>
-    <option name="localTasksCounter" value="136" />
+    <task id="LOCAL-00136" summary="update zop">
+      <created>1470253580873</created>
+      <option name="number" value="00136" />
+      <option name="project" value="LOCAL" />
+      <updated>1470253580874</updated>
+    </task>
+    <option name="localTasksCounter" value="137" />
     <servers />
   </component>
   <component name="TodoView">
@@ -789,7 +786,7 @@
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3267974" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4019608" sideWeight="0.49255952" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4019608" sideWeight="0.49255952" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -836,7 +833,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="picking de l'écart type fonctionnel" />
     <MESSAGE value="update sélection de l'écart type" />
     <MESSAGE value="update tt fonctionnel avec mog" />
     <MESSAGE value="update tt interaction entre lower fig et upper fig" />
@@ -861,7 +857,8 @@
     <MESSAGE value="début Stats Vapp" />
     <MESSAGE value="updates" />
     <MESSAGE value="update correction t0" />
-    <option name="LAST_COMMIT_MESSAGE" value="update correction t0" />
+    <MESSAGE value="update zop" />
+    <option name="LAST_COMMIT_MESSAGE" value="update zop" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1116,8 +1113,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.8356165">
-          <caret line="1621" column="14" selection-start-line="1621" selection-start-column="14" selection-end-line="1621" selection-end-column="14" />
+        <state vertical-scroll-proportion="0.5976331">
+          <caret line="1603" column="72" selection-start-line="1603" selection-start-column="72" selection-end-line="1603" selection-end-column="72" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
