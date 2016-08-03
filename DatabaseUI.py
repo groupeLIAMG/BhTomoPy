@@ -168,7 +168,7 @@ class DatabaseUI(QtGui.QWidget):
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
 
-            self.update_log("Database '{}' was saved successfully".format(rname))
+            self.update_log("Database was saved successfully")
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
                                                     , buttons=QtGui.QMessageBox.Ok)
@@ -183,7 +183,7 @@ class DatabaseUI(QtGui.QWidget):
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
 
-            self.update_log("Database '{}' was saved successfully".format(rname))
+            self.update_log("Database was saved successfully")
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
                                                     , buttons=QtGui.QMessageBox.Ok)
@@ -281,9 +281,9 @@ if __name__ == '__main__':
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
     #Database_ui.model.load_model("t0302's model")
     #Database_ui.mog.plot_spectra()
-    #Database_ui.mog.plot_zop()
+    Database_ui.mog.plot_zop()
 
-    Database_ui.show()
+    #Database_ui.show()
 
 
 

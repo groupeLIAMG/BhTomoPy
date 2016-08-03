@@ -282,8 +282,8 @@ class BoreholeUI(QtGui.QWidget):
         btn_Remove.clicked.connect(self.del_bhole)
         btn_Import.clicked.connect(self.import_bhole)
         btn_Plot.clicked.connect(self.plot)
-        btn_Constraints_atten.clicked.connect(self.attenuation_constraints)
-        btn_Constraints_veloc.clicked.connect(self.slowness_constraints)
+        btn_Constraints_atten.clicked.connect(self.slowness_constraints)
+        btn_Constraints_veloc.clicked.connect(self.attenuation_constraints)
 
         #--- SubWidgets ---#
         #--- Edits and Labels SubWidget ---#

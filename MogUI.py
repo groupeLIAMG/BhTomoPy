@@ -464,13 +464,11 @@ class MOGUI(QtGui.QWidget):
     def plot_zop(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
+        tol = float(self.tol_edit.text())
+        veloc_state = self.veloc_check.isChecked()
+        scont_state = self.const_check.isChecked()
 
-        if mog.data.rstepsz == 0:
-            self.tol_edit.setText('0.5')
-        else:
-            self.tol_edit.setText(str(mog.data.rstepsz * 0.5))
-
-        self.zopFig.plot_zop(mog)
+        self.zopFig.plot_zop(mog, self.air, tol, veloc_state, scont_state)
         self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
         self.zopmanager.showMaximized()
 
@@ -478,6 +476,7 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
         tol = float(self.tol_edit.text())
+
         self.zopraysFig.plot_rays(mog, tol)
         self.zopraysmanager.show()
 
@@ -902,7 +901,7 @@ class MOGUI(QtGui.QWidget):
         self.tmax_edit = QtGui.QLineEdit()
         self.zmin_edit = QtGui.QLineEdit()
         self.zmax_edit = QtGui.QLineEdit()
-        self.tol_edit = QtGui.QLineEdit()
+        self.tol_edit = QtGui.QLineEdit('0.05')
         self.color_scale_edit = QtGui.QLineEdit()
 
         #--- Edits Disposition ---#
@@ -913,7 +912,21 @@ class MOGUI(QtGui.QWidget):
         self.tol_edit.setFixedWidth(100)
         self.color_scale_edit.setFixedWidth(80)
 
+        self.tmin_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.tmin_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.tmax_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.zmin_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.zmax_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.tol_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.color_scale_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
+        #- Edits Disposition -#
+        self.tmin_edit.editingFinished.connect(self.plot_zop)
+        self.tmax_edit.editingFinished.connect(self.plot_zop)
+        self.zmin_edit.editingFinished.connect(self.plot_zop)
+        self.zmax_edit.editingFinished.connect(self.plot_zop)
+        self.tol_edit.editingFinished.connect(self.plot_zop)
+        self.color_scale_edit.editingFinished.connect(self.plot_zop)
 
         #--- Combobox ---#
         self.color_scale_combo = QtGui.QComboBox()
@@ -929,6 +942,11 @@ class MOGUI(QtGui.QWidget):
         self.amp_check = QtGui.QCheckBox('Show Amplitude Data')
         self.geo_check = QtGui.QCheckBox('Corr. Geometrical Spreading')
 
+        #- CheckBoxes' Actions -#
+        self.veloc_check.stateChanged.connect(self.plot_zop)
+        self.const_check.stateChanged.connect(self.plot_zop)
+        self.amp_check.stateChanged.connect(self.plot_zop)
+        self.geo_check.stateChanged.connect(self.plot_zop)
 
         #--- Buttons ---#
         btn_show = QtGui.QPushButton('Show Rays')
@@ -992,8 +1010,6 @@ class MOGUI(QtGui.QWidget):
         zopmanagergrid.setRowStretch(1, 100)
         self.zopmanager.setLayout(zopmanagergrid)
 
-        #- Checkboxes Actions -#
-        self.amp_check.stateChanged.connect(self.zopFig.show_amplitude_data)
 
         #------- Creation of the Manager for the raw Data figure -------#
         self.rawdataFig = RawDataFig()
@@ -1540,32 +1556,79 @@ class ZOPFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax1 = self.figure.add_axes([0.08, 0.06, 0.4, 0.9])
         self.ax2 = self.figure.add_axes([0.6, 0.06, 0.3, 0.85])
-        self.ax3 = self.ax2.twiny()
 
-    def plot_zop(self, mog):
 
+        self.zop_shot_gather = self.ax1.imshow(np.zeros((2,2)),
+                                                interpolation= 'none',
+                                                cmap= 'seismic',
+                                                aspect= 'auto')
+
+        self.picked_tt_circle,  = self.ax1.plot(-100, -100,
+                                                marker = 'o',
+                                                fillstyle= 'none',
+                                                color= 'green',
+                                                markersize= 5,
+                                                mew= 2,
+                                                ls = 'None')
+
+
+    def plot_zop(self, mog, air, offset_tol, velocity_state, scont_state):
+        self.ax2.cla()
         mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
         mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Amplitude')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        self.ax2.xaxis.set_label_position('top')
-        self.ax2.xaxis.set_ticks_position('top')
-        self.ax3.xaxis.set_label_position('bottom')
-        self.ax3.xaxis.set_ticks_position('bottom')
-        self.ax3.set_visible(False)
+
+        dz = np.abs(mog.data.Tx_z - mog.data.Rx_z)
+        zop_ind = np.where(dz <= offset_tol)[0]
+
+        zop_picked_ind = np.less_equal(dz, offset_tol).astype(int) + np.not_equal(mog.tt, -1).astype(int)
+        zop_picked_ind = np.where(zop_picked_ind == 2)[0]
+
+
+        if velocity_state:
+            vapp = self.calculate_Vapp(mog, air)
+            self.ax2.plot(vapp[zop_picked_ind], -mog.data.Rx_z[zop_picked_ind],
+                          marker = 'o',
+                          fillstyle= 'none',
+                          color= 'blue',
+                          markersize= 5,
+                          mew= 1,
+                          ls = 'None')
+            #self.ax2.errorbar(vapp[zop_ind], -mog.data.Rx_z[zop_ind], xerr= [mog.et[zop_ind], 2*mog.et[zop_ind]])
+            self.ax2.set_xlabel('Apparent velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
+
+
+        if scont_state:
+            self.ax2.plot(1/mog.Tx.scont.valeur, mog.Tx.scont.z)
+
+
+        self.zop_shot_gather.set_data(mog.data.rdata[:, zop_ind].T)
+        self.zop_shot_gather.autoscale()
+        self.zop_shot_gather.set_extent([mog.data.timestp[0], mog.data.timestp[-1], -max(mog.data.Rx_z), -min(mog.data.Rx_z)])
+
+        self.picked_tt_circle.set_ydata(-mog.data.Rx_z[zop_ind])
+        self.picked_tt_circle.set_xdata(mog.tt[zop_ind])
+
+
 
         self.draw()
-    def show_amplitude_data(self, state):
-        self.ax3.set_visible(state)
-        self.ax3.spines['top'].set_color('red')
-        self.ax3.spines['bottom'].set_color('blue')
-        self.draw()
+
+    def calculate_Vapp(self, mog, air):
+
+        hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2
+                      + (mog.data.Tx_y - mog.data.Rx_y )**2
+                      + (mog.data.Tx_z -  mog.data.Rx_z )**2)
+
+        tt, t0 = mog.getCorrectedTravelTimes(air)
+
+        vapp = hyp/tt
+
+        return vapp
 
 
 #-----------------------------------------------------------------------------------------------------------------------
 #
-#                       Zero Offset Profile (ZOP) Rays Figure Class
+#                       ZOP Rays Figure Class
 #
 #-----------------------------------------------------------------------------------------------------------------------
 class ZOPRaysFig(FigureCanvasQTAgg):
