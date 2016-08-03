@@ -463,12 +463,7 @@ class MOGUI(QtGui.QWidget):
 
     def plot_zop(self):
         ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-        tol = float(self.tol_edit.text())
-        veloc_state = self.veloc_check.isChecked()
-        scont_state = self.const_check.isChecked()
-
-        self.zopFig.plot_zop(mog, self.air, tol, veloc_state, scont_state)
+        self.zopFig.plot_zop()
         self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
         self.zopmanager.showMaximized()
 
@@ -1001,7 +996,7 @@ class MOGUI(QtGui.QWidget):
 
 
         #------- Creation of the manager for the ZOP figure -------#
-        self.zopFig = ZOPFig()
+        self.zopFig = ZOPFig(self)
         self.zopmanager = QtGui.QWidget()
         zopmanagergrid = QtGui.QGridLayout()
         zopmanagergrid.addWidget(self.zopFig, 0, 0, 2, 5)
@@ -1548,9 +1543,10 @@ class SpectraFig(FigureCanvasQTAgg):
 #
 #-----------------------------------------------------------------------------------------------------------------------
 class ZOPFig(FigureCanvasQTAgg):
-    def __init__(self):
+    def __init__(self, ui):
         fig = mpl.figure.Figure(facecolor= 'white')
         super(ZOPFig, self).__init__(fig)
+        self.ui = ui
         self.initFig()
 
     def initFig(self):
@@ -1572,22 +1568,35 @@ class ZOPFig(FigureCanvasQTAgg):
                                                 ls = 'None')
 
 
-    def plot_zop(self, mog, air, offset_tol, velocity_state, scont_state):
+    def plot_zop(self):
         self.ax2.cla()
+        ind = self.ui.MOG_list.selectedIndexes()
+        mog = self.ui.MOGs[ind[0].row()]
+        tol = float(self.ui.tol_edit.text())
+        veloc_state = self.ui.veloc_check.isChecked()
+        scont_state = self.ui.const_check.isChecked()
         mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
         mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
 
         dz = np.abs(mog.data.Tx_z - mog.data.Rx_z)
-        zop_ind = np.where(dz <= offset_tol)[0]
+        zop_ind = np.where(dz <= tol)[0]
 
-        zop_picked_ind = np.less_equal(dz, offset_tol).astype(int) + np.not_equal(mog.tt, -1).astype(int)
+        zop_picked_ind = np.less_equal(dz, tol).astype(int) + np.not_equal(mog.tt, -1).astype(int)
         zop_picked_ind = np.where(zop_picked_ind == 2)[0]
 
+        tt, in_plus, in_minus, vapp = self.calculate_Vapp(mog, self.ui.air)
+        zmin = -np.round(min(mog.data.Rx_z[zop_ind]), 4)
+        zmax = -np.round(max(mog.data.Rx_z[zop_ind]), 4)
+        tmin = np.round(min(tt), 3)
+        tmax = np.round(max(tt), 3)
+        self.ui.tmin_edit.setText(str(tmin))
+        self.ui.tmax_edit.setText(str(tmax))
+        self.ui.zmin_edit.setText(str(zmin))
+        self.ui.zmax_edit.setText(str(zmax))
 
+        if veloc_state:
 
-        if velocity_state:
-            in_plus, in_minus, vapp = self.calculate_Vapp(mog, air)
             self.ax2.plot(vapp[zop_picked_ind], -mog.data.Rx_z[zop_picked_ind],
                           marker = 'o',
                           fillstyle= 'none',
@@ -1598,6 +1607,7 @@ class ZOPFig(FigureCanvasQTAgg):
 
             self.ax2.plot([in_plus[zop_picked_ind], in_minus[zop_picked_ind]], [-mog.data.Rx_z[zop_ind], -mog.data.Rx_z[zop_ind]], color= 'grey' )
             self.ax2.set_xlabel('Apparent velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
+            self.ax2.set_ylim(zmax, zmin)
 
 
         if scont_state:
@@ -1606,10 +1616,10 @@ class ZOPFig(FigureCanvasQTAgg):
 
         self.zop_shot_gather.set_data(mog.data.rdata[:, zop_ind].T)
         self.zop_shot_gather.autoscale()
-        self.zop_shot_gather.set_extent([mog.data.timestp[0], mog.data.timestp[-1], -max(mog.data.Rx_z), -min(mog.data.Rx_z)])
+        self.zop_shot_gather.set_extent([mog.data.timestp[0], mog.data.timestp[-1], zmax, zmin])
 
-        self.picked_tt_circle.set_ydata(-mog.data.Rx_z[zop_ind])
-        self.picked_tt_circle.set_xdata(mog.tt[zop_ind])
+        self.picked_tt_circle.set_ydata(-mog.data.Rx_z[zop_picked_ind])
+        self.picked_tt_circle.set_xdata(mog.tt[zop_picked_ind])
 
 
 
@@ -1622,11 +1632,13 @@ class ZOPFig(FigureCanvasQTAgg):
                       + (mog.data.Tx_z -  mog.data.Rx_z )**2)
 
         tt, t0 = mog.getCorrectedTravelTimes(air)
+        print(min(tt))
+        print(max(tt))
         et = mog.et
         vapp = hyp/tt
         in_minus = hyp/(tt-et)
         in_plus = hyp/(tt+et)
-        return in_plus, in_minus, vapp
+        return tt, in_plus, in_minus, vapp
 
 
 #-----------------------------------------------------------------------------------------------------------------------

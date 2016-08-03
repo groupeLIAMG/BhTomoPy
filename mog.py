@@ -219,7 +219,7 @@ class Mog:
 
             t0 = self.fac_dt * t0
             tt = self.fac_dt * self.tt - t0
-            print(t0)
+
             return tt, t0
 
 

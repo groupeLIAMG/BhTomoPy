@@ -3,12 +3,13 @@
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="299" />
     <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="239" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="893" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="888" />
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="130" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mog.py" afterPath="$PROJECT_DIR$/mog.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -45,8 +46,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5976331">
-              <caret line="1603" column="72" selection-start-line="1603" selection-start-column="72" selection-end-line="1603" selection-end-column="72" />
+            <state vertical-scroll-proportion="0.556213">
+              <caret line="1591" column="34" selection-start-line="1591" selection-start-column="34" selection-end-line="1591" selection-end-column="34" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -72,6 +73,16 @@
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mog.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/mog.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="221" column="0" selection-start-line="221" selection-start-column="0" selection-end-line="221" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -127,9 +138,9 @@
         <option value="$PROJECT_DIR$/MogData.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
-        <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/BoreholeUI.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
+        <option value="$PROJECT_DIR$/mog.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
       </list>
     </option>
@@ -469,12 +480,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00088" summary="création de delta t mog et fonction getcompat fonctionelle">
-      <created>1468604521560</created>
-      <option name="number" value="00088" />
-      <option name="project" value="LOCAL" />
-      <updated>1468604521562</updated>
-    </task>
     <task id="LOCAL-00089" summary="Merge Mog fonctionnel">
       <created>1468610203191</created>
       <option name="number" value="00089" />
@@ -763,7 +768,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470253580874</updated>
     </task>
-    <option name="localTasksCounter" value="137" />
+    <task id="LOCAL-00137" summary="incertitude sur les valeurs de vitesse">
+      <created>1470254682142</created>
+      <option name="number" value="00137" />
+      <option name="project" value="LOCAL" />
+      <updated>1470254682143</updated>
+    </task>
+    <option name="localTasksCounter" value="138" />
     <servers />
   </component>
   <component name="TodoView">
@@ -833,7 +844,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update sélection de l'écart type" />
     <MESSAGE value="update tt fonctionnel avec mog" />
     <MESSAGE value="update tt interaction entre lower fig et upper fig" />
     <MESSAGE value="optimisation lowerFig" />
@@ -858,7 +868,8 @@
     <MESSAGE value="updates" />
     <MESSAGE value="update correction t0" />
     <MESSAGE value="update zop" />
-    <option name="LAST_COMMIT_MESSAGE" value="update zop" />
+    <MESSAGE value="incertitude sur les valeurs de vitesse" />
+    <option name="LAST_COMMIT_MESSAGE" value="incertitude sur les valeurs de vitesse" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -872,7 +883,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="73" />
+      <option name="time" value="74" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -1031,14 +1042,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.42307693">
-          <caret line="144" column="42" selection-start-line="144" selection-start-column="42" selection-end-line="144" selection-end-column="42" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.35502958">
@@ -1111,10 +1114,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/mog.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="221" column="0" selection-start-line="221" selection-start-column="0" selection-end-line="221" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5976331">
-          <caret line="1603" column="72" selection-start-line="1603" selection-start-column="72" selection-end-line="1603" selection-end-column="72" />
+        <state vertical-scroll-proportion="0.556213">
+          <caret line="1591" column="34" selection-start-line="1591" selection-start-column="34" selection-end-line="1591" selection-end-column="34" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
