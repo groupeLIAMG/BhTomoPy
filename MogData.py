@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import scanf
 import re
 import numpy as np
 from PyQt4 import QtCore
@@ -117,7 +116,6 @@ class MogData:
 
         self.timec = 1000.0/self.timec
         self.timestp = self.timec*np.arange(self.nptsptrc)
-        print(self.timestp)
 
         if self.synthetique == False :
           self.antennas = self.antennas + "  - Ramac"
@@ -207,5 +205,3 @@ if __name__ == '__main__':
     #m.readRD3('testData/formats/ramac/t0102')
     #m.readTLF('testData/formats/ramac/t0102')
     m.readRAMAC('testData/formats/ramac/t0302')
-
-
