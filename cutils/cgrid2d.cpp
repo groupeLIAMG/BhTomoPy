@@ -6,19 +6,19 @@
         "depends": [
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include/numpy/arrayobject.h",
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include/numpy/ufuncobject.h",
-            "ttcr/Grid2Dttcr.h",
-            "ttcr/ttcr_t.h"
+            "cutils/Grid2Dttcr.h",
+            "cutils/ttcr_t.h"
         ],
         "extra_compile_args": [
             "-std=c++11"
         ],
         "include_dirs": [
-            "./ttcr/",
+            "./cutils/",
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include"
         ],
         "language": "c++"
     },
-    "module_name": "ttcr.cgrid2d"
+    "module_name": "cutils.cgrid2d"
 }
 END: Cython Metadata */
 
@@ -550,7 +550,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "ttcr/cgrid2d.pyx",
+  "cutils/cgrid2d.pyx",
   "__init__.pxd",
   "stringsource",
   "type.pxd",
@@ -1361,7 +1361,7 @@ static const char __pyx_k_scipy_sparse[] = "scipy.sparse";
 static const char __pyx_k_staticmethod[] = "staticmethod";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static const char __pyx_k_Copyright_2016_Bernard_Giroux_e[] = "\n    Copyright 2016 Bernard Giroux\n    email: bernard.giroux@ete.inrs.ca\n    \n    This program is free software: you can redistribute it and/or modify\n    it under the terms of the GNU General Public License as published by\n    the Free Software Foundation, either version 3 of the License, or\n    (at your option) any later version.\n    \n    This program is distributed in the hope that it /will be useful,\n    but WITHOUT ANY WARRANTY; without even the implied warranty of\n    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n    GNU General Public License for more details.\n    \n    You should have received a copy of the GNU General Public License\n    along with this program.  If not, see <http://www.gnu.org/licenses/>.\n";
-static const char __pyx_k_Users_giroux_JacquesCloud_GitHu[] = "/Users/giroux/JacquesCloud/GitHub/BhTomoPy/ttcr/cgrid2d.pyx";
+static const char __pyx_k_Users_giroux_JacquesCloud_GitHu[] = "/Users/giroux/JacquesCloud/GitHub/BhTomoPy/cutils/cgrid2d.pyx";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static const char __pyx_k_Format_string_allocated_too_shor[] = "Format string allocated too short, see comment in numpy.pxd";
 static const char __pyx_k_Grid_should_handle_raytracing_in[] = "Grid should handle raytracing in tilted elliptically anisotropic media";

@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import math
 import numpy as np
 
-from ttcr import cgrid2d
+from cutils import cgrid2d
 
 from utils import nargout
 
