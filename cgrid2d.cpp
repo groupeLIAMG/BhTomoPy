@@ -6,7 +6,7 @@
         "depends": [
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include/numpy/arrayobject.h",
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include/numpy/ufuncobject.h",
-            "Grid2Dttcr.h",
+            "ttcr/Grid2Dttcr.h",
             "ttcr/ttcr_t.h"
         ],
         "extra_compile_args": [
