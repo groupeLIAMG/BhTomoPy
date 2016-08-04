@@ -387,7 +387,7 @@ class Grid2D(Grid):
             
     def getCellCenter(self, dx=None, dz=None):
         """
-        returns a nCell x 2 array containing the coordinates of the center of the cells
+        Returns a nCell x 2 array containing the coordinates of the center of the cells
         """
         if dx is None:
             dx = self.grx[1] - self.grx[0]
@@ -403,6 +403,39 @@ class Grid2D(Grid):
 
         c = np.vstack( [xmin+np.kron(np.ones((nz,)), np.arange(nx)*dx), zmin+np.kron(np.arange(nz), np.ones((nx,))*dz)] ).T
         return c
+        
+        
+    def checkCenter(self, x, y, z):
+        """
+        Verify if given coordinates correspond to the center of the cells
+        """
+        if len(y)>0:
+            return False    # Y should be empty for 2D grids
+            
+        dx = self.grx[1] - self.grx[0]
+        xmin = self.grx[0] + dx/2.0
+        xmax = self.grx[-1] - dx/3.0  # divide by 3 to avoid truncation error
+        xx = np.arange(xmin, xmax, dx)
+        if xx.size() != x.size():
+            return False
+            
+        if np.any(np.abs(x-xx)>1000.0*np.finfo(float).eps):
+            return False
+        
+        dz = self.grz[1] - self.grz[0]
+        zmin = self.grz[0] + dz/2.0
+        zmax = self.grz[-1] - dz/3.0  # divide by 3 to avoid truncation error
+        zz = np.arange(zmin, zmax, dz)
+        if zz.size() != z.size():
+            return False
+            
+        if np.any(np.abs(z-zz)>1000.0*np.finfo(float).eps):
+            return False
+        
+        return True
+        
+        
+    
         
         
 
