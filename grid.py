@@ -33,13 +33,16 @@ from utils import nargout
 class Grid:
     """
     Superclass for 2D and 3D grids
+    
+    Grids are regular, i.e. constant step size, although not restricted to
+        square or cubic cells (dx, dy and dz may differ from each other)
     """
     
     def __init__(self):
         
-        self.grx = np.array([])
-        self.gry = np.array([])
-        self.grz = np.array([])
+        self.grx = np.array([])  # coordinates of grid nodes along X
+        self.gry = np.array([])  # coordinates of grid nodes along Y
+        self.grz = np.array([])  # coordinates of grid nodes along Z
         self.cont = None
         self.Tx = np.array([])
         self.Rx = np.array([])
@@ -260,6 +263,12 @@ class Grid:
 class Grid2D(Grid):
     """
     Class for 2D grids
+    
+    
+    Note: - grid data stored in 2D arrays should be nz x nx in size
+          - when building vectors from 2D grid data (with numpy.flatten()), X is 
+            the "fast" axis, contrary to matlab where it is Z
+          
     """
     
     def __init__(self, grx, grz, nthreads=1):
@@ -376,13 +385,33 @@ class Grid2D(Grid):
             return cgrid2d.Grid2Dcpp.Lsr2da(self.Tx[np.ix_(ind,[0,2])], self.Rx[np.ix_(ind,[0,2])], grx, grz)
             
             
+    def getCellCenter(self, dx=None, dz=None):
+        """
+        returns a nCell x 2 array containing the coordinates of the center of the cells
+        """
+        if dx is None:
+            dx = self.grx[1] - self.grx[0]
+        if dz is None:
+            dz = self.grz[1] - self.grz[0]
+
+        xmin = self.grx[0] + dx/2.0
+        zmin = self.grz[0] + dz/2.0
+        xmax = self.grx[-1] - dx/3.0  # divide by 3 to avoid truncation error
+        zmax = self.grz[-1] = dz/3.0
+        nx = np.ceil((xmax-xmin)/dx)
+        nz = np.ceil((zmax-zmin)/dz)
+
+        c = np.vstack( [xmin+np.kron(np.ones((nz,)), np.arange(nx)*dx), zmin+np.kron(np.arange(nz), np.ones((nx,))*dz)] ).T
+        return c
+        
+        
 
 if __name__ == '__main__':
     
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
     
-    testRaytrace = False
+    testRaytrace = True
     testStatic = True
     
     if testRaytrace:
