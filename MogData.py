@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
 import numpy as np
-from PyQt4 import QtCore
-
 
 
 class MogData:
