@@ -1577,6 +1577,7 @@ class ZOPFig(FigureCanvasQTAgg):
         tol = float(self.ui.tol_edit.text())
         veloc_state = self.ui.veloc_check.isChecked()
         scont_state = self.ui.const_check.isChecked()
+        amp_state = self.ui.amp_check.isChecked()
         color_scale = float(self.ui.color_scale_edit.text())
 
 
@@ -1615,6 +1616,11 @@ class ZOPFig(FigureCanvasQTAgg):
 
         if scont_state:
             self.ax2.plot(1/mog.Tx.scont.valeur, mog.Tx.scont.z, color= 'black')
+
+        if amp_state:
+            rayl = np.sqrt((mog.data.Tx_x[zop_ind] - mog.data.Rx_x[zop_ind])**2
+                         + (mog.data.Tx_y[zop_ind] - mog.data.Rx_y[zop_ind])**2
+                         + (mog.data.Tx_z[zop_ind] - mog.data.Rx_z[zop_ind])**2)
 
 
         self.ax1.imshow(mog.data.rdata[:, zop_ind].T,
