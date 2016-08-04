@@ -418,8 +418,6 @@ class ManualttUI(QtGui.QFrame):
         Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 7, 0)
         Sub_left_Part_Grid.addWidget(self.veloc_checkbox, 8, 0)
         Sub_left_Part_Grid.addWidget(self.lim_checkbox, 9, 0)
-        Sub_left_Part_Grid.addWidget(self.save_checkbox, 10, 0)
-        Sub_left_Part_Grid.addWidget(self.jump_checkbox, 11, 0)
         Sub_left_Part_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_left_Part_Widget.setLayout(Sub_left_Part_Grid)
 
@@ -463,6 +461,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_T_and_A_Edits_Grid.addWidget(self.A_min_Edit, 0, 2)
         Sub_T_and_A_Edits_Grid.addWidget(self.A_max_Edit, 0, 3)
         Sub_T_and_A_Edits_Grid.addWidget(btn_Stats, 1, 0, 1, 4)
+        Sub_T_and_A_Edits_Grid.addWidget(self.save_checkbox, 2, 0, 1, 4)
+        Sub_T_and_A_Edits_Grid.addWidget(self.jump_checkbox, 3, 0, 1, 4)
         Sub_T_and_A_Edits_Grid.setHorizontalSpacing(0)
         Sub_T_and_A_Edits_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_T_and_A_Edits_Widget.setLayout(Sub_T_and_A_Edits_Grid)
@@ -552,6 +552,9 @@ class OpenMainData(QtGui.QWidget):
 
     def ok(self):
         self.tt.update_control_center()
+        self.tt.update_a_and_t_edits()
+        self.tt.upperFig.plot_amplitude()
+        self.tt.lowerFig.plot_trace_data()
         self.close()
 
     def initUI(self):
@@ -632,7 +635,15 @@ class UpperFig(FigureCanvasQTAgg):
                                         ymax=1,
                                         color='r')
 
+        self.picket1.set_visible(False)
+        self.picket2.set_visible(False)
+        self.picktt.set_visible(False)
+
     def plot_amplitude(self):
+
+        self.picket1.set_visible(True)
+        self.picket2.set_visible(True)
+        self.picktt.set_visible(True)
 
         n = int(self.tt.Tnum_Edit.text())
         A_min = float(self.tt.A_min_Edit.text())
@@ -878,7 +889,7 @@ class LowerFig(FigureCanvasQTAgg):
         self.isTracingOn = False
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.85])
+        self.ax = self.figure.add_axes([0.07, 0.05, 0.9, 0.85])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
@@ -936,7 +947,23 @@ class LowerFig(FigureCanvasQTAgg):
                                                 mew= 2,
                                                 ls = 'None')
 
+        self.shot_gather.set_visible(False)
+        self.picked_square.set_visible(False)
+        self.unpicked_square.set_visible(False)
+        self.picked_tt_circle.set_visible(False)
+        self.picked_et_circle1.set_visible(False)
+        self.picked_et_circle2.set_visible(False)
+        self.vapp_plot.set_visible(False)
+
     def plot_trace_data(self):
+
+        self.shot_gather.set_visible(True)
+        self.picked_square.set_visible(True)
+        self.unpicked_square.set_visible(True)
+        self.picked_tt_circle.set_visible(True)
+        self.picked_et_circle1.set_visible(True)
+        self.picked_et_circle2.set_visible(True)
+        self.vapp_plot.set_visible(True)
 
         n = int(self.tt.Tnum_Edit.text())
         mog  = self.tt.mog

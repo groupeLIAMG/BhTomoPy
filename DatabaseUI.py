@@ -246,16 +246,23 @@ class DatabaseUI(QtGui.QWidget):
         Info_Sub_Grid.addWidget(self.info)
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
+        #- Big SubWidget -#
+        sub_big_widget = QtGui.QWidget()
+        sub_big_grid = QtGui.QGridLayout()
+        sub_big_grid.addWidget(bh_GroupBox, 1, 0)
+        sub_big_grid.addWidget(MOGs_GroupBox, 1, 1, 1, 2)
+        sub_big_grid.addWidget(Models_GroupBox, 2, 0, 1, 2)
+        sub_big_grid.addWidget(Info_GroupBox, 2, 2)
+        sub_big_widget.setLayout(sub_big_grid)
+
         #--- Grid ---#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
-        master_grid.addWidget(bh_GroupBox, 1, 0)
-        master_grid.addWidget(MOGs_GroupBox, 1, 1, 1, 2)
-        master_grid.addWidget(Models_GroupBox, 2, 0, 1, 2)
-        master_grid.addWidget(Info_GroupBox, 2, 2)
-        master_grid.addWidget(self.log, 3, 0, 2, 3)
-        master_grid.setVerticalSpacing(3)
+        master_grid.addWidget(sub_big_widget, 1, 0, 1, 3)
+        master_grid.addWidget(self.log, 2, 0, 2, 3)
         master_grid.setContentsMargins(0, 0, 0, 0)
+        master_grid.setVerticalSpacing(5)
+
         self.setLayout(master_grid)
 
 class MyLogWidget(QtGui.QTextEdit):
@@ -281,9 +288,9 @@ if __name__ == '__main__':
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
     #Database_ui.model.load_model("t0302's model")
     #Database_ui.mog.plot_spectra()
-    Database_ui.mog.plot_zop()
+    #Database_ui.mog.plot_zop()
 
-    #Database_ui.show()
+    Database_ui.show()
 
 
 

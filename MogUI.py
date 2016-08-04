@@ -35,11 +35,12 @@ class MOGUI(QtGui.QWidget):
     def __init__(self, borehole, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/MOGs")
+        self.initUI()
         self.MOGs = []
         self.air = []
         self.borehole = borehole
         self.data_rep = ''
-        self.initUI()
+
 
 
 
@@ -475,7 +476,6 @@ class MOGUI(QtGui.QWidget):
         self.zopraysFig.plot_rays(mog, tol)
         self.zopraysmanager.show()
 
-
     def plot_statstt(self):
 
         ind = self.MOG_list.selectedIndexes()
@@ -717,6 +717,14 @@ class MOGUI(QtGui.QWidget):
             self.deltat.min_combo.addItem(str(mog.name))
         self.deltat.getcompat()
 
+    def update_color_scale(self):
+        if self.color_scale_combo.currentText() == 'Low':
+            self.color_scale_edit.setText('28000')
+        elif self.color_scale_combo.currentText() == 'Medium':
+            self.color_scale_edit.setText('7000')
+        elif self.color_scale_combo.currentText() == 'High':
+            self.color_scale_edit.setText('700')
+
     def initUI(self):
 
         char1 = lookup("GREEK SMALL LETTER TAU")
@@ -897,7 +905,7 @@ class MOGUI(QtGui.QWidget):
         self.zmin_edit = QtGui.QLineEdit()
         self.zmax_edit = QtGui.QLineEdit()
         self.tol_edit = QtGui.QLineEdit('0.05')
-        self.color_scale_edit = QtGui.QLineEdit()
+        self.color_scale_edit = QtGui.QLineEdit('7000')
 
         #--- Edits Disposition ---#
         self.tmin_edit.setFixedWidth(80)
@@ -907,6 +915,7 @@ class MOGUI(QtGui.QWidget):
         self.tol_edit.setFixedWidth(100)
         self.color_scale_edit.setFixedWidth(80)
 
+        #- Edits Disposition -#
         self.tmin_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.tmin_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.tmax_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -915,7 +924,7 @@ class MOGUI(QtGui.QWidget):
         self.tol_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.color_scale_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        #- Edits Disposition -#
+        #- Edits Actions -#
         self.tmin_edit.editingFinished.connect(self.plot_zop)
         self.tmax_edit.editingFinished.connect(self.plot_zop)
         self.zmin_edit.editingFinished.connect(self.plot_zop)
@@ -926,6 +935,10 @@ class MOGUI(QtGui.QWidget):
         #--- Combobox ---#
         self.color_scale_combo = QtGui.QComboBox()
 
+        #- ComboBox Actions -#
+        self.color_scale_combo.activated.connect(self.update_color_scale)
+        self.color_scale_combo.activated.connect(self.plot_zop)
+
         #- Combobox items -#
         self.color_scale_combo.addItem('Low')
         self.color_scale_combo.addItem('Medium')
@@ -935,13 +948,11 @@ class MOGUI(QtGui.QWidget):
         self.veloc_check = QtGui.QCheckBox('Show Apparent Velocity')
         self.const_check = QtGui.QCheckBox("Show BH's Velocity Constaints")
         self.amp_check = QtGui.QCheckBox('Show Amplitude Data')
-        self.geo_check = QtGui.QCheckBox('Corr. Geometrical Spreading')
 
         #- CheckBoxes' Actions -#
         self.veloc_check.stateChanged.connect(self.plot_zop)
         self.const_check.stateChanged.connect(self.plot_zop)
         self.amp_check.stateChanged.connect(self.plot_zop)
-        self.geo_check.stateChanged.connect(self.plot_zop)
 
         #--- Buttons ---#
         btn_show = QtGui.QPushButton('Show Rays')
@@ -949,6 +960,7 @@ class MOGUI(QtGui.QWidget):
 
         #--- Buttons' Actions ---#
         btn_show.clicked.connect(self.plot_zop_rays)
+
         #------- SubWidgets in ZOP -------#
         #--- Time and Elevation SubWidget ---#
         Sub_t_and_z_widget = QtGui.QWidget()
@@ -989,9 +1001,8 @@ class MOGUI(QtGui.QWidget):
         control_grid.addWidget(self.veloc_check, 3, 0)
         control_grid.addWidget(self.const_check, 4, 0)
         control_grid.addWidget(self.amp_check, 5, 0)
-        control_grid.addWidget(self.geo_check, 6, 0)
-        control_grid.addWidget(btn_show, 7, 0)
-        control_grid.addWidget(btn_print, 8, 0)
+        control_grid.addWidget(btn_show, 6, 0)
+        control_grid.addWidget(btn_print, 7, 0)
         control_group.setLayout(control_grid)
 
 
@@ -1554,27 +1565,18 @@ class ZOPFig(FigureCanvasQTAgg):
         self.ax2 = self.figure.add_axes([0.6, 0.06, 0.3, 0.85])
 
 
-        self.zop_shot_gather = self.ax1.imshow(np.zeros((2,2)),
-                                                interpolation= 'none',
-                                                cmap= 'seismic',
-                                                aspect= 'auto')
 
-        self.picked_tt_circle,  = self.ax1.plot(-100, -100,
-                                                marker = 'o',
-                                                fillstyle= 'none',
-                                                color= 'green',
-                                                markersize= 5,
-                                                mew= 2,
-                                                ls = 'None')
 
 
     def plot_zop(self):
+        self.ax1.cla()
         self.ax2.cla()
         ind = self.ui.MOG_list.selectedIndexes()
         mog = self.ui.MOGs[ind[0].row()]
         tol = float(self.ui.tol_edit.text())
         veloc_state = self.ui.veloc_check.isChecked()
         scont_state = self.ui.const_check.isChecked()
+        color_scale = float(self.ui.color_scale_edit.text())
         mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
         mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
@@ -1614,12 +1616,25 @@ class ZOPFig(FigureCanvasQTAgg):
             self.ax2.plot(1/mog.Tx.scont.valeur, mog.Tx.scont.z, color= 'black')
 
 
-        self.zop_shot_gather.set_data(mog.data.rdata[:, zop_ind].T)
-        self.zop_shot_gather.autoscale()
-        self.zop_shot_gather.set_extent([mog.data.timestp[0], mog.data.timestp[-1], zmax, zmin])
+        self.ax1.imshow(mog.data.rdata[:, zop_ind].T,
+                        extent= [mog.data.timestp[0], mog.data.timestp[-1], zmax, zmin],
+                        interpolation= 'none',
+                        cmap= 'seismic',
+                        aspect= 'auto',
+                        vmin = -color_scale,
+                        vmax= color_scale)
 
-        self.picked_tt_circle.set_ydata(-mog.data.Rx_z[zop_picked_ind])
-        self.picked_tt_circle.set_xdata(mog.tt[zop_picked_ind])
+
+
+        self.ax1.plot(mog.tt[zop_picked_ind],
+                        -mog.data.Rx_z[zop_picked_ind],
+                        marker = 'o',
+                        fillstyle= 'none',
+                        color= 'green',
+                        markersize= 5,
+                        mew= 2,
+                        ls = 'None')
+
 
 
 
@@ -1632,8 +1647,6 @@ class ZOPFig(FigureCanvasQTAgg):
                       + (mog.data.Tx_z -  mog.data.Rx_z )**2)
 
         tt, t0 = mog.getCorrectedTravelTimes(air)
-        print(min(tt))
-        print(max(tt))
         et = mog.et
         vapp = hyp/tt
         in_minus = hyp/(tt-et)

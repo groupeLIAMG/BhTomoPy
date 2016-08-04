@@ -66,7 +66,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         self.setFixedSize(self.size())
         self.__h1 = self.size().height()
-        self.__h2 = self.bh_tomo_tool.size().height()
+        self.__h2 = self.tt_tool.size().height() + self.tl_tool.size().height()
 
     def initUI(self):
 
@@ -163,26 +163,34 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         time_lapse_grid.addWidget(btn_Time_Lapse_Visualisation)
         time_lapse_tool.setLayout(time_lapse_grid)
 
-        #--- BH TOMO ToolBox ---#
-        bh_tomo_tool = MyQToolBox()
-        bh_tomo_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
+        #--- Traveltime ToolBox ---#
+        tt_tool = MyQToolBox()
+        tt_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
                               QtGui.QIcon('Icons/triangle_down.png'))
-        bh_tomo_tool.addItem(travel_time_tool, 'Travel Time Picking')
-        bh_tomo_tool.addItem(time_lapse_tool, 'Time Lapse')
-        bh_tomo_tool.sizeChanged.connect(self.fitHeight)
-        self.bh_tomo_tool = bh_tomo_tool
+        tt_tool.addItem(travel_time_tool, 'Travel Time Picking')
+        tt_tool.sizeChanged.connect(self.fitHeight)
+        self.tt_tool = tt_tool
+
+        #--- Time Lapse ToolBox ---#
+        tl_tool = MyQToolBox()
+        tl_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
+                              QtGui.QIcon('Icons/triangle_down.png'))
+        tl_tool.addItem(time_lapse_tool, 'Time Lapse')
+        tl_tool.sizeChanged.connect(self.fitHeight)
+        self.tl_tool = tl_tool
 
         #--- Buttons SubWidget ---#
         Sub_button_widget = QtGui.QGroupBox()
         sub_button_grid = QtGui.QGridLayout()
         sub_button_grid.addWidget(btn_Database, 0, 0)
-        sub_button_grid.addWidget(bh_tomo_tool, 1, 0)
+        sub_button_grid.addWidget(tt_tool, 1, 0)
         sub_button_grid.addWidget(btn_Manual_Amplitude_Picking, 2, 0)
         sub_button_grid.addWidget(btn_Cov_Mod, 3, 0)
         sub_button_grid.addWidget(btn_Inversion, 4, 0)
-        sub_button_grid.addWidget(btn_Interpretation, 5, 0)
-        sub_button_grid.addWidget(btn_Nano_Fluid, 6, 0)
-        sub_button_grid.setRowStretch(7, 100)
+        sub_button_grid.addWidget(tl_tool, 5, 0)
+        sub_button_grid.addWidget(btn_Interpretation, 6, 0)
+        sub_button_grid.addWidget(btn_Nano_Fluid, 7, 0)
+        sub_button_grid.setRowStretch(8, 100)
         Sub_button_widget.setLayout(sub_button_grid)
 
         #--- Main Widget---#
