@@ -638,6 +638,8 @@ class UpperFig(FigureCanvasQTAgg):
         self.picket1.set_visible(False)
         self.picket2.set_visible(False)
         self.picktt.set_visible(False)
+        self.ax2.get_xaxis().set_visible(False)
+        self.ax2.get_yaxis().set_visible(False)
 
     def plot_amplitude(self):
 

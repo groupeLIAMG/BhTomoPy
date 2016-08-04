@@ -1564,22 +1564,21 @@ class ZOPFig(FigureCanvasQTAgg):
         self.ax1 = self.figure.add_axes([0.08, 0.06, 0.4, 0.9])
         self.ax2 = self.figure.add_axes([0.6, 0.06, 0.3, 0.85])
 
-
-
-
-
     def plot_zop(self):
         self.ax1.cla()
         self.ax2.cla()
+
+        mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
+        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
+
         ind = self.ui.MOG_list.selectedIndexes()
         mog = self.ui.MOGs[ind[0].row()]
         tol = float(self.ui.tol_edit.text())
         veloc_state = self.ui.veloc_check.isChecked()
         scont_state = self.ui.const_check.isChecked()
         color_scale = float(self.ui.color_scale_edit.text())
-        mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
-        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
+
 
         dz = np.abs(mog.data.Tx_z - mog.data.Rx_z)
         zop_ind = np.where(dz <= tol)[0]
@@ -1588,10 +1587,12 @@ class ZOPFig(FigureCanvasQTAgg):
         zop_picked_ind = np.where(zop_picked_ind == 2)[0]
 
         tt, in_plus, in_minus, vapp = self.calculate_Vapp(mog, self.ui.air)
+
         zmin = -np.round(min(mog.data.Rx_z[zop_ind]), 4)
         zmax = -np.round(max(mog.data.Rx_z[zop_ind]), 4)
         tmin = np.round(min(tt), 3)
         tmax = np.round(max(tt), 3)
+
         self.ui.tmin_edit.setText(str(tmin))
         self.ui.tmax_edit.setText(str(tmax))
         self.ui.zmin_edit.setText(str(zmin))
