@@ -16,6 +16,7 @@ from numpy import linalg
 from numpy import matlib
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
+#from spectrum import arburg
 import re
 
 
@@ -465,7 +466,7 @@ class MOGUI(QtGui.QWidget):
     def plot_zop(self):
         ind = self.MOG_list.selectedIndexes()
         self.zopFig.plot_zop()
-        self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
+        #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
         self.zopmanager.showMaximized()
 
     def plot_zop_rays(self):
@@ -1467,6 +1468,15 @@ class SpectraFig(FigureCanvasQTAgg):
             self.ax2.imshow(np.log10(np.abs(Pxx)).T[:, :Fmax], cmap='plasma', aspect='auto',
                         interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
 
+        if method == 'Burg - Order 2':
+            Pxx = arburg(traces, 2)
+            self.ax2.imshow(np.log10(Pxx).T[:, :Fmax], cmap='plasma', aspect='auto',
+                        interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
+        if method == 'Burg - Order 3':
+            Pxx = spectrum.arburg(traces[:, nt], 3)
+        if method == 'Burg - Order 4':
+            Pxx = spectrum.arburg(traces[:, nt], 4)
+
         win_snr = np.round(20 / mog.data.timec)
         SNR = self.data_select(traces, f0, dt, win_snr)
         SNR = SNR[::-1]
@@ -1568,12 +1578,13 @@ class ZOPFig(FigureCanvasQTAgg):
         self.ax1.cla()
         self.ax2.cla()
 
+        ind = self.ui.MOG_list.selectedIndexes()
+        mog = self.ui.MOGs[ind[0].row()]
+
         mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
         mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
 
-        ind = self.ui.MOG_list.selectedIndexes()
-        mog = self.ui.MOGs[ind[0].row()]
         tol = float(self.ui.tol_edit.text())
         veloc_state = self.ui.veloc_check.isChecked()
         scont_state = self.ui.const_check.isChecked()
