@@ -80,8 +80,9 @@ class ModelUI(QtGui.QWidget):
         for mog in self.models[ind].mogs:
 
             ndata += mog.data.ntrace
-            n_tt_data_picked += sum(mog.tt_done.astype(int) + mog.in_vect.astype(int))
-            n_amp_data_picked += sum(mog.amp_done.astype(int) + mog.in_vect.astype(int))
+
+            n_tt_data_picked += len(np.where(mog.tt != -1)[0])
+            n_amp_data_picked += 0
 
         self.grid.gridinfo.num_data_label.setText(str(ndata))
         self.grid.gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
@@ -412,10 +413,10 @@ class GridInfoUI(QtGui.QFrame):
         tt_picked_label = MyQLabel('Traveltimes Picked', ha= 'left')
         amp_picked_label = MyQLabel('Amplitudes Picked', ha= 'left')
 
-        self.num_cell_label = MyQLabel('1000', ha= 'center')
-        self.num_data_label = MyQLabel('1000', ha= 'center')
-        self.num_tt_picked_label = MyQLabel('1000', ha= 'right')
-        self.num_amp_picked_label = MyQLabel('1000', ha= 'right')
+        self.num_cell_label = MyQLabel('0', ha= 'center')
+        self.num_data_label = MyQLabel('0', ha= 'center')
+        self.num_tt_picked_label = MyQLabel('0', ha= 'right')
+        self.num_amp_picked_label = MyQLabel('0', ha= 'right')
 
 
         master_grid = QtGui.QGridLayout()
