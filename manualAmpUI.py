@@ -271,12 +271,58 @@ class ManualttUI(QtGui.QFrame):
 
         importAction = QtGui.QAction('Import ...', self)
         importAction.triggered.connect(self.import_tt_file)
+
+
+
         #--- ToolBar ---#
         self.tool = QtGui.QMenuBar()
-        filemenu = self.tool.addMenu('&File')
-        filemenu.addAction(openAction)
-        filemenu.addAction(saveAction)
-        filemenu.addAction(importAction)
+
+        fileMenu = self.tool.addMenu('&File')
+        fileMenu.addAction(openAction)
+        fileMenu.addAction(saveAction)
+        fileMenu.addAction(importAction)
+
+
+        optionMenu = self.tool.addMenu('&Options')
+        radiationMenu = optionMenu.addMenu('&Radiation Pattern')
+        centroidMenu = optionMenu.addMenu('&Centroid f (S transf.)')
+        hybridMenu = optionMenu.addMenu('&Hybrid data')
+        spectrumMenu = optionMenu.addMenu('&Spectrum fitting')
+        unitsMenu = optionMenu.addMenu('&Units of frequency')
+
+        sinAction = QtGui.QAction('&Sin (theta)', self)
+        sin2Action = QtGui.QAction('&Sin2 (theta)', self)
+
+        showspectrumAction = QtGui.QAction('&Show frequency spectrum', self)
+        showspectrumtimeAction = QtGui.QAction('&Show time - frequency spectrum', self)
+
+        firstcycleAction = QtGui.QAction('&Evaluate at start of 1st cycle', self)
+        firsthalfcycleAction = QtGui.QAction('&Evaluate at 1st half-cycle peak', self)
+        maxenergyAction = QtGui.QAction('&Evaluate at maximum of energy', self)
+        maxenergyAction = QtGui.QAction('&Evaluate at maximum of amplitude', self)
+
+        #sinAction.setCheckable(True)
+        #sin2Action.setCheckable(True)
+
+        #sinAction.setChecked(True)
+
+        #radiationMenu.addAction(sinAction)
+        #radiationMenu.addAction(sin2Action)
+
+        radiationActionGroup = QtGui.QActionGroup(self)
+        radiationActionGroup.addAction(sinAction)
+        radiationActionGroup.addAction(sin2Action)
+
+        #radiationMenu.addAction(radiationActionGroup)
+
+
+
+
+
+
+
+
+
 
 
 
@@ -292,8 +338,13 @@ class ManualttUI(QtGui.QFrame):
         info_Tedit = QtGui.QTextEdit()
         info_Tedit.setReadOnly(True)
 
-        #--- combobox ---#
+        #--- ComboBox ---#
         self.option_combo = QtGui.QComboBox()
+
+        #- ComboBox Items -#
+        items = ['Centroid freq. (fft)', 'Centroid freq. (S-transform)', 'Peak-to-peak amplutide', 'Maximum absolute amplitude' ]
+        self.option_combo.addItems(items)
+
 
         #------- subWidgets -------#
         #--- Trace Subwidget ---#
@@ -302,6 +353,7 @@ class ManualttUI(QtGui.QFrame):
         Sub_Trace_Grid.addWidget(trc_Label, 0, 0)
         Sub_Trace_Grid.addWidget(self.Tnum_Edit, 0, 1)
         Sub_Trace_Grid.setContentsMargins(0, 0, 0, 0)
+        Sub_Trace_Grid.setAlignment(QtCore.Qt.AlignCenter)
         Sub_Trace_Widget.setLayout(Sub_Trace_Grid)
 
         #--- Info Subwidget ---#
@@ -333,14 +385,15 @@ class ManualttUI(QtGui.QFrame):
         #--- Buttons SubWidget ---#
         sub_button_widget = QtGui.QWidget()
         sub_button_grid = QtGui.QGridLayout()
-        sub_button_grid.addWidget(btn_load, 1, 0, 1, 2)
-        sub_button_grid.addWidget(btn_Upper, 2, 0, 1, 2)
-        sub_button_grid.addWidget(btn_Prev, 3, 0)
-        sub_button_grid.addWidget(btn_Next, 3, 1)
-        sub_button_grid.addWidget(btn_Next_Pick, 4, 0, 1, 2)
-        sub_button_grid.addWidget(btn_Reini, 5, 0, 1, 2)
-        sub_button_grid.addWidget(btn_Stats, 6, 0, 1, 2)
-        sub_button_grid.addWidget(btn_fit, 7, 0, 1, 2)
+        sub_button_grid.addWidget(btn_load, 1, 0, 1, 4)
+        sub_button_grid.addWidget(btn_Upper, 2, 0, 1, 4)
+        sub_button_grid.addWidget(Sub_Trace_Widget, 3, 1, 1, 2)
+        sub_button_grid.addWidget(btn_Prev, 4, 0, 1, 2)
+        sub_button_grid.addWidget(btn_Next, 4, 2, 1, 2)
+        sub_button_grid.addWidget(btn_Next_Pick, 5, 0, 1, 4)
+        sub_button_grid.addWidget(btn_Reini, 6, 0, 1, 4)
+        sub_button_grid.addWidget(btn_Stats, 7, 0, 1, 4)
+        sub_button_grid.addWidget(btn_fit, 8, 0, 1, 4)
         sub_button_widget.setLayout(sub_button_grid)
 
         #--- Info Groupbox ---#
@@ -352,8 +405,8 @@ class ManualttUI(QtGui.QFrame):
         #--- Settings GroupBox ---#
         settings_group = QtGui.QGroupBox('Settings')
         sub_settings_grid = QtGui.QGridLayout()
-        sub_settings_grid.addWidget(self.hybrid_check, 0, 0, 1, 2)
-        sub_settings_grid.addWidget(self.option_combo, 0, 2, 1, 2)
+        sub_settings_grid.addWidget(self.hybrid_check, 0, 0)
+        sub_settings_grid.addWidget(self.option_combo, 0, 1)
         sub_settings_grid.addWidget(self.weight_check, 1, 0)
         sub_settings_grid.addWidget(self.process_check, 2, 0)
         sub_settings_grid.addWidget(self.ap_win_check, 3, 0)
