@@ -24,22 +24,16 @@ class ManualAmpUI(QtGui.QFrame):
         self.mog = 0
         self.initUI()
 
-        self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
+        #self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
         self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
-        #self.KeyPressed.connect(self.onkey)
+
 
 
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
         n += 1
-        if self.main_data_radio.isChecked():
-            self.mog.tt_done[n-2] = 1
-        elif self.t0_before_radio.isChecked():
-            self.air[self.mog.av].tt_done[n-2] = 1
-        elif self.t0_after_radio.isChecked():
-            self.air[self.mog.ap].tt_done[n-2] = 1
 
         self.Tnum_Edit.setText(str(n))
         self.update_control_center()
@@ -55,8 +49,7 @@ class ManualAmpUI(QtGui.QFrame):
 
         ind = self.openmain.mog_combo.currentIndex()
         self.mog = self.mogs[ind]
-        airshot_before = self.air[self.mog.av]
-        airshot_after = self.air[self.mog.ap]
+
         if len(self.mogs) == 0:
             return
         else:
@@ -68,52 +61,28 @@ class ManualAmpUI(QtGui.QFrame):
             self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
             self.ntrace_label.setText(str(self.mog.data.ntrace))
 
-
-        self.check_save()
         self.upperFig.plot_amplitude()
 
-
-    def update_a_and_t_edits(self):
-        n = int(self.Tnum_Edit.text())
-        ind = self.openmain.mog_combo.currentIndex()
-        mog = self.mogs[ind]
-        if self.lim_checkbox.isChecked():
-            A_max = max(mog.data.rdata[:, n].flatten())
-            A_min = min(mog.data.rdata[:, n].flatten())
-
-            self.A_min_Edit.setText(str(A_min))
-            self.A_max_Edit.setText(str(A_max))
-        else:
-            self.A_min_Edit.setText(str(-1000))
-            self.A_max_Edit.setText(str(1000))
-            self.t_min_Edit.setText(str(0))
-            self.t_max_Edit.setText(str(int(np.round(self.mog.data.timestp[-1]))))
+    def update_settings_edits(self):
+        self.value_tmin_edit.setText(str(np.round(self.mog.data.timestp[0], 4)))
+        self.value_tmax_edit.setText(str(np.round(self.mog.data.timestp[-1], 4)))
+        self.value_z_surf_edit.setText(str(self.mog.Rx.fdata[0, 2]))
+        self.num_tx_freq_edit.setText(str(self.mog.data.rnomfreq))
 
     def reinit_trace(self):
         n = int(self.Tnum_Edit.text()) - 1
-        if self.main_data_radio.isChecked():
-            self.mog.tt[n] = -1.0
-            self.mog.et[n] = -1.0
-            self.mog.tt_done[n] = -1.0
-        if self.t0_before_radio.isChecked():
-            self.air[self.mog.av].tt[n] = -1.0
-            self.air[self.mog.av].et[n] = -1.0
-            self.air[self.mog.av].tt_done[n] = -1.0
-        if self.t0_after_radio.isChecked():
-            self.air[self.mog.ap].tt[n] = -1.0
-            self.air[self.mog.ap].et[n] = -1.0
-            self.air[self.mog.ap].tt_done[n] = -1.0
+
+        self.mog.amp_done[n] = 0
+        self.mog.amp_tmin[n] = -1.0
+        self.mog.amp_tmin[n] = -1.0
+
         self.update_control_center()
 
     def next_trace_to_pick(self):
-        ind = np.where(self.mog.tt_done == 0)[0]
+        ind = np.where(self.mog.amp_done == 0)[0]
         to_pick = ind[0] + 1
         self.Tnum_Edit.setText(str(to_pick))
         self.update_control_center()
-
-    def check_save(self):
-        if self.save_checkbox.isChecked():
-            self.intermediate_saves()
 
     def intermediate_saves(self):
         if float(self.Tnum_Edit.text()) % 50 == 0:
@@ -208,8 +177,8 @@ class ManualAmpUI(QtGui.QFrame):
 
         #--- Label ---#
         trc_Label                       = MyQLabel("Trace number :", ha= 'right')
-        t_min_label                     = MyQLabel("t min", ha= 'center')
-        t_max_label                     = MyQLabel("t max", ha= 'center')
+        t_min_label                     = MyQLabel("t min", ha= 'left')
+        t_max_label                     = MyQLabel("t max", ha= 'left')
         ang_min_label                   = MyQLabel("Minimum angle", ha= 'left')
         z_surf_label                    = MyQLabel("Z surface", ha= 'left')
         position_label                  = MyQLabel(("Position Tx--Rx"), ha='center')
@@ -220,9 +189,9 @@ class ManualAmpUI(QtGui.QFrame):
         Rx_label                        = MyQLabel("Rx:", ha= 'right')
         centroid_freq_label             = MyQLabel('Centroid freq.: ', ha= 'right')
         centroid_var_label              = MyQLabel('Var. Centroid: ', ha= 'right')
-        freq1_label                     = MyQLabel('MHz', ha= 'left')
-        freq2_label                     = MyQLabel('MHz', ha= 'left')
-        trace_label                     = MyQLabel("traces", ha= 'left')
+        freq1_label                     = MyQLabel('MHz', ha= 'center')
+        freq2_label                     = MyQLabel('MHz', ha= 'center')
+        trace_label                     = MyQLabel("traces", ha= 'center')
 
         tx_freq_label                   = MyQLabel("Tx Frequency [MHz]", ha='left')
         f_min_label                     = MyQLabel("Min F centroid", ha='left')
@@ -231,24 +200,38 @@ class ManualAmpUI(QtGui.QFrame):
 
         self.num_freq1_label            = MyQLabel('0', ha= 'center')
         self.num_freq2_label            = MyQLabel('0', ha= 'center')
-        self.xTx_label                  = MyQLabel("", ha= 'right')
-        self.yTx_label                  = MyQLabel("", ha= 'right')
-        self.zTx_label                  = MyQLabel("", ha= 'right')
-        self.xRx_label                  = MyQLabel("", ha= 'right')
-        self.yRx_label                  = MyQLabel("", ha= 'right')
-        self.zRx_label                  = MyQLabel("", ha= 'right')
-        self.ntrace_label               = MyQLabel("", ha= 'right')
+        self.xTx_label                  = MyQLabel("", ha= 'center')
+        self.yTx_label                  = MyQLabel("", ha= 'center')
+        self.zTx_label                  = MyQLabel("", ha= 'center')
+        self.xRx_label                  = MyQLabel("", ha= 'center')
+        self.yRx_label                  = MyQLabel("", ha= 'center')
+        self.zRx_label                  = MyQLabel("", ha= 'center')
+        self.ntrace_label               = MyQLabel("", ha= 'center')
+
+
+
 
         #--- Edits ---#
         self.Tnum_Edit = QtGui.QLineEdit('1')
         self.num_tx_freq_edit = QtGui.QLineEdit()
-        self.value_f_min_edit = QtGui.QLineEdit()
-        self.value_f_max_edit = QtGui.QLineEdit()
-        self.value_window_edit = QtGui.QLineEdit()
+        self.value_f_min_edit = QtGui.QLineEdit('1')
+        self.value_f_max_edit = QtGui.QLineEdit('175')
+        self.value_window_edit = QtGui.QLineEdit('30')
         self.value_tmin_edit = QtGui.QLineEdit()
         self.value_tmax_edit = QtGui.QLineEdit()
-        self.value_ang_min_edit = QtGui.QLineEdit()
+        self.value_ang_min_edit = QtGui.QLineEdit('45')
         self.value_z_surf_edit = QtGui.QLineEdit()
+
+        #- Edits' Disposition -#
+        self.Tnum_Edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.num_tx_freq_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.value_f_min_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.value_f_max_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.value_window_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.value_tmin_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.value_tmax_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.value_ang_min_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.value_z_surf_edit.setAlignment(QtCore.Qt.AlignCenter)
 
         #- Edits' Disposition -#
         self.Tnum_Edit.setFixedWidth(100)
@@ -313,15 +296,6 @@ class ManualAmpUI(QtGui.QFrame):
 
 
 
-
-
-
-
-
-
-
-
-
         #--- Checkboxes ---#
         self.weight_check = QtGui.QCheckBox('Weighting 1/(S/N)')
         self.process_check = QtGui.QCheckBox("Process picked tt traces")
@@ -343,6 +317,22 @@ class ManualAmpUI(QtGui.QFrame):
 
 
         #------- subWidgets -------#
+        #--- freq1 subwidget ---#
+        sub_freq1_widget = QtGui.QWidget()
+        sub_freq1_grid = QtGui.QGridLayout()
+        sub_freq1_grid.addWidget(self.num_freq1_label, 0, 0)
+        sub_freq1_grid.addWidget(freq1_label, 0, 1)
+        sub_freq1_grid.setContentsMargins(0, 0, 0, 0)
+        sub_freq1_widget.setLayout(sub_freq1_grid)
+
+        #--- freq2 subwidget ---#
+        sub_freq2_widget = QtGui.QWidget()
+        sub_freq2_grid = QtGui.QGridLayout()
+        sub_freq2_grid.addWidget(self.num_freq2_label, 0, 0)
+        sub_freq2_grid.addWidget(freq2_label, 0, 1)
+        sub_freq2_grid.setContentsMargins(0, 0, 0, 0)
+        sub_freq2_widget.setLayout(sub_freq2_grid)
+
         #--- Trace Subwidget ---#
         Sub_Trace_Widget = QtGui.QWidget()
         Sub_Trace_Grid = QtGui.QGridLayout()
@@ -370,11 +360,9 @@ class ManualAmpUI(QtGui.QFrame):
         Sub_Info_grid.addWidget(self.ntrace_label, 5, 1)
         Sub_Info_grid.addWidget(trace_label, 5, 2)
         Sub_Info_grid.addWidget(centroid_freq_label, 8, 0)
-        Sub_Info_grid.addWidget(self.num_freq1_label, 8, 1)
-        Sub_Info_grid.addWidget(freq1_label, 8, 2)
+        Sub_Info_grid.addWidget(sub_freq1_widget, 8, 1)
         Sub_Info_grid.addWidget(centroid_var_label, 9, 0)
-        Sub_Info_grid.addWidget(self.num_freq2_label, 9, 1)
-        Sub_Info_grid.addWidget(freq2_label, 9, 2)
+        Sub_Info_grid.addWidget(sub_freq2_widget, 9, 1)
         Sub_Info_widget.setLayout(Sub_Info_grid)
         Sub_Info_widget.setStyleSheet("background: white")
 
@@ -503,9 +491,9 @@ class OpenMainData(QtGui.QWidget):
 
     def ok(self):
         self.tt.update_control_center()
-        self.tt.update_a_and_t_edits()
+        self.tt.update_settings_edits()
         self.tt.upperFig.plot_amplitude()
-        self.tt.lowerFig.plot_trace_data()
+
         self.close()
 
     def initUI(self):
@@ -558,115 +546,44 @@ class UpperFig(FigureCanvasQTAgg):
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
-        self.ax2 = self.ax.twiny()
+
 
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
         self.ax.set_ylabel('Amplitude')
 
-        self.ax2.yaxis.set_ticks_position('none')
-        self.ax2.xaxis.set_ticks_position('none')
-
         self.trace,  = self.ax.plot([],
                                     [],
                                     color='b')
 
-        self.picktt  = self.ax2.axvline(-100,
+        self.pick_amp_tmin  = self.ax.axvline(-100,
                                         ymin=0,
                                         ymax=1,
                                         color='g')
 
-        self.picket1 = self.ax2.axvline(-100,
+        self.pick_amp_tmax  = self.ax.axvline(-100,
                                         ymin=0,
                                         ymax=1,
-                                        color='r')
-
-        self.picket2 = self.ax2.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='r')
-
-        self.picket1.set_visible(False)
-        self.picket2.set_visible(False)
-        self.picktt.set_visible(False)
-        self.ax2.get_xaxis().set_visible(False)
-        self.ax2.get_yaxis().set_visible(False)
+                                        color='g')
 
     def plot_amplitude(self):
 
-        self.picket1.set_visible(True)
-        self.picket2.set_visible(True)
-        self.picktt.set_visible(True)
-
         n = int(self.tt.Tnum_Edit.text())
-        A_min = float(self.tt.A_min_Edit.text())
-        A_max = float(self.tt.A_max_Edit.text())
-        t_min = float(self.tt.t_min_Edit.text())
-        t_max = float(self.tt.t_max_Edit.text())
 
         self.trc_number = n-1
 
-        if self.tt.main_data_radio.isChecked():
-            trace = self.tt.mog.data.rdata[:, n-1]
-            y_lim = self.ax.get_ylim()
+        trace = self.tt.mog.data.rdata[:, self.trc_number]
 
-            if self.tt.mog.tt[self.trc_number] != -1:
-                self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+        self.ax.set_xlim(self.tt.mog.data.timestp[0], self.tt.mog.data.timestp[-1])
+        self.ax.set_ylim(min(trace.flatten()), max(trace.flatten()))
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.mog.et[self.trc_number] != -1.0:
-                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                           self.tt.mog.et[self.trc_number])
-                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                           self.tt.mog.et[self.trc_number])
-                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
-                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                           self.tt.mog.et[self.trc_number])
-                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                           self.tt.mog.et[self.trc_number])
-
-            else:
-                self.picktt.set_xdata(-100)
-                self.picket1.set_xdata(-100)
-                self.picket2.set_xdata(-100)
-
-
-        if not self.tt.lim_checkbox.isChecked():
-
-            self.ax.set_ylim(A_min, A_max)
-        else:
-            self.ax.set_ylim( min(trace.flatten()), max(trace.flatten()))
-
-        self.ax2.set_xlim(t_min, t_max)
-        self.ax.set_xlim(t_min, t_max)
-        if self.tt.main_data_radio.isChecked():
-            self.trace.set_xdata(self.tt.mog.data.timestp)
+        self.pick_amp_tmin.set_xdata(self.tt.mog.amp_tmin[self.trc_number])
+        self.pick_amp_tmax.set_xdata(self.tt.mog.amp_tmax[self.trc_number])
 
         self.trace.set_ydata(trace)
-
-        #TODO
-        if self.tt.Wave_checkbox.isChecked():
-            ind, wavelet = self.wavelet_filtering(mog.data.rdata)
-
-        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))
-
-
+        self.trace.set_xdata(self.tt.mog.data.timestp)
         self.draw()
 
-    def wavelet_filtering(self, rdata):
-        shape = np.shape(rdata)
-        nptsptrc, ntrace = shape[0], shape[1]
-        N = 3
-        npts = np.ceil(nptsptrc/2**N)*2**N
-        d= npts - nptsptrc
-        rdata = np.array([[rdata],
-                          [rdata[-1-d:-1, :]]])
-        ind_max = np.zeros(ntrace)
-        inc_wb = np.round(ntrace/100)
-        for n in range(ntrace):
-            trace2 = self.denoise(rdata[:, n], wavelet, N)
-
-    def denoise(self, trace, wavelet, N):
-        swc = swt(trace, N, wavelet)
 
     def onclick(self, event):
 
@@ -674,61 +591,29 @@ class UpperFig(FigureCanvasQTAgg):
             return
 
         self.x, self.y = event.x, event.y
-        y_lim = self.ax.get_ylim()
-        x_lim = self.ax.get_xlim()
+
         if event.button == 1:
 
             if self.x != None and self.y != None:
 
-                if self.tt.main_data_radio.isChecked():
-                    self.tt.mog.tt[self.trc_number] = event.xdata
-                    self.tt.mog.tt_done[self.trc_number] = 1
+                self.tt.mog.amp_tmin[self.trc_number] = event.xdata
 
-
-            self.UpperTracePickedSignal.emit(True)
+                self.tt.update_control_center()
+                self.UpperTracePickedSignal.emit(True)
 
         elif event.button == 2:
 
-            if self.tt.jump_checkbox.isChecked():
-
-                self.tt.next_trace_to_pick()
-            else:
-                self.tt.next_trace()
+            self.tt.next_trace()
 
         elif event.button == 3:
+
             if self.x != None and self.y != None:
 
-                if self.tt.main_data_radio.isChecked():
-                    self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
+                self.tt.mog.amp_tmax[self.trc_number] = event.xdata
 
-                if self.tt.t0_before_radio.isChecked():
-                    self.tt.air[self.tt.mog.av].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.xdata)
+                self.tt.update_control_center()
+                self.UpperTracePickedSignal.emit(True)
 
-                if self.tt.t0_after_radio.isChecked():
-                    self.tt.air[self.tt.mog.ap].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.xdata)
-
-
-                y_lim = self.ax.get_ylim()
-                x_lim = self.ax.get_xlim()
-
-                if self.tt.main_data_radio.isChecked():
-                    et = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
-                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] - et)
-                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
-
-                if self.tt.t0_before_radio.isChecked():
-                    et = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.xdata)
-                    self.picket1.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] - et)
-                    self.picket2.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] + et)
-
-                if self.tt.t0_after_radio.isChecked():
-                    et = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.xdata)
-                    self.picket1.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - et)
-                    self.picket2.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] + et)
-
-                self.ax.set_ylim(y_lim[0], y_lim[-1])
-
-            self.UpperTracePickedSignal.emit(True)
 
 
         self.draw()
@@ -750,249 +635,7 @@ class LowerFig(FigureCanvasQTAgg):
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
-        self.shot_gather        = self.ax.imshow(np.zeros((2,2)),
-                                                interpolation= 'none',
-                                                cmap= 'seismic',
-                                                aspect= 'auto')
 
-        self.actual_line        = self.ax.axvline(-100,
-                                                ymin=0,
-                                                ymax=1,
-                                                color='black')
-
-        self.unpicked_square,   = self.ax.plot(-100, -100,
-                                                marker= 's',
-                                                color='red',
-                                                markersize= 10,
-                                                lw= 0)
-
-        self.picked_square,     = self.ax.plot(-100, -100,
-                                                marker= 's',
-                                                color='green',
-                                                markersize= 10,
-                                                lw= 0)
-
-        self.picked_tt_circle,  = self.ax.plot(-100, -100,
-                                                marker = 'o',
-                                                fillstyle= 'none',
-                                                color= 'green',
-                                                markersize= 5,
-                                                mew= 2,
-                                                ls = 'None')
-
-        self.picked_et_circle1, = self.ax.plot(-100, -100,
-                                                marker = 'o',
-                                                fillstyle= 'none',
-                                                color= 'red',
-                                                markersize= 5,
-                                                mew= 2,
-                                                ls = 'None')
-
-        self.picked_et_circle2, = self.ax.plot(-100, -100,
-                                                marker = 'o',
-                                                fillstyle= 'none',
-                                                color= 'red',
-                                                markersize= 5,
-                                                mew= 2,
-                                                ls = 'None')
-
-        self.vapp_plot,         = self.ax.plot(-100, -100,
-                                                marker = 'o',
-                                                fillstyle= 'none',
-                                                color= 'yellow',
-                                                markersize= 5,
-                                                mew= 2,
-                                                ls = 'None')
-
-        self.shot_gather.set_visible(False)
-        self.picked_square.set_visible(False)
-        self.unpicked_square.set_visible(False)
-        self.picked_tt_circle.set_visible(False)
-        self.picked_et_circle1.set_visible(False)
-        self.picked_et_circle2.set_visible(False)
-        self.vapp_plot.set_visible(False)
-
-    def plot_trace_data(self):
-
-        self.shot_gather.set_visible(True)
-        self.picked_square.set_visible(True)
-        self.unpicked_square.set_visible(True)
-        self.picked_tt_circle.set_visible(True)
-        self.picked_et_circle1.set_visible(True)
-        self.picked_et_circle2.set_visible(True)
-        self.vapp_plot.set_visible(True)
-
-        n = int(self.tt.Tnum_Edit.text())
-        mog  = self.tt.mog
-        self.trc_number = n-1
-
-        t_min = float(self.tt.t_min_Edit.text())
-        t_max = float(self.tt.t_max_Edit.text())
-
-        if self.tt.main_data_radio.isChecked():
-            #print('main data')
-            current_trc = mog.data.Tx_z[n]
-            z = np.where(mog.data.Tx_z == current_trc)[0]
-
-            data = mog.data.rdata[:, z[0]:z[-1]]
-            cmax = max(np.abs(mog.data.rdata.flatten()))
-
-            unpicked_tt_ind = np.where(mog.tt == -1)[0]
-            picked_tt_ind = np.where(mog.tt != -1)[0]
-
-            unpicked_et_ind = np.where(mog.et == -1)[0]
-            picked_et_ind = np.where(mog.et != -1)[0]
-
-            tt_done_ind = np.where(mog.tt_done != 0)[0]
-            tt_undone_ind = np.where(mog.tt_done == 0)[0]
-
-            actual_data = mog.data.rdata
-
-            self.picked_tt_circle.set_xdata(picked_tt_ind)
-            self.picked_tt_circle.set_ydata(self.tt.mog.tt[picked_tt_ind])
-
-            self.picked_et_circle1.set_xdata(picked_et_ind)
-            self.picked_et_circle1.set_ydata(self.tt.mog.tt[picked_et_ind] + self.tt.mog.et[picked_et_ind])
-
-            self.picked_et_circle2.set_xdata(picked_et_ind)
-            self.picked_et_circle2.set_ydata( self.tt.mog.tt[picked_et_ind] - self.tt.mog.et[picked_et_ind])
-
-            self.actual_line.set_xdata(n-1)
-
-            self.unpicked_square.set_xdata(tt_undone_ind)
-            self.unpicked_square.set_ydata(t_max*np.ones(len(tt_undone_ind)))
-
-            self.picked_square.set_xdata(tt_done_ind)
-            self.picked_square.set_ydata(t_max*np.ones(len(tt_done_ind)))
-
-            self.shot_gather.set_data(data)
-            self.shot_gather.autoscale()
-            self.shot_gather.set_extent([z[0], z[-1], self.tt.mog.data.timestp[-1], self.tt.mog.data.timestp[0]])
-
-            if self.tt.veloc_checkbox.isChecked():
-                vapp = self.calculate_Vapp()
-                hyp = np.sqrt((mog.data.Tx_x[picked_tt_ind]-mog.data.Rx_x[picked_tt_ind])**2
-                      + (mog.data.Tx_y[picked_tt_ind] - mog.data.Rx_y[picked_tt_ind] )**2
-                      + (mog.data.Tx_z[picked_tt_ind] -  mog.data.Rx_z[picked_tt_ind] )**2)
-                tvapp = hyp/vapp
-
-                self.vapp_plot.set_ydata(tvapp)
-                self.vapp_plot.set_xdata(picked_tt_ind)
-            else:
-                self.vapp_plot.set_xdata(-100)
-                self.vapp_plot.set_ydata(-100)
-
-            self.draw()
-
-        elif self.tt.t0_before_radio.isChecked():
-            airshot_before = self.tt.air[self.tt.mog.av]
-            data = airshot_before.data.rdata
-
-            unpicked_tt_ind = np.where(airshot_before.tt == -1)[0]
-            picked_tt_ind = np.where(airshot_before.tt != -1)[0]
-            #print(picked_tt_ind)
-
-            unpicked_et_ind = np.where(airshot_before.et == -1)[0]
-            picked_et_ind = np.where(airshot_before.et != -1)[0]
-
-            cmax = np.abs(max(airshot_before.data.rdata.flatten()))
-
-            tt_done_ind = np.where(airshot_before.tt_done != 0)[0]
-            tt_undone_ind = np.where(airshot_before.tt_done == 0)[0]
-
-            actual_data = data
-
-            self.picked_tt_circle.set_xdata(picked_tt_ind)
-            self.picked_tt_circle.set_ydata(airshot_before.tt[picked_tt_ind])
-
-            self.picked_et_circle1.set_xdata(picked_et_ind)
-            self.picked_et_circle1.set_ydata(airshot_before.tt[picked_et_ind] + airshot_before.et[picked_et_ind])
-
-            self.picked_et_circle2.set_xdata(picked_et_ind)
-            self.picked_et_circle2.set_ydata(airshot_before.tt[picked_et_ind] - airshot_before.et[picked_et_ind])
-
-            self.actual_line.set_xdata(n-1)
-
-            self.unpicked_square.set_xdata(tt_undone_ind)
-            self.unpicked_square.set_ydata(t_max*np.ones(len(tt_undone_ind)))
-
-            self.picked_square.set_xdata(tt_done_ind)
-            self.picked_square.set_ydata(t_max*np.ones(len(tt_done_ind)))
-
-            self.shot_gather.set_data(data)
-            self.shot_gather.autoscale()
-            self.shot_gather.set_extent([0, airshot_before.data.ntrace -1, t_max, t_min])
-
-
-            self.draw()
-
-
-        elif self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.air[self.tt.mog.ap]
-            data = airshot_after.data.rdata
-
-            unpicked_tt_ind = np.where(airshot_after.tt == -1)[0]
-            picked_tt_ind = np.where(airshot_after.tt != -1)[0]
-
-            unpicked_et_ind = np.where(airshot_after.et == -1)[0]
-            picked_et_ind = np.where(airshot_after.et != -1)[0]
-
-            cmax = np.abs(max(airshot_after.data.rdata.flatten()))
-
-            tt_done_ind = np.where(airshot_after.tt_done != 0)[0]
-            tt_undone_ind = np.where(airshot_after.tt_done == 0)[0]
-
-            actual_data = data
-
-            self.picked_tt_circle.set_xdata(picked_tt_ind)
-            self.picked_tt_circle.set_ydata(airshot_after.tt[picked_tt_ind])
-
-            self.picked_et_circle1.set_xdata(picked_et_ind)
-            self.picked_et_circle1.set_ydata(airshot_after.tt[picked_et_ind] + airshot_after.et[picked_et_ind])
-
-            self.picked_et_circle2.set_xdata(picked_et_ind)
-            self.picked_et_circle2.set_ydata(airshot_after.tt[picked_et_ind] - airshot_after.et[picked_et_ind])
-
-            self.actual_line.set_xdata(n-1)
-
-            self.unpicked_square.set_xdata(tt_undone_ind)
-            self.unpicked_square.set_ydata(t_max*np.ones(len(tt_undone_ind)))
-
-            self.picked_square.set_xdata(tt_done_ind)
-            self.picked_square.set_ydata(t_max*np.ones(len(tt_done_ind)))
-
-            self.shot_gather.set_data(data)
-            self.shot_gather.autoscale()
-            self.shot_gather.set_extent([0, airshot_after.data.ntrace -1, t_max, t_min])
-            self.draw()
-
-        mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
-
-    def calculate_Vapp(self):
-        mog = self.tt.mog
-        ind1 = np.not_equal(mog.tt, -1)
-        ind2 = np.equal(mog.tt_done, 1).astype(int) + ind1.astype(int) + np.equal(mog.in_vect, 1).astype(int)
-        ind2 = np.where(ind2 == 3)
-        if len(ind2) == 0 :
-            vapp = 0
-            return vapp
-
-        hyp = np.sqrt((mog.data.Tx_x[ind2]-mog.data.Rx_x[ind2])**2
-                      + (mog.data.Tx_y[ind2] - mog.data.Rx_y[ind2] )**2
-                      + (mog.data.Tx_z[ind2] -  mog.data.Rx_z[ind2] )**2)
-
-        tt = mog.tt[ind2]
-        et = mog.et[ind2]
-
-        vapp = hyp/tt
-        if np.all(et == 0):
-            vapp = np.mean(vapp)
-        else:
-            w = 1/et
-            vapp = sum(vapp*w)/sum(w)
-
-        return vapp
 
 
     def onclick(self, event):
@@ -1153,11 +796,9 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualAmpUI()
-    #manual_ui.openmain.load_file('save test.p')
-    #manual_ui.update_control_center()
-    #manual_ui.update_a_and_t_edits()
-    #manual_ui.upperFig.plot_amplitude()
-    #manual_ui.lowerFig.plot_trace_data()
+    manual_ui.openmain.load_file('save test.p')
+    manual_ui.update_control_center()
+    manual_ui.update_settings_edits()
     manual_ui.showMaximized()
     #manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
