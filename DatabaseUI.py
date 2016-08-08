@@ -25,6 +25,7 @@ class DatabaseUI(QtGui.QWidget):
         self.initUI()
         self.action_list = []
         self.filename = ''
+        self.name = ''
         self.models = self.model.models
         self.boreholes = self.bh.boreholes
         self.mogs = self.mog.MOGs
@@ -176,7 +177,7 @@ class DatabaseUI(QtGui.QWidget):
 
     def saveasfile(self):
         try:
-            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', filter= 'pickle (*.p *.pkl *.pickle)', )
+            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', self.name, filter= 'pickle (*.p *.pkl *.pickle)', )
             print(filename)
             save_file = open(filename, 'wb')
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
@@ -190,6 +191,15 @@ class DatabaseUI(QtGui.QWidget):
 
             self.update_log('Error: Database could not be saved')
 
+    def editname(self):
+        new_name, ok = QtGui.QInputDialog.getText(self, "Change Name", 'Enter new name for database')
+
+        self.name = new_name
+
+        if new_name == '':
+            return
+
+        self.info.live_database_label.setText(str(new_name))
 
 
     def initUI(self):
@@ -212,6 +222,9 @@ class DatabaseUI(QtGui.QWidget):
         saveasAction.setShortcut('Ctrl+A')
         saveasAction.triggered.connect(self.saveasfile)
 
+        editnameAction = QtGui.QAction('Edit database name', self)
+        editnameAction.triggered.connect(self.editname)
+
 
         #--- Menubar ---#
         self.menu = QtGui.QMenuBar()
@@ -219,6 +232,9 @@ class DatabaseUI(QtGui.QWidget):
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
         filemenu.addAction(saveasAction)
+
+        editmenu = self.menu.addMenu('&Edit')
+        editmenu.addAction(editnameAction)
 
 
         #--- GroupBoxes ---#
