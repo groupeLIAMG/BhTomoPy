@@ -10,10 +10,10 @@ import re
 
 
 
-class ManualttUI(QtGui.QFrame):
+class ManualAmpUI(QtGui.QFrame):
     KeyPressed = QtCore.pyqtSignal()
     def __init__(self, parent=None):
-        super(ManualttUI, self).__init__()
+        super(ManualAmpUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Manual Traveltime Picking")
         self.openmain = OpenMainData(self)
         self.mogs = []
@@ -67,10 +67,6 @@ class ManualttUI(QtGui.QFrame):
             self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
             self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
             self.ntrace_label.setText(str(self.mog.data.ntrace))
-
-
-
-
 
 
         self.check_save()
@@ -1156,7 +1152,7 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    manual_ui = ManualttUI()
+    manual_ui = ManualAmpUI()
     #manual_ui.openmain.load_file('save test.p')
     #manual_ui.update_control_center()
     #manual_ui.update_a_and_t_edits()

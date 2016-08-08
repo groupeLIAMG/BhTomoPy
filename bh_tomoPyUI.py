@@ -6,6 +6,7 @@ from covarUI import CovarUI
 from inversionUI import InversionUI
 from interpUI import InterpretationUI
 from semi_auto_ttUI import SemiAutottUI
+from manualAmpUI import ManualAmpUI
 import os
 
 
@@ -21,6 +22,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         self.covar = CovarUI()
         self.inv = InversionUI()
         self.interp = InterpretationUI()
+        self.manual_amp = ManualAmpUI()
         self.initUI()
 
         self.setSizePolicy(QtGui.QSizePolicy.Minimum,
@@ -102,20 +104,18 @@ class Bh_ThomoPyUI(QtGui.QWidget):
 
         #- Buttons Disposition -#
         btn_Automatic_Traveltime_Picking.setDisabled(True)
-        btn_Manual_Amplitude_Picking.setDisabled(True)
         btn_Time_Lapse_Inversion.setDisabled(True)
         btn_Time_Lapse_Visualisation.setDisabled(True)
-        btn_Nano_Fluid.setDisabled(True)
+        #btn_Nano_Fluid.setDisabled(True)
 
         #- Buttons Actions -#
         btn_Database.clicked.connect(self.database.show)
-        btn_Manual_Traveltime_Picking.clicked.connect(
-            self.manual_tt.showMaximized)
-        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(
-            self.semi_tt.showMaximized)
+        btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt.showMaximized)
+        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(self.semi_tt.showMaximized)
         btn_Cov_Mod.clicked.connect(self.covar.show)
         btn_Inversion.clicked.connect(self.inv.show)
         btn_Interpretation.clicked.connect(self.interp.show)
+        btn_Manual_Amplitude_Picking.clicked.connect(self.manual_tt.show)
 
         #--- Image ---#
         pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
