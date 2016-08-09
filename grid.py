@@ -271,14 +271,19 @@ class Grid2D(Grid):
 
     """
 
-    def __init__(self, grx, grz, nthreads=1):
+    def __init__(self, nthreads=1):
         Grid.__init__(self)
-        self.grx = grx
-        self.grz = grz
+        self.grx = None
+        self.grz = None
         self.nthreads = nthreads
         self.nsnx = 10
         self.nsnz = 10
         self.cgrid = None
+        self.border = np.array([1, 1, 1, 1])
+        self.flip = 0
+        self.borehole_x0 = 1
+        self.x0 = np.array([])
+        self.type = None
 
     def raytrace(self, slowness, Tx, Rx, t0=(), xi=(), theta=()):
         """

@@ -2,7 +2,7 @@
 import sys
 from PyQt4 import QtGui, QtCore
 from BoreholeUI import BoreholeUI
-from ModelUI import ModelUI, gridUI
+from ModelUI import ModelUI, gridEditor
 from MogUI import MOGUI, MergeMog
 from InfoUI import InfoUI
 from MogData import MogData
@@ -19,7 +19,7 @@ class DatabaseUI(QtGui.QWidget):
         self.bh = BoreholeUI()
         self.mog = MOGUI(self.bh)
         self.model = ModelUI(borehole=self.bh, mog=self.mog)
-        self.grid = gridUI(self.model)
+        self.grid = gridEditor(self.model)
         self.info = InfoUI()
         self.mergemog = MergeMog(self.mog.MOGs)
         self.initUI()

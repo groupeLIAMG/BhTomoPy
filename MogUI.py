@@ -5,7 +5,7 @@ from PyQt4 import QtGui, QtCore
 from MogData import MogData
 from mog import Mog, AirShots
 from database import Database
-from ModelUI import gridUI
+from ModelUI import gridEditor
 from unicodedata import *
 import matplotlib as mpl
 import scipy as spy
