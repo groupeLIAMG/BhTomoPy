@@ -30,15 +30,17 @@ class ModelUI(QtGui.QWidget):
 
     def load_model(self, name):
         self.models.append(Model(name))
+        self.model_list.setCurrentRow(0)
         self.modellogSignal.emit("Model {} as been added succesfully".format(name))
         self.update_model_list()
 
     def del_model(self):
         ind = self.model_list.selectedIndexes()
         for i in ind:
-            self.modellogSignal.emit("Model {} as been deleted succesfully".format(self.models[int(i.row())]))
+            self.modellogSignal.emit("Model {} as been deleted succesfully".format(self.models[int(i.row())].name))
             del self.models[int(i.row())]
         self.update_model_list()
+        self.model_mog_list.clear()
 
     def update_mog_combo(self):
         self.chooseMog = ChooseModelMOG(self)
@@ -52,12 +54,14 @@ class ModelUI(QtGui.QWidget):
         self.update_mog_combo()
         self.chooseMog.show()
 
+
     def remove_mog(self):
         n = self.model_list.selectedIndexes()[0].row()
         ind = self.model_mog_list.currentIndex().row()
 
         del self.models[n].mogs[ind]
         self.update_model_mog_list()
+        self.update_models_boreholes()
 
     def update_model_mog_list(self):
         self.model_mog_list.clear()
@@ -70,6 +74,19 @@ class ModelUI(QtGui.QWidget):
         for model in self.models:
             self.model_list.addItem(model.name)
         self.modelInfoSignal.emit(len(self.model_list)) # we send the information to DatabaseUI
+        self.model_list.setCurrentRow(0)
+
+    def update_models_boreholes(self):
+        n = self.model_list.currentRow()
+        self.models[n].boreholes.clear()
+
+        for mog in self.models[n].mogs:
+            if mog.Tx not in self.models[n].boreholes:
+                self.models[n].boreholes.append(mog.Tx)
+            if mog.Rx not in self.models[n].boreholes:
+                self.models[n].boreholes.append(mog.Rx)
+
+        print(self.models[n].boreholes)
 
     def update_grid_info(self):
         ndata = 0
@@ -169,6 +186,9 @@ class ChooseModelMOG(QtGui.QWidget):
     def load_mog(self, ind, n):
         self.model.model_mog_list.addItem(self.model.mog.MOGs[ind].name)
         self.model.models[n].mogs.append(self.model.mog.MOGs[ind])
+        self.model.update_models_boreholes()
+
+
 
     def initUI(self):
         #------- Widgets -------#
@@ -215,15 +235,18 @@ class gridUI(QtGui.QWidget):
         self.bhsFig.plot_boreholes(self.model.models[self.model_ind].mogs, view)
 
     def plot_grid_view(self):
-        bh = self.borehole_combo.currentText()
-        state = self.flip_check.checkState()
-        pad_x_plus = float(self.pad_plus_x_edit.text())
+        origin      = self.borehole_combo.currentText()
+        state       = self.flip_check.checkState()
+        pad_x_plus  = float(self.pad_plus_x_edit.text())
         pad_x_minus = float(self.pad_minus_x_edit.text())
-        pad_z_plus = float(self.pad_plus_z_edit.text())
+        pad_z_plus  = float(self.pad_plus_z_edit.text())
         pad_z_minus = float(self.pad_minus_z_edit.text())
         x_cell_size = float(self.cell_size_x_edit.text())
         z_cell_size = float(self.cell_size_z_edit.text())
-        self.gridviewFig.plot_grid(self.model.models[self.model_ind].mogs, bh, state,
+
+
+        if len(self.model.models[self.model_ind].boreholes) == 2:
+            self.gridviewFig.plot_grid2D(data, origin, state,
                                                     pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
                                                                                        x_cell_size, z_cell_size)
 
@@ -263,12 +286,6 @@ class gridUI(QtGui.QWidget):
             if Tx.Z_water != None:
                 #TODO
                 pass
-
-
-
-
-
-
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
