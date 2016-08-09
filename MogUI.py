@@ -106,11 +106,18 @@ class MOGUI(QtGui.QWidget):
             self.Correction_Factor_edit.setText(str(mog.user_fac_dt))
             self.Multiplication_Factor_edit.setText(str(mog.f_et))
             self.Date_edit.setText(mog.date)
-            self.Air_Shot_Before_edit.setText(self.air[mog.av].name[:-4])
-            self.Air_Shot_After_edit.setText(self.air[mog.ap].name[:-4])
+            if mog.av != '' and mog.ap != '':
+                self.Air_Shot_Before_edit.setText(self.air[mog.av].name[:-4])
+                self.Air_Shot_After_edit.setText(self.air[mog.ap].name[:-4])
+            else:
+                self.Air_Shot_Before_edit.setText('')
+                self.Air_Shot_After_edit.setText('')
 
             if mog.useAirShots == 1:
                 self.Air_shots_checkbox.setChecked(True)
+
+            elif mog.useAirShots == 0:
+                self.Air_shots_checkbox.setChecked(False)
 
 
             for i in range(len(self.borehole.boreholes)):

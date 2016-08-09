@@ -128,7 +128,6 @@ class BoreholeUI(QtGui.QWidget):
             bh.Zmax           = float(self.Zmax_edit.text())
             bh.Z_surf         = float(self.Z_surf_edit.text())
             bh.Z_water        = float(self.Z_water_edit.text())
-            bh.diam           = float(self.Diam_edit.text())
             bh.fdata[0,0]     = bh.X
             bh.fdata[0,1]     = bh.Y
             bh.fdata[0,2]     = bh.Z

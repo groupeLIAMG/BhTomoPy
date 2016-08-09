@@ -19,7 +19,7 @@ class ModelUI(QtGui.QWidget):
         self.borehole = borehole
         self.mog = mog
         self.models = []
-        self.grid = gridUI(self)
+        self.gridui = gridUI(self)
         self.update_mog_combo()
         self.initUI()
 
@@ -82,18 +82,19 @@ class ModelUI(QtGui.QWidget):
             ndata += mog.data.ntrace
 
             n_tt_data_picked += len(np.where(mog.tt != -1)[0])
-            n_amp_data_picked += 0
+            n_amp_data_picked += (len(np.where(mog.amp_tmin != -1)[0]) + len(np.where(mog.amp_tmax != -1)[0]))/2
 
-        self.grid.gridinfo.num_data_label.setText(str(ndata))
-        self.grid.gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
-        self.grid.gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
+        self.gridui.gridinfo.num_data_label.setText(str(ndata))
+        self.gridui.gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
+        self.gridui.gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
 
     def start_grid(self):
-        self.grid.showMaximized()
-        self.grid.plot_boreholes()
-        self.grid.update_bh_origin()
-        self.grid.update_origin()
-        self.grid.plot_grid_view()
+        self.gridui.showMaximized()
+        self.gridui.plot_boreholes()
+        self.gridui.prepare_grid_data()
+        self.gridui.update_bh_origin()
+        self.gridui.update_origin()
+        self.gridui.plot_grid_view()
         self.update_grid_info()
 
     def initUI(self):
@@ -201,6 +202,7 @@ class gridUI(QtGui.QWidget):
         self.gridinfo = GridInfoUI()
         self.constraintseditor = ConstraintsEditorUI()
         self.model = model
+        self.data = Data()
         self.initUI()
 
     def plot_adjustment(self):
@@ -210,7 +212,7 @@ class gridUI(QtGui.QWidget):
     def plot_boreholes(self):
         self.model_ind = self.model.model_list.currentIndex().row()
         view = self.bhfig_combo.currentText()
-        self.bhsFig.plot_boreholes(self.model.borehole.boreholes, self.model.models[self.model_ind].mogs, view)
+        self.bhsFig.plot_boreholes(self.model.models[self.model_ind].mogs, view)
 
     def plot_grid_view(self):
         bh = self.borehole_combo.currentText()
@@ -223,7 +225,50 @@ class gridUI(QtGui.QWidget):
         z_cell_size = float(self.cell_size_z_edit.text())
         self.gridviewFig.plot_grid(self.model.models[self.model_ind].mogs, bh, state,
                                                     pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
-                                                                                        x_cell_size, z_cell_size)
+                                                                                       x_cell_size, z_cell_size)
+
+    def prepare_grid_data(self):
+        mogs = self.model.models[self.model_ind].mogs
+        mog = mogs[0]
+
+        self.data.in_vect = mog.in_vect.T
+        self.data.Tx = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
+        self.data.Rx = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
+        self.data.TxCosDir = mog.TxCosDir.T
+        self.data.RxCosDir = mog.RxCosDir.T
+
+
+        if len(mogs) > 1:
+            for n in range(1, len(mogs)):
+
+                mog = mogs[n]
+                tmp_Txyz = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
+                tmp_Rxyz = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
+
+                Tx = mog.Tx
+                Rx = mog.Rx
+
+                self.data.in_vect = np.concatenate((self.data.in_vect, mog.in_vect.T), axis= 0)
+
+
+                self.data.Tx = np.concatenate((self.data.Tx, tmp_Txyz), axis= 0)
+
+
+                self.data.Rx = np.concatenate((self.data.Rx, tmp_Rxyz), axis= 0)
+
+                self.data.TxCosDir = np.concatenate((self.data.TxCosDir, mog.TxCosDir.T), axis= 0)
+
+                self.data.RxCosDir = np.concatenate((self.data.RxCosDir, mog.RxCosDir.T), axis= 0)
+
+            if Tx.Z_water != None:
+                #TODO
+                pass
+
+
+
+
+
+
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
@@ -298,7 +343,6 @@ class gridUI(QtGui.QWidget):
         self.origin_x_edit.setReadOnly(True)
         self.origin_y_edit.setReadOnly(True)
         self.origin_z_edit.setReadOnly(True)
-
 
         #--- Labels ---#
         x_label                 = MyQLabel('X', ha= 'right')
@@ -467,7 +511,7 @@ class BoreholesFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
-    def plot_boreholes(self, boreholes, mogs, view):
+    def plot_boreholes(self, mogs, view):
         self.ax.cla()
 
         for n in range(len(mogs)):
@@ -496,8 +540,9 @@ class BoreholesFig(FigureCanvasQTAgg):
                                borderpad=0)
             l.draw_frame(False)
 
-        for bhole in boreholes:
-            self.ax.plot(bhole.fdata[:, 0], bhole.fdata[:, 1], bhole.fdata[:, 2], color= 'r')
+
+            self.ax.plot(mog.Tx.fdata[:, 0], mog.Tx.fdata[:, 1], mog.Tx.fdata[:, 2], color= 'r')
+            self.ax.plot(mog.Rx.fdata[:, 0], mog.Rx.fdata[:, 1], mog.Rx.fdata[:, 2], color= 'r')
 
         if view == '3D View':
             self.ax.view_init()
@@ -522,6 +567,7 @@ class GridViewFig(FigureCanvasQTAgg):
 
     def plot_grid(self, mogs, origin, flip, pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus, x_cell_size, z_cell_size):
         self.ax.cla()
+
         for mog in mogs:
             Tx_zs = np.unique(mog.data.Tx_z)
             Tx_ys = mog.data.Tx_y[:len(Tx_zs)]
@@ -537,6 +583,7 @@ class GridViewFig(FigureCanvasQTAgg):
                     self.ax.plot(np.abs(Tx_ys[0]-Rx_ys[0])*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
                     self.ax.set_xlim([-pad_x_minus, np.abs(Tx_ys[0]-Rx_ys[0]) + pad_x_plus])
                     self.ax.set_xticks(np.arange(-pad_x_minus, np.abs((Tx_ys[0] - Rx_ys[0])) + pad_x_plus, x_cell_size), minor= True)
+
                 if not flip:
                     self.ax.plot(-np.abs((Tx_ys[0]-Rx_ys[0]))*np.ones(len(Rx_zs)), -Rx_zs, '*', c= 'b')
                     self.ax.set_xlim([-pad_x_minus-np.abs((Tx_ys[0]-Rx_ys[0])), pad_x_plus])
@@ -699,6 +746,19 @@ class ConstraintsFig(FigureCanvasQTAgg):
 
         #h= self.ax.imshow(data, aspect='auto')
         #mpl.colorbar.Colorbar(self.ax2, h)
+
+class Data:
+    def __init__(self):
+        self.in_vect    = np.array([])
+        self.Tx         = np.array([])
+        self.Rx         = np.array([])
+        self.TxCosDir   = np.array([])
+        self.RxCosDir   = np.array([])
+        self.Tx_Z_water = np.array([])
+        self.Rx_Z_water = np.array([])
+        self.Tx         = np.array([])
+        self.Rx         = np.array([])
+
 
 
 

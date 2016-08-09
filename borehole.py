@@ -38,7 +38,7 @@ class Borehole:
         self.Ymax      = 0.0
         self.Zmax      = 0.0
         self.Z_surf    = 0.0            # BH's surface height
-        self.Z_water   = 0.0            # Elevation of the water table
+        self.Z_water   = None            # Elevation of the water table
         self.diam      = 0.0            # BH's diameter
         self.scont     = np.array([])   # Matrix containing the slowness for each point of the BH's trajectory
         self.acont     = np.array([])   # Matrix containing the attenuation for each point of the BH's trajectory
