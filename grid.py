@@ -271,10 +271,12 @@ class Grid2D(Grid):
 
     """
 
-    def __init__(self, nthreads=1):
+    def __init__(self, grx=None, grz=None, nthreads=1):
         Grid.__init__(self)
-        self.grx = None
-        self.grz = None
+        if grx is not None:
+            self.grx = grx
+        if grz is not None:
+            self.grz = grz
         self.nthreads = nthreads
         self.nsnx = 10
         self.nsnz = 10
