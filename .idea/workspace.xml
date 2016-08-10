@@ -8,8 +8,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ModelUI.py" afterPath="$PROJECT_DIR$/ModelUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/manualAmpUI.py" afterPath="$PROJECT_DIR$/manualAmpUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -41,11 +40,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="manualAmpUI.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="manualAmpUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/manualAmpUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="219" column="48" selection-start-line="219" selection-start-column="48" selection-end-line="219" selection-end-column="48" />
+            <state vertical-scroll-proportion="0.47008547">
+              <caret line="198" column="83" selection-start-line="198" selection-start-column="83" selection-end-line="198" selection-end-column="83" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -53,11 +52,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ModelUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="2.2564104">
-              <caret line="567" column="77" selection-start-line="567" selection-start-column="77" selection-end-line="567" selection-end-column="77" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="482" column="3" selection-start-line="482" selection-start-column="3" selection-end-line="482" selection-end-column="3" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -193,7 +192,6 @@
         <option value="$USER_HOME$/Anaconda3/Lib/site-packages/spectrum/burg.py" />
         <option value="$USER_HOME$/Anaconda3/Lib/site-packages/spectrum/__init__.py" />
         <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
-        <option value="$PROJECT_DIR$/manualAmpUI.py" />
         <option value="$PROJECT_DIR$/borehole.py" />
         <option value="$PROJECT_DIR$/BoreholeUI.py" />
         <option value="$PROJECT_DIR$/model.py" />
@@ -201,6 +199,7 @@
         <option value="$PROJECT_DIR$/grid.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
+        <option value="$PROJECT_DIR$/manualAmpUI.py" />
       </list>
     </option>
   </component>
@@ -424,7 +423,7 @@
       </FILE-GROUP>
     </UpdatedFiles>
   </component>
-  <component name="RunManager" selected="Python.DatabaseUI">
+  <component name="RunManager" selected="Python.manualAmpUI">
     <configuration default="false" name="DatabaseUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -641,9 +640,9 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.ModelUI" />
-        <item index="2" class="java.lang.String" itemvalue="Python.manualAmpUI" />
+        <item index="0" class="java.lang.String" itemvalue="Python.manualAmpUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.DatabaseUI" />
+        <item index="2" class="java.lang.String" itemvalue="Python.ModelUI" />
         <item index="3" class="java.lang.String" itemvalue="Python.manual_ttUI" />
         <item index="4" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
       </list>
@@ -659,12 +658,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00108" summary="update tt">
-      <created>1469649699064</created>
-      <option name="number" value="00108" />
-      <option name="project" value="LOCAL" />
-      <updated>1469649699064</updated>
     </task>
     <task id="LOCAL-00109" summary="picking de l'écart type fonctionnel">
       <created>1469652088256</created>
@@ -954,7 +947,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470845109569</updated>
     </task>
-    <option name="localTasksCounter" value="157" />
+    <task id="LOCAL-00157" summary="début stats best fit plane&#10;">
+      <created>1470846901329</created>
+      <option name="number" value="00157" />
+      <option name="project" value="LOCAL" />
+      <updated>1470846901329</updated>
+    </task>
+    <option name="localTasksCounter" value="158" />
     <servers />
   </component>
   <component name="TodoView">
@@ -1003,7 +1002,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Stats fonctionelles" />
     <MESSAGE value="intermediate saves fonctionnel" />
     <MESSAGE value="apparent velocity fonctionel" />
     <MESSAGE value="Export tt fonctionnel" />
@@ -1028,7 +1026,8 @@
     <MESSAGE value="update spectra" />
     <MESSAGE value="Zop et ZopRays fixed" />
     <MESSAGE value="build grid fonctionnel" />
-    <option name="LAST_COMMIT_MESSAGE" value="build grid fonctionnel" />
+    <MESSAGE value="début stats best fit plane&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="début stats best fit plane&#10;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1255,16 +1254,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/manualAmpUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="219" column="48" selection-start-line="219" selection-start-column="48" selection-end-line="219" selection-end-column="48" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-3.7003424">
@@ -1350,10 +1339,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ModelUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.2564104">
-          <caret line="567" column="77" selection-start-line="567" selection-start-column="77" selection-end-line="567" selection-end-column="77" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="482" column="3" selection-start-line="482" selection-start-column="3" selection-end-line="482" selection-end-column="3" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/manualAmpUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.47008547">
+          <caret line="198" column="83" selection-start-line="198" selection-start-column="83" selection-end-line="198" selection-end-column="83" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
           </folding>
         </state>
       </provider>
