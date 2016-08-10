@@ -1639,8 +1639,8 @@ class ZOPFig(FigureCanvasQTAgg):
 
         tt, in_plus, in_minus, vapp = self.calculate_Vapp(mog, self.ui.air)
 
-        zmin = -np.round(min(mog.data.Rx_z[zop_ind]), 4)
-        zmax = -np.round(max(mog.data.Rx_z[zop_ind]), 4)
+        zmin = np.round(min(mog.data.Rx_z[zop_ind]), 4)
+        zmax = np.round(max(mog.data.Rx_z[zop_ind]), 4)
         tmin = np.round(min(tt), 3)
         tmax = np.round(max(tt), 3)
 
@@ -1651,7 +1651,7 @@ class ZOPFig(FigureCanvasQTAgg):
 
         if veloc_state:
 
-            self.ax2.plot(vapp[zop_picked_ind], -mog.data.Rx_z[zop_picked_ind],
+            self.ax2.plot(vapp[zop_picked_ind], mog.data.Rx_z[zop_picked_ind],
                           marker = 'o',
                           fillstyle= 'none',
                           color= 'blue',
@@ -1659,9 +1659,9 @@ class ZOPFig(FigureCanvasQTAgg):
                           mew= 1,
                           ls = 'None')
 
-            self.ax2.plot([in_plus[zop_picked_ind], in_minus[zop_picked_ind]], [-mog.data.Rx_z[zop_ind], -mog.data.Rx_z[zop_ind]], color= 'grey' )
+            self.ax2.plot([in_plus[zop_picked_ind], in_minus[zop_picked_ind]], [mog.data.Rx_z[zop_ind], mog.data.Rx_z[zop_ind]], color= 'grey' )
             self.ax2.set_xlabel('Apparent velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-            self.ax2.set_ylim(zmax, zmin)
+            self.ax2.set_ylim(zmin, zmax)
 
 
         if scont_state:
@@ -1674,17 +1674,19 @@ class ZOPFig(FigureCanvasQTAgg):
 
 
         self.ax1.imshow(mog.data.rdata[:, zop_ind].T,
-                        extent= [mog.data.timestp[0], mog.data.timestp[-1], zmax, zmin],
+                        extent= [mog.data.timestp[0], mog.data.timestp[-1], zmin, zmax],
                         interpolation= 'none',
                         cmap= 'seismic',
                         aspect= 'auto',
                         vmin = -color_scale,
                         vmax= color_scale)
 
+        self.ax1.set_ylim(zmin, zmax)
+        self.ax1.set_xlim(mog.data.timestp[0], mog.data.timestp[-1])
 
 
         self.ax1.plot(mog.tt[zop_picked_ind],
-                        -mog.data.Rx_z[zop_picked_ind],
+                        mog.data.Rx_z[zop_picked_ind],
                         marker = 'o',
                         fillstyle= 'none',
                         color= 'green',
@@ -1764,16 +1766,16 @@ class ZOPRaysFig(FigureCanvasQTAgg):
         Tx_Rx_zs = Tx_Rx_zs.T
 
         for i in range(num_Tx):
-            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= -1*Tx_Rx_zs[:, i], c='g')
+            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= Tx_Rx_zs[:, i], c='g')
 
         self.ax.plot(mog.Tx.fdata[:, 0], mog.Tx.fdata[:, 1], mog.Tx.fdata[:, 2], color='b')
         self.ax.plot(mog.Rx.fdata[:, 0], mog.Rx.fdata[:, 1], mog.Rx.fdata[:, 2], color='b')
 
-        self.ax.text(x=mog.data.Rx_x[0], y=mog.data.Rx_y[0], z=mog.data.Rx_z[0] + 0.5, s=str(mog.Rx.name))
-        self.ax.text(x=mog.data.Tx_x[0], y=mog.data.Tx_y[0], z=mog.data.Tx_z[0] + 0.5, s=str(mog.Tx.name))
+        self.ax.text(x=mog.data.Rx_x[0], y=mog.data.Rx_y[0], z= max(mog.data.Rx_z) + 0.5, s=str(mog.Rx.name))
+        self.ax.text(x=mog.data.Tx_x[0], y=mog.data.Tx_y[0], z= max(mog.data.Tx_z) + 0.5, s=str(mog.Tx.name))
 
-        self.ax.scatter(xs=mog.data.Rx_x[0], ys=mog.data.Rx_y[0], zs=mog.data.Rx_z[0], c='black', marker='o')
-        self.ax.scatter(xs=mog.data.Tx_x[0], ys=mog.data.Tx_y[0], zs=mog.data.Tx_z[0], c='black', marker='o')
+        self.ax.scatter(xs=mog.data.Rx_x[0], ys=mog.data.Rx_y[0], zs= mog.Tx.fdata[0, 2], c='black', marker='o')
+        self.ax.scatter(xs=mog.data.Tx_x[0], ys=mog.data.Tx_y[0], zs= mog.Rx.fdata[0, 2], c='black', marker='o')
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))

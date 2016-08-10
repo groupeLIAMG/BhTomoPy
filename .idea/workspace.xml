@@ -8,7 +8,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/save test.p" afterPath="$PROJECT_DIR$/save test.p" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -102,8 +101,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.0256411">
-              <caret line="1542" column="35" selection-start-line="1542" selection-start-column="35" selection-end-line="1542" selection-end-column="35" />
+            <state vertical-scroll-proportion="0.47008547">
+              <caret line="1777" column="87" selection-start-line="1777" selection-start-column="87" selection-end-line="1777" selection-end-column="87" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -662,12 +661,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00105" summary="Correction airshots dans MogUI, changement du main de manual tt et database afin de pouvoir accéder directement au fichier de sauvegarde, ajout de carrés pour les traces non pointées">
-      <created>1469548485684</created>
-      <option name="number" value="00105" />
-      <option name="project" value="LOCAL" />
-      <updated>1469548485688</updated>
-    </task>
     <task id="LOCAL-00106" summary="pointé dans le upperFig fonctionnel">
       <created>1469564883950</created>
       <option name="number" value="00106" />
@@ -956,7 +949,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470842816623</updated>
     </task>
-    <option name="localTasksCounter" value="154" />
+    <task id="LOCAL-00154" summary="update spectra">
+      <created>1470843826557</created>
+      <option name="number" value="00154" />
+      <option name="project" value="LOCAL" />
+      <updated>1470843826557</updated>
+    </task>
+    <option name="localTasksCounter" value="155" />
     <servers />
   </component>
   <component name="TodoView">
@@ -1005,7 +1004,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update control center fixed" />
     <MESSAGE value="implémentation de use airshots" />
     <MESSAGE value="changement dans mogdata pour timestp&#10;update du pas d'échantillonnage dans upper fig&#10;et plus" />
     <MESSAGE value="Stats fonctionelles" />
@@ -1030,7 +1028,8 @@
     <MESSAGE value="implémentation de boreholes pour models&#10;" />
     <MESSAGE value="début de build grid et preparegriddata fonctionel" />
     <MESSAGE value="update coords" />
-    <option name="LAST_COMMIT_MESSAGE" value="update coords" />
+    <MESSAGE value="update spectra" />
+    <option name="LAST_COMMIT_MESSAGE" value="update spectra" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1356,8 +1355,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.0256411">
-          <caret line="1542" column="35" selection-start-line="1542" selection-start-column="35" selection-end-line="1542" selection-end-column="35" />
+        <state vertical-scroll-proportion="0.47008547">
+          <caret line="1777" column="87" selection-start-line="1777" selection-start-column="87" selection-end-line="1777" selection-end-column="87" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>
