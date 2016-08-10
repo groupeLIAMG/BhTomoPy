@@ -1225,6 +1225,7 @@ static const char __pyx_k_Problem_parsing_trace_data[] = "Problem parsing trace 
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static const char __pyx_k_Problem_parsing_binary_header[] = "Problem parsing binary header";
 static const char __pyx_k_Problem_parsing_trace_headers[] = "Problem parsing trace headers";
+static const char __pyx_k_Class_to_hold_SEG_Y_data_Attrib[] = "\n    Class to hold SEG-Y data\n    \n    Attributes are:\n        bh:  Dictionnary containing binary header data\n                keys are:\n                                (bytes in file)\n                jobid            3201-3204\n                lino             3205-3208\n                reno             3209-3212\n                ntrpr            3213-3214\n                nart             3215-3216\n                hdt              3217-3218\n                dto              3219-3220\n                hns              3221-3222\n                nso              3223-3224\n                format           3225-3226\n\n                fold             3227-3228\n                tsort            3229-3230\n                vscode           3231-3232\n                hsfs             3233-3234\n                hsfe             3235-3236\n                hslen            3237-3238\n                hstyp            3239-3240\n                schn             3241-3242\n                hstas            3243-3244\n                hstae            3245-3246\n\n                htatyp           3247-3248\n                hcorr            3249-3250\n                bgrcv            3251-3252\n                rcvm             3253-3254\n                mfeet            3255-3256\n                polyt            3257-3258\n                vpol             3259-3260\n\n                rev              3501-3502\n                fixl             3503-3504\n                extfh            3505-3506\n        \n        th: Dictionnary containing traces header data\n                keys are (unless custom dictionary given to read_segy)\n                \n                            (bytes in header)\n                tracl      -  1-4\n                tracr      -  5-8\n                fldr       -  9-12\n                tracf      -  13-16\n                ep         -  17-20\n                cdp        -  21-24\n                cdpt       -  25-28\n                trid       ""-  29-30\n                nvs        -  31-32\n                nhs        -  33-34\n\n                duse       -  35-36\n                offset     -  37-40\n                gelev      -  41-44\n                selev      -  45-48\n                sdepth     -  49-52\n                gdel       -  53-56\n                sdel       -  57-60\n                swdep      -  61-64\n                gwdep      -  65-68\n                scalel     -  69-70\n\n                scalco     -  71-72\n                sx         -  73-76\n                sy         -  77-80\n                gx         -  81-84\n                gy         -  85-88\n                counit     -  89-90\n                wevel      -  91-92\n                swevel     -  93-94\n                sut        -  95-96\n                gut        -  97-98\n\n                sstat      -  99-100\n                gstat      -  101-102\n                tstat      -  103-104\n                laga       -  105-106\n                lagb       -  107-108\n                delrt      -  109-110\n                muts       -  111-112\n                mute       -  113-114\n                ns         -  115-116\n                dt         -  117-118\n\n                gain       -  119-120\n                igc        -  121-122\n                igi        -  123-124\n                corr       -  125-126\n                sfs        -  127-128\n                sfe        -  129-130\n                slen       -  131-132\n                styp       -  133-134\n                stas       -  135-136\n                stae       -  137-138\n\n                tatyp      -  139-140\n                afilf      -  141-142\n                afils      -  143-144\n                nofilf     -  145-146\n                nofils     -  147-148\n                lcf        -  149-150\n                hcf        -  151-152\n                lcs        -  153-154\n                hcs        -  155-156\n                year       -  157-15""8\n\n                day        -  159-160\n                hour       -  161-162\n                minute     -  163-164\n                sec        -  165-166\n                timbas     -  167-168\n                trwf       -  169-170\n                grnors     -  171-172\n                grnofr     -  173-174\n                grnlof     -  175-176\n                gaps       -  177-178\n\n                otrav      -  179-180\n                xcdp       -  181-184\n                ycdp       -  185-188\n                ilineno    -  189-192\n                clineno    -  193-196\n                shotno     -  197-200\n                scalsn     -  201-202\n                tvmunit    -  203-204\n                tdcst      -  205-210\n                tdunit     -  211-212\n\n                trid       -  213-214\n                scalt      -  215-216\n                styp       -  217-218\n                sdir       -  219-224\n                smeas      -  225-230\n                smunit     -  231-232\n                unass      -  233-240\n\n        data: the actual traces (numpy array of size nsamples x ntraces)\n                \n    ";
 static const char __pyx_k_Copyright_2016_Bernard_Giroux_e[] = "\n    Copyright 2016 Bernard Giroux\n    email: bernard.giroux@ete.inrs.ca\n    \n    This program is free software: you can redistribute it and/or modify\n    it under the terms of the GNU General Public License as published by\n    the Free Software Foundation, either version 3 of the License, or\n    (at your option) any later version.\n    \n    This program is distributed in the hope that it /will be useful,\n    but WITHOUT ANY WARRANTY; without even the implied warranty of\n    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n    GNU General Public License for more details.\n    \n    You should have received a copy of the GNU General Public License\n    along with this program.  If not, see <http://www.gnu.org/licenses/>.\n";
 static const char __pyx_k_Users_giroux_JacquesCloud_GitHu[] = "/Users/giroux/JacquesCloud/GitHub/BhTomoPy/cutils/segy.pyx";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
@@ -1232,6 +1233,7 @@ static const char __pyx_k_Format_string_allocated_too_shor[] = "Format string al
 static const char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte order not supported";
 static const char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static const char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
+static PyObject *__pyx_kp_s_Class_to_hold_SEG_Y_data_Attrib;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_n_s_IOError;
@@ -1292,7 +1294,7 @@ static PyObject *__pyx_tuple__12;
 static PyObject *__pyx_tuple__13;
 static PyObject *__pyx_codeobj__14;
 
-/* "segy.pyx":63
+/* "segy.pyx":207
  *     data=0   # traces
  * 
  * def read_segy(segyfile, traceNo=None, fields=None, thDict=None, wordLength=None):             # <<<<<<<<<<<<<<
@@ -1359,7 +1361,7 @@ static PyObject *__pyx_pw_4segy_1read_segy(PyObject *__pyx_self, PyObject *__pyx
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_segy") < 0)) __PYX_ERR(0, 63, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "read_segy") < 0)) __PYX_ERR(0, 207, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -1380,7 +1382,7 @@ static PyObject *__pyx_pw_4segy_1read_segy(PyObject *__pyx_self, PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("read_segy", 0, 1, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 63, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("read_segy", 0, 1, 5, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 207, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("segy.read_segy", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -1413,14 +1415,14 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
   __Pyx_INCREF(__pyx_v_thDict);
   __Pyx_INCREF(__pyx_v_wordLength);
 
-  /* "segy.pyx":90
+  /* "segy.pyx":234
  * 
  *     """
  *     s = Segy_data()             # <<<<<<<<<<<<<<
  *     s.bh = dict()
  *     s.th = dict()
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_Segy_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_Segy_data); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 234, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -1433,48 +1435,48 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 234, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 234, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_s = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "segy.pyx":91
+  /* "segy.pyx":235
  *     """
  *     s = Segy_data()
  *     s.bh = dict()             # <<<<<<<<<<<<<<
  *     s.th = dict()
  * 
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_s, __pyx_n_s_bh, __pyx_t_1) < 0) __PYX_ERR(0, 91, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_s, __pyx_n_s_bh, __pyx_t_1) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "segy.pyx":92
+  /* "segy.pyx":236
  *     s = Segy_data()
  *     s.bh = dict()
  *     s.th = dict()             # <<<<<<<<<<<<<<
  * 
  *     cdef bytes py_bytes = segyfile.encode()
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_s, __pyx_n_s_th, __pyx_t_1) < 0) __PYX_ERR(0, 92, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_s, __pyx_n_s_th, __pyx_t_1) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "segy.pyx":94
+  /* "segy.pyx":238
  *     s.th = dict()
  * 
  *     cdef bytes py_bytes = segyfile.encode()             # <<<<<<<<<<<<<<
  *     cdef char* filename = py_bytes
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_segyfile, __pyx_n_s_encode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 94, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_segyfile, __pyx_n_s_encode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -1487,28 +1489,28 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 238, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 238, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(PyBytes_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 94, __pyx_L1_error)
+  if (!(likely(PyBytes_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "bytes", Py_TYPE(__pyx_t_1)->tp_name), 0))) __PYX_ERR(0, 238, __pyx_L1_error)
   __pyx_v_py_bytes = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "segy.pyx":95
+  /* "segy.pyx":239
  * 
  *     cdef bytes py_bytes = segyfile.encode()
  *     cdef char* filename = py_bytes             # <<<<<<<<<<<<<<
  * 
  *     cdef int retval = 0
  */
-  __pyx_t_4 = __Pyx_PyObject_AsString(__pyx_v_py_bytes); if (unlikely((!__pyx_t_4) && PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_AsString(__pyx_v_py_bytes); if (unlikely((!__pyx_t_4) && PyErr_Occurred())) __PYX_ERR(0, 239, __pyx_L1_error)
   __pyx_v_filename = __pyx_t_4;
 
-  /* "segy.pyx":97
+  /* "segy.pyx":241
  *     cdef char* filename = py_bytes
  * 
  *     cdef int retval = 0             # <<<<<<<<<<<<<<
@@ -1517,19 +1519,19 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
   __pyx_v_retval = 0;
 
-  /* "segy.pyx":99
+  /* "segy.pyx":243
  *     cdef int retval = 0
  * 
  *     retval = csegy.read_segy_b_header(filename, s.bh)             # <<<<<<<<<<<<<<
  * 
  *     if retval == 1:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_bh); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 99, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_bh); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_retval = read_segy_b_header(__pyx_v_filename, __pyx_t_1);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "segy.pyx":101
+  /* "segy.pyx":245
  *     retval = csegy.read_segy_b_header(filename, s.bh)
  * 
  *     if retval == 1:             # <<<<<<<<<<<<<<
@@ -1539,20 +1541,20 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
   switch (__pyx_v_retval) {
     case 1:
 
-    /* "segy.pyx":102
+    /* "segy.pyx":246
  * 
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')             # <<<<<<<<<<<<<<
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing binary header')
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 246, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 102, __pyx_L1_error)
+    __PYX_ERR(0, 246, __pyx_L1_error)
 
-    /* "segy.pyx":101
+    /* "segy.pyx":245
  *     retval = csegy.read_segy_b_header(filename, s.bh)
  * 
  *     if retval == 1:             # <<<<<<<<<<<<<<
@@ -1561,7 +1563,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
     break;
 
-    /* "segy.pyx":103
+    /* "segy.pyx":247
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:             # <<<<<<<<<<<<<<
@@ -1570,20 +1572,20 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
     case 2:
 
-    /* "segy.pyx":104
+    /* "segy.pyx":248
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing binary header')             # <<<<<<<<<<<<<<
  * 
  *     if traceNo is None:
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 104, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 248, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 104, __pyx_L1_error)
+    __PYX_ERR(0, 248, __pyx_L1_error)
 
-    /* "segy.pyx":103
+    /* "segy.pyx":247
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:             # <<<<<<<<<<<<<<
@@ -1594,7 +1596,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     default: break;
   }
 
-  /* "segy.pyx":106
+  /* "segy.pyx":250
  *         raise RuntimeError('Problem parsing binary header')
  * 
  *     if traceNo is None:             # <<<<<<<<<<<<<<
@@ -1605,19 +1607,19 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_t_6 = (__pyx_t_5 != 0);
   if (__pyx_t_6) {
 
-    /* "segy.pyx":107
+    /* "segy.pyx":251
  * 
  *     if traceNo is None:
  *         traceNo = list()             # <<<<<<<<<<<<<<
  *     else:
  *         traceNo = list(traceNo)
  */
-    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 107, __pyx_L1_error)
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 251, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF_SET(__pyx_v_traceNo, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "segy.pyx":106
+    /* "segy.pyx":250
  *         raise RuntimeError('Problem parsing binary header')
  * 
  *     if traceNo is None:             # <<<<<<<<<<<<<<
@@ -1627,7 +1629,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     goto __pyx_L3;
   }
 
-  /* "segy.pyx":109
+  /* "segy.pyx":253
  *         traceNo = list()
  *     else:
  *         traceNo = list(traceNo)             # <<<<<<<<<<<<<<
@@ -1635,14 +1637,14 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  *     if fields is not None:
  */
   /*else*/ {
-    __pyx_t_1 = PySequence_List(__pyx_v_traceNo); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
+    __pyx_t_1 = PySequence_List(__pyx_v_traceNo); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 253, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF_SET(__pyx_v_traceNo, __pyx_t_1);
     __pyx_t_1 = 0;
   }
   __pyx_L3:;
 
-  /* "segy.pyx":111
+  /* "segy.pyx":255
  *         traceNo = list(traceNo)
  * 
  *     if fields is not None:             # <<<<<<<<<<<<<<
@@ -1653,19 +1655,19 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_t_5 = (__pyx_t_6 != 0);
   if (__pyx_t_5) {
 
-    /* "segy.pyx":112
+    /* "segy.pyx":256
  * 
  *     if fields is not None:
  *         fields = list(fields)   # make sure we have list instances             # <<<<<<<<<<<<<<
  *         if thDict is None:
  *             thDict = list()
  */
-    __pyx_t_1 = PySequence_List(__pyx_v_fields); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 112, __pyx_L1_error)
+    __pyx_t_1 = PySequence_List(__pyx_v_fields); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF_SET(__pyx_v_fields, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "segy.pyx":113
+    /* "segy.pyx":257
  *     if fields is not None:
  *         fields = list(fields)   # make sure we have list instances
  *         if thDict is None:             # <<<<<<<<<<<<<<
@@ -1676,19 +1678,19 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     __pyx_t_6 = (__pyx_t_5 != 0);
     if (__pyx_t_6) {
 
-      /* "segy.pyx":114
+      /* "segy.pyx":258
  *         fields = list(fields)   # make sure we have list instances
  *         if thDict is None:
  *             thDict = list()             # <<<<<<<<<<<<<<
  *         else:
  *             thDict = list(thDict)
  */
-      __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
+      __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF_SET(__pyx_v_thDict, __pyx_t_1);
       __pyx_t_1 = 0;
 
-      /* "segy.pyx":113
+      /* "segy.pyx":257
  *     if fields is not None:
  *         fields = list(fields)   # make sure we have list instances
  *         if thDict is None:             # <<<<<<<<<<<<<<
@@ -1698,7 +1700,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
       goto __pyx_L5;
     }
 
-    /* "segy.pyx":116
+    /* "segy.pyx":260
  *             thDict = list()
  *         else:
  *             thDict = list(thDict)             # <<<<<<<<<<<<<<
@@ -1706,14 +1708,14 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  *             wordLength = list()
  */
     /*else*/ {
-      __pyx_t_1 = PySequence_List(__pyx_v_thDict); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 116, __pyx_L1_error)
+      __pyx_t_1 = PySequence_List(__pyx_v_thDict); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 260, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF_SET(__pyx_v_thDict, __pyx_t_1);
       __pyx_t_1 = 0;
     }
     __pyx_L5:;
 
-    /* "segy.pyx":117
+    /* "segy.pyx":261
  *         else:
  *             thDict = list(thDict)
  *         if wordLength is None:             # <<<<<<<<<<<<<<
@@ -1724,19 +1726,19 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     __pyx_t_5 = (__pyx_t_6 != 0);
     if (__pyx_t_5) {
 
-      /* "segy.pyx":118
+      /* "segy.pyx":262
  *             thDict = list(thDict)
  *         if wordLength is None:
  *             wordLength = list()             # <<<<<<<<<<<<<<
  *         else:
  *             wordLength = list(wordLength)
  */
-      __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 118, __pyx_L1_error)
+      __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 262, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF_SET(__pyx_v_wordLength, __pyx_t_1);
       __pyx_t_1 = 0;
 
-      /* "segy.pyx":117
+      /* "segy.pyx":261
  *         else:
  *             thDict = list(thDict)
  *         if wordLength is None:             # <<<<<<<<<<<<<<
@@ -1746,7 +1748,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
       goto __pyx_L6;
     }
 
-    /* "segy.pyx":120
+    /* "segy.pyx":264
  *             wordLength = list()
  *         else:
  *             wordLength = list(wordLength)             # <<<<<<<<<<<<<<
@@ -1754,26 +1756,26 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  * 
  */
     /*else*/ {
-      __pyx_t_1 = PySequence_List(__pyx_v_wordLength); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+      __pyx_t_1 = PySequence_List(__pyx_v_wordLength); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 264, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF_SET(__pyx_v_wordLength, __pyx_t_1);
       __pyx_t_1 = 0;
     }
     __pyx_L6:;
 
-    /* "segy.pyx":121
+    /* "segy.pyx":265
  *         else:
  *             wordLength = list(wordLength)
  *         retval = csegy.read_segy_tr_headers(filename, traceNo, fields, thDict, wordLength, s.th)             # <<<<<<<<<<<<<<
  * 
  *         if retval == 1:
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_th); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 121, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_th); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 265, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_v_retval = read_segy_tr_headers(__pyx_v_filename, __pyx_v_traceNo, __pyx_v_fields, __pyx_v_thDict, __pyx_v_wordLength, __pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "segy.pyx":123
+    /* "segy.pyx":267
  *         retval = csegy.read_segy_tr_headers(filename, traceNo, fields, thDict, wordLength, s.th)
  * 
  *         if retval == 1:             # <<<<<<<<<<<<<<
@@ -1783,20 +1785,20 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     switch (__pyx_v_retval) {
       case 1:
 
-      /* "segy.pyx":124
+      /* "segy.pyx":268
  * 
  *         if retval == 1:
  *             raise IOError('Problem opening segy file')             # <<<<<<<<<<<<<<
  *         elif retval == 2:
  *             raise RuntimeError('Problem parsing trace headers')
  */
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 124, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 268, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_Raise(__pyx_t_1, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __PYX_ERR(0, 124, __pyx_L1_error)
+      __PYX_ERR(0, 268, __pyx_L1_error)
 
-      /* "segy.pyx":123
+      /* "segy.pyx":267
  *         retval = csegy.read_segy_tr_headers(filename, traceNo, fields, thDict, wordLength, s.th)
  * 
  *         if retval == 1:             # <<<<<<<<<<<<<<
@@ -1805,7 +1807,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
       break;
 
-      /* "segy.pyx":125
+      /* "segy.pyx":269
  *         if retval == 1:
  *             raise IOError('Problem opening segy file')
  *         elif retval == 2:             # <<<<<<<<<<<<<<
@@ -1814,20 +1816,20 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
       case 2:
 
-      /* "segy.pyx":126
+      /* "segy.pyx":270
  *             raise IOError('Problem opening segy file')
  *         elif retval == 2:
  *             raise RuntimeError('Problem parsing trace headers')             # <<<<<<<<<<<<<<
  * 
  *     s.data = csegy.read_segy_data(filename, traceNo)
  */
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 126, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 270, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_Raise(__pyx_t_1, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __PYX_ERR(0, 126, __pyx_L1_error)
+      __PYX_ERR(0, 270, __pyx_L1_error)
 
-      /* "segy.pyx":125
+      /* "segy.pyx":269
  *         if retval == 1:
  *             raise IOError('Problem opening segy file')
  *         elif retval == 2:             # <<<<<<<<<<<<<<
@@ -1838,7 +1840,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
       default: break;
     }
 
-    /* "segy.pyx":111
+    /* "segy.pyx":255
  *         traceNo = list(traceNo)
  * 
  *     if fields is not None:             # <<<<<<<<<<<<<<
@@ -1847,46 +1849,46 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
   }
 
-  /* "segy.pyx":128
+  /* "segy.pyx":272
  *             raise RuntimeError('Problem parsing trace headers')
  * 
  *     s.data = csegy.read_segy_data(filename, traceNo)             # <<<<<<<<<<<<<<
  *     if type(s.data) is int:
  *         retval = s.data
  */
-  __pyx_t_1 = read_segy_data(__pyx_v_filename, __pyx_v_traceNo); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
+  __pyx_t_1 = read_segy_data(__pyx_v_filename, __pyx_v_traceNo); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_s, __pyx_n_s_data, __pyx_t_1) < 0) __PYX_ERR(0, 128, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_s, __pyx_n_s_data, __pyx_t_1) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "segy.pyx":129
+  /* "segy.pyx":273
  * 
  *     s.data = csegy.read_segy_data(filename, traceNo)
  *     if type(s.data) is int:             # <<<<<<<<<<<<<<
  *         retval = s.data
  *     else:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 129, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 273, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_5 = (((PyObject *)Py_TYPE(__pyx_t_1)) == ((PyObject *)(&PyInt_Type)));
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_6 = (__pyx_t_5 != 0);
   if (__pyx_t_6) {
 
-    /* "segy.pyx":130
+    /* "segy.pyx":274
  *     s.data = csegy.read_segy_data(filename, traceNo)
  *     if type(s.data) is int:
  *         retval = s.data             # <<<<<<<<<<<<<<
  *     else:
  *         retval = 0
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 130, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_7 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 274, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_retval = __pyx_t_7;
 
-    /* "segy.pyx":129
+    /* "segy.pyx":273
  * 
  *     s.data = csegy.read_segy_data(filename, traceNo)
  *     if type(s.data) is int:             # <<<<<<<<<<<<<<
@@ -1896,7 +1898,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     goto __pyx_L7;
   }
 
-  /* "segy.pyx":132
+  /* "segy.pyx":276
  *         retval = s.data
  *     else:
  *         retval = 0             # <<<<<<<<<<<<<<
@@ -1908,7 +1910,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
   }
   __pyx_L7:;
 
-  /* "segy.pyx":134
+  /* "segy.pyx":278
  *         retval = 0
  * 
  *     if retval == 1:             # <<<<<<<<<<<<<<
@@ -1918,20 +1920,20 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
   switch (__pyx_v_retval) {
     case 1:
 
-    /* "segy.pyx":135
+    /* "segy.pyx":279
  * 
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')             # <<<<<<<<<<<<<<
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing trace data')
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 135, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 279, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 135, __pyx_L1_error)
+    __PYX_ERR(0, 279, __pyx_L1_error)
 
-    /* "segy.pyx":134
+    /* "segy.pyx":278
  *         retval = 0
  * 
  *     if retval == 1:             # <<<<<<<<<<<<<<
@@ -1940,7 +1942,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
     break;
 
-    /* "segy.pyx":136
+    /* "segy.pyx":280
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:             # <<<<<<<<<<<<<<
@@ -1949,20 +1951,20 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
  */
     case 2:
 
-    /* "segy.pyx":137
+    /* "segy.pyx":281
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing trace data')             # <<<<<<<<<<<<<<
  * 
  *     return s
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 137, __pyx_L1_error)
+    __PYX_ERR(0, 281, __pyx_L1_error)
 
-    /* "segy.pyx":136
+    /* "segy.pyx":280
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:             # <<<<<<<<<<<<<<
@@ -1973,7 +1975,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
     default: break;
   }
 
-  /* "segy.pyx":139
+  /* "segy.pyx":283
  *         raise RuntimeError('Problem parsing trace data')
  * 
  *     return s             # <<<<<<<<<<<<<<
@@ -1983,7 +1985,7 @@ static PyObject *__pyx_pf_4segy_read_segy(CYTHON_UNUSED PyObject *__pyx_self, Py
   __pyx_r = __pyx_v_s;
   goto __pyx_L0;
 
-  /* "segy.pyx":63
+  /* "segy.pyx":207
  *     data=0   # traces
  * 
  * def read_segy(segyfile, traceNo=None, fields=None, thDict=None, wordLength=None):             # <<<<<<<<<<<<<<
@@ -4155,6 +4157,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_kp_s_Class_to_hold_SEG_Y_data_Attrib, __pyx_k_Class_to_hold_SEG_Y_data_Attrib, sizeof(__pyx_k_Class_to_hold_SEG_Y_data_Attrib), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
   {&__pyx_n_s_IOError, __pyx_k_IOError, sizeof(__pyx_k_IOError), 0, 0, 1, 1},
@@ -4199,8 +4202,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 102, __pyx_L1_error)
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) __PYX_ERR(0, 246, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 248, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 218, __pyx_L1_error)
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(1, 231, __pyx_L1_error)
   return 0;
@@ -4212,69 +4215,69 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "segy.pyx":102
+  /* "segy.pyx":246
  * 
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')             # <<<<<<<<<<<<<<
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing binary header')
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Problem_opening_segy_file); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Problem_opening_segy_file); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 246, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "segy.pyx":104
+  /* "segy.pyx":248
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing binary header')             # <<<<<<<<<<<<<<
  * 
  *     if traceNo is None:
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Problem_parsing_binary_header); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Problem_parsing_binary_header); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "segy.pyx":124
+  /* "segy.pyx":268
  * 
  *         if retval == 1:
  *             raise IOError('Problem opening segy file')             # <<<<<<<<<<<<<<
  *         elif retval == 2:
  *             raise RuntimeError('Problem parsing trace headers')
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_Problem_opening_segy_file); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_Problem_opening_segy_file); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "segy.pyx":126
+  /* "segy.pyx":270
  *             raise IOError('Problem opening segy file')
  *         elif retval == 2:
  *             raise RuntimeError('Problem parsing trace headers')             # <<<<<<<<<<<<<<
  * 
  *     s.data = csegy.read_segy_data(filename, traceNo)
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Problem_parsing_trace_headers); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 126, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Problem_parsing_trace_headers); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 270, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "segy.pyx":135
+  /* "segy.pyx":279
  * 
  *     if retval == 1:
  *         raise IOError('Problem opening segy file')             # <<<<<<<<<<<<<<
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing trace data')
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_Problem_opening_segy_file); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 135, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_Problem_opening_segy_file); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 279, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "segy.pyx":137
+  /* "segy.pyx":281
  *         raise IOError('Problem opening segy file')
  *     elif retval == 2:
  *         raise RuntimeError('Problem parsing trace data')             # <<<<<<<<<<<<<<
  * 
  *     return s
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_Problem_parsing_trace_data); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_Problem_parsing_trace_data); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 281, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
@@ -4344,17 +4347,17 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "segy.pyx":63
+  /* "segy.pyx":207
  *     data=0   # traces
  * 
  * def read_segy(segyfile, traceNo=None, fields=None, thDict=None, wordLength=None):             # <<<<<<<<<<<<<<
  *     """
  *     READ_SEGY - read the content of a SEG-Y file
  */
-  __pyx_tuple__13 = PyTuple_Pack(9, __pyx_n_s_segyfile, __pyx_n_s_traceNo, __pyx_n_s_fields, __pyx_n_s_thDict, __pyx_n_s_wordLength, __pyx_n_s_s, __pyx_n_s_py_bytes, __pyx_n_s_filename, __pyx_n_s_retval); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(9, __pyx_n_s_segyfile, __pyx_n_s_traceNo, __pyx_n_s_fields, __pyx_n_s_thDict, __pyx_n_s_wordLength, __pyx_n_s_s, __pyx_n_s_py_bytes, __pyx_n_s_filename, __pyx_n_s_retval); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 207, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
-  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_giroux_JacquesCloud_GitHu, __pyx_n_s_read_segy, 63, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(5, 0, 9, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_giroux_JacquesCloud_GitHu, __pyx_n_s_read_segy, 207, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 207, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -4491,45 +4494,45 @@ PyMODINIT_FUNC PyInit_segy(void)
  * 
  * 
  * class Segy_data():             # <<<<<<<<<<<<<<
- *     bh=0     # binary header
- *     th=0     # trace headers
+ *     """
+ *     Class to hold SEG-Y data
  */
-  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Segy_data, __pyx_n_s_Segy_data, (PyObject *) NULL, __pyx_n_s_segy, (PyObject *) NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Segy_data, __pyx_n_s_Segy_data, (PyObject *) NULL, __pyx_n_s_segy, __pyx_kp_s_Class_to_hold_SEG_Y_data_Attrib); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "segy.pyx":59
+  /* "segy.pyx":203
  * 
- * class Segy_data():
+ *     """
  *     bh=0     # binary header             # <<<<<<<<<<<<<<
  *     th=0     # trace headers
  *     data=0   # traces
  */
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_bh, __pyx_int_0) < 0) __PYX_ERR(0, 59, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_bh, __pyx_int_0) < 0) __PYX_ERR(0, 203, __pyx_L1_error)
 
-  /* "segy.pyx":60
- * class Segy_data():
+  /* "segy.pyx":204
+ *     """
  *     bh=0     # binary header
  *     th=0     # trace headers             # <<<<<<<<<<<<<<
  *     data=0   # traces
  * 
  */
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_th, __pyx_int_0) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_th, __pyx_int_0) < 0) __PYX_ERR(0, 204, __pyx_L1_error)
 
-  /* "segy.pyx":61
+  /* "segy.pyx":205
  *     bh=0     # binary header
  *     th=0     # trace headers
  *     data=0   # traces             # <<<<<<<<<<<<<<
  * 
  * def read_segy(segyfile, traceNo=None, fields=None, thDict=None, wordLength=None):
  */
-  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_data, __pyx_int_0) < 0) __PYX_ERR(0, 61, __pyx_L1_error)
+  if (PyObject_SetItem(__pyx_t_1, __pyx_n_s_data, __pyx_int_0) < 0) __PYX_ERR(0, 205, __pyx_L1_error)
 
   /* "segy.pyx":58
  * 
  * 
  * class Segy_data():             # <<<<<<<<<<<<<<
- *     bh=0     # binary header
- *     th=0     # trace headers
+ *     """
+ *     Class to hold SEG-Y data
  */
   __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Segy_data, __pyx_empty_tuple, __pyx_t_1, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4537,16 +4540,16 @@ PyMODINIT_FUNC PyInit_segy(void)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "segy.pyx":63
+  /* "segy.pyx":207
  *     data=0   # traces
  * 
  * def read_segy(segyfile, traceNo=None, fields=None, thDict=None, wordLength=None):             # <<<<<<<<<<<<<<
  *     """
  *     READ_SEGY - read the content of a SEG-Y file
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4segy_1read_segy, NULL, __pyx_n_s_segy); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4segy_1read_segy, NULL, __pyx_n_s_segy); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_read_segy, __pyx_t_1) < 0) __PYX_ERR(0, 63, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_read_segy, __pyx_t_1) < 0) __PYX_ERR(0, 207, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "segy.pyx":1
