@@ -109,7 +109,7 @@ class ModelUI(QtGui.QWidget):
     def start_grid(self):
 
         self.gridui.prepare_grid_data()
-        self.gridui.build_grid(self.gridui.data)
+        self.gridui.build_grid()
         self.gridui.initUI(self.gridui.grid.type)
         self.gridui.update_bh_origin()
         self.gridui.update_origin()
@@ -247,20 +247,48 @@ class gridEditor(QtGui.QWidget):
         x_cell_size = float(self.cell_size_x_edit.text())
         z_cell_size = float(self.cell_size_z_edit.text())
 
+        self.gridviewFig.plot_grid2D(self.data, origin, state,
+                                                    pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
+                                                                                       x_cell_size, z_cell_size)
 
+    def build_grid(self):
 
-        #self.gridviewFig.plot_grid2D(data, origin, state,
-        #                                            pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
-        #                                                                               x_cell_size, z_cell_size)
-
-    def build_grid(self, data):
-
+        # 2D case
         if len(self.model.models[self.model_ind].boreholes) == 2:
             self.grid = Grid2D()
             self.grid.x0 = [self.data.boreholes[0].X, self.data.boreholes[0].Y, self.data.boreholes[0].Z]
             self.grid.type = '2D'
-            uTx = np.unique(self.data.Tx[self.data.in_vect, :])
-            print(uTx)
+
+            uTx = self.data.Tx[self.data.in_vect, :]
+            uRx = self.data.Rx[self.data.in_vect, :]
+
+            b = np.ascontiguousarray(uTx).view(np.dtype((np.void, uTx.dtype.itemsize * uTx.shape[1])))
+            c = np.ascontiguousarray(uRx).view(np.dtype((np.void, uRx.dtype.itemsize * uRx.shape[1])))
+
+            tmpTx = np.unique(b).view(uTx.dtype).reshape(-1, uTx.shape[1])
+            tmpRx = np.unique(c).view(uRx.dtype).reshape(-1, uRx.shape[1])
+
+            uTx = np.sort(tmpTx, axis= 0)
+            uRx = np.sort(tmpRx, axis= 0)
+
+            self.data.x0, self.data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis= 0))
+            # self.data.x0 : Centroid of the data = point on the best-fit plane
+            # self.data.a  : Direction cosines of the normal to the best-fit plane
+            if self.data.a[2] < 0 :
+                self.data.a = -self.data.a
+
+            self.data.Tx_p = Grid.proj_plane(self.data.Tx, self.data.x0, self.data.a)
+            self.data.Rx_p = Grid.proj_plane(self.data.Rx, self.data.x0, self.data.a)
+
+            #print(self.data.Tx_p)
+            #print(self.data.Tx)
+
+
+
+        #TODO: 2D+ and 3D
+
+
+
 
 
 
@@ -305,7 +333,7 @@ class gridEditor(QtGui.QWidget):
                 #TODO
                 pass
 
-        self.build_grid(self.data)
+
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
@@ -797,6 +825,8 @@ class Data:
         self.Rx_Z_water = np.array([])
         self.Tx         = np.array([])
         self.Rx         = np.array([])
+        self.Tx_p       = np.array([])
+        self.Rx_p       = np.array([])
         self.a          = 0
         self.x0         = 0
 

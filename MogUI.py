@@ -388,12 +388,13 @@ class MOGUI(QtGui.QWidget):
         ind = self.MOG_list.selectedIndexes()
         iTx = self.Tx_combo.currentIndex()
         iRx = self.Rx_combo.currentIndex()
+        boreholes = self.borehole.boreholes
         for i in ind:
             mog = self.MOGs[i.row()]
 
             if 'true positions' in mog.data.comment:
 
-                Tx = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z])
+                Tx = np.concatenate((mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z), axis= 1)
                 mog.TxCosDir = np.zeros(np.shape(Tx))
 
                 # Equivalent of unique(Tx, 'rows') of the Matlab version
@@ -401,9 +402,11 @@ class MOGUI(QtGui.QWidget):
                 tmp = np.unique(b).view(Tx.dtype).reshape(-1, Tx.shape[1])
                 tmp = np.sort(tmp, axis=0)
                 tmp = tmp[::-1]
-                v   = -np.diff(tmp, axis=0)
-                # voir quel est le résultat espéré pour d
-                # même chose pour l
+                v = -np.diff(tmp, axis=0)
+                d = np.sqrt(np.sum(v**2, axis= 1))
+                l = v/ np.kron(d, np.array([1, 1, 1]))
+
+
 
 
 
@@ -428,6 +431,22 @@ class MOGUI(QtGui.QWidget):
             if self.Type_combo.currentText() == 'Crosshole':
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -MOG'
 
+                # Vertical boreholes
+                if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
+                    if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05 :
+                        mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
+                        mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
+                        mog.data.Tx_z = Tx.Z - mog.data.TxOffset - mog.Tx_z_orig
+                        mog.TxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
+
+
+                if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
+                    if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) <1e-05 :
+                        mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
+                        mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
+                        mog.data.Rx_z = Rx.Z - mog.data.RxOffset - mog.Rx_z_orig
+
+
             elif self.Type_combo.currentText() == 'VSP/VRP':
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
 
@@ -435,15 +454,7 @@ class MOGUI(QtGui.QWidget):
                 dialog = QtGui.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
                                                        buttons=QtGui.QMessageBox.Ok)
 
-            if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
-                if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05 :
-                    mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
-                    mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
 
-            if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
-                if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) <1e-05 :
-                    mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
-                    mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
 
             if Tx != Rx:
                 self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
@@ -1200,8 +1211,8 @@ class MOGUI(QtGui.QWidget):
         self.Rx_combo = QtGui.QComboBox()
 
         #- ComboBoxes Dispostion -#
-        self.Type_combo.addItem(" Crosshole ")
-        self.Type_combo.addItem(" VSP/VRP ")
+        self.Type_combo.addItem("Crosshole")
+        self.Type_combo.addItem("VSP/VRP")
 
         #- ComboBoxes Actions -#
         self.Tx_combo.activated.connect(self.updateCoords)
