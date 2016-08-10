@@ -247,9 +247,9 @@ class gridEditor(QtGui.QWidget):
         x_cell_size = float(self.cell_size_x_edit.text())
         z_cell_size = float(self.cell_size_z_edit.text())
 
-        self.gridviewFig.plot_grid2D(self.data, origin, state,
-                                                    pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
-                                                                                       x_cell_size, z_cell_size)
+        #self.gridviewFig.plot_grid2D(self.data, origin, state,
+        #                                            pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
+        #                                                                               x_cell_size, z_cell_size)
 
     def build_grid(self):
 
@@ -258,6 +258,8 @@ class gridEditor(QtGui.QWidget):
             self.grid = Grid2D()
             self.grid.x0 = [self.data.boreholes[0].X, self.data.boreholes[0].Y, self.data.boreholes[0].Z]
             self.grid.type = '2D'
+            self.dx = 1
+            self.dz = 1
 
             uTx = self.data.Tx[self.data.in_vect, :]
             uRx = self.data.Rx[self.data.in_vect, :]
@@ -283,12 +285,6 @@ class gridEditor(QtGui.QWidget):
 
 
         #TODO: 2D+ and 3D
-
-
-
-
-
-
 
 
     def prepare_grid_data(self):
@@ -363,7 +359,7 @@ class gridEditor(QtGui.QWidget):
 
         if type == '2D':
             #------- Manager for the Best fit plane Figure -------#
-            self.bestfitplaneFig = BestFitPlaneFig()
+            self.bestfitplaneFig = BestFitPlaneFig(self.data)
             self.bestfitplanemanager = QtGui.QWidget()
             self.bestfitplanetool = NavigationToolbar2QT(self.bestfitplaneFig, self)
             bestfitplanemanagergrid = QtGui.QGridLayout()
@@ -541,10 +537,11 @@ class GridInfoUI(QtGui.QFrame):
 
 
 class BestFitPlaneFig(FigureCanvasQTAgg):
-    def __init__(self, parent = None):
+    def __init__(self, data, parent = None):
 
         fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
         super(BestFitPlaneFig, self).__init__(fig)
+        self.data = data
         self.initFig()
 
     def initFig(self):
@@ -557,13 +554,46 @@ class BestFitPlaneFig(FigureCanvasQTAgg):
         self.ax5 = self.figure.add_axes([0.4, 0.55, 0.2, 0.25])
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
-    def plot_stats(self):
-
         self.ax4.set_title('Distance between original and projected Tx', y= 1.08)
         self.ax5.set_title('Distance between originial and projected Rx', y= 1.08)
         self.ax6.set_title('Relative error on ray length after projection [%]', y= 1.08)
         self.ax1.set_title('Tx direction cosines after rotation', y= 1.08)
         self.ax2.set_title('Rx direction cosines after rotation', y= 1.08)
+
+    def plot_stats(self):
+
+        dTx = np.sqrt(np.sum((self.data.Tx - self.data.Tx_p)**2, axis= 1))
+        dRx = np.sqrt(np.sum((self.data.Rx - self.data.Rx_p)**2, axis= 1))
+        l_origin = np.sqrt(np.sum((self.data.Tx - self.data.Rx)**2, axis= 1))
+        l_new = np.sqrt(np.sum((self.data.Tx_p - self.data.Rx_p)**2, axis= 1))
+        error = 100 * np.abs(l_origin - l_new)/l_origin
+
+        self.ax4.plot(dTx, marker = 'o',
+                           fillstyle= 'none',
+                           color= 'blue',
+                           markersize= 5,
+                           mew= 1,
+                           ls = 'None')
+
+        self.ax5.plot(dRx, marker = 'o',
+                           fillstyle= 'none',
+                           color= 'blue',
+                           markersize= 5,
+                           mew= 1,
+                           ls = 'None')
+
+        self.ax6.plot(error, marker = 'o',
+                             fillstyle= 'none',
+                             color= 'blue',
+                             markersize= 5,
+                             mew= 1,
+                             ls = 'None')
+
+
+
+
+
+
 
 class BoreholesFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
@@ -594,10 +624,10 @@ class BoreholesFig(FigureCanvasQTAgg):
             Rx_xs = mog.data.Rx_x[:num_Rx]
             Tx_ys = mog.data.Tx_y[:num_Tx]
             Rx_ys = mog.data.Rx_y[:num_Rx]
-            self.ax.text(x= Tx_xs[0],y=  Tx_ys[0],z= Tx_zs[0], s= str(mog.Tx.name))
-            self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c='g', marker='o', label="{}'s Tx".format(mog.name), lw=0)
-            self.ax.text(x= Rx_xs[0],y= Rx_ys[0],z= Rx_zs[0], s= str(mog.Rx.name))
-            self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*', label="{}'s Rx".format(mog.name), lw=0)
+            self.ax.text(x= Tx_xs[0],y=  Tx_ys[0],z= mog.Tx.fdata[0, 2], s= str(mog.Tx.name))
+            self.ax.scatter(Tx_xs, Tx_ys, Tx_zs, c='g', marker='o', label="{}'s Tx".format(mog.name), lw=0)
+            self.ax.text(x= Rx_xs[0],y= Rx_ys[0],z= mog.Rx.fdata[0, 2] , s= str(mog.Rx.name))
+            self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*', label="{}'s Rx".format(mog.name), lw=0)
 
             l = self.ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
                                borderpad=0)
