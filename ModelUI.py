@@ -280,9 +280,6 @@ class gridEditor(QtGui.QWidget):
             self.data.Tx_p = Grid.proj_plane(self.data.Tx, self.data.x0, self.data.a)
             self.data.Rx_p = Grid.proj_plane(self.data.Rx, self.data.x0, self.data.a)
 
-            #print(self.data.Tx_p)
-            #print(self.data.Tx)
-
 
 
         #TODO: 2D+ and 3D
