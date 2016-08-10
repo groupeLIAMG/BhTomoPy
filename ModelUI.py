@@ -247,9 +247,9 @@ class gridEditor(QtGui.QWidget):
         x_cell_size = float(self.cell_size_x_edit.text())
         z_cell_size = float(self.cell_size_z_edit.text())
 
-        #self.gridviewFig.plot_grid2D(self.data, origin, state,
-        #                                            pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
-        #                                                                               x_cell_size, z_cell_size)
+        self.gridviewFig.plot_grid2D( origin, state,
+                                                    pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
+                                                                                       x_cell_size, z_cell_size)
 
     def build_grid(self):
 
@@ -480,8 +480,8 @@ class gridEditor(QtGui.QWidget):
             bhs_grid.addWidget(self.bhsFig, 1, 0, 1, 8)
             bhs_group.setLayout(bhs_grid)
 
-            # - Boreholes Figure GroupBox -#
-            self.gridviewFig = GridViewFig()
+            #- Boreholes Figure GroupBox -#
+            self.gridviewFig = GridViewFig(self)
             grid_view_group = QtGui.QGroupBox('Grid View')
             grid_view_grid = QtGui.QGridLayout()
             grid_view_grid.addWidget(self.gridviewFig, 0, 0)
@@ -589,12 +589,6 @@ class BestFitPlaneFig(FigureCanvasQTAgg):
                              mew= 1,
                              ls = 'None')
 
-
-
-
-
-
-
 class BoreholesFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
@@ -648,14 +642,23 @@ class BoreholesFig(FigureCanvasQTAgg):
         self.draw()
 
 class GridViewFig(FigureCanvasQTAgg):
-    def __init__(self, parent=None):
+    def __init__(self, gridEditor, parent=None):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(GridViewFig, self).__init__(fig)
+        self.gridEditor = gridEditor
         self.initFig()
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.1, 0.1, 0.85, 0.85])
         self.ax.grid(True)
+
+    def plot_grid2D(self, origin, flip, pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus, x_cell_size, z_cell_size):
+        self.ax.cla()
+        data = self.gridEditor.data
+
+        xmin = min(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) - 0.5*self.gridEditor.dx
+        xmax = max(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) + 0.5*self.gridEditor.dx
+        print(xmin)
 
 
     def plot_grid(self, mogs, origin, flip, pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus, x_cell_size, z_cell_size):
