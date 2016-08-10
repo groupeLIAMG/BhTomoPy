@@ -7,8 +7,8 @@
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="131" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="début de build grid et preparegriddata fonctionel">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ModelUI.py" afterPath="$PROJECT_DIR$/ModelUI.py" />
+    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/save test.p" afterPath="$PROJECT_DIR$/save test.p" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -102,8 +102,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.33333334">
-              <caret line="438" column="80" selection-start-line="438" selection-start-column="80" selection-end-line="438" selection-end-column="80" />
+            <state vertical-scroll-proportion="1.0256411">
+              <caret line="1542" column="35" selection-start-line="1542" selection-start-column="35" selection-end-line="1542" selection-end-column="35" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -662,12 +662,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00104" summary="manual tt">
-      <created>1469475605893</created>
-      <option name="number" value="00104" />
-      <option name="project" value="LOCAL" />
-      <updated>1469475605893</updated>
-    </task>
     <task id="LOCAL-00105" summary="Correction airshots dans MogUI, changement du main de manual tt et database afin de pouvoir accéder directement au fichier de sauvegarde, ajout de carrés pour les traces non pointées">
       <created>1469548485684</created>
       <option name="number" value="00105" />
@@ -956,7 +950,13 @@
       <option name="project" value="LOCAL" />
       <updated>1470773711802</updated>
     </task>
-    <option name="localTasksCounter" value="153" />
+    <task id="LOCAL-00153" summary="update coords">
+      <created>1470842816612</created>
+      <option name="number" value="00153" />
+      <option name="project" value="LOCAL" />
+      <updated>1470842816623</updated>
+    </task>
+    <option name="localTasksCounter" value="154" />
     <servers />
   </component>
   <component name="TodoView">
@@ -974,6 +974,7 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24255952" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.42973855" sideWeight="0.50744045" order="10" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
@@ -984,7 +985,6 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37745097" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1005,7 +1005,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="trace select fonctionnel" />
     <MESSAGE value="update control center fixed" />
     <MESSAGE value="implémentation de use airshots" />
     <MESSAGE value="changement dans mogdata pour timestp&#10;update du pas d'échantillonnage dans upper fig&#10;et plus" />
@@ -1030,17 +1029,11 @@
     <MESSAGE value="update pour grid ui" />
     <MESSAGE value="implémentation de boreholes pour models&#10;" />
     <MESSAGE value="début de build grid et preparegriddata fonctionel" />
-    <option name="LAST_COMMIT_MESSAGE" value="début de build grid et preparegriddata fonctionel" />
+    <MESSAGE value="update coords" />
+    <option name="LAST_COMMIT_MESSAGE" value="update coords" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/MogUI.py</url>
-          <line>386</line>
-          <option name="timeStamp" value="81" />
-        </line-breakpoint>
-      </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
@@ -1363,8 +1356,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33333334">
-          <caret line="438" column="80" selection-start-line="438" selection-start-column="80" selection-end-line="438" selection-end-column="80" />
+        <state vertical-scroll-proportion="1.0256411">
+          <caret line="1542" column="35" selection-start-line="1542" selection-start-column="35" selection-end-line="1542" selection-end-column="35" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
           </folding>

@@ -1478,13 +1478,19 @@ class SpectraFig(FigureCanvasQTAgg):
             Pxx[:, 0] = tmp
             for nt in range(1,np.shape(traces)[1]):
                 freq, Pxx[:, nt] = spy.signal.welch(traces[:, nt], Fs)
-            self.ax2.imshow(np.log10(Pxx).T[:, :Fmax], cmap='plasma', aspect='auto',
-                        interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
+            self.ax2.imshow(np.log10(Pxx).T[:, :Fmax],
+                            cmap='plasma',
+                            aspect='auto',
+                            interpolation='none',
+                            extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
 
         if method == 'Standard Fourier':
             Pxx = np.fft.rfft(traces, axis=0)
-            self.ax2.imshow(np.log10(np.abs(Pxx)).T[:, :Fmax], cmap='plasma', aspect='auto',
-                        interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
+            self.ax2.imshow(np.log10(np.abs(Pxx)).T[:, :Fmax],
+                            cmap='plasma',
+                            aspect='auto',
+                            interpolation='none',
+                            extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
 
         if method == 'Burg - Order 2':
             Pxx = arburg(traces, 2)
@@ -1499,28 +1505,43 @@ class SpectraFig(FigureCanvasQTAgg):
         SNR = self.data_select(traces, f0, dt, win_snr)
         SNR = SNR[::-1]
 
+        cmax = max(traces.flatten())
+        cmin = -cmax
+
         if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
-            self.ax1.imshow(traces.T,extent= [0, mog.data.nptsptrc, -mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0]], cmap= 'plasma', aspect= 'auto', interpolation= 'none')
+            self.ax1.imshow(traces.T,
+                            extent= [0, mog.data.nptsptrc, mog.data.Rx_z[ind][0], mog.data.Rx_z[ind][-1]],
+                            cmap= 'plasma',
+                            aspect= 'auto',
+                            interpolation= 'none',
+                            vmin = cmin,
+                            vmax = cmax)
         else:
-            self.ax1.imshow(traces[::1].T,extent= [0, mog.data.nptsptrc, -mog.data.Rx_z[ind][0] , -mog.data.Rx_z[ind][-1]], cmap= 'plasma', aspect= 'auto', interpolation= 'none')
+            self.ax1.imshow(traces[::1].T,
+                            extent= [0, mog.data.nptsptrc, mog.data.Rx_z[ind][-1] , mog.data.Rx_z[ind][0]],
+                            cmap= 'plasma',
+                            aspect= 'auto',
+                            interpolation= 'none',
+                            vmin = cmin,
+                            vmax = cmax)
 
 
         if scale == 'Linear':
-            if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
-                self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
-                self.ax3.set_ylim(-mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0])
+            if mog.data.Rx_z[ind][0] > mog.data.Rx_z[ind][-1]:
+                self.ax3.plot(SNR[::-1], mog.data.Rx_z[ind])
+                self.ax3.set_ylim(mog.data.Rx_z[ind][-1], mog.data.Rx_z[ind][0])
             else:
-                self.ax3.plot(SNR, -mog.data.Rx_z[ind])
-                self.ax3.set_ylim(-mog.data.Rx_z[ind][0], -mog.data.Rx_z[ind][-1])
+                self.ax3.plot(SNR, mog.data.Rx_z[ind])
+                self.ax3.set_ylim(mog.data.Rx_z[ind][0], mog.data.Rx_z[ind][-1])
 
 
         elif scale == 'Logarithmic':
-            if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
-                self.ax3.plot(SNR[::-1], -mog.data.Rx_z[ind])
-                self.ax3.set_ylim(-mog.data.Rx_z[ind][-1], -mog.data.Rx_z[ind][0])
+            if mog.data.Rx_z[ind][0] > mog.data.Rx_z[ind][-1]:
+                self.ax3.plot(SNR[::-1], mog.data.Rx_z[ind])
+                self.ax3.set_ylim(mog.data.Rx_z[ind][-1], mog.data.Rx_z[ind][0])
             else:
-                self.ax3.plot(SNR, -mog.data.Rx_z[ind])
-                self.ax3.set_ylim(-mog.data.Rx_z[ind][0], -mog.data.Rx_z[ind][-1])
+                self.ax3.plot(SNR, mog.data.Rx_z[ind])
+                self.ax3.set_ylim(mog.data.Rx_z[ind][0], mog.data.Rx_z[ind][-1])
 
             self.ax3.set_xscale('log')
 
