@@ -297,7 +297,7 @@ if __name__ == '__main__':
 
     Database_ui = DatabaseUI()
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
+    #Database_ui.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
     #Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     #Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
