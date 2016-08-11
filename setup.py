@@ -15,7 +15,8 @@ extensions = [
                  extra_compile_args=['-std=c++11'],),
     Extension('cutils.segy',
                  sources=['./cutils/segy.pyx', './cutils/csegy.c'],  # additional source file(s)
-                 include_dirs=['./cutils/',np.get_include()],),
+                 include_dirs=['./cutils/',np.get_include()],
+		 extra_compile_args=['-std=c99'],),
 ]
 
 setup(

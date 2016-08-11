@@ -7,6 +7,9 @@
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include/numpy/arrayobject.h",
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include/numpy/ufuncobject.h"
         ],
+        "extra_compile_args": [
+            "-std=c99"
+        ],
         "include_dirs": [
             "./cutils/",
             "/opt/local/Library/Frameworks/Python.framework/Versions/3.5/lib/python3.5/site-packages/numpy/core/include"
