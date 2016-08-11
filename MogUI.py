@@ -78,7 +78,7 @@ class MOGUI(QtGui.QWidget):
         self.MOGs.append(mog)
         self.update_List_Widget()
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
-        self.update_spectra_Tx_num_list()
+        self.update_spectra_and_coverage_Tx_num_list()
         self.update_spectra_Tx_elev_value_label()
         self.update_edits()
         self.update_prune_edits_info()
@@ -320,7 +320,7 @@ class MOGUI(QtGui.QWidget):
 
         return out
 
-    def update_spectra_Tx_num_list(self):
+    def update_spectra_and_coverage_Tx_num_list(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
         self.Tx_num_list.clear()
@@ -328,18 +328,24 @@ class MOGUI(QtGui.QWidget):
 
         for Tx in range(len(unique_Tx_z)):
             self.Tx_num_list.addItem(str(Tx))
+            self.trace_num_combo.addItem(str(Tx))
 
         self.Tx_num_list.setCurrentRow(0)
+        self.trace_num_combo.setCurrentIndex(0)
 
 
     def update_spectra_Tx_elev_value_label(self):
         ind1 = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind1[0].row()]
         self.Tx_elev_value_label.clear()
-        ind = self.Tx_num_list.selectedIndexes()
-        unique_Tx_z = np.unique(mog.data.Tx_z)
-        for j in ind:
-            self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[j.row()]))
+        ind2 = self.Tx_num_list.selectedIndexes()
+        ind3 = self.trace_num_combo.currentIndex()
+        unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
+        for j in ind2:
+            self.Tx_elev_value_label.setText(str((list(unique_Tx_z[::-1]))[j.row()]))
+
+        self.value_elev_label.setText(str((list(unique_Tx_z))[ind3]))
+
 
     def search_Tx_elev(self):
         if self.search_combo.currentText() == 'Search with Elevation':
@@ -472,7 +478,6 @@ class MOGUI(QtGui.QWidget):
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                            buttons=QtGui.QMessageBox.Ok)
 
-
     def plot_spectra(self):
         if len(self.MOGs) != 0:
             ind                 = self.MOG_list.selectedIndexes()
@@ -547,7 +552,10 @@ class MOGUI(QtGui.QWidget):
     def plot_ray_coverage(self):
         if len(self.MOGs) != 0:
             ind = self.MOG_list.selectedIndexes()
-            self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()])
+            coverage_ind = self.trace_num_combo.currentIndex()
+            show_type = self.show_type_combo.currentText()
+            entire_state = self.entire_coverage_check.isChecked()
+            self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()], ind, show_type, entire_state)
             self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
             self.raymanager.show()
         else:
@@ -793,7 +801,7 @@ class MOGUI(QtGui.QWidget):
         char1 = lookup("GREEK SMALL LETTER TAU")
         char2 = lookup("GREEK CAPITAL LETTER DELTA")
 
-        # -------- Creation of the manager for the Ray Coverage figure -------#
+        # -------- Creation of the manager for the ZOPRay figure -------#
         self.zopraysFig = ZOPRaysFig()
         self.zopraysmanager = QtGui.QWidget()
         self.zopraystool = NavigationToolbar2QT(self.zopraysFig, self)
@@ -802,14 +810,7 @@ class MOGUI(QtGui.QWidget):
         zopraysmanagergrid.addWidget(self.zopraysFig, 1, 0)
         self.zopraysmanager.setLayout(zopraysmanagergrid)
 
-        #-------- Creation of the manager for the Ray Coverage figure -------#
-        self.raycoverageFig = RayCoverageFig()
-        self.raymanager = QtGui.QWidget()
-        self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
-        raymanagergrid = QtGui.QGridLayout()
-        raymanagergrid.addWidget(self.raytool, 0, 0)
-        raymanagergrid.addWidget(self.raycoverageFig, 1, 0)
-        self.raymanager.setLayout(raymanagergrid)
+
 
         #-------- Creation of the manager for the Stats Amp figure -------#
         self.statsampFig = StatsAmpFig()
@@ -872,7 +873,6 @@ class MOGUI(QtGui.QWidget):
         self.min_elev_edit.editingFinished.connect(self.update_prune)
         self.max_elev_edit.editingFinished.connect(self.update_prune)
         self.round_fac_edit.editingFinished.connect(self.update_prune)
-
 
         #- Edits Disposition -#
         self.skip_Tx_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -953,6 +953,52 @@ class MOGUI(QtGui.QWidget):
         prunemanagergrid.setRowStretch(0, 100)
         self.prunemanager.setLayout(prunemanagergrid)
 
+        #------- Widgets in Raycoverage -------#
+        #--- List ---#
+        self.trace_num_combo = QtGui.QComboBox()
+        self.trace_num_combo.activated.connect(self.update_spectra_Tx_elev_value_label)
+        self.trace_num_combo.activated.connect(self.plot_ray_coverage)
+
+        #--- Labels ---#
+        coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
+        self.value_elev_label = MyQLabel('', ha= 'left')
+
+        #--- CheckBox ---#
+        self.entire_coverage_check = QtGui.QCheckBox('Show entire coverage')
+        self.entire_coverage_check.stateChanged.connect(self.plot_ray_coverage)
+
+        #--- Combobox ---#
+        self.show_type_combo = QtGui.QComboBox()
+        show_list = ['Show picked and unpicked', 'show picked only', 'show unpicked only']
+        self.show_type_combo.addItems(show_list)
+        self.show_type_combo.activated.connect(self.plot_ray_coverage)
+
+        #--- Elevation SubWidget ---#
+        sub_coverage_elev_widget = QtGui.QWidget()
+        sub_coverage_elev_grid = QtGui.QGridLayout()
+        sub_coverage_elev_grid.addWidget(coverage_elev_label, 0, 0)
+        sub_coverage_elev_grid.addWidget(self.value_elev_label, 0, 1)
+        sub_coverage_elev_widget.setLayout(sub_coverage_elev_grid)
+
+        #--- Global SubWidget ---#
+        sub_coverage_widget = QtGui.QWidget()
+        sub_coverage_grid = QtGui.QGridLayout()
+        sub_coverage_grid.addWidget(self.trace_num_combo, 0, 0)
+        sub_coverage_grid.addWidget(sub_coverage_elev_widget, 1, 0)
+        sub_coverage_grid.addWidget(self.entire_coverage_check, 2, 0)
+        sub_coverage_grid.addWidget(self.show_type_combo, 3, 0)
+        sub_coverage_grid.setRowStretch(4, 100)
+        sub_coverage_widget.setLayout(sub_coverage_grid)
+
+        # -------- Creation of the manager for the Ray Coverage figure -------#
+        self.raycoverageFig = RayCoverageFig()
+        self.raymanager = QtGui.QWidget()
+        self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
+        raymanagergrid = QtGui.QGridLayout()
+        raymanagergrid.addWidget(self.raytool, 0, 0, 1, 2)
+        raymanagergrid.addWidget(self.raycoverageFig, 1, 0)
+        raymanagergrid.addWidget(sub_coverage_widget, 1, 1)
+        self.raymanager.setLayout(raymanagergrid)
 
         #-------- Widgets in ZOP -------#
         #--- Labels ---#
@@ -2044,14 +2090,13 @@ class RayCoverageFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection= '3d')
 
-    def plot_ray_coverage(self, mog):
+    def plot_ray_coverage(self, mog, n, show_type, entire_state):
         self.ax.cla()
-        picked_tt = np.where(mog.tt != -1)
-        unpicked_tt = np.where(mog.tt == -1)
-        picked = np.where(mog.in_vect == 1)
+        picked_tt = np.where(mog.tt != -1)[0]
+        unpicked_tt = np.where(mog.tt == -1)[0]
+        picked = np.where(mog.in_vect == 1)[0]
 
-        print(picked_tt)
-        print(unpicked_tt)
+
 
         Tx_xs = mog.data.Tx_x
         Rx_xs = mog.data.Rx_x
@@ -2079,12 +2124,77 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_zs = Tx_Rx_zs.T
 
 
+        if entire_state:
+            if show_type == 'Show picked and unpicked':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
+                                       Y= Tx_Rx_ys[:, unpicked_tt],
+                                       Z= Tx_Rx_zs[:, unpicked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
 
-        self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt[0]], Y= Tx_Rx_ys[:, unpicked_tt[0]], Z= -1*Tx_Rx_zs[:, unpicked_tt[0]], rstride=1, cstride=1, color='red')
-        self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt[0]], Y= Tx_Rx_ys[:, picked_tt[0]], Z= -1*Tx_Rx_zs[:, picked_tt[0]], rstride=1, cstride=1, color='green')
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
+                                       Y= Tx_Rx_ys[:, picked_tt],
+                                       Z= Tx_Rx_zs[:, picked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
 
-        percent_coverage = 100* np.round((len(picked_tt[0])/mog.data.ntrace), 4)
-        print(percent_coverage)
+            elif show_type == 'Show picked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
+                                       Y= Tx_Rx_ys[:, picked_tt],
+                                       Z= Tx_Rx_zs[:, picked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
+
+            elif show_type == 'Show unpicked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
+                                       Y= Tx_Rx_ys[:, unpicked_tt],
+                                       Z= Tx_Rx_zs[:, unpicked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
+        else:
+            Tx = np.unique(mog.data.Tx_z)
+            ind_unpicked = np.where(Tx_Rx_zs[0, unpicked_tt] == Tx[n[0].row()])[0]
+            ind_picked = np.where(Tx_Rx_zs[0, picked_tt] == Tx[n[0].row()])[0]
+
+            if show_type == 'Show picked and unpicked':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
+                                       Y= Tx_Rx_ys[:, ind_unpicked],
+                                       Z= Tx_Rx_zs[:, ind_unpicked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
+
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_picked],
+                                       Y= Tx_Rx_ys[:, ind_picked],
+                                       Z= Tx_Rx_zs[:, ind_picked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
+
+            elif show_type == 'Show picked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_picked],
+                                       Y= Tx_Rx_ys[:, ind_picked],
+                                       Z= Tx_Rx_zs[:, ind_picked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
+
+            elif show_type == 'Show unpicked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
+                                       Y= Tx_Rx_ys[:, ind_unpicked],
+                                       Z= Tx_Rx_zs[:, ind_unpicked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
+
+
+
+
+        percent_coverage = 100* np.round((len(picked_tt)/mog.data.ntrace), 4)
         self.ax.set_title(str(percent_coverage) + ' %')
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
@@ -2092,6 +2202,7 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
+        self.draw()
 
 
 #-----------------------------------------------------------------------------------------------------------------------

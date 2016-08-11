@@ -44,16 +44,12 @@ class DatabaseUI(QtGui.QWidget):
         self.mog.moglogSignal.connect(self.update_log)
         self.model.modellogSignal.connect(self.update_log)
 
-
     def update_spectra(self, Tx_list):
         self.mog.update_spectra_Tx_num_combo(Tx_list)
         self.mog.update_spectra_Tx_elev_value_label(Tx_list)
 
-
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
-
-
 
     def update_database_info(self, name):
         self.info.update_database(name)
@@ -114,52 +110,51 @@ class DatabaseUI(QtGui.QWidget):
 
 
     def load_file(self, filename):
+
         self.filename = filename
-        try:
-            if '\\' in filename:
-                rname = filename.split('\\')
-            elif '/' in filename:
-                rname = filename.split('/')
 
-            rname = rname[-1]
-            if '.p' in rname:
-                rname = rname[:-2]
-            if '.pkl' in rname:
-                rname = rname[:-4]
-            if '.pickle' in rname:
-                rname = rname[:-7]
-            file = open(filename, 'rb')
+        if '\\' in filename:
+            rname = filename.split('\\')
+        elif '/' in filename:
+            rname = filename.split('/')
 
-            self.boreholes, self.mogs, self.air, self.models = pickle.load(file)
-            self.update_database_info(rname)
-            self.update_log("Database '{}' was loaded successfully".format(rname))
+        rname = rname[-1]
+        if '.p' in rname:
+            rname = rname[:-2]
+        if '.pkl' in rname:
+            rname = rname[:-4]
+        if '.pickle' in rname:
+            rname = rname[:-7]
+        file = open(filename, 'rb')
 
-            self.bh.boreholes = self.boreholes
-            self.mog.MOGs = self.mogs
-            self.model.models = self.models
-            self.grid.model = self.model
+        self.boreholes, self.mogs, self.air, self.models = pickle.load(file)
+        self.update_database_info(rname)
+        self.update_log("Database '{}' was loaded successfully".format(rname))
+
+        self.bh.boreholes = self.boreholes
+        self.mog.MOGs = self.mogs
+        self.mog.air = self.air
+        self.model.models = self.models
+        self.grid.model = self.model
 
 
-            self.mog.air = self.air
+        self.bh.update_List_Widget()
+        self.bh.bh_list.setCurrentRow(0)
+        self.bh.update_List_Edits()
 
-            self.bh.update_List_Widget()
-            self.bh.bh_list.setCurrentRow(0)
-            self.bh.update_List_Edits()
+        self.mog.update_List_Widget()
+        self.mog.update_edits()
+        self.mog.MOG_list.setCurrentRow(0)
+        self.mog.update_spectra_and_coverage_Tx_num_list()
+        self.mog.update_spectra_Tx_elev_value_label()
+        self.mog.update_edits()
+        self.mog.update_prune_edits_info()
+        self.mog.update_prune_info()
 
-            self.mog.update_List_Widget()
-            self.mog.update_edits()
-            self.mog.MOG_list.setCurrentRow(0)
-            self.mog.update_spectra_Tx_num_list()
-            self.mog.update_spectra_Tx_elev_value_label()
-            self.mog.update_edits()
-            self.mog.update_prune_edits_info()
-            self.mog.update_prune_info()
+        self.model.update_model_list()
+        self.model.update_model_mog_list()
 
-            self.model.update_model_list()
-            self.model.update_model_mog_list()
-
-        except:
-            self.update_log('Error: Database file must be of pickle type')
+        #self.update_log('Error: Database file must be of pickle type')
 
     def savefile(self):
         try:
@@ -225,7 +220,6 @@ class DatabaseUI(QtGui.QWidget):
         editnameAction = QtGui.QAction('Edit database name', self)
         editnameAction.triggered.connect(self.editname)
 
-
         #--- Menubar ---#
         self.menu = QtGui.QMenuBar()
         filemenu = self.menu.addMenu('&File')
@@ -235,7 +229,6 @@ class DatabaseUI(QtGui.QWidget):
 
         editmenu = self.menu.addMenu('&Edit')
         editmenu.addAction(editnameAction)
-
 
         #--- GroupBoxes ---#
         #- Boreholes GroupBox -#
