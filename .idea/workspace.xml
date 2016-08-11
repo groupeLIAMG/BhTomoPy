@@ -9,8 +9,6 @@
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
     </list>
     <ignored path="BhTomoPy.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -23,7 +21,7 @@
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CreatePatchCommitExecutor">
-    <option name="PATCH_PATH" value="" />
+    <option name="PATCH_PATH" value="C:\Users\Elie\Documents\GitHub\BhTomoPy" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
@@ -447,13 +445,6 @@
       <option name="presentableId" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00111" summary="update tt fonctionnel avec mog">
-      <created>1469719662843</created>
-      <option name="number" value="00111" />
-      <option name="presentableId" value="LOCAL-00111" />
-      <option name="project" value="LOCAL" />
-      <updated>1469719662844</updated>
-    </task>
     <task id="LOCAL-00112" summary="update tt fonctionnel avec mog">
       <created>1469720603555</created>
       <option name="number" value="00112" />
@@ -790,7 +781,14 @@
       <option name="project" value="LOCAL" />
       <updated>1470941743542</updated>
     </task>
-    <option name="localTasksCounter" value="160" />
+    <task id="LOCAL-00160" summary="ray coverage update unfinished">
+      <created>1470948109253</created>
+      <option name="number" value="00160" />
+      <option name="presentableId" value="LOCAL-00160" />
+      <option name="project" value="LOCAL" />
+      <updated>1470948109253</updated>
+    </task>
+    <option name="localTasksCounter" value="161" />
     <servers />
   </component>
   <component name="TodoView">
@@ -804,14 +802,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1376" height="744" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24255952" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32789558" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.42973855" sideWeight="0.50744045" order="10" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3267974" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37908497" sideWeight="0.49255952" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37908497" sideWeight="0.49255952" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32789558" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -839,7 +837,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Export tt fonctionnel" />
     <MESSAGE value="Lien entre SNR et amplitude fixé" />
     <MESSAGE value="début Stats Vapp" />
     <MESSAGE value="update correction t0" />
@@ -864,7 +861,8 @@
     <MESSAGE value="début stats best fit plane&#10;" />
     <MESSAGE value="update manual amp ui" />
     <MESSAGE value="gestion d'action interface graphique&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="gestion d'action interface graphique&#10;" />
+    <MESSAGE value="ray coverage update unfinished" />
+    <option name="LAST_COMMIT_MESSAGE" value="ray coverage update unfinished" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
