@@ -20,7 +20,6 @@ class ModelUI(QtGui.QWidget):
         self.borehole = borehole
         self.mog = mog
         self.models = []
-        self.gridui = gridEditor(self)
         self.update_mog_combo()
         self.initUI()
 
@@ -107,13 +106,7 @@ class ModelUI(QtGui.QWidget):
         self.gridui.gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
 
     def start_grid(self):
-
-        self.gridui.prepare_grid_data()
-        self.gridui.build_grid()
-        self.gridui.initUI(self.gridui.grid.type)
-        self.gridui.update_bh_origin()
-        self.gridui.update_origin()
-        self.gridui.plot_grid_view()
+        self.gridui = gridEditor(self)
         self.gridui.plot_boreholes()
         self.update_grid_info()
         self.gridui.showMaximized()
@@ -225,70 +218,19 @@ class gridEditor(QtGui.QWidget):
         self.gridinfo = GridInfoUI()
         self.constraintseditor = ConstraintsEditorUI()
         self.model = model
+        self.type = ''
         self.data = Data()
-
-
-    def plot_adjustment(self):
-        self.bestfitplaneFig.plot_stats()
-        self.bestfitplanemanager.showMaximized()
+        self.grid = Grid()
+        self.model_ind = self.model.model_list.currentIndex().row()
+        self.initUI()
 
     def plot_boreholes(self):
 
         view = self.bhfig_combo.currentText()
         self.bhsFig.plot_boreholes(self.model.models[self.model_ind].mogs, view)
 
-    def plot_grid_view(self):
-        origin      = self.borehole_combo.currentText()
-        state       = self.flip_check.checkState()
-        pad_x_plus  = float(self.pad_plus_x_edit.text())
-        pad_x_minus = float(self.pad_minus_x_edit.text())
-        pad_z_plus  = float(self.pad_plus_z_edit.text())
-        pad_z_minus = float(self.pad_minus_z_edit.text())
-        x_cell_size = float(self.cell_size_x_edit.text())
-        z_cell_size = float(self.cell_size_z_edit.text())
-
-        self.gridviewFig.plot_grid2D( origin, state,
-                                                    pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
-                                                                                       x_cell_size, z_cell_size)
-
-    def build_grid(self):
-
-        # 2D case
-        if len(self.model.models[self.model_ind].boreholes) == 2:
-            self.grid = Grid2D()
-            self.grid.x0 = [self.data.boreholes[0].X, self.data.boreholes[0].Y, self.data.boreholes[0].Z]
-            self.grid.type = '2D'
-            self.dx = 1
-            self.dz = 1
-
-            uTx = self.data.Tx[self.data.in_vect, :]
-            uRx = self.data.Rx[self.data.in_vect, :]
-
-            b = np.ascontiguousarray(uTx).view(np.dtype((np.void, uTx.dtype.itemsize * uTx.shape[1])))
-            c = np.ascontiguousarray(uRx).view(np.dtype((np.void, uRx.dtype.itemsize * uRx.shape[1])))
-
-            tmpTx = np.unique(b).view(uTx.dtype).reshape(-1, uTx.shape[1])
-            tmpRx = np.unique(c).view(uRx.dtype).reshape(-1, uRx.shape[1])
-
-            uTx = np.sort(tmpTx, axis= 0)
-            uRx = np.sort(tmpRx, axis= 0)
-
-            self.data.x0, self.data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis= 0))
-            # self.data.x0 : Centroid of the data = point on the best-fit plane
-            # self.data.a  : Direction cosines of the normal to the best-fit plane
-            if self.data.a[2] < 0 :
-                self.data.a = -self.data.a
-
-            self.data.Tx_p = Grid.proj_plane(self.data.Tx, self.data.x0, self.data.a)
-            self.data.Rx_p = Grid.proj_plane(self.data.Rx, self.data.x0, self.data.a)
-
-
-
-        #TODO: 2D+ and 3D
-
-
     def prepare_grid_data(self):
-        self.model_ind = self.model.model_list.currentIndex().row()
+
         mogs = self.model.models[self.model_ind].mogs
         mog = mogs[0]
 
@@ -326,7 +268,71 @@ class gridEditor(QtGui.QWidget):
                 #TODO
                 pass
 
+    def start_constraints(self):
+        self.constraintseditor.constraintsFig.plot_constraints(self.model.models[self.model_ind].mogs[0])
 
+    def initUI(self):
+        nBH = len(self.model.models[self.model_ind].boreholes)
+        self.prepare_grid_data()
+        if np.all(self.grid.grx == 0) and np.all(self.grid.grz == 0):
+            if nBH == 2:
+                self.type = '2D'
+                self.gUI = Grid2DUI(self.data)
+                self.gUI.build_grid()
+
+
+            #-------- Widgets Creation --------#
+            #--- Buttons ---#
+            add_edit_btn            = QtGui.QPushButton('Add/Edit Constraints')
+            cancel_btn              = QtGui.QPushButton('Cancel')
+            done_btn                = QtGui.QPushButton('Done')
+
+            #- Buttons' Actions -#
+            add_edit_btn.clicked.connect(self.start_constraints)
+
+            #--- ComboBox ---#
+            self.bhfig_combo        = QtGui.QComboBox()
+
+            #- Combobox items -#
+            view_list = ['3D View', 'XY Plane', 'XZ Plane', 'YZ Plane']
+            for item in view_list:
+                self.bhfig_combo.addItem(item)
+
+            #- Comboboxes Action -#
+            self.bhfig_combo.activated.connect(self.plot_boreholes)
+
+            #- Grid Info GroupBox -#
+            grid_info_group         = QtGui.QGroupBox('Infos')
+            grid_info_grid          = QtGui.QGridLayout()
+            grid_info_grid.addWidget(self.gridinfo)
+            grid_info_group.setLayout(grid_info_grid)
+
+            #- Boreholes Figure GroupBox -#
+            self.bhsFig = BoreholesFig()
+            bhs_group = QtGui.QGroupBox('Boreholes')
+            bhs_grid = QtGui.QGridLayout()
+            bhs_grid.addWidget(self.bhfig_combo, 0, 0)
+            bhs_grid.addWidget(self.bhsFig, 1, 0, 1, 8)
+            bhs_group.setLayout(bhs_grid)
+
+            #------- Master grid's disposition -------#
+            master_grid = QtGui.QGridLayout()
+            master_grid.addWidget(grid_info_group, 0, 0)
+            master_grid.addWidget(add_edit_btn, 1, 0)
+            master_grid.addWidget(cancel_btn, 2, 0)
+            master_grid.addWidget(done_btn, 3, 0)
+            master_grid.addWidget(self.gUI.grid_param_group, 0, 1, 4, 1)
+            master_grid.addWidget(bhs_group, 4, 0, 1, 2)
+            master_grid.addWidget(self.gUI.grid_view_group, 0, 2, 5, 1)
+            master_grid.setColumnStretch(2, 100)
+            master_grid.setRowStretch(4, 100)
+            self.setLayout(master_grid)
+
+class Grid2DUI(QtGui.QWidget):
+    def __init__(self, data, parent=None):
+        super(Grid2DUI, self).__init__()
+        self.data = data
+        self.initUI()
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
@@ -343,8 +349,6 @@ class gridEditor(QtGui.QWidget):
         for Rx in Rx_output:
             self.borehole_combo.addItem(Rx)
 
-
-
     def update_origin(self):
         ind = self.borehole_combo.currentIndex()
 
@@ -352,153 +356,159 @@ class gridEditor(QtGui.QWidget):
         self.origin_y_edit.setText(str(self.model.borehole.boreholes[ind].Y))
         self.origin_z_edit.setText(str(self.model.borehole.boreholes[ind].Z))
 
-    def start_constraints(self):
-        self.constraintseditor.constraintsFig.plot_constraints(self.model.models[self.model_ind].mogs[0])
+    def plot_adjustment(self):
+        self.bestfitplaneFig.plot_stats()
+        self.bestfitplanemanager.showMaximized()
 
-    def initUI(self, type):
+    def build_grid(self):
 
-        if type == '2D':
-            #------- Manager for the Best fit plane Figure -------#
-            self.bestfitplaneFig = BestFitPlaneFig(self.data)
-            self.bestfitplanemanager = QtGui.QWidget()
-            self.bestfitplanetool = NavigationToolbar2QT(self.bestfitplaneFig, self)
-            bestfitplanemanagergrid = QtGui.QGridLayout()
-            bestfitplanemanagergrid.addWidget(self.bestfitplanetool, 0, 0)
-            bestfitplanemanagergrid.addWidget(self.bestfitplaneFig, 1, 0)
-            self.bestfitplanemanager.setLayout(bestfitplanemanagergrid)
+        self.grid = Grid2D()
+        self.grid.x0 = [self.data.boreholes[0].X, self.data.boreholes[0].Y, self.data.boreholes[0].Z]
+        self.grid.type = '2D'
+        self.dx = 1
+        self.dz = 1
 
-            #-------- Widgets Creation --------#
-            #--- Buttons ---#
-            add_edit_btn            = QtGui.QPushButton('Add/Edit Constraints')
-            cancel_btn              = QtGui.QPushButton('Cancel')
-            done_btn                = QtGui.QPushButton('Done')
-            adjustment_btn          = QtGui.QPushButton('Adjustment of Best-Fit Plane')
-            #- Buttons' Actions -#
-            adjustment_btn.clicked.connect(self.plot_adjustment)
-            add_edit_btn.clicked.connect(self.start_constraints)
-            #--- Edits ---#
-            self.pad_plus_x_edit    = QtGui.QLineEdit('1')
-            self.pad_plus_z_edit    = QtGui.QLineEdit('1')
-            self.pad_minus_x_edit   = QtGui.QLineEdit('1')
-            self.pad_minus_z_edit   = QtGui.QLineEdit('1')
+        uTx = self.data.Tx[self.data.in_vect, :]
+        uRx = self.data.Rx[self.data.in_vect, :]
 
-            self.cell_size_x_edit   = QtGui.QLineEdit('0.2')
-            self.cell_size_z_edit   = QtGui.QLineEdit('0.2')
+        b = np.ascontiguousarray(uTx).view(np.dtype((np.void, uTx.dtype.itemsize * uTx.shape[1])))
+        c = np.ascontiguousarray(uRx).view(np.dtype((np.void, uRx.dtype.itemsize * uRx.shape[1])))
 
-            self.origin_x_edit      = QtGui.QLineEdit()
-            self.origin_y_edit      = QtGui.QLineEdit()
-            self.origin_z_edit      = QtGui.QLineEdit()
+        tmpTx = np.unique(b).view(uTx.dtype).reshape(-1, uTx.shape[1])
+        tmpRx = np.unique(c).view(uRx.dtype).reshape(-1, uRx.shape[1])
 
-            #- Edits' Actions -#
-            self.pad_plus_x_edit.editingFinished.connect(self.plot_grid_view)
-            self.pad_plus_z_edit.editingFinished.connect(self.plot_grid_view)
-            self.pad_minus_x_edit.editingFinished.connect(self.plot_grid_view)
-            self.pad_minus_z_edit.editingFinished.connect(self.plot_grid_view)
+        uTx = np.sort(tmpTx, axis= 0)
+        uRx = np.sort(tmpRx, axis= 0)
 
-            self.cell_size_x_edit.editingFinished.connect(self.plot_grid_view)
-            self.cell_size_z_edit.editingFinished.connect(self.plot_grid_view)
+        self.data.x0, self.data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis= 0))
+        # self.data.x0 : Centroid of the data = point on the best-fit plane
+        # self.data.a  : Direction cosines of the normal to the best-fit plane
+        if self.data.a[2] < 0 :
+            self.data.a = -self.data.a
 
-            #- Edits' Diposition -#
-            self.origin_x_edit.setReadOnly(True)
-            self.origin_y_edit.setReadOnly(True)
-            self.origin_z_edit.setReadOnly(True)
+        self.data.Tx_p = Grid.proj_plane(self.data.Tx, self.data.x0, self.data.a)
+        self.data.Rx_p = Grid.proj_plane(self.data.Rx, self.data.x0, self.data.a)
 
-            #--- Labels ---#
-            x_label                 = MyQLabel('X', ha= 'right')
-            z_label                 = MyQLabel('Z', ha= 'right')
-            pad_plus_label          = MyQLabel('Padding +', ha= 'center')
-            pad_minus_label         = MyQLabel('Padding -', ha= 'center')
-            cell_size_label         = MyQLabel('Cell Size', ha= 'center')
-            borehole_origin_label   = MyQLabel('Borehole origin', ha= 'right')
-            origin_label            = MyQLabel('Origin', ha= 'right')
+    def plot_grid_view(self):
+        origin      = self.borehole_combo.currentText()
+        state       = self.flip_check.checkState()
+        pad_x_plus  = float(self.pad_plus_x_edit.text())
+        pad_x_minus = float(self.pad_minus_x_edit.text())
+        pad_z_plus  = float(self.pad_plus_z_edit.text())
+        pad_z_minus = float(self.pad_minus_z_edit.text())
+        x_cell_size = float(self.cell_size_x_edit.text())
+        z_cell_size = float(self.cell_size_z_edit.text())
 
-            #--- CheckBox ---#
-            self.flip_check              = QtGui.QCheckBox('Flip horizontally')
+        self.gridviewFig.plot_grid2D( origin, state,
+                                                    pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
+                                                                                       x_cell_size, z_cell_size)
 
-            #- CheckBox Actions -#
-            self.flip_check.stateChanged.connect(self.plot_grid_view)
-            #--- ComboBoxes ---#
-            self.borehole_combo     = QtGui.QComboBox()
-            self.bhfig_combo        = QtGui.QComboBox()
+    def initUI(self):
 
-            #- Combobox items -#
-            view_list = ['3D View', 'XY Plane', 'XZ Plane', 'YZ Plane']
-            for item in view_list:
-                self.bhfig_combo.addItem(item)
+        #------- Manager for the Best fit plane Figure -------#
+        self.bestfitplaneFig = BestFitPlaneFig(self.data)
+        self.bestfitplanemanager = QtGui.QWidget()
+        self.bestfitplanetool = NavigationToolbar2QT(self.bestfitplaneFig, self)
+        bestfitplanemanagergrid = QtGui.QGridLayout()
+        bestfitplanemanagergrid.addWidget(self.bestfitplanetool, 0, 0)
+        bestfitplanemanagergrid.addWidget(self.bestfitplaneFig, 1, 0)
+        self.bestfitplanemanager.setLayout(bestfitplanemanagergrid)
 
-            #- ComboBoxes Actions -#
-            self.borehole_combo.activated.connect(self.update_origin)
-            self.borehole_combo.activated.connect(self.plot_grid_view)
-            self.bhfig_combo.activated.connect(self.plot_boreholes)
+        adjustment_btn          = QtGui.QPushButton('Adjustment of Best-Fit Plane')
+        #- Buttons' Actions -#
+        adjustment_btn.clicked.connect(self.plot_adjustment)
+
+        #--- Edits ---#
+        self.pad_plus_x_edit    = QtGui.QLineEdit('1')
+        self.pad_plus_z_edit    = QtGui.QLineEdit('1')
+        self.pad_minus_x_edit   = QtGui.QLineEdit('1')
+        self.pad_minus_z_edit   = QtGui.QLineEdit('1')
+
+        self.cell_size_x_edit   = QtGui.QLineEdit('0.2')
+        self.cell_size_z_edit   = QtGui.QLineEdit('0.2')
+
+        self.origin_x_edit      = QtGui.QLineEdit()
+        self.origin_y_edit      = QtGui.QLineEdit()
+        self.origin_z_edit      = QtGui.QLineEdit()
+
+        #- Edits' Actions -#
+        self.pad_plus_x_edit.editingFinished.connect(self.plot_grid_view)
+        self.pad_plus_z_edit.editingFinished.connect(self.plot_grid_view)
+        self.pad_minus_x_edit.editingFinished.connect(self.plot_grid_view)
+        self.pad_minus_z_edit.editingFinished.connect(self.plot_grid_view)
+
+        self.cell_size_x_edit.editingFinished.connect(self.plot_grid_view)
+        self.cell_size_z_edit.editingFinished.connect(self.plot_grid_view)
+
+        #- Edits' Diposition -#
+        self.origin_x_edit.setReadOnly(True)
+        self.origin_y_edit.setReadOnly(True)
+        self.origin_z_edit.setReadOnly(True)
+
+        #--- Labels ---#
+        x_label                 = MyQLabel('X', ha= 'right')
+        z_label                 = MyQLabel('Z', ha= 'right')
+        pad_plus_label          = MyQLabel('Padding +', ha= 'center')
+        pad_minus_label         = MyQLabel('Padding -', ha= 'center')
+        cell_size_label         = MyQLabel('Cell Size', ha= 'center')
+        borehole_origin_label   = MyQLabel('Borehole origin', ha= 'right')
+        origin_label            = MyQLabel('Origin', ha= 'right')
+
+        #--- CheckBox ---#
+        self.flip_check              = QtGui.QCheckBox('Flip horizontally')
+
+        #- CheckBox Actions -#
+        self.flip_check.stateChanged.connect(self.plot_grid_view)
+
+        #--- ComboBoxes ---#
+        self.borehole_combo     = QtGui.QComboBox()
+
+        #- ComboBoxes Actions -#
+        self.borehole_combo.activated.connect(self.update_origin)
+        self.borehole_combo.activated.connect(self.plot_grid_view)
+
+        #--- SubWidgets ---#
+        sub_param_widget        = QtGui.QWidget()
+        sub_param_grid          = QtGui.QGridLayout()
+        sub_param_grid.addWidget(x_label, 1, 0)
+        sub_param_grid.addWidget(z_label, 2, 0)
+        sub_param_grid.addWidget(pad_minus_label, 0, 1)
+        sub_param_grid.addWidget(pad_plus_label, 0, 2)
+        sub_param_grid.addWidget(cell_size_label, 0, 3)
+        sub_param_grid.addWidget(self.pad_minus_x_edit, 1, 1)
+        sub_param_grid.addWidget(self.pad_minus_z_edit, 2, 1)
+        sub_param_grid.addWidget(self.pad_plus_x_edit, 1, 2)
+        sub_param_grid.addWidget(self.pad_plus_z_edit, 2, 2)
+        sub_param_grid.addWidget(self.cell_size_x_edit, 1, 3)
+        sub_param_grid.addWidget(self.cell_size_z_edit, 2, 3)
+        sub_param_grid.addWidget(borehole_origin_label, 3, 0)
+        sub_param_grid.addWidget(self.borehole_combo, 3, 1)
+        sub_param_grid.addWidget(origin_label, 4, 0)
+        sub_param_grid.addWidget(self.origin_x_edit, 4, 1)
+        sub_param_grid.addWidget(self.origin_y_edit, 4, 2)
+        sub_param_grid.addWidget(self.origin_z_edit, 4, 3)
+        sub_param_grid.setContentsMargins(0, 0, 0, 0)
+        sub_param_widget.setLayout(sub_param_grid)
+
+        #--- GroupBox ---#
+        #- Grid parameters GroupBox -#
+        self.grid_param_group        = QtGui.QGroupBox('Grid Parameters')
+        grid_param_grid         = QtGui.QGridLayout()
+        grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 4)
+        grid_param_grid.addWidget(self.flip_check, 1, 0)
+        grid_param_grid.addWidget(adjustment_btn, 2, 0)
+        grid_param_grid.setVerticalSpacing(3)
+        self.grid_param_group.setLayout(grid_param_grid)
+
+        #- GridView Figure GroupBox -#
+        self.gridviewFig = GridViewFig(self)
+        self.grid_view_group = QtGui.QGroupBox('Grid View')
+        grid_view_grid = QtGui.QGridLayout()
+        grid_view_grid.addWidget(self.gridviewFig, 0, 0)
+        self.grid_view_group.setLayout(grid_view_grid)
 
 
-            #--- SubWidgets ---#
-            sub_param_widget        = QtGui.QWidget()
-            sub_param_grid          = QtGui.QGridLayout()
-            sub_param_grid.addWidget(x_label, 1, 0)
-            sub_param_grid.addWidget(z_label, 2, 0)
-            sub_param_grid.addWidget(pad_minus_label, 0, 1)
-            sub_param_grid.addWidget(pad_plus_label, 0, 2)
-            sub_param_grid.addWidget(cell_size_label, 0, 3)
-            sub_param_grid.addWidget(self.pad_minus_x_edit, 1, 1)
-            sub_param_grid.addWidget(self.pad_minus_z_edit, 2, 1)
-            sub_param_grid.addWidget(self.pad_plus_x_edit, 1, 2)
-            sub_param_grid.addWidget(self.pad_plus_z_edit, 2, 2)
-            sub_param_grid.addWidget(self.cell_size_x_edit, 1, 3)
-            sub_param_grid.addWidget(self.cell_size_z_edit, 2, 3)
-            sub_param_grid.addWidget(borehole_origin_label, 3, 0)
-            sub_param_grid.addWidget(self.borehole_combo, 3, 1)
-            sub_param_grid.addWidget(origin_label, 4, 0)
-            sub_param_grid.addWidget(self.origin_x_edit, 4, 1)
-            sub_param_grid.addWidget(self.origin_y_edit, 4, 2)
-            sub_param_grid.addWidget(self.origin_z_edit, 4, 3)
-            sub_param_grid.setContentsMargins(0, 0, 0, 0)
 
-            sub_param_widget.setLayout(sub_param_grid)
-
-            #--- GroupBox ---#
-            #- Grid parameters GroupBox -#
-            grid_param_group        = QtGui.QGroupBox('Grid Parameters')
-            grid_param_grid         = QtGui.QGridLayout()
-            grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 4)
-            grid_param_grid.addWidget(self.flip_check, 1, 0)
-            grid_param_grid.addWidget(adjustment_btn, 2, 0)
-            grid_param_grid.setVerticalSpacing(3)
-            grid_param_group.setLayout(grid_param_grid)
-
-            #- Grid Info GroupBox -#
-            grid_info_group         = QtGui.QGroupBox('Infos')
-            grid_info_grid          = QtGui.QGridLayout()
-            grid_info_grid.addWidget(self.gridinfo)
-            grid_info_group.setLayout(grid_info_grid)
-
-            #- Boreholes Figure GroupBox -#
-            self.bhsFig = BoreholesFig()
-            bhs_group = QtGui.QGroupBox('Boreholes')
-            bhs_grid = QtGui.QGridLayout()
-            bhs_grid.addWidget(self.bhfig_combo, 0, 0)
-            bhs_grid.addWidget(self.bhsFig, 1, 0, 1, 8)
-            bhs_group.setLayout(bhs_grid)
-
-            #- Boreholes Figure GroupBox -#
-            self.gridviewFig = GridViewFig(self)
-            grid_view_group = QtGui.QGroupBox('Grid View')
-            grid_view_grid = QtGui.QGridLayout()
-            grid_view_grid.addWidget(self.gridviewFig, 0, 0)
-            grid_view_group.setLayout(grid_view_grid)
-
-            #------- Master grid's disposition -------#
-            master_grid = QtGui.QGridLayout()
-            master_grid.addWidget(grid_info_group, 0, 0)
-            master_grid.addWidget(add_edit_btn, 1, 0)
-            master_grid.addWidget(cancel_btn, 2, 0)
-            master_grid.addWidget(done_btn, 3, 0)
-            master_grid.addWidget(grid_param_group, 0, 1, 4, 1)
-            master_grid.addWidget(bhs_group, 4, 0, 1, 2)
-            master_grid.addWidget(grid_view_group, 0, 2, 5, 1)
-            master_grid.setColumnStretch(2, 100)
-            master_grid.setRowStretch(4, 100)
-            self.setLayout(master_grid)
 
 class GridInfoUI(QtGui.QFrame):
 
