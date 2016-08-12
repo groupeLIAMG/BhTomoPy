@@ -745,7 +745,7 @@ class GridViewFig(FigureCanvasQTAgg):
         self.ax.plot(data.Rx[data.in_vect, 0], data.Rx[data.in_vect, 2], marker= '*', color= 'blue')
 
         self.ax.set_xlim(xmin, xmax)
-        self.ax.set_ylim(zmin , zmax)
+        self.ax.set_ylim(zmin, zmax)
 
 
 
