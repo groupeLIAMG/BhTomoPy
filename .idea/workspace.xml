@@ -69,8 +69,8 @@
       <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ModelUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.351585">
-              <caret line="717" column="76" selection-start-line="717" selection-start-column="76" selection-end-line="717" selection-end-column="76" />
+            <state vertical-scroll-proportion="0.7838617">
+              <caret line="747" column="30" selection-start-line="747" selection-start-column="30" selection-end-line="747" selection-end-column="30" />
               <folding />
             </state>
           </provider>
@@ -486,12 +486,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00115" summary="optimisation lowerFig">
-      <created>1469737514924</created>
-      <option name="number" value="00115" />
-      <option name="project" value="LOCAL" />
-      <updated>1469737514924</updated>
-    </task>
     <task id="LOCAL-00116" summary="update axes dans spectra,&#10;update picking du temps et de l'écart type dans le shot gather de manual tt UI">
       <created>1469886899975</created>
       <option name="number" value="00116" />
@@ -780,7 +774,13 @@
       <option name="project" value="LOCAL" />
       <updated>1471033790040</updated>
     </task>
-    <option name="localTasksCounter" value="164" />
+    <task id="LOCAL-00164" summary=" affichage grid update&#10;">
+      <created>1471034197533</created>
+      <option name="number" value="00164" />
+      <option name="project" value="LOCAL" />
+      <updated>1471034197533</updated>
+    </task>
+    <option name="localTasksCounter" value="165" />
     <servers />
   </component>
   <component name="TodoView">
@@ -829,7 +829,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update correction t0" />
     <MESSAGE value="incertitude sur les valeurs de vitesse" />
     <MESSAGE value="update zop" />
     <MESSAGE value="update layout database ui et manualtt ui" />
@@ -854,7 +853,8 @@
     <MESSAGE value="ray coverage update unfinished" />
     <MESSAGE value="update grid2d" />
     <MESSAGE value="affichage de la grille focntionnel" />
-    <option name="LAST_COMMIT_MESSAGE" value="affichage de la grille focntionnel" />
+    <MESSAGE value=" affichage grid update&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value=" affichage grid update&#10;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1141,8 +1141,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ModelUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.351585">
-          <caret line="717" column="76" selection-start-line="717" selection-start-column="76" selection-end-line="717" selection-end-column="76" />
+        <state vertical-scroll-proportion="0.7838617">
+          <caret line="747" column="30" selection-start-line="747" selection-start-column="30" selection-end-line="747" selection-end-column="30" />
           <folding />
         </state>
       </provider>

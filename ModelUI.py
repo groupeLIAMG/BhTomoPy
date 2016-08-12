@@ -741,8 +741,11 @@ class GridViewFig(FigureCanvasQTAgg):
         for j in range(len(grid.grz)):
             self.ax.plot(xx1[j, :], zz2[j, :], color= 'grey')
 
+        self.ax.plot(data.Tx[data.in_vect, 0], data.Tx[data.in_vect, 2], marker= 'o', color= 'green')
+        self.ax.plot(data.Rx[data.in_vect, 0], data.Rx[data.in_vect, 2], marker= '*', color= 'blue')
+
         self.ax.set_xlim(xmin, xmax)
-        self.ax.set_ylim(zmin, zmax)
+        self.ax.set_ylim(zmin , zmax)
 
 
 
