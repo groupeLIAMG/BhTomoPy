@@ -8,7 +8,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ModelUI.py" afterPath="$PROJECT_DIR$/ModelUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -486,12 +485,6 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00116" summary="update axes dans spectra,&#10;update picking du temps et de l'écart type dans le shot gather de manual tt UI">
-      <created>1469886899975</created>
-      <option name="number" value="00116" />
-      <option name="project" value="LOCAL" />
-      <updated>1469886899978</updated>
-    </task>
     <task id="LOCAL-00117" summary="attempt debug manualtt pour air before et after">
       <created>1469890851813</created>
       <option name="number" value="00117" />
@@ -780,7 +773,13 @@
       <option name="project" value="LOCAL" />
       <updated>1471034197533</updated>
     </task>
-    <option name="localTasksCounter" value="165" />
+    <task id="LOCAL-00165" summary=" affichage grid update&#10;">
+      <created>1471034449275</created>
+      <option name="number" value="00165" />
+      <option name="project" value="LOCAL" />
+      <updated>1471034449275</updated>
+    </task>
+    <option name="localTasksCounter" value="166" />
     <servers />
   </component>
   <component name="TodoView">
