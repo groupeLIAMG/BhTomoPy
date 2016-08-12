@@ -555,7 +555,8 @@ class MOGUI(QtGui.QWidget):
             coverage_ind = self.trace_num_combo.currentIndex()
             show_type = self.show_type_combo.currentText()
             entire_state = self.entire_coverage_check.isChecked()
-            self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()], ind, show_type, entire_state)
+            n = self.trace_num_combo.currentIndex()
+            self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()], n, show_type, entire_state)
             self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
             self.raymanager.show()
         else:
@@ -2140,6 +2141,8 @@ class RayCoverageFig(FigureCanvasQTAgg):
                                        cstride=1,
                                        color='green')
 
+                self.draw()
+
             elif show_type == 'Show picked only':
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
                                        Y= Tx_Rx_ys[:, picked_tt],
@@ -2147,6 +2150,7 @@ class RayCoverageFig(FigureCanvasQTAgg):
                                        rstride=1,
                                        cstride=1,
                                        color='green')
+                self.draw()
 
             elif show_type == 'Show unpicked only':
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
@@ -2155,10 +2159,12 @@ class RayCoverageFig(FigureCanvasQTAgg):
                                        rstride=1,
                                        cstride=1,
                                        color='red')
+                self.draw()
         else:
             Tx = np.unique(mog.data.Tx_z)
-            ind_unpicked = np.where(Tx_Rx_zs[0, unpicked_tt] == Tx[n[0].row()])[0]
-            ind_picked = np.where(Tx_Rx_zs[0, picked_tt] == Tx[n[0].row()])[0]
+            ind_unpicked = np.where(Tx_Rx_zs[0, unpicked_tt] == Tx[n])[0]
+            print(ind_unpicked)
+            ind_picked = np.where(Tx_Rx_zs[0, picked_tt] == Tx[n])[0]
 
             if show_type == 'Show picked and unpicked':
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
@@ -2174,6 +2180,7 @@ class RayCoverageFig(FigureCanvasQTAgg):
                                        rstride=1,
                                        cstride=1,
                                        color='green')
+                self.draw()
 
             elif show_type == 'Show picked only':
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_picked],
@@ -2183,6 +2190,8 @@ class RayCoverageFig(FigureCanvasQTAgg):
                                        cstride=1,
                                        color='green')
 
+                self.draw()
+
             elif show_type == 'Show unpicked only':
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
                                        Y= Tx_Rx_ys[:, ind_unpicked],
@@ -2190,6 +2199,8 @@ class RayCoverageFig(FigureCanvasQTAgg):
                                        rstride=1,
                                        cstride=1,
                                        color='red')
+
+                self.draw()
 
 
 
@@ -2202,7 +2213,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
-        self.draw()
 
 
 #-----------------------------------------------------------------------------------------------------------------------
