@@ -277,9 +277,9 @@ class gridEditor(QtGui.QWidget):
         if np.all(self.grid.grx == 0) and np.all(self.grid.grz == 0):
             if nBH == 2:
                 self.type = '2D'
-                self.gUI = Grid2DUI(self.data)
-                self.gUI.build_grid()
-
+                self.grid, self.data = Grid2DUI.build_grid(self.data)
+                self.gUI = Grid2DUI(self.data, self.grid)
+                self.gUI.update_bh_origin()
 
             #-------- Widgets Creation --------#
             #--- Buttons ---#
@@ -329,47 +329,82 @@ class gridEditor(QtGui.QWidget):
             self.setLayout(master_grid)
 
 class Grid2DUI(QtGui.QWidget):
-    def __init__(self, data, parent=None):
+    def __init__(self, data, grid, parent=None):
         super(Grid2DUI, self).__init__()
         self.data = data
+        self.grid = grid
+        if np.all(self.grid.grx == 0) and np.all(self.grid.grz == 0):
+            self.dx = 1
+            self.dz = 1
+        else:
+            self.dx = self.grid.grx[1] - self.grx[0]
+            self.dz = self.grid.grz[1] - self.grz[0]
+
         self.initUI()
+        self.gridviewFig.plot_grid2D()
+
+    def get_azimuth_dip(self):
+        d = sum(self.data.x0*self.data.a)
+        x = d/self.data.a[0]
+        y = d/self.data.a[1]
+        az = np.arctan2(y, x)
+        dip = np.arcsin(self.data.a[2])
+        flip = self.flip_check.isChecked()
+        az = az + flip*np.pi
+        return az, dip
+
+    def project(self, xyz):
+        xyz_p = Grid.proj_plane(xyz, self.data.x0, self.data.a);
+        dist = np.sqrt(nop.sum((xyz-xyz_p)**2, axis= 1));
+        az, dip = self.get_azimuth_dip();
+        xyz_p = Grid.transl_rotat(xyz_p, self.grid.x0, az, dip);
+        return xyz_p, dist
 
     def update_bh_origin(self):
         self.borehole_combo.clear()
-        Tx_output = set()
-        Rx_output = set()
-        for n in range(len(self.model.mog.MOGs)):
-            Tx_output.add(self.model.mog.MOGs[n].Tx.name)
-            Rx_output.add(self.model.mog.MOGs[n].Rx.name)
+        for borehole in self.data.boreholes:
+            self.borehole_combo.addItem(borehole.name)
 
-        Tx_output = list(Tx_output)
-        Rx_output = list(Rx_output)
-        for Tx in Tx_output:
-            self.borehole_combo.addItem(Tx)
-        for Rx in Rx_output:
-            self.borehole_combo.addItem(Rx)
+            self.update_input()
 
-    def update_origin(self):
+    def update_input(self):
         ind = self.borehole_combo.currentIndex()
 
-        self.origin_x_edit.setText(str(self.model.borehole.boreholes[ind].X))
-        self.origin_y_edit.setText(str(self.model.borehole.boreholes[ind].Y))
-        self.origin_z_edit.setText(str(self.model.borehole.boreholes[ind].Z))
+        self.dx = float(self.cell_size_x_edit.text())
+        self.dz = float(self.cell_size_z_edit.text())
+
+        self.grid.border[0] = float(self.pad_minus_x_edit.text())
+        self.grid.border[1] = float(self.pad_plus_x_edit.text())
+        self.grid.border[2] = float(self.pad_minus_z_edit.text())
+        self.grid.border[3] = float(self.pad_plus_z_edit.text())
+
+        self.grid.flip = self.flip_check.isChecked()
+
+        self.grid.borehole_x0 = ind
+
+        self.grid.x0[0] = self.data.boreholes[ind].X
+        self.grid.x0[1] = self.data.boreholes[ind].Y
+        self.grid.x0[2] = self.data.boreholes[ind].Z
+
+        self.origin_x_edit.setText(str(self.grid.x0[0]))
+        self.origin_y_edit.setText(str(self.grid.x0[1]))
+        self.origin_z_edit.setText(str(self.grid.x0[2]))
+
+        self.gridviewFig.plot_grid2D()
 
     def plot_adjustment(self):
         self.bestfitplaneFig.plot_stats()
         self.bestfitplanemanager.showMaximized()
 
-    def build_grid(self):
+    @staticmethod
+    def build_grid(data):
 
-        self.grid = Grid2D()
-        self.grid.x0 = [self.data.boreholes[0].X, self.data.boreholes[0].Y, self.data.boreholes[0].Z]
-        self.grid.type = '2D'
-        self.dx = 1
-        self.dz = 1
+        grid = Grid2D()
+        grid.x0 = [data.boreholes[0].X, data.boreholes[0].Y, data.boreholes[0].Z]
+        grid.type = '2D'
 
-        uTx = self.data.Tx[self.data.in_vect, :]
-        uRx = self.data.Rx[self.data.in_vect, :]
+        uTx = data.Tx[data.in_vect, :]
+        uRx = data.Rx[data.in_vect, :]
 
         b = np.ascontiguousarray(uTx).view(np.dtype((np.void, uTx.dtype.itemsize * uTx.shape[1])))
         c = np.ascontiguousarray(uRx).view(np.dtype((np.void, uRx.dtype.itemsize * uRx.shape[1])))
@@ -380,28 +415,18 @@ class Grid2DUI(QtGui.QWidget):
         uTx = np.sort(tmpTx, axis= 0)
         uRx = np.sort(tmpRx, axis= 0)
 
-        self.data.x0, self.data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis= 0))
+        data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis= 0))
         # self.data.x0 : Centroid of the data = point on the best-fit plane
         # self.data.a  : Direction cosines of the normal to the best-fit plane
-        if self.data.a[2] < 0 :
-            self.data.a = -self.data.a
+        if data.a[2] < 0 :
+            data.a = -data.a
 
-        self.data.Tx_p = Grid.proj_plane(self.data.Tx, self.data.x0, self.data.a)
-        self.data.Rx_p = Grid.proj_plane(self.data.Rx, self.data.x0, self.data.a)
+        data.Tx_p = Grid.proj_plane(data.Tx, data.x0, data.a)
+        data.Rx_p = Grid.proj_plane(data.Rx, data.x0, data.a)
 
-    def plot_grid_view(self):
-        origin      = self.borehole_combo.currentText()
-        state       = self.flip_check.checkState()
-        pad_x_plus  = float(self.pad_plus_x_edit.text())
-        pad_x_minus = float(self.pad_minus_x_edit.text())
-        pad_z_plus  = float(self.pad_plus_z_edit.text())
-        pad_z_minus = float(self.pad_minus_z_edit.text())
-        x_cell_size = float(self.cell_size_x_edit.text())
-        z_cell_size = float(self.cell_size_z_edit.text())
+        return grid, data
 
-        self.gridviewFig.plot_grid2D( origin, state,
-                                                    pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus,
-                                                                                       x_cell_size, z_cell_size)
+
 
     def initUI(self):
 
@@ -432,13 +457,13 @@ class Grid2DUI(QtGui.QWidget):
         self.origin_z_edit      = QtGui.QLineEdit()
 
         #- Edits' Actions -#
-        self.pad_plus_x_edit.editingFinished.connect(self.plot_grid_view)
-        self.pad_plus_z_edit.editingFinished.connect(self.plot_grid_view)
-        self.pad_minus_x_edit.editingFinished.connect(self.plot_grid_view)
-        self.pad_minus_z_edit.editingFinished.connect(self.plot_grid_view)
+        self.pad_plus_x_edit.editingFinished.connect(self.update_input)
+        self.pad_plus_z_edit.editingFinished.connect(self.update_input)
+        self.pad_minus_x_edit.editingFinished.connect(self.update_input)
+        self.pad_minus_z_edit.editingFinished.connect(self.update_input)
 
-        self.cell_size_x_edit.editingFinished.connect(self.plot_grid_view)
-        self.cell_size_z_edit.editingFinished.connect(self.plot_grid_view)
+        self.cell_size_x_edit.editingFinished.connect(self.update_input)
+        self.cell_size_z_edit.editingFinished.connect(self.update_input)
 
         #- Edits' Diposition -#
         self.origin_x_edit.setReadOnly(True)
@@ -458,14 +483,14 @@ class Grid2DUI(QtGui.QWidget):
         self.flip_check              = QtGui.QCheckBox('Flip horizontally')
 
         #- CheckBox Actions -#
-        self.flip_check.stateChanged.connect(self.plot_grid_view)
+        self.flip_check.stateChanged.connect(self.update_input)
 
         #--- ComboBoxes ---#
         self.borehole_combo     = QtGui.QComboBox()
 
         #- ComboBoxes Actions -#
-        self.borehole_combo.activated.connect(self.update_origin)
-        self.borehole_combo.activated.connect(self.plot_grid_view)
+        self.borehole_combo.activated.connect(self.update_input)
+
 
         #--- SubWidgets ---#
         sub_param_widget        = QtGui.QWidget()
@@ -652,22 +677,31 @@ class BoreholesFig(FigureCanvasQTAgg):
         self.draw()
 
 class GridViewFig(FigureCanvasQTAgg):
-    def __init__(self, gridEditor, parent=None):
+    def __init__(self, gUI, parent=None):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(GridViewFig, self).__init__(fig)
-        self.gridEditor = gridEditor
+        self.gUI = gUI
         self.initFig()
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.1, 0.1, 0.85, 0.85])
         self.ax.grid(True)
 
-    def plot_grid2D(self, origin, flip, pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus, x_cell_size, z_cell_size):
+    def plot_grid2D(self):
         self.ax.cla()
-        data = self.gridEditor.data
+        data        = self.gUI.data
+        grid        = self.gUI.grid
+        origin      = self.gUI.borehole_combo.currentText()
+        state       = self.gUI.flip_check.checkState()
+        pad_x_plus  = float(self.gUI.pad_plus_x_edit.text())
+        pad_x_minus = float(self.gUI.pad_minus_x_edit.text())
+        pad_z_plus  = float(self.gUI.pad_plus_z_edit.text())
+        pad_z_minus = float(self.gUI.pad_minus_z_edit.text())
+        x_cell_size = float(self.gUI.cell_size_x_edit.text())
+        z_cell_size = float(self.gUI.cell_size_z_edit.text())
 
-        xmin = min(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) - 0.5*self.gridEditor.dx
-        xmax = max(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) + 0.5*self.gridEditor.dx
+        xmin = min(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) - 0.5*self.gUI.dx
+        xmax = max(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) + 0.5*self.gUI.dx
         print(xmin)
 
 
