@@ -477,6 +477,8 @@ if __name__ == '__main__':
         print(d-tt1b)
 
         print(d-tt2)
+        tt2b = L2*slowness
+        print(d-tt2b)
 
         dL = L1-L1b
         print( dL==0 )

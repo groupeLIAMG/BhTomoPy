@@ -78,7 +78,7 @@ class MOGUI(QtGui.QWidget):
         self.MOGs.append(mog)
         self.update_List_Widget()
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
-        self.update_spectra_Tx_num_list()
+        self.update_spectra_and_coverage_Tx_num_list()
         self.update_spectra_Tx_elev_value_label()
         self.update_edits()
         self.update_prune_edits_info()
@@ -320,7 +320,7 @@ class MOGUI(QtGui.QWidget):
 
         return out
 
-    def update_spectra_Tx_num_list(self):
+    def update_spectra_and_coverage_Tx_num_list(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
         self.Tx_num_list.clear()
@@ -328,18 +328,24 @@ class MOGUI(QtGui.QWidget):
 
         for Tx in range(len(unique_Tx_z)):
             self.Tx_num_list.addItem(str(Tx))
+            self.trace_num_combo.addItem(str(Tx))
 
         self.Tx_num_list.setCurrentRow(0)
+        self.trace_num_combo.setCurrentIndex(0)
 
 
     def update_spectra_Tx_elev_value_label(self):
         ind1 = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind1[0].row()]
         self.Tx_elev_value_label.clear()
-        ind = self.Tx_num_list.selectedIndexes()
-        unique_Tx_z = np.unique(mog.data.Tx_z)
-        for j in ind:
-            self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[j.row()]))
+        ind2 = self.Tx_num_list.selectedIndexes()
+        ind3 = self.trace_num_combo.currentIndex()
+        unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
+        for j in ind2:
+            self.Tx_elev_value_label.setText(str((list(unique_Tx_z[::-1]))[j.row()]))
+
+        self.value_elev_label.setText(str((list(unique_Tx_z))[ind3]))
+
 
     def search_Tx_elev(self):
         if self.search_combo.currentText() == 'Search with Elevation':
@@ -461,95 +467,142 @@ class MOGUI(QtGui.QWidget):
 
 
     def plot_rawdata(self):
-        ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            self.rawdataFig.plot_raw_data(self.MOGs[i.row()].data)
-            self.moglogSignal.emit(" MOG {}'s Raw Data as been plotted ". format(self.MOGs[i.row()].name))
-            self.rawdatamanager.showMaximized()
-
-    def plot_spectra(self):
-        ind                 = self.MOG_list.selectedIndexes()
-        n                   = self.Tx_num_list.currentIndex().row()
-        mog                 = self.MOGs[ind[0].row()]
-        Fmax                = float(self.f_max_edit.text())
-        filter_state        = self.filter_check.isChecked()
-        scale               = self.snr_combo.currentText()
-        estimation_method   = self.psd_combo.currentText()
-
-
-        self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
-        #self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
-        self.spectramanager.showMaximized()
-
-    def plot_zop(self):
-        ind = self.MOG_list.selectedIndexes()
-        self.zopFig.plot_zop()
-        #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
-        self.zopmanager.showMaximized()
-
-    def plot_zop_rays(self):
-        ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-        tol = float(self.tol_edit.text())
-
-        self.zopraysFig.plot_rays(mog, tol)
-        self.zopraysmanager.show()
-
-    def plot_statstt(self):
-
-        ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-        done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
-        if len(np.nonzero(done == 1)[0]) == 0:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
-                                                   buttons=QtGui.QMessageBox.Ok)
+        if len(self.MOGs) != 0:
+            ind = self.MOG_list.selectedIndexes()
+            for i in ind:
+                self.rawdataFig.plot_raw_data(self.MOGs[i.row()].data)
+                self.moglogSignal.emit(" MOG {}'s Raw Data as been plotted ". format(self.MOGs[i.row()].name))
+                self.rawdatamanager.showMaximized()
 
         else:
-            self.statsttFig.plot_stats(mog, self.air)
-            self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
-            self.statsttmanager.showMaximized()
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                           buttons=QtGui.QMessageBox.Ok)
 
+    def plot_spectra(self):
+        if len(self.MOGs) != 0:
+            ind                 = self.MOG_list.selectedIndexes()
+            n                   = self.Tx_num_list.currentIndex().row()
+            mog                 = self.MOGs[ind[0].row()]
+            Fmax                = float(self.f_max_edit.text())
+            filter_state        = self.filter_check.isChecked()
+            scale               = self.snr_combo.currentText()
+            estimation_method   = self.psd_combo.currentText()
+
+
+            self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
+            #self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
+            self.spectramanager.showMaximized()
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
+
+
+    def plot_zop(self):
+        if len(self.MOGs) != 0:
+            ind = self.MOG_list.selectedIndexes()
+            self.zopFig.plot_zop()
+            #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
+            self.zopmanager.showMaximized()
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
+
+    def plot_zop_rays(self):
+        if len(self.MOGs) != 0:
+            ind = self.MOG_list.selectedIndexes()
+            mog = self.MOGs[ind[0].row()]
+            tol = float(self.tol_edit.text())
+
+            self.zopraysFig.plot_rays(mog, tol)
+            self.zopraysmanager.show()
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
+
+    def plot_statstt(self):
+        if len(self.MOGs) != 0:
+            ind = self.MOG_list.selectedIndexes()
+            mog = self.MOGs[ind[0].row()]
+            done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+
+            if len(np.nonzero(done == 1)[0]) == 0:
+                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
+                                                       buttons=QtGui.QMessageBox.Ok)
+
+            else:
+                self.statsttFig.plot_stats(mog, self.air)
+                self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
+                self.statsttmanager.showMaximized()
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
 
 
     def plot_statsamp(self):
-        ind = self.MOG_list.selectedIndexes()
-        self.statsampFig.plot_stats(self.MOGs[ind[0].row()])
-        self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(self.MOGs[ind[0].row()].name))
-        self.statsampmanager.showMaximized()
+
+        if len(self.MOGs) != 0:
+            ind = self.MOG_list.selectedIndexes()
+            self.statsampFig.plot_stats(self.MOGs[ind[0].row()])
+            self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(self.MOGs[ind[0].row()].name))
+            self.statsampmanager.showMaximized()
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
 
     def plot_ray_coverage(self):
-        ind = self.MOG_list.selectedIndexes()
-        self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()])
-        self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
-        self.raymanager.show()
-
+        if len(self.MOGs) != 0:
+            ind = self.MOG_list.selectedIndexes()
+            coverage_ind = self.trace_num_combo.currentIndex()
+            show_type = self.show_type_combo.currentText()
+            entire_state = self.entire_coverage_check.isChecked()
+            n = self.trace_num_combo.currentIndex()
+            self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()], n, show_type, entire_state)
+            self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
+            self.raymanager.show()
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
     def plot_prune(self):
-        ind = self.MOG_list.selectedIndexes()
-        self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0 )
-        self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(self.MOGs[ind[0].row()].name))
-        self.prunemanager.show()
+        if len(self.MOGs) != 0:
+            ind = self.MOG_list.selectedIndexes()
+            if self.MOGs[i.row()].Tx != 1 and self.MOGs[i.row()].Tx != 1:
+                self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0 )
+                self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(self.MOGs[ind[0].row()].name))
+                self.prunemanager.show()
+            else:
+                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please select Tx and Rx for MOG",
+                                                   buttons=QtGui.QMessageBox.Ok)
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
 
 
     def export_tt(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Export tt')
-        self.moglogSignal.emit('Exporting Traveltime file ...')
+        if len(self.MOGs) != 0:
+            filename = QtGui.QFileDialog.getSaveFileName(self, 'Export tt')
+            self.moglogSignal.emit('Exporting Traveltime file ...')
 
-        mog = self.MOGs[self.MOG_list.currentRow()]
-        ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
-        ind = np.where(ind == 2)[0]
-        export_file = open(filename, 'w')
-        data = np.array([ind, mog.tt[ind], mog.et[ind]]).T
-        np.savetxt(filename, data)
-        export_file.close()
+            mog = self.MOGs[self.MOG_list.currentRow()]
+            ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
+            ind = np.where(ind == 2)[0]
+            export_file = open(filename, 'w')
+            data = np.array([ind, mog.tt[ind], mog.et[ind]]).T
+            np.savetxt(filename, data)
+            export_file.close()
 
-        self.moglogSignal.emit('File exported succesfully ')
-
+            self.moglogSignal.emit('File exported succesfully ')
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
     def export_tau(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tau')
-        self.moglogSignal.emit('Exporting tau file ...')
-        self.moglogSignal.emit('File exported succesfully ')
+        if len(self.MOGs) != 0:
+            filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tau')
+            self.moglogSignal.emit('Exporting tau file ...')
+            self.moglogSignal.emit('File exported succesfully ')
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
 
-    #TODO:
     def compute_SNR(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
@@ -749,7 +802,7 @@ class MOGUI(QtGui.QWidget):
         char1 = lookup("GREEK SMALL LETTER TAU")
         char2 = lookup("GREEK CAPITAL LETTER DELTA")
 
-        # -------- Creation of the manager for the Ray Coverage figure -------#
+        # -------- Creation of the manager for the ZOPRay figure -------#
         self.zopraysFig = ZOPRaysFig()
         self.zopraysmanager = QtGui.QWidget()
         self.zopraystool = NavigationToolbar2QT(self.zopraysFig, self)
@@ -758,14 +811,7 @@ class MOGUI(QtGui.QWidget):
         zopraysmanagergrid.addWidget(self.zopraysFig, 1, 0)
         self.zopraysmanager.setLayout(zopraysmanagergrid)
 
-        #-------- Creation of the manager for the Ray Coverage figure -------#
-        self.raycoverageFig = RayCoverageFig()
-        self.raymanager = QtGui.QWidget()
-        self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
-        raymanagergrid = QtGui.QGridLayout()
-        raymanagergrid.addWidget(self.raytool, 0, 0)
-        raymanagergrid.addWidget(self.raycoverageFig, 1, 0)
-        self.raymanager.setLayout(raymanagergrid)
+
 
         #-------- Creation of the manager for the Stats Amp figure -------#
         self.statsampFig = StatsAmpFig()
@@ -828,7 +874,6 @@ class MOGUI(QtGui.QWidget):
         self.min_elev_edit.editingFinished.connect(self.update_prune)
         self.max_elev_edit.editingFinished.connect(self.update_prune)
         self.round_fac_edit.editingFinished.connect(self.update_prune)
-
 
         #- Edits Disposition -#
         self.skip_Tx_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -909,6 +954,52 @@ class MOGUI(QtGui.QWidget):
         prunemanagergrid.setRowStretch(0, 100)
         self.prunemanager.setLayout(prunemanagergrid)
 
+        #------- Widgets in Raycoverage -------#
+        #--- List ---#
+        self.trace_num_combo = QtGui.QComboBox()
+        self.trace_num_combo.activated.connect(self.update_spectra_Tx_elev_value_label)
+        self.trace_num_combo.activated.connect(self.plot_ray_coverage)
+
+        #--- Labels ---#
+        coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
+        self.value_elev_label = MyQLabel('', ha= 'left')
+
+        #--- CheckBox ---#
+        self.entire_coverage_check = QtGui.QCheckBox('Show entire coverage')
+        self.entire_coverage_check.stateChanged.connect(self.plot_ray_coverage)
+
+        #--- Combobox ---#
+        self.show_type_combo = QtGui.QComboBox()
+        show_list = ['Show picked and unpicked', 'show picked only', 'show unpicked only']
+        self.show_type_combo.addItems(show_list)
+        self.show_type_combo.activated.connect(self.plot_ray_coverage)
+
+        #--- Elevation SubWidget ---#
+        sub_coverage_elev_widget = QtGui.QWidget()
+        sub_coverage_elev_grid = QtGui.QGridLayout()
+        sub_coverage_elev_grid.addWidget(coverage_elev_label, 0, 0)
+        sub_coverage_elev_grid.addWidget(self.value_elev_label, 0, 1)
+        sub_coverage_elev_widget.setLayout(sub_coverage_elev_grid)
+
+        #--- Global SubWidget ---#
+        sub_coverage_widget = QtGui.QWidget()
+        sub_coverage_grid = QtGui.QGridLayout()
+        sub_coverage_grid.addWidget(self.trace_num_combo, 0, 0)
+        sub_coverage_grid.addWidget(sub_coverage_elev_widget, 1, 0)
+        sub_coverage_grid.addWidget(self.entire_coverage_check, 2, 0)
+        sub_coverage_grid.addWidget(self.show_type_combo, 3, 0)
+        sub_coverage_grid.setRowStretch(4, 100)
+        sub_coverage_widget.setLayout(sub_coverage_grid)
+
+        # -------- Creation of the manager for the Ray Coverage figure -------#
+        self.raycoverageFig = RayCoverageFig()
+        self.raymanager = QtGui.QWidget()
+        self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
+        raymanagergrid = QtGui.QGridLayout()
+        raymanagergrid.addWidget(self.raytool, 0, 0, 1, 2)
+        raymanagergrid.addWidget(self.raycoverageFig, 1, 0)
+        raymanagergrid.addWidget(sub_coverage_widget, 1, 1)
+        self.raymanager.setLayout(raymanagergrid)
 
         #-------- Widgets in ZOP -------#
         #--- Labels ---#
@@ -2000,14 +2091,13 @@ class RayCoverageFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection= '3d')
 
-    def plot_ray_coverage(self, mog):
+    def plot_ray_coverage(self, mog, n, show_type, entire_state):
         self.ax.cla()
-        picked_tt = np.where(mog.tt != -1)
-        unpicked_tt = np.where(mog.tt == -1)
-        picked = np.where(mog.in_vect == 1)
+        picked_tt = np.where(mog.tt != -1)[0]
+        unpicked_tt = np.where(mog.tt == -1)[0]
+        picked = np.where(mog.in_vect == 1)[0]
 
-        print(picked_tt)
-        print(unpicked_tt)
+
 
         Tx_xs = mog.data.Tx_x
         Rx_xs = mog.data.Rx_x
@@ -2035,12 +2125,87 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_zs = Tx_Rx_zs.T
 
 
+        if entire_state:
+            if show_type == 'Show picked and unpicked':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
+                                       Y= Tx_Rx_ys[:, unpicked_tt],
+                                       Z= Tx_Rx_zs[:, unpicked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
 
-        self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt[0]], Y= Tx_Rx_ys[:, unpicked_tt[0]], Z= -1*Tx_Rx_zs[:, unpicked_tt[0]], rstride=1, cstride=1, color='red')
-        self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt[0]], Y= Tx_Rx_ys[:, picked_tt[0]], Z= -1*Tx_Rx_zs[:, picked_tt[0]], rstride=1, cstride=1, color='green')
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
+                                       Y= Tx_Rx_ys[:, picked_tt],
+                                       Z= Tx_Rx_zs[:, picked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
 
-        percent_coverage = 100* np.round((len(picked_tt[0])/mog.data.ntrace), 4)
-        print(percent_coverage)
+                self.draw()
+
+            elif show_type == 'Show picked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
+                                       Y= Tx_Rx_ys[:, picked_tt],
+                                       Z= Tx_Rx_zs[:, picked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
+                self.draw()
+
+            elif show_type == 'Show unpicked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
+                                       Y= Tx_Rx_ys[:, unpicked_tt],
+                                       Z= Tx_Rx_zs[:, unpicked_tt],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
+                self.draw()
+        else:
+            Tx = np.unique(mog.data.Tx_z)
+            ind_unpicked = np.where(Tx_Rx_zs[0, unpicked_tt] == Tx[n])[0]
+            print(ind_unpicked)
+            ind_picked = np.where(Tx_Rx_zs[0, picked_tt] == Tx[n])[0]
+
+            if show_type == 'Show picked and unpicked':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
+                                       Y= Tx_Rx_ys[:, ind_unpicked],
+                                       Z= Tx_Rx_zs[:, ind_unpicked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
+
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_picked],
+                                       Y= Tx_Rx_ys[:, ind_picked],
+                                       Z= Tx_Rx_zs[:, ind_picked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
+                self.draw()
+
+            elif show_type == 'Show picked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_picked],
+                                       Y= Tx_Rx_ys[:, ind_picked],
+                                       Z= Tx_Rx_zs[:, ind_picked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='green')
+
+                self.draw()
+
+            elif show_type == 'Show unpicked only':
+                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
+                                       Y= Tx_Rx_ys[:, ind_unpicked],
+                                       Z= Tx_Rx_zs[:, ind_unpicked],
+                                       rstride=1,
+                                       cstride=1,
+                                       color='red')
+
+                self.draw()
+
+
+
+
+        percent_coverage = 100* np.round((len(picked_tt)/mog.data.ntrace), 4)
         self.ax.set_title(str(percent_coverage) + ' %')
 
         self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
@@ -2309,43 +2474,48 @@ class DeltaTMOG(QtGui.QWidget):
         self.initUI()
 
     def getcompat(self):
-        self.sub_combo.clear()
-        n = self.min_combo.currentIndex()
-        ref_mog = self.mog.MOGs[n]
-        ids = []
-        nc = 0
-        if len(self.mog.MOGs) == 1:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database",buttons= QtGui.QMessageBox.Ok)
-            return
-        for mog in self.mog.MOGs:
-            if mog != ref_mog:
-                test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
-                test2 = False
-                test3 = False
+        if len(self.mog.MOGs) != 0:
+            self.sub_combo.clear()
+            n = self.min_combo.currentIndex()
+            ref_mog = self.mog.MOGs[n]
+            ids = []
+            nc = 0
+            if len(self.mog.MOGs) == 1:
+                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database",buttons= QtGui.QMessageBox.Ok)
+                return
+            for mog in self.mog.MOGs:
+                if mog != ref_mog:
+                    test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
+                    test2 = False
+                    test3 = False
 
-                if len(ref_mog.av) == 0 and len(mog.av) == 0:
-                    test2 = True
-                if ref_mog.av == mog.av:
-                    test2 = True
-                if len(ref_mog.ap) == 0 and len(mog.ap) == 0:
-                    test3 = True
-                if ref_mog.ap == mog.ap:
-                    test3 = True
-                test4 = ref_mog.data.TxOffset == mog.data.TxOffset and ref_mog.data.RxOffset == mog.data.RxOffset
-                test5 = ref_mog.type == mog.type
+                    if ref_mog.av == '' and mog.av == '':
+                        test2 = True
+                    if ref_mog.av == mog.av:
+                        test2 = True
+                    if ref_mog.ap == '' and mog.ap == '':
+                        test3 = True
+                    if ref_mog.ap == mog.ap:
+                        test3 = True
+                    test4 = ref_mog.data.TxOffset == mog.data.TxOffset and ref_mog.data.RxOffset == mog.data.RxOffset
+                    test5 = ref_mog.type == mog.type
 
-                if test1 and test2 and test3 and test4 and test5:
-                    nc += 1
-                    self.sub_combo.addItem(mog.name)
-                    ids.append(mog.ID)
+                    if test1 and test2 and test3 and test4 and test5:
+                        nc += 1
+                        self.sub_combo.addItem(mog.name)
+                        ids.append(mog.ID)
+
+                else:
+                    pass
+            if nc == 0 :
+                dialog = QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
 
             else:
-                pass
-        if nc == 0 :
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
-
+                self.show()
         else:
-            self.show()
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+                                               buttons=QtGui.QMessageBox.Ok)
+
 
     def done(self):
         if len(self.sub_combo) == 0:

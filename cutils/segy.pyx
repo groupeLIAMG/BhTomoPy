@@ -60,7 +60,7 @@ class Segy_data():
     Class to hold SEG-Y data
     
     Attributes are:
-        bh:  Dictionnary containing binary header data
+        bh:  Dictionnary containing binary header data (integer)
                 keys are:
                                 (bytes in file)
                 jobid            3201-3204
@@ -97,7 +97,7 @@ class Segy_data():
                 fixl             3503-3504
                 extfh            3505-3506
         
-        th: Dictionnary containing traces header data
+        th: Dictionnary containing traces header data (numpy arrays)
                 keys are (unless custom dictionary given to read_segy)
                 
                             (bytes in header)
