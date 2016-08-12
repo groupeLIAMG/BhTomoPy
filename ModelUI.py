@@ -692,14 +692,7 @@ class GridViewFig(FigureCanvasQTAgg):
         self.ax.cla()
         data        = self.gUI.data
         grid        = self.gUI.grid
-        origin      = self.gUI.borehole_combo.currentText()
-        state       = self.gUI.flip_check.checkState()
-        pad_x_plus  = float(self.gUI.pad_plus_x_edit.text())
-        pad_x_minus = float(self.gUI.pad_minus_x_edit.text())
-        pad_z_plus  = float(self.gUI.pad_plus_z_edit.text())
-        pad_z_minus = float(self.gUI.pad_minus_z_edit.text())
-        x_cell_size = float(self.gUI.cell_size_x_edit.text())
-        z_cell_size = float(self.gUI.cell_size_z_edit.text())
+
 
         az, dip = self.gUI.get_azimuth_dip()
         grid.Tx = Grid.transl_rotat(data.Tx_p, grid.x0, az, dip)
@@ -722,7 +715,8 @@ class GridViewFig(FigureCanvasQTAgg):
         nzm = grid.border[2]
         nzp = grid.border[3]
 
-        grid.grx = xmin +self.gUI.dx * np.arange(-nxm, nx + nxp).T
+        grid.grx = xmin +self.gUI.dx * np.arange(-nxm, nx + nxp, self.gUI.dx).T
+        print(grid.grx)
         grid.grz = zmin +self.gUI.dz * np.arange(-nzm, nz + nzp).T
 
 
@@ -746,6 +740,9 @@ class GridViewFig(FigureCanvasQTAgg):
 
         for j in range(len(grid.grz)):
             self.ax.plot(xx1[j, :], zz2[j, :], color= 'grey')
+
+        self.ax.set_xlim(xmin, xmax)
+        self.ax.set_ylim(zmin, zmax)
 
 
 
