@@ -239,6 +239,7 @@ class gridEditor(QtGui.QWidget):
         self.data.Rx = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
         self.data.TxCosDir = mog.TxCosDir.T
         self.data.RxCosDir = mog.RxCosDir.T
+
         self.data.boreholes = self.model.models[self.model_ind].boreholes
 
 
@@ -341,7 +342,7 @@ class Grid2DUI(QtGui.QWidget):
             self.dz = self.grid.grz[1] - self.grz[0]
 
         self.initUI()
-        self.gridviewFig.plot_grid2D()
+
 
     def get_azimuth_dip(self):
         d = sum(self.data.x0*self.data.a)
@@ -700,9 +701,54 @@ class GridViewFig(FigureCanvasQTAgg):
         x_cell_size = float(self.gUI.cell_size_x_edit.text())
         z_cell_size = float(self.gUI.cell_size_z_edit.text())
 
+        az, dip = self.gUI.get_azimuth_dip()
+        grid.Tx = Grid.transl_rotat(data.Tx_p, grid.x0, az, dip)
+        grid.Rx = Grid.transl_rotat(data.Rx_p, grid.x0, az, dip)
+        #grid.TxCosDir = Grid.transl_rotat(data.TxCosDir, np.array([0, 0, 0]), az, dip)
+        #grid.RxCosDir = Grid.transl_rotat(data.RxCosDir, np.array([0, 0, 0]), az, dip)
+
+        grid.in_vect = data.in_vect
+
         xmin = min(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) - 0.5*self.gUI.dx
         xmax = max(np.concatenate((data.Tx[data.in_vect, 0], data.Rx[data.in_vect, 0]), axis= 0).flatten()) + 0.5*self.gUI.dx
-        print(xmin)
+        nx = np.ceil((xmax - xmin)/self.gUI.dx)
+
+        zmin = min(np.concatenate((data.Tx[data.in_vect, 2], data.Rx[data.in_vect, 2]), axis= 0).flatten()) - 0.5*self.gUI.dz
+        zmax = max(np.concatenate((data.Tx[data.in_vect, 2], data.Rx[data.in_vect, 2]), axis= 0).flatten()) + 0.5*self.gUI.dz
+        nz = np.ceil((zmax - zmin)/self.gUI.dz)
+
+        nxm = grid.border[0]
+        nxp = grid.border[1]
+        nzm = grid.border[2]
+        nzp = grid.border[3]
+
+        grid.grx = xmin +self.gUI.dx * np.arange(-nxm, nx + nxp).T
+        grid.grz = zmin +self.gUI.dz * np.arange(-nzm, nz + nzp).T
+
+
+
+        z1 = zmin*np.ones(len(grid.grx)).T[:, None]
+        z2 = zmax*np.ones(len(grid.grx)).T[:, None]
+
+        x1 = xmin*np.ones(len(grid.grz)).T[:, None]
+        x2 = xmax*np.ones(len(grid.grz)).T[:, None]
+
+        zz1 = np.concatenate((z1,z2), axis= 1)
+        xx1 = np.concatenate((x1, x2), axis= 1)
+
+
+        zz2 = np.concatenate((grid.grz.T[:, None], grid.grz.T[:, None]), axis = 1)
+
+
+        xx2 = np.concatenate((grid.grx.T[:, None], grid.grx.T[:, None]), axis = 1)
+        for i in range(len(grid.grx)):
+            self.ax.plot(xx2[i, :], zz1[i, :], color= 'grey')
+
+        for j in range(len(grid.grz)):
+            self.ax.plot(xx1[j, :], zz2[j, :], color= 'grey')
+
+
+
 
 
     def plot_grid(self, mogs, origin, flip, pad_x_plus, pad_x_minus, pad_z_plus, pad_z_minus, x_cell_size, z_cell_size):

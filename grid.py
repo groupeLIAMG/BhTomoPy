@@ -286,6 +286,8 @@ class Grid2D(Grid):
         self.borehole_x0 = 1
         self.x0 = np.array([])
         self.type = None
+        self.in_vect = np.array([])
+
 
     def raytrace(self, slowness, Tx, Rx, t0=(), xi=(), theta=()):
         """
