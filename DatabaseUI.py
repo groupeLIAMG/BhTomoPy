@@ -161,10 +161,13 @@ class DatabaseUI(QtGui.QWidget):
         #self.update_log('Error: Database file must be of pickle type')
 
     def savefile(self):
-        try:
 
+        try:
             save_file = open(self.filename, 'wb')
-            self.model.gridui.update_model_grid()
+            try:
+                self.model.gridui.update_model_grid()
+            except:
+                pass
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
@@ -179,11 +182,13 @@ class DatabaseUI(QtGui.QWidget):
             filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', self.name, filter= 'pickle (*.p *.pkl *.pickle)', )
             print(filename)
             save_file = open(filename, 'wb')
+            try:
+                self.model.gridui.update_model_grid()
+            except:
+                pass
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
-            self.model.gridui.update_model_grid()
-
             self.update_log("Database was saved successfully")
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
@@ -297,7 +302,7 @@ if __name__ == '__main__':
 
     Database_ui = DatabaseUI()
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\save test.p')
+    Database_ui.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
     #Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     #Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
     #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')

@@ -102,6 +102,7 @@ class ModelUI(QtGui.QWidget):
         self.gridui.gridinfo.num_data_label.setText(str(ndata))
         self.gridui.gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
         self.gridui.gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
+        self.gridui.gridinfo.num_cell_label.setText(str(self.gridui.grid.getNumberOfCells()))
 
     def start_grid(self):
         self.gridui = gridEditor(self)
@@ -721,23 +722,20 @@ class GridViewFig(FigureCanvasQTAgg):
 
 
 
-        self.gUI.grid.grx = xmin + self.gUI.dx * np.arange(-nxm, nx + nxp).T
+        self.gUI.grid.grx = xmin + self.gUI.dx * np.arange(-nxm, nx + nxp + 1).T
 
-        self.gUI.grid.grz = zmin + self.gUI.dz * np.arange(-nzm, nz + nzp).T
+        self.gUI.grid.grz = zmin + self.gUI.dz * np.arange(-nzm, nz + nzp + 1).T
 
 
 
-        z1 = zmin - self.gUI.dz*nzm * np.ones(len(self.gUI.grid.grx)).T[:, None]
-        z2 = zmax + self.gUI.dz*nzp * np.ones(len(self.gUI.grid.grx)).T[:, None]
+        z1 = self.gUI.grid.grz[0] * np.ones(len(self.gUI.grid.grx) +1).T[:, None]
+        z2 = self.gUI.grid.grz[-1] * np.ones(len(self.gUI.grid.grx) +1).T[:, None]
 
-        x1 = xmin - self.gUI.dx*nxm * np.ones(len(self.gUI.grid.grz)).T[:, None]
-        x2 = xmax + self.gUI.dx*nxp * np.ones(len(self.gUI.grid.grz)).T[:, None]
+        x1 = self.gUI.grid.grx[0] * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
+        x2 = self.gUI.grid.grx[-1] * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
 
-        #z1 = zmin*np.ones(nx).T[:, None]
-        #z2 = zmax*np.ones(nx).T[:, None]
-
-        #x1 = xmin*np.ones(nz).T[:, None]
-        #x2 = xmax*np.ones(nz).T[:, None]
+        #x1 = xmin - self.gUI.dx*nxm * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
+        #x2 = xmax + self.gUI.dx*nxp * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
 
         zz1 = np.concatenate((z1,z2), axis= 1)
         xx1 = np.concatenate((x1, x2), axis= 1)
@@ -756,6 +754,11 @@ class GridViewFig(FigureCanvasQTAgg):
 
         self.ax.set_xlim(min(self.gUI.grid.grx), max(self.gUI.grid.grx))
         self.ax.set_ylim(min(self.gUI.grid.grz), max(self.gUI.grid.grz))
+
+        self.ax.set_aspect('equal', adjustable='box')
+
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(10)
 
         self.draw()
 

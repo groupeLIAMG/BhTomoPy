@@ -48,6 +48,9 @@ class InversionUI(QtGui.QFrame):
                 self.Y_max_label.setText(str(model.grid.gry[-1]))
                 self.step_Yi_label.setText(str(model.grid.dy()))
 
+            self.num_cells_label.setText(str(model.grid.getNumberOfCells()))
+
+
     def initUI(self):
         #--- Color for the labels ---#
         palette = QtGui.QPalette()
@@ -91,9 +94,11 @@ class InversionUI(QtGui.QFrame):
         self.step_Xi_label     = MyQLabel("0", ha= 'center')          # Note: there are still a lot of variables which
         self.step_Yi_label     = MyQLabel("0", ha= 'center')          # the self. extension need to be applied.
         self.step_Zi_label     = MyQLabel("0", ha= 'center')          # I just don't know all of them at the moment
+        self.num_cells_label   = MyQLabel("0", ha= 'center')
 
 
         #--- Setting Label's color ---#
+        self.num_cells_label.setPalette(palette)
         self.X_min_label.setPalette(palette)
         self.Y_min_label.setPalette(palette)
         self.Z_min_label.setPalette(palette)
@@ -239,6 +244,13 @@ class InversionUI(QtGui.QFrame):
         Sub_Grid_Coord_grid.setContentsMargins(0, 0, 0, 0)
         Sub_Grid_Coord_Widget.setLayout(Sub_Grid_Coord_grid)
 
+        #--- Cells SubWidget ---#
+        sub_cells_widget = QtGui.QWidget()
+        sub_cells_grid = QtGui.QGridLayout()
+        sub_cells_grid.addWidget(self.num_cells_label, 0, 0)
+        sub_cells_grid.addWidget(cells_label, 0, 1)
+        sub_cells_widget.setLayout(sub_cells_grid)
+
         #--- Step SubWidget ---#
         Sub_Step_Widget = QtGui.QWidget()
         Sub_Step_Grid = QtGui.QGridLayout()
@@ -249,7 +261,7 @@ class InversionUI(QtGui.QFrame):
         Sub_Step_Grid.addWidget(Xi_label, 0, 1)
         Sub_Step_Grid.addWidget(Yi_label, 0, 2)
         Sub_Step_Grid.addWidget(Zi_label, 0, 3)
-        Sub_Step_Grid.addWidget(cells_label, 2, 2)
+        Sub_Step_Grid.addWidget(sub_cells_widget, 2, 2)
         Sub_Step_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_Step_Widget.setLayout(Sub_Step_Grid)
 

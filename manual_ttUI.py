@@ -1298,11 +1298,11 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualttUI()
-    manual_ui.openmain.load_file('save test.p')
-    manual_ui.update_control_center()
-    manual_ui.update_a_and_t_edits()
-    manual_ui.upperFig.plot_amplitude()
-    manual_ui.lowerFig.plot_trace_data()
+    #manual_ui.openmain.load_file('save test.p')
+    #manual_ui.update_control_center()
+    #manual_ui.update_a_and_t_edits()
+    #manual_ui.upperFig.plot_amplitude()
+    #manual_ui.lowerFig.plot_trace_data()
     manual_ui.showMaximized()
     #manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
