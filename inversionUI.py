@@ -1,27 +1,57 @@
 import sys
 from PyQt4 import QtGui, QtCore
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+import numpy as np
+import matplotlib as mpl
+import pickle
+
 
 class InversionUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(InversionUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Inversion")
+        self.openmain = OpenMainData(self)
+        self.mogs = []
+        self.boreholes = []
+        self.models = []
+        self.air = []
+        self.filename = ''
         self.initUI()
+
+    def savefile(self):
+        save_file = open(self.filename, 'wb')
+        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+        dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+                                                ,buttons=QtGui.QMessageBox.Ok)
+    def update_data(self):
+        for mog in self.mogs:
+            self.mog_combo.addItem(mog.name)
+
+    def update_grid(self):
+        model = self.models[0]
+        print(model.name)
+        if np.all(model.grid.grx == 0) or np.all(model.grid.grx == 0):
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion"
+                                                ,buttons=QtGui.QMessageBox.Ok)
+
+        else:
+            self.X_min_label.setText(str(model.grid.grx[0]))
+            self.X_max_label.setText(str(model.grid.grx[-1]))
+            self.step_Xi_label.setText(str(model.grid.dx()))
+
+            self.Z_min_label.setText(str(model.grid.grz[0]))
+            self.Z_max_label.setText(str(model.grid.grz[-1]))
+            self.step_Zi_label.setText(str(model.grid.dz()))
+
+            if model.grid.type == '3D':
+                self.Y_min_label.setText(str(model.grid.gry[0]))
+                self.Y_max_label.setText(str(model.grid.gry[-1]))
+                self.step_Yi_label.setText(str(model.grid.dy()))
 
     def initUI(self):
         #--- Color for the labels ---#
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
-
-        #--- Class For Alignment ---#
-        class  MyQLabel(QtGui.QLabel):
-            def __init__(self, label, ha='left',  parent=None):
-                super(MyQLabel, self).__init__(label,parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
 
         #------- Widgets Creation -------#
         #--- Buttons Set ---#
@@ -40,7 +70,7 @@ class InversionUI(QtGui.QFrame):
         Max_labeli             = MyQLabel("Max :", ha='right')
         X_label                = MyQLabel("X", ha= 'center')
         Y_label                = MyQLabel("Y", ha= 'center')
-        Z_label                = MyQLabel("Y", ha= 'center')
+        Z_label                = MyQLabel("Z", ha= 'center')
         algo_label             = MyQLabel("Algorithm", ha= 'right')
         straight_ray_label     = MyQLabel("Straight Rays", ha= 'right')
         curv_ray_label         = MyQLabel("Curved Rays", ha= 'right')
@@ -79,14 +109,23 @@ class InversionUI(QtGui.QFrame):
         #--- Edits ---#
         straight_ray_edit       = QtGui.QLineEdit("1")  # Putting a string as the argument of the QLineEdit initializes
         curv_ray_edit           = QtGui.QLineEdit("1")  # it to the argument
-        num_simulation_edit     = QtGui.QLineEdit()
+        num_simulation_edit     = QtGui.QLineEdit('128')
         slowness_edit           = QtGui.QLineEdit('0')
         traveltime_edit         = QtGui.QLineEdit('0')
-        Min_editi               = QtGui.QLineEdit()
-        Max_editi               = QtGui.QLineEdit()
+        Min_editi               = QtGui.QLineEdit('0.06')
+        Max_editi               = QtGui.QLineEdit('0.12')
+
+        #- Edits' Disposition -#
+        straight_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        curv_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        num_simulation_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        slowness_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        traveltime_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        Min_editi.setAlignment(QtCore.Qt.AlignHCenter)
+        Max_editi.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- Checkboxes ---#
-        use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  #The argument of the QCheckBox is the title
+        use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
         use_Rays_checkbox               = QtGui.QCheckBox("Use Rays")         # of it
         simulations_checkbox            = QtGui.QCheckBox("Simulations")
         ellip_veloc_checkbox            = QtGui.QCheckBox("Elliptical Velocity Anisotropy")
@@ -97,12 +136,22 @@ class InversionUI(QtGui.QFrame):
         #--- Checkboxes Actions ---#
         use_const_checkbox.setChecked(True)
 
-        #--- Text Edits ---#
-        futur_Graph1             = QtGui.QTextEdit()
-        futur_Graph1.setReadOnly(True)
+        #--- Actions ---#
+        openAction = QtGui.QAction('Open main data file', self)
+        openAction.triggered.connect(self.openmain.show)
+
+        saveAction = QtGui.QAction('Save', self)
+        saveAction.triggered.connect(self.savefile)
+
+        #--- ToolBar ---#
+        self.tool = QtGui.QMenuBar()
+
+        fileMenu = self.tool.addMenu('&File')
+        fileMenu.addAction(openAction)
+        fileMenu.addAction(saveAction)
 
         #--- List ---#
-        self.mog_list            = QtGui.QListWidget()
+        self.mog_combo            = QtGui.QComboBox()
         test_list                = QtGui.QListWidget()     #list for the Parameters Groupbox
 
         #--- combobox ---#
@@ -147,16 +196,23 @@ class InversionUI(QtGui.QFrame):
         fig_combo.addItem("colorcube")
         fig_combo.addItem("lines")
 
+        #------- Manager for InvFig -------#
+        self.invFig = InvFig(self)
+        self.invmanager = QtGui.QWidget()
+        inv_grid = QtGui.QGridLayout()
+        inv_grid.addWidget(self.invFig)
+        self.invmanager.setLayout(inv_grid)
+
 
         #------- SubWidgets -------#
         #--- Data SubWidget ---#
-        Sub_data_Widget = QtGui.QWidget()
-        Sub_data_Grid = QtGui.QGridLayout()
-        Sub_data_Grid.addWidget(T_and_A_combo, 0, 0)
-        Sub_data_Grid.addWidget(use_const_checkbox, 1, 0)
-        Sub_data_Grid.setRowStretch(2, 100)
-        Sub_data_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_data_Widget.setLayout(Sub_data_Grid)
+        #Sub_data_Widget = QtGui.QWidget()
+        #Sub_data_Grid = QtGui.QGridLayout()
+        #Sub_data_Grid.addWidget(T_and_A_combo, 0, 0)
+        #Sub_data_Grid.addWidget(use_const_checkbox, 1, 0)
+        #Sub_data_Grid.setRowStretch(2, 100)
+        #Sub_data_Grid.setContentsMargins(0, 0, 0, 0)
+        #Sub_data_Widget.setLayout(Sub_data_Grid)
 
         #--- Algo SubWidget ---#
         Sub_algo_Widget = QtGui.QWidget()
@@ -203,9 +259,10 @@ class InversionUI(QtGui.QFrame):
         data_groupbox = QtGui.QGroupBox("Data")
         data_grid = QtGui.QGridLayout()
         data_grid.addWidget(model_label, 0, 0)
-        data_grid.addWidget(Sub_data_Widget, 1, 0)
+        data_grid.addWidget(T_and_A_combo, 1, 0)
+        data_grid.addWidget(use_const_checkbox, 2, 0)
         data_grid.addWidget(mog_label, 0, 2)
-        data_grid.addWidget(self.mog_list, 1, 2)
+        data_grid.addWidget(self.mog_combo, 1, 2)
         data_groupbox.setLayout(data_grid)
 
         #--- Grid Groupbox ---#
@@ -292,22 +349,125 @@ class InversionUI(QtGui.QFrame):
         Sub_right_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_right_Widget.setLayout(Sub_right_Grid)
 
+        #------- Global Widget Disposition -------#
+        global_widget = QtGui.QWidget()
+        global_grid = QtGui.QGridLayout()
+        global_grid.addWidget(data_groupbox, 0, 0, 3, 1)
+        global_grid.addWidget(Grid_groupbox, 3, 0)
+        global_grid.addWidget(prev_inv_groupbox, 4, 0)
+        global_grid.addWidget(Inv_Param_groupbox, 5, 0, 6, 1)
+        global_grid.addWidget(Sub_right_Widget, 0, 1)
+        global_grid.addWidget(self.invmanager, 1, 1, 10, 2)
+        global_grid.setColumnStretch(2, 300)
+        global_grid.setRowStretch(8, 100)
+        global_widget.setLayout(global_grid)
+
         #------- Master Grid Disposition -------#
         master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(data_groupbox, 0, 0, 3, 1)
-        master_grid.addWidget(Grid_groupbox, 3, 0)
-        master_grid.addWidget(prev_inv_groupbox, 4, 0)
-        master_grid.addWidget(Inv_Param_groupbox, 5, 0, 6, 1)
-        master_grid.addWidget(Sub_right_Widget, 0, 1)
-        master_grid.addWidget(futur_Graph1, 1, 1, 10, 2)
-        master_grid.setColumnStretch(2, 300)
-        master_grid.setRowStretch(8, 100)
+        master_grid.addWidget(self.tool, 0, 0)
+        master_grid.addWidget(global_widget, 1, 0)
+        master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
+
+class OpenMainData(QtGui.QWidget):
+    def __init__(self, inv, parent=None):
+        super(OpenMainData, self).__init__()
+        self.setWindowTitle("Choose Data")
+        self.database_list = []
+        self.inv = inv
+        self.initUI()
+
+    def openfile(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+
+        self.load_file(filename)
+
+    def load_file(self, filename):
+        self.inv.filename = filename
+        rname = filename.split('/')
+        rname = rname[-1]
+        if '.p' in rname:
+            rname = rname[:-2]
+        if '.pkl' in rname:
+            rname = rname[:-4]
+        if '.pickle' in rname:
+            rname = rname[:-7]
+        file = open(filename, 'rb')
+
+        self.inv.boreholes, self.inv.mogs, self.inv.air, self.inv.models = pickle.load(file)
+
+        self.database_edit.setText(rname)
+        for mog in self.inv.mogs:
+
+            self.mog_combo.addItem(mog.name)
+
+
+    def cancel(self):
+        self.close()
+
+    def ok(self):
+        self.inv.update_data()
+        self.inv.update_grid()
+        self.close()
+
+    def initUI(self):
+
+        #-------  Widgets --------#
+        #--- Edit ---#
+        self.database_edit = QtGui.QLineEdit()
+        #- Edit Action -#
+        self.database_edit.setReadOnly(True)
+        #--- Buttons ---#
+        self.btn_database = QtGui.QPushButton('Choose Database')
+        self.btn_ok = QtGui.QPushButton('Ok')
+        self.btn_cancel = QtGui.QPushButton('Cancel')
+
+        #- Buttons' Actions -#
+        self.btn_cancel.clicked.connect(self.cancel)
+        self.btn_database.clicked.connect(self.openfile)
+        self.btn_ok.clicked.connect(self.ok)
+
+        #--- Combobox ---#
+        self.mog_combo = QtGui.QComboBox()
+
+        #- Combobox's Action -#
+
+
+        master_grid = QtGui.QGridLayout()
+        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
+        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
+        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
+        master_grid.addWidget(self.btn_ok, 3, 0)
+        master_grid.addWidget(self.btn_cancel, 3 ,1)
+        self.setLayout(master_grid)
+
+
+class InvFig(FigureCanvasQTAgg):
+    def __init__(self, settings):
+        fig_width, fig_height = 4, 4
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
+        super(InvFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+
+#--- Class For Alignment ---#
+class  MyQLabel(QtGui.QLabel):
+    def __init__(self, label, ha='left',  parent=None):
+        super(MyQLabel, self).__init__(label,parent)
+        if ha == 'center':
+            self.setAlignment(QtCore.Qt.AlignCenter)
+        elif ha == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
+        else:
+            self.setAlignment(QtCore.Qt.AlignLeft)
+
 if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
     Model_ui = InversionUI()
-    Model_ui.show()
+    Model_ui.showMaximized()
 
     sys.exit(app.exec_())

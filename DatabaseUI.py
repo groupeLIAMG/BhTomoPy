@@ -164,10 +164,10 @@ class DatabaseUI(QtGui.QWidget):
         try:
 
             save_file = open(self.filename, 'wb')
+            self.model.gridui.update_model_grid()
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
-
             self.update_log("Database was saved successfully")
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
@@ -182,6 +182,7 @@ class DatabaseUI(QtGui.QWidget):
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
+            self.model.gridui.update_model_grid()
 
             self.update_log("Database was saved successfully")
         except:

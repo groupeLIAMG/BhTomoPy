@@ -241,7 +241,8 @@ class Grid:
         m_data = transl_rotat(data, origin, az, dip)
 
         """
-
+        print(np.shape(data))
+        print(np.shape(origin))
         # translation w/r to origin
         m_data = np.vstack([data[:,0]-origin[0], data[:,1]-origin[1], data[:,2]-origin[2]]).T
         # rotation w/r to azimuth

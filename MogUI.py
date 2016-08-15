@@ -453,6 +453,7 @@ class MOGUI(QtGui.QWidget):
                         mog.data.Rx_z = Rx.Z - mog.data.RxOffset - mog.Rx_z_orig
                         mog.RxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
 
+
             elif self.Type_combo.currentText() == 'VSP/VRP':
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
 

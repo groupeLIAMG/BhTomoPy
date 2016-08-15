@@ -86,8 +86,6 @@ class ModelUI(QtGui.QWidget):
             if mog.Rx not in self.models[n].boreholes:
                 self.models[n].boreholes.append(mog.Rx)
 
-        print(self.models[n].boreholes)
-
     def update_grid_info(self):
         ndata = 0
         n_tt_data_picked = 0
@@ -224,6 +222,10 @@ class gridEditor(QtGui.QWidget):
         self.model_ind = self.model.model_list.currentIndex().row()
         self.initUI()
 
+    def update_model_grid(self):
+        self.model.models[self.model_ind].grid = self.gUI.grid
+        print(self.model.models[self.model_ind].grid.grx)
+
     def plot_boreholes(self):
 
         view = self.bhfig_combo.currentText()
@@ -239,6 +241,7 @@ class gridEditor(QtGui.QWidget):
         self.data.Rx = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
         self.data.TxCosDir = mog.TxCosDir.T
         self.data.RxCosDir = mog.RxCosDir.T
+
 
         self.data.boreholes = self.model.models[self.model_ind].boreholes
 
@@ -690,47 +693,45 @@ class GridViewFig(FigureCanvasQTAgg):
 
     def plot_grid2D(self):
         self.ax.cla()
-        data        = self.gUI.data
-        grid        = self.gUI.grid
 
 
         az, dip = self.gUI.get_azimuth_dip()
-        grid.Tx = Grid.transl_rotat(data.Tx_p, grid.x0, az, dip)
-        grid.Rx = Grid.transl_rotat(data.Rx_p, grid.x0, az, dip)
-        #grid.TxCosDir = Grid.transl_rotat(data.TxCosDir, np.array([0, 0, 0]), az, dip)
-        #grid.RxCosDir = Grid.transl_rotat(data.RxCosDir, np.array([0, 0, 0]), az, dip)
+        self.gUI.grid.Tx = Grid.transl_rotat(self.gUI.data.Tx_p, self.gUI.grid.x0, az, dip)
+        self.gUI.grid.Rx = Grid.transl_rotat(self.gUI.data.Rx_p, self.gUI.grid.x0, az, dip)
+        self.gUI.grid.TxCosDir = Grid.transl_rotat(self.gUI.data.TxCosDir, np.array([0, 0, 0]), az, dip)
+        self.gUI.grid.RxCosDir = Grid.transl_rotat(self.gUI.data.RxCosDir, np.array([0, 0, 0]), az, dip)
 
-        grid.in_vect = data.in_vect
+        self.gUI.grid.in_vect = self.gUI.data.in_vect
 
-        nxm = grid.border[0]
-        nxp = grid.border[1]
-        nzm = grid.border[2]
-        nzp = grid.border[3]
+        nxm = self.gUI.grid.border[0]
+        nxp = self.gUI.grid.border[1]
+        nzm = self.gUI.grid.border[2]
+        nzp = self.gUI.grid.border[3]
 
         print(nxm)
         print(nxp)
 
-        xmin = min(np.concatenate((grid.Tx[grid.in_vect, 0], grid.Rx[grid.in_vect, 0]), axis= 0).flatten()) - 0.5 * self.gUI.dx
-        xmax = max(np.concatenate((grid.Tx[grid.in_vect, 0], grid.Rx[grid.in_vect, 0]), axis= 0).flatten()) + 0.5 * self.gUI.dx
+        xmin = min(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 0]), axis= 0).flatten()) - 0.5 * self.gUI.dx
+        xmax = max(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 0]), axis= 0).flatten()) + 0.5 * self.gUI.dx
         nx = np.ceil((xmax - xmin)/self.gUI.dx)
 
-        zmin = min(np.concatenate((grid.Tx[grid.in_vect, 2], grid.Rx[grid.in_vect, 2]), axis= 0).flatten()) - 0.5 * self.gUI.dz
-        zmax = max(np.concatenate((grid.Tx[grid.in_vect, 2], grid.Rx[grid.in_vect, 2]), axis= 0).flatten()) + 0.5 * self.gUI.dz
+        zmin = min(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 2], self.gUI.grid.Rx[self.gUI.grid.in_vect, 2]), axis= 0).flatten()) - 0.5 * self.gUI.dz
+        zmax = max(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 2], self.gUI.grid.Rx[self.gUI.grid.in_vect, 2]), axis= 0).flatten()) + 0.5 * self.gUI.dz
         nz = np.ceil((zmax - zmin)/self.gUI.dz)
 
 
 
-        grid.grx = xmin + self.gUI.dx * np.arange(-nxm, nx + nxp).T
+        self.gUI.grid.grx = xmin + self.gUI.dx * np.arange(-nxm, nx + nxp).T
 
-        grid.grz = zmin + self.gUI.dz * np.arange(-nzm, nz + nzp).T
+        self.gUI.grid.grz = zmin + self.gUI.dz * np.arange(-nzm, nz + nzp).T
 
 
 
-        z1 = zmin - self.gUI.dz*nzm * np.ones(len(grid.grx)).T[:, None]
-        z2 = zmax + self.gUI.dz*nzp * np.ones(len(grid.grx)).T[:, None]
+        z1 = zmin - self.gUI.dz*nzm * np.ones(len(self.gUI.grid.grx)).T[:, None]
+        z2 = zmax + self.gUI.dz*nzp * np.ones(len(self.gUI.grid.grx)).T[:, None]
 
-        x1 = xmin - self.gUI.dx*nxm * np.ones(len(grid.grz)).T[:, None]
-        x2 = xmax + self.gUI.dx*nxp * np.ones(len(grid.grz)).T[:, None]
+        x1 = xmin - self.gUI.dx*nxm * np.ones(len(self.gUI.grid.grz)).T[:, None]
+        x2 = xmax + self.gUI.dx*nxp * np.ones(len(self.gUI.grid.grz)).T[:, None]
 
         #z1 = zmin*np.ones(nx).T[:, None]
         #z2 = zmax*np.ones(nx).T[:, None]
@@ -741,20 +742,20 @@ class GridViewFig(FigureCanvasQTAgg):
         zz1 = np.concatenate((z1,z2), axis= 1)
         xx1 = np.concatenate((x1, x2), axis= 1)
 
-        zz2 = np.concatenate((grid.grz.T[:, None], grid.grz.T[:, None]), axis = 1)
-        xx2 = np.concatenate((grid.grx.T[:, None], grid.grx.T[:, None]), axis = 1)
+        zz2 = np.concatenate((self.gUI.grid.grz.T[:, None], self.gUI.grid.grz.T[:, None]), axis = 1)
+        xx2 = np.concatenate((self.gUI.grid.grx.T[:, None], self.gUI.grid.grx.T[:, None]), axis = 1)
 
-        for i in range(len(grid.grx)):
+        for i in range(len(self.gUI.grid.grx)):
             self.ax.plot(xx2[i, :], zz1[i, :], color= 'grey')
 
-        for j in range(len(grid.grz)):
+        for j in range(len(self.gUI.grid.grz)):
             self.ax.plot(xx1[j, :], zz2[j, :], color= 'grey')
 
-        self.ax.plot(grid.Tx[grid.in_vect, 0], grid.Tx[grid.in_vect, 2], marker= 'o', color= 'green', ls= 'none')
-        self.ax.plot(grid.Rx[grid.in_vect, 0], grid.Rx[grid.in_vect, 2], marker= '*', color= 'blue', ls= 'none')
+        self.ax.plot(self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Tx[self.gUI.grid.in_vect, 2], marker= 'o', color= 'green', ls= 'none')
+        self.ax.plot(self.gUI.grid.Rx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 2], marker= '*', color= 'blue', ls= 'none')
 
-        self.ax.set_xlim(min(grid.grx), max(grid.grx))
-        self.ax.set_ylim(min(grid.grz), max(grid.grz))
+        self.ax.set_xlim(min(self.gUI.grid.grx), max(self.gUI.grid.grx))
+        self.ax.set_ylim(min(self.gUI.grid.grz), max(self.gUI.grid.grz))
 
         self.draw()
 
