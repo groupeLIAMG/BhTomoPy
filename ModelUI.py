@@ -710,12 +710,12 @@ class GridViewFig(FigureCanvasQTAgg):
         print(nxm)
         print(nxp)
 
-        xmin = min(np.concatenate((grid.Tx[grid.in_vect, 0], grid.Rx[grid.in_vect, 0]), axis= 0).flatten()) - nxm
-        xmax = max(np.concatenate((grid.Tx[grid.in_vect, 0], grid.Rx[grid.in_vect, 0]), axis= 0).flatten()) + nxp
+        xmin = min(np.concatenate((grid.Tx[grid.in_vect, 0], grid.Rx[grid.in_vect, 0]), axis= 0).flatten()) - 0.5 * self.gUI.dx
+        xmax = max(np.concatenate((grid.Tx[grid.in_vect, 0], grid.Rx[grid.in_vect, 0]), axis= 0).flatten()) + 0.5 * self.gUI.dx
         nx = np.ceil((xmax - xmin)/self.gUI.dx)
 
-        zmin = min(np.concatenate((grid.Tx[grid.in_vect, 2], grid.Rx[grid.in_vect, 2]), axis= 0).flatten()) - nzm
-        zmax = max(np.concatenate((grid.Tx[grid.in_vect, 2], grid.Rx[grid.in_vect, 2]), axis= 0).flatten()) + nzp
+        zmin = min(np.concatenate((grid.Tx[grid.in_vect, 2], grid.Rx[grid.in_vect, 2]), axis= 0).flatten()) - 0.5 * self.gUI.dz
+        zmax = max(np.concatenate((grid.Tx[grid.in_vect, 2], grid.Rx[grid.in_vect, 2]), axis= 0).flatten()) + 0.5 * self.gUI.dz
         nz = np.ceil((zmax - zmin)/self.gUI.dz)
 
 
@@ -726,11 +726,11 @@ class GridViewFig(FigureCanvasQTAgg):
 
 
 
-        z1 = (zmin - self.gUI.dz) * np.ones(len(grid.grx)).T[:, None]
-        z2 = (zmax + self.gUI.dz) * np.ones(len(grid.grx)).T[:, None]
+        z1 = zmin - self.gUI.dz*nzm * np.ones(len(grid.grx)).T[:, None]
+        z2 = zmax + self.gUI.dz*nzp * np.ones(len(grid.grx)).T[:, None]
 
-        x1 = (xmin - self.gUI.dx) * np.ones(len(grid.grz)).T[:, None]
-        x2 = (xmax + self.gUI.dx) * np.ones(len(grid.grz)).T[:, None]
+        x1 = xmin - self.gUI.dx*nxm * np.ones(len(grid.grz)).T[:, None]
+        x2 = xmax + self.gUI.dx*nxp * np.ones(len(grid.grz)).T[:, None]
 
         #z1 = zmin*np.ones(nx).T[:, None]
         #z2 = zmax*np.ones(nx).T[:, None]
@@ -753,8 +753,8 @@ class GridViewFig(FigureCanvasQTAgg):
         self.ax.plot(grid.Tx[grid.in_vect, 0], grid.Tx[grid.in_vect, 2], marker= 'o', color= 'green', ls= 'none')
         self.ax.plot(grid.Rx[grid.in_vect, 0], grid.Rx[grid.in_vect, 2], marker= '*', color= 'blue', ls= 'none')
 
-        self.ax.set_xlim(xmin - self.gUI.dx, xmax + self.gUI.dx)
-        self.ax.set_ylim(zmin - self.gUI.dz, zmax + self.gUI.dz)
+        self.ax.set_xlim(min(grid.grx), max(grid.grx))
+        self.ax.set_ylim(min(grid.grz), max(grid.grz))
 
         self.draw()
 
