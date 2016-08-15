@@ -17,6 +17,7 @@ class InversionUI(QtGui.QFrame):
         self.air = []
         self.filename = ''
         self.initUI()
+        self.initinvUI()
 
     def savefile(self):
         save_file = open(self.filename, 'wb')
@@ -35,23 +36,145 @@ class InversionUI(QtGui.QFrame):
                                                 ,buttons=QtGui.QMessageBox.Ok)
 
         else:
-            self.X_min_label.setText(str(model.grid.grx[0]))
-            self.X_max_label.setText(str(model.grid.grx[-1]))
+            self.X_min_label.setText(str(np.round(model.grid.grx[0], 3)))
+            self.X_max_label.setText(str(np.round(model.grid.grx[-1], 3)))
             self.step_Xi_label.setText(str(model.grid.dx()))
 
-            self.Z_min_label.setText(str(model.grid.grz[0]))
-            self.Z_max_label.setText(str(model.grid.grz[-1]))
+            self.Z_min_label.setText(str(np.round(model.grid.grz[0], 3)))
+            self.Z_max_label.setText(str(np.round(model.grid.grz[-1], 3)))
             self.step_Zi_label.setText(str(model.grid.dz()))
 
             if model.grid.type == '3D':
-                self.Y_min_label.setText(str(model.grid.gry[0]))
-                self.Y_max_label.setText(str(model.grid.gry[-1]))
+                self.Y_min_label.setText(str(np.round(model.grid.gry[0], 3)))
+                self.Y_max_label.setText(str(np.round(model.grid.gry[-1], 3)))
                 self.step_Yi_label.setText(str(model.grid.dy()))
 
             self.num_cells_label.setText(str(model.grid.getNumberOfCells()))
 
 
+    def initinvUI(self):
+
+        include_checkbox                = QtGui.QCheckBox("Include Experimental Variance")
+        tilted_ellip_veloc_checkbox     = QtGui.QCheckBox("Tilted Elliptical Velocity Anisotropy")
+        simulations_checkbox            = QtGui.QCheckBox("Simulations")
+        ellip_veloc_checkbox            = QtGui.QCheckBox("Elliptical Velocity Anisotropy")
+
+        num_simulation_label        = MyQLabel("Number of Simulations", ha='right')
+
+        num_simulation_edit     = QtGui.QLineEdit('128')
+
+        geostat_struct_combo     = QtGui.QComboBox()
+
+        slowness_label              = MyQLabel("Slowness", ha='right')
+        separ_label                 = MyQLabel("|", ha= 'center')
+        traveltime_label            = MyQLabel("Traveltime", ha= 'right')
+
+        slowness_edit           = QtGui.QLineEdit('0')
+        traveltime_edit         = QtGui.QLineEdit('0')
+
+        test_list                = QtGui.QListWidget()     #list for the Parameters Groupbox
+
+
+        solver_tol_label            = MyQLabel('Solver Tolerance', ha= 'right')
+        max_iter_label              = MyQLabel('Max number of solver iterations', ha= 'right')
+        constraints_weight_label    = MyQLabel('Constraints weight', ha= 'right')
+        smoothing_weight_x_label    = MyQLabel('Smoothing weight x', ha= 'right')
+        smoothing_weight_y_label    = MyQLabel('Smoothing weight y', ha= 'right')
+        smoothing_weight_z_label    = MyQLabel('Smoothing weight z', ha= 'right')
+        smoothing_order_label       = MyQLabel('Smoothing operator order', ha= 'right')
+        veloc_var_label             = MyQLabel('Max velocity varitation per iteration[%]', ha= 'right')
+
+        self.solver_tol_edit         = QtGui.QLineEdit('1e-6')
+        self.max_iter_edit           = QtGui.QLineEdit('100')
+        self.constraints_weight_edit = QtGui.QLineEdit('1')
+        self.smoothing_weight_x_edit = QtGui.QLineEdit('10')
+        self.smoothing_weight_y_edit = QtGui.QLineEdit('10')
+        self.smoothing_weight_z_edit = QtGui.QLineEdit('10')
+        self.veloc_var_edit          = QtGui.QLineEdit('50')
+
+        num_simulation_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        slowness_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        traveltime_edit.setAlignment(QtCore.Qt.AlignHCenter)
+
+        self.smoothing_order_combo = QtGui.QComboBox()
+
+        #--- Geostatistical Combobox's Items ---#
+        geostat_struct_combo.addItem("Structure no 1")
+
+        #--- Parameters Groupbox ---#
+        Param_groupbox = QtGui.QGroupBox("Parameters")
+        Param_grid = QtGui.QGridLayout()
+        Param_grid.addWidget(test_list, 0, 0)
+        Param_groupbox.setLayout(Param_grid)
+
+        #--- Nugget Effect Groupbox ---#
+        Nug_groupbox = QtGui.QGroupBox("Nugget Effect")
+        Nug_grid = QtGui.QGridLayout()
+        Nug_grid.addWidget(slowness_label, 0, 0)
+        Nug_grid.addWidget(slowness_edit, 0, 1)
+        Nug_grid.addWidget(separ_label, 0, 3)
+        Nug_grid.addWidget(traveltime_label, 0, 4)
+        Nug_grid.addWidget(traveltime_edit, 0, 5)
+        Nug_groupbox.setLayout(Nug_grid)
+
+         #--- Geostatistical inversion Groupbox ---#
+        Geostat_groupbox = QtGui.QGroupBox("Geostatistical inversion")
+        Geostat_grid = QtGui.QGridLayout()
+        Geostat_grid.addWidget(simulations_checkbox, 0, 0)
+        Geostat_grid.addWidget(ellip_veloc_checkbox, 1, 0)
+        Geostat_grid.addWidget(include_checkbox, 2, 0)
+        Geostat_grid.addWidget(num_simulation_label, 0, 1)
+        Geostat_grid.addWidget(num_simulation_edit, 0, 2)
+        Geostat_grid.addWidget(tilted_ellip_veloc_checkbox, 1, 1)
+        Geostat_grid.addWidget(geostat_struct_combo, 2, 1, 1, 2)
+        Geostat_grid.addWidget(Param_groupbox, 3, 0, 1, 3)
+        Geostat_grid.addWidget(Nug_groupbox, 4, 0, 1, 3)
+        Geostat_grid.setRowStretch(3, 100)
+        Geostat_groupbox.setLayout(Geostat_grid)
+
+        #--- LSQR Solver GroupBox ---#
+        LSQR_group = QtGui.QGroupBox('LSQR Solver')
+        LSQR_grid = QtGui.QGridLayout()
+        LSQR_grid.addWidget(solver_tol_label, 0, 0)
+        LSQR_grid.addWidget(max_iter_label, 1, 0)
+        LSQR_grid.addWidget(constraints_weight_label, 2, 0)
+        LSQR_grid.addWidget(smoothing_weight_x_label, 3, 0)
+        LSQR_grid.addWidget(smoothing_weight_y_label, 4, 0)
+        LSQR_grid.addWidget(smoothing_weight_z_label, 5, 0)
+        LSQR_grid.addWidget(smoothing_order_label, 6, 0)
+        LSQR_grid.addWidget(veloc_var_label, 7, 0)
+        LSQR_grid.addWidget(self.solver_tol_edit, 0, 1)
+        LSQR_grid.addWidget(self.max_iter_edit, 1, 1)
+        LSQR_grid.addWidget(self.constraints_weight_edit, 2, 1)
+        LSQR_grid.addWidget(self.smoothing_weight_x_edit, 3, 1)
+        LSQR_grid.addWidget(self.smoothing_weight_y_edit, 4, 1)
+        LSQR_grid.addWidget(self.smoothing_weight_z_edit, 5, 1)
+        LSQR_grid.addWidget(self.smoothing_order_combo, 6, 1)
+        LSQR_grid.addWidget(self.veloc_var_edit, 7, 1)
+        LSQR_group.setLayout(LSQR_grid)
+
+        if self.algo_combo.currentText() == 'LSQR Solver':
+            current = self.Inv_Param_grid.layout()
+            widget = current.itemAtPosition(2, 0).widget()
+
+
+
+            widget.setHidden(True)
+            self.Inv_Param_grid.removeWidget(widget)
+
+            self.Inv_Param_grid.addWidget(LSQR_group, 2, 0, 1, 3)
+            self.repaint()
+
+        else:
+            current = self.Inv_Param_grid.layout()
+            widget = current.itemAtPosition(2, 0).widget()
+            widget.setHidden(True)
+            self.Inv_Param_grid.removeWidget(widget)
+            self.Inv_Param_grid.addWidget(Geostat_groupbox, 2, 0, 1, 3)
+            self.repaint()
+
     def initUI(self):
+
         #--- Color for the labels ---#
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
@@ -64,37 +187,36 @@ class InversionUI(QtGui.QFrame):
         btn_GO          = QtGui.QPushButton("GO")
 
         #--- Label ---#
-        model_label            = MyQLabel("Model :", ha= 'center')
-        cells_label            = MyQLabel("Cells", ha= 'center')
-        mog_label              = MyQLabel("Select Mog", ha= 'center')
-        Min_label              = MyQLabel("Min", ha= 'right')
-        Max_label              = MyQLabel("Max", ha='right')
-        Min_labeli             = MyQLabel("Min :", ha= 'right')
-        Max_labeli             = MyQLabel("Max :", ha='right')
-        X_label                = MyQLabel("X", ha= 'center')
-        Y_label                = MyQLabel("Y", ha= 'center')
-        Z_label                = MyQLabel("Z", ha= 'center')
-        algo_label             = MyQLabel("Algorithm", ha= 'right')
-        straight_ray_label     = MyQLabel("Straight Rays", ha= 'right')
-        curv_ray_label         = MyQLabel("Curved Rays", ha= 'right')
-        num_simulation_label   = MyQLabel("Number of Simulations", ha='right')
-        slowness_label         = MyQLabel("Slowness", ha='right')
-        separ_label            = MyQLabel("|", ha= 'center')
-        traveltime_label       = MyQLabel("Traveltime", ha= 'right')
-        step_label             = MyQLabel("Step :", ha= 'center')
-        Xi_label               = MyQLabel("X", ha= 'center')          # The Xi, Yi and Zi  QLabels are practically the
-        Yi_label               = MyQLabel("Y", ha= 'center')          # same as the X, Y and Z  QLabels, it's just that
-        Zi_label               = MyQLabel("Z", ha= 'center')          # QtGui does not allow to use the same QLabel
-        self.X_min_label       = MyQLabel("0", ha= 'center')          # twice or more. So we had to create new Qlabels
-        self.Y_min_label       = MyQLabel("0", ha= 'center')
-        self.Z_min_label       = MyQLabel("0", ha= 'center')
-        self.X_max_label       = MyQLabel("0", ha= 'center')          # All the self.Something variables are defined
-        self.Y_max_label       = MyQLabel("0", ha= 'center')          # that way because they will be modified throughout
-        self.Z_max_label       = MyQLabel("0", ha= 'center')          # the processing of BH_THOMO.
-        self.step_Xi_label     = MyQLabel("0", ha= 'center')          # Note: there are still a lot of variables which
-        self.step_Yi_label     = MyQLabel("0", ha= 'center')          # the self. extension need to be applied.
-        self.step_Zi_label     = MyQLabel("0", ha= 'center')          # I just don't know all of them at the moment
-        self.num_cells_label   = MyQLabel("0", ha= 'center')
+        model_label                 = MyQLabel("Model :", ha= 'center')
+        cells_label                 = MyQLabel("Cells", ha= 'center')
+        mog_label                   = MyQLabel("Select Mog", ha= 'center')
+        Min_label                   = MyQLabel("Min", ha= 'right')
+        Max_label                   = MyQLabel("Max", ha='right')
+        Min_labeli                  = MyQLabel("Min :", ha= 'right')
+        Max_labeli                  = MyQLabel("Max :", ha='right')
+        X_label                     = MyQLabel("X", ha= 'center')
+        Y_label                     = MyQLabel("Y", ha= 'center')
+        Z_label                     = MyQLabel("Z", ha= 'center')
+        algo_label                  = MyQLabel("Algorithm", ha= 'right')
+        straight_ray_label          = MyQLabel("Straight Rays", ha= 'right')
+        curv_ray_label              = MyQLabel("Curved Rays", ha= 'right')
+
+
+        step_label                  = MyQLabel("Step :", ha= 'center')
+        Xi_label                    = MyQLabel("X", ha= 'center')          # The Xi, Yi and Zi  QLabels are practically the
+        Yi_label                    = MyQLabel("Y", ha= 'center')          # same as the X, Y and Z  QLabels, it's just that
+        Zi_label                    = MyQLabel("Z", ha= 'center')          # QtGui does not allow to use the same QLabel
+        self.X_min_label            = MyQLabel("0", ha= 'center')          # twice or more. So we had to create new Qlabels
+        self.Y_min_label            = MyQLabel("0", ha= 'center')
+        self.Z_min_label            = MyQLabel("0", ha= 'center')
+        self.X_max_label            = MyQLabel("0", ha= 'center')          # All the self.Something variables are defined
+        self.Y_max_label            = MyQLabel("0", ha= 'center')          # that way because they will be modified throughout
+        self.Z_max_label            = MyQLabel("0", ha= 'center')          # the processing of BH_THOMO.
+        self.step_Xi_label          = MyQLabel("0", ha= 'center')          # Note: there are still a lot of variables which
+        self.step_Yi_label          = MyQLabel("0", ha= 'center')          # the self. extension need to be applied.
+        self.step_Zi_label          = MyQLabel("0", ha= 'center')          # I just don't know all of them at the moment
+        self.num_cells_label        = MyQLabel("0", ha= 'center')
+
 
 
         #--- Setting Label's color ---#
@@ -112,30 +234,28 @@ class InversionUI(QtGui.QFrame):
         model_label.setPalette(palette)
 
         #--- Edits ---#
+
+
         straight_ray_edit       = QtGui.QLineEdit("1")  # Putting a string as the argument of the QLineEdit initializes
         curv_ray_edit           = QtGui.QLineEdit("1")  # it to the argument
-        num_simulation_edit     = QtGui.QLineEdit('128')
-        slowness_edit           = QtGui.QLineEdit('0')
-        traveltime_edit         = QtGui.QLineEdit('0')
+
+
         Min_editi               = QtGui.QLineEdit('0.06')
         Max_editi               = QtGui.QLineEdit('0.12')
 
         #- Edits' Disposition -#
         straight_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
         curv_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        num_simulation_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        slowness_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        traveltime_edit.setAlignment(QtCore.Qt.AlignHCenter)
+
         Min_editi.setAlignment(QtCore.Qt.AlignHCenter)
         Max_editi.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- Checkboxes ---#
         use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
         use_Rays_checkbox               = QtGui.QCheckBox("Use Rays")         # of it
-        simulations_checkbox            = QtGui.QCheckBox("Simulations")
-        ellip_veloc_checkbox            = QtGui.QCheckBox("Elliptical Velocity Anisotropy")
-        tilted_ellip_veloc_checkbox     = QtGui.QCheckBox("Tilted Elliptical Velocity Anisotropy")
-        include_checkbox                = QtGui.QCheckBox("Include Experimental Variance")
+
+
+
         set_color_checkbox              = QtGui.QCheckBox("Set Color Limits")
 
         #--- Checkboxes Actions ---#
@@ -157,14 +277,15 @@ class InversionUI(QtGui.QFrame):
 
         #--- List ---#
         self.mog_combo            = QtGui.QComboBox()
-        test_list                = QtGui.QListWidget()     #list for the Parameters Groupbox
+
 
         #--- combobox ---#
         T_and_A_combo            = QtGui.QComboBox()
         prev_inversion_combo     = QtGui.QComboBox()
-        algo_combo               = QtGui.QComboBox()
-        geostat_struct_combo     = QtGui.QComboBox()
+        self.algo_combo               = QtGui.QComboBox()
+
         fig_combo                = QtGui.QComboBox()
+
 
 
         #------- Items in the comboboxes --------#
@@ -174,11 +295,12 @@ class InversionUI(QtGui.QFrame):
         T_and_A_combo.addItem("Amplitude - Centroid Frequency")
 
         #--- Algorithm Combobox's Items ---#
-        algo_combo.addItem("Geostatistic")
-        algo_combo.addItem("LSQR Solver")
+        self.algo_combo.addItem("Geostatistic")
+        self.algo_combo.addItem("LSQR Solver")
 
-        #--- Geostatistical Combobox's Items ---#
-        geostat_struct_combo.addItem("Structure no 1")
+        self.algo_combo.activated.connect(self.initinvUI)
+
+
 
         #--- Figure Combobox'S Items ---#
         fig_combo.addItem("cmr")
@@ -223,7 +345,7 @@ class InversionUI(QtGui.QFrame):
         Sub_algo_Widget = QtGui.QWidget()
         Sub_algo_Grid = QtGui.QGridLayout()
         Sub_algo_Grid.addWidget(algo_label, 0, 0)
-        Sub_algo_Grid.addWidget(algo_combo, 0, 1)
+        Sub_algo_Grid.addWidget(self.algo_combo, 0, 1)
         Sub_algo_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_algo_Widget.setLayout(Sub_algo_Grid)
 
@@ -294,37 +416,6 @@ class InversionUI(QtGui.QFrame):
         prev_inv_grid.addWidget(use_Rays_checkbox, 0, 2)
         prev_inv_groupbox.setLayout(prev_inv_grid)
 
-        #--- Parameters Groupbox ---#
-        Param_groupbox = QtGui.QGroupBox("Parameters")
-        Param_grid = QtGui.QGridLayout()
-        Param_grid.addWidget(test_list, 0, 0)
-        Param_groupbox.setLayout(Param_grid)
-
-        #--- Nugget Effect Groupbox ---#
-        Nug_groupbox = QtGui.QGroupBox("Nugget Effect")
-        Nug_grid = QtGui.QGridLayout()
-        Nug_grid.addWidget(slowness_label, 0, 0)
-        Nug_grid.addWidget(slowness_edit, 0, 1)
-        Nug_grid.addWidget(separ_label, 0, 3)
-        Nug_grid.addWidget(traveltime_label, 0, 4)
-        Nug_grid.addWidget(traveltime_edit, 0, 5)
-        Nug_groupbox.setLayout(Nug_grid)
-
-        #--- Geostatistical inversion Groupbox ---#
-        Geostat_groupbox = QtGui.QGroupBox("Geostatistical inversion")
-        Geostat_grid = QtGui.QGridLayout()
-        Geostat_grid.addWidget(simulations_checkbox, 0, 0)
-        Geostat_grid.addWidget(ellip_veloc_checkbox, 1, 0)
-        Geostat_grid.addWidget(include_checkbox, 2, 0)
-        Geostat_grid.addWidget(num_simulation_label, 0, 1)
-        Geostat_grid.addWidget(num_simulation_edit, 0, 2)
-        Geostat_grid.addWidget(tilted_ellip_veloc_checkbox, 1, 1)
-        Geostat_grid.addWidget(geostat_struct_combo, 2, 1, 1, 2)
-        Geostat_grid.addWidget(Param_groupbox, 3, 0, 1, 3)
-        Geostat_grid.addWidget(Nug_groupbox, 4, 0, 1, 3)
-        Geostat_grid.setRowStretch(3, 100)
-        Geostat_groupbox.setLayout(Geostat_grid)
-
         #--- Number of Iteration Groupbox ---#
         Iter_num_groupbox = QtGui.QGroupBox("Number of Iterations")
         Iter_num_grid = QtGui.QGridLayout()
@@ -334,14 +425,17 @@ class InversionUI(QtGui.QFrame):
         Iter_num_grid.addWidget(curv_ray_edit, 0, 3)
         Iter_num_groupbox.setLayout(Iter_num_grid)
 
+
         #--- Inversion Parameters Groupbox ---#
         Inv_Param_groupbox = QtGui.QGroupBox(" Inversion Parameters")
-        Inv_Param_grid = QtGui.QGridLayout()
-        Inv_Param_grid.addWidget(Sub_algo_Widget, 0, 0)
-        Inv_Param_grid.addWidget(Iter_num_groupbox, 1, 0, 1, 3)
-        Inv_Param_grid.addWidget(Geostat_groupbox, 2, 0, 1, 3)
-        Inv_Param_grid.addWidget(btn_GO, 3, 1)
-        Inv_Param_groupbox.setLayout(Inv_Param_grid)
+        self.Inv_Param_grid = QtGui.QGridLayout()
+        self.Inv_Param_grid.addWidget(Sub_algo_Widget, 0, 0)
+        self.Inv_Param_grid.addWidget(Iter_num_groupbox, 1, 0, 1, 3)
+        self.Inv_Param_grid.addWidget(QtGui.QLabel('Place Algo Group'), 2, 0, 1, 3)
+        self.Inv_Param_grid.addWidget(btn_GO, 3, 1)
+        Inv_Param_groupbox.setLayout(self.Inv_Param_grid)
+
+
 
         #--- Figures Groupbox ---#
         fig_groupbox = QtGui.QGroupBox("Figures")
@@ -360,6 +454,7 @@ class InversionUI(QtGui.QFrame):
         Sub_right_Grid.addWidget(fig_groupbox, 0, 0)
         Sub_right_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_right_Widget.setLayout(Sub_right_Grid)
+
 
         #------- Global Widget Disposition -------#
         global_widget = QtGui.QWidget()
@@ -380,6 +475,7 @@ class InversionUI(QtGui.QFrame):
         master_grid.addWidget(global_widget, 1, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
+
 
 class OpenMainData(QtGui.QWidget):
     def __init__(self, inv, parent=None):
