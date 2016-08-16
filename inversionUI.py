@@ -11,6 +11,7 @@ class InversionUI(QtGui.QFrame):
         super(InversionUI, self).__init__()
         self.setWindowTitle("bh_thomoPy/Inversion")
         self.openmain = OpenMainData(self)
+        self.lsqrParams = InvLSQRParams()
         self.mogs = []
         self.boreholes = []
         self.models = []
@@ -26,7 +27,7 @@ class InversionUI(QtGui.QFrame):
                                                 ,buttons=QtGui.QMessageBox.Ok)
     def update_data(self):
         for mog in self.mogs:
-            self.mog_combo.addItem(mog.name)
+            self.mog_list.addItem(mog.name)
 
     def update_grid(self):
         model = self.models[0]
@@ -51,30 +52,31 @@ class InversionUI(QtGui.QFrame):
 
             self.num_cells_label.setText(str(model.grid.getNumberOfCells()))
 
+    def update_params(self):
+        self.lsqrParams.selectedMogs = self.mog_list.selectedIndexes()
+        self.lsqrParams.numItStraight = float(self.straight_ray_edit.text())
+        self.lsqrParams.numItCurved = float(self.curv_ray_edit.text())
+        self.lsqrParams.useCont = self.use_const_checkbox.isChecked()
+        self.lsqrParams.tol = float(self.solver_tol_edit.text())
+        self.lsqrParams.wCont = float(self.constraints_weight_edit.text())
+        self.lsqrParams.alphax = float(self.smoothing_weight_x_edit.text())
+        self.lsqrParams.alphay = float(self.smoothing_weight_y_edit.text())
+        self.lsqrParams.alphaz = float(self.smoothing_weight_z_edit.text())
+        self.lsqrParams.order = int(self.smoothing_order_combo.currentText())
+        self.lsqrParams.nbreiter = float(self.max_iter_edit.text())
+        self.lsqrParams.dv_max = float(self.veloc_var_edit.text())
+        print('coucou')
+
+
 
     def initinvUI(self):
 
-        include_checkbox                = QtGui.QCheckBox("Include Experimental Variance")
-        tilted_ellip_veloc_checkbox     = QtGui.QCheckBox("Tilted Elliptical Velocity Anisotropy")
-        simulations_checkbox            = QtGui.QCheckBox("Simulations")
-        ellip_veloc_checkbox            = QtGui.QCheckBox("Elliptical Velocity Anisotropy")
-
+        #------- Widget Creation -------#
+        #--- Labels ---#
         num_simulation_label        = MyQLabel("Number of Simulations", ha='right')
-
-        num_simulation_edit     = QtGui.QLineEdit('128')
-
-        geostat_struct_combo     = QtGui.QComboBox()
-
         slowness_label              = MyQLabel("Slowness", ha='right')
         separ_label                 = MyQLabel("|", ha= 'center')
         traveltime_label            = MyQLabel("Traveltime", ha= 'right')
-
-        slowness_edit           = QtGui.QLineEdit('0')
-        traveltime_edit         = QtGui.QLineEdit('0')
-
-        test_list                = QtGui.QListWidget()     #list for the Parameters Groupbox
-
-
         solver_tol_label            = MyQLabel('Solver Tolerance', ha= 'right')
         max_iter_label              = MyQLabel('Max number of solver iterations', ha= 'right')
         constraints_weight_label    = MyQLabel('Constraints weight', ha= 'right')
@@ -84,6 +86,10 @@ class InversionUI(QtGui.QFrame):
         smoothing_order_label       = MyQLabel('Smoothing operator order', ha= 'right')
         veloc_var_label             = MyQLabel('Max velocity varitation per iteration[%]', ha= 'right')
 
+        #--- Edits ---#
+        self.num_simulation_edit     = QtGui.QLineEdit('128')
+        self.slowness_edit           = QtGui.QLineEdit('0')
+        self.traveltime_edit         = QtGui.QLineEdit('0')
         self.solver_tol_edit         = QtGui.QLineEdit('1e-6')
         self.max_iter_edit           = QtGui.QLineEdit('100')
         self.constraints_weight_edit = QtGui.QLineEdit('1')
@@ -92,14 +98,60 @@ class InversionUI(QtGui.QFrame):
         self.smoothing_weight_z_edit = QtGui.QLineEdit('10')
         self.veloc_var_edit          = QtGui.QLineEdit('50')
 
-        num_simulation_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        slowness_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        traveltime_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        #- Edits' Disposition -#
+        self.num_simulation_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.slowness_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.traveltime_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.solver_tol_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.max_iter_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.constraints_weight_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.smoothing_weight_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.smoothing_weight_y_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.smoothing_weight_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.veloc_var_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
+        self.num_simulation_edit.setFixedWidth(100)
+        self.slowness_edit.setFixedWidth(100)
+        self.traveltime_edit.setFixedWidth(100)
+        self.solver_tol_edit.setFixedWidth(100)
+        self.max_iter_edit.setFixedWidth(100)
+        self.constraints_weight_edit.setFixedWidth(100)
+        self.smoothing_weight_x_edit.setFixedWidth(100)
+        self.smoothing_weight_y_edit.setFixedWidth(100)
+        self.smoothing_weight_z_edit.setFixedWidth(100)
+        self.veloc_var_edit.setFixedWidth(100)
+
+        #- Edits Actions -#
+        self.num_simulation_edit.editingFinished.connect(self.update_params)
+        self.slowness_edit.editingFinished.connect(self.update_params)
+        self.traveltime_edit.editingFinished.connect(self.update_params)
+        self.solver_tol_edit.editingFinished.connect(self.update_params)
+        self.max_iter_edit.editingFinished.connect(self.update_params)
+        self.constraints_weight_edit.editingFinished.connect(self.update_params)
+        self.smoothing_weight_x_edit.editingFinished.connect(self.update_params)
+        self.smoothing_weight_y_edit.editingFinished.connect(self.update_params)
+        self.smoothing_weight_z_edit.editingFinished.connect(self.update_params)
+        self.veloc_var_edit.editingFinished.connect(self.update_params)
+
+        #--- CheckBoxes ---#
+        include_checkbox                = QtGui.QCheckBox("Include Experimental Variance")
+        tilted_ellip_veloc_checkbox     = QtGui.QCheckBox("Tilted Elliptical Velocity Anisotropy")
+        simulations_checkbox            = QtGui.QCheckBox("Simulations")
+        ellip_veloc_checkbox            = QtGui.QCheckBox("Elliptical Velocity Anisotropy")
+
+        #--- ComboBoxes ---#
+        self.geostat_struct_combo     = QtGui.QComboBox()
         self.smoothing_order_combo = QtGui.QComboBox()
 
-        #--- Geostatistical Combobox's Items ---#
-        geostat_struct_combo.addItem("Structure no 1")
+        #- Comboboxes Actions -#
+        self.smoothing_order_combo.activated.connect(self.update_params)
+
+        #--- List ---#
+        test_list                = QtGui.QListWidget()     #list for the Parameters Groupbox
+
+        #--- Combobox's Items ---#
+        self.geostat_struct_combo.addItem("Structure no 1")
+        self.smoothing_order_combo.addItems(['1', '2'])
 
         #--- Parameters Groupbox ---#
         Param_groupbox = QtGui.QGroupBox("Parameters")
@@ -111,10 +163,10 @@ class InversionUI(QtGui.QFrame):
         Nug_groupbox = QtGui.QGroupBox("Nugget Effect")
         Nug_grid = QtGui.QGridLayout()
         Nug_grid.addWidget(slowness_label, 0, 0)
-        Nug_grid.addWidget(slowness_edit, 0, 1)
+        Nug_grid.addWidget(self.slowness_edit, 0, 1)
         Nug_grid.addWidget(separ_label, 0, 3)
         Nug_grid.addWidget(traveltime_label, 0, 4)
-        Nug_grid.addWidget(traveltime_edit, 0, 5)
+        Nug_grid.addWidget(self.traveltime_edit, 0, 5)
         Nug_groupbox.setLayout(Nug_grid)
 
          #--- Geostatistical inversion Groupbox ---#
@@ -124,9 +176,9 @@ class InversionUI(QtGui.QFrame):
         Geostat_grid.addWidget(ellip_veloc_checkbox, 1, 0)
         Geostat_grid.addWidget(include_checkbox, 2, 0)
         Geostat_grid.addWidget(num_simulation_label, 0, 1)
-        Geostat_grid.addWidget(num_simulation_edit, 0, 2)
+        Geostat_grid.addWidget(self.num_simulation_edit, 0, 2)
         Geostat_grid.addWidget(tilted_ellip_veloc_checkbox, 1, 1)
-        Geostat_grid.addWidget(geostat_struct_combo, 2, 1, 1, 2)
+        Geostat_grid.addWidget(self.geostat_struct_combo, 2, 1, 1, 2)
         Geostat_grid.addWidget(Param_groupbox, 3, 0, 1, 3)
         Geostat_grid.addWidget(Nug_groupbox, 4, 0, 1, 3)
         Geostat_grid.setRowStretch(3, 100)
@@ -217,8 +269,6 @@ class InversionUI(QtGui.QFrame):
         self.step_Zi_label          = MyQLabel("0", ha= 'center')          # I just don't know all of them at the moment
         self.num_cells_label        = MyQLabel("0", ha= 'center')
 
-
-
         #--- Setting Label's color ---#
         self.num_cells_label.setPalette(palette)
         self.X_min_label.setPalette(palette)
@@ -234,32 +284,24 @@ class InversionUI(QtGui.QFrame):
         model_label.setPalette(palette)
 
         #--- Edits ---#
-
-
-        straight_ray_edit       = QtGui.QLineEdit("1")  # Putting a string as the argument of the QLineEdit initializes
-        curv_ray_edit           = QtGui.QLineEdit("1")  # it to the argument
-
-
-        Min_editi               = QtGui.QLineEdit('0.06')
-        Max_editi               = QtGui.QLineEdit('0.12')
+        self.straight_ray_edit       = QtGui.QLineEdit("1")  # Putting a string as the argument of the QLineEdit initializes
+        self.curv_ray_edit           = QtGui.QLineEdit("1")  # it to the argument
+        self.Min_editi               = QtGui.QLineEdit('0.06')
+        self.Max_editi               = QtGui.QLineEdit('0.12')
 
         #- Edits' Disposition -#
-        straight_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        curv_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
-
-        Min_editi.setAlignment(QtCore.Qt.AlignHCenter)
-        Max_editi.setAlignment(QtCore.Qt.AlignHCenter)
+        self.straight_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.curv_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.Min_editi.setAlignment(QtCore.Qt.AlignHCenter)
+        self.Max_editi.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- Checkboxes ---#
-        use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
-        use_Rays_checkbox               = QtGui.QCheckBox("Use Rays")         # of it
+        self.use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
+        self.use_Rays_checkbox               = QtGui.QCheckBox("Use Rays")         # of it
+        self.set_color_checkbox             = QtGui.QCheckBox("Set Color Limits")
 
-
-
-        set_color_checkbox              = QtGui.QCheckBox("Set Color Limits")
-
-        #--- Checkboxes Actions ---#
-        use_const_checkbox.setChecked(True)
+        #- Checboxes Actions -#
+        self.use_const_checkbox.stateChanged.connect(self.update_params)
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
@@ -270,22 +312,25 @@ class InversionUI(QtGui.QFrame):
 
         #--- ToolBar ---#
         self.tool = QtGui.QMenuBar()
-
         fileMenu = self.tool.addMenu('&File')
         fileMenu.addAction(openAction)
         fileMenu.addAction(saveAction)
 
         #--- List ---#
-        self.mog_combo            = QtGui.QComboBox()
+        self.mog_list            = QtGui.QListWidget()
 
+        #- List disposition -#
+        self.mog_list.setFixedHeight(50)
+        self.mog_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+
+        #- List Actions -#
+        self.mog_list.itemSelectionChanged.connect(self.update_params)
 
         #--- combobox ---#
         T_and_A_combo            = QtGui.QComboBox()
         prev_inversion_combo     = QtGui.QComboBox()
         self.algo_combo               = QtGui.QComboBox()
-
         fig_combo                = QtGui.QComboBox()
-
 
 
         #------- Items in the comboboxes --------#
@@ -295,9 +340,10 @@ class InversionUI(QtGui.QFrame):
         T_and_A_combo.addItem("Amplitude - Centroid Frequency")
 
         #--- Algorithm Combobox's Items ---#
-        self.algo_combo.addItem("Geostatistic")
         self.algo_combo.addItem("LSQR Solver")
+        self.algo_combo.addItem("Geostatistic")
 
+        #- Algorithm ComboBoxes Action -#
         self.algo_combo.activated.connect(self.initinvUI)
 
 
@@ -364,6 +410,7 @@ class InversionUI(QtGui.QFrame):
         Sub_Grid_Coord_grid.addWidget(self.Y_max_label, 2, 2)
         Sub_Grid_Coord_grid.addWidget(self.Z_max_label, 2, 3)
         Sub_Grid_Coord_grid.setContentsMargins(0, 0, 0, 0)
+        Sub_Grid_Coord_grid.setVerticalSpacing(3)
         Sub_Grid_Coord_Widget.setLayout(Sub_Grid_Coord_grid)
 
         #--- Cells SubWidget ---#
@@ -385,8 +432,24 @@ class InversionUI(QtGui.QFrame):
         Sub_Step_Grid.addWidget(Zi_label, 0, 3)
         Sub_Step_Grid.addWidget(sub_cells_widget, 2, 2)
         Sub_Step_Grid.setContentsMargins(0, 0, 0, 0)
+        Sub_Step_Grid.setVerticalSpacing(3)
         Sub_Step_Widget.setLayout(Sub_Step_Grid)
 
+        #--- Straight Rays SubWidget ---#
+        sub_straight_widget = QtGui.QWidget()
+        sub_straight_grid = QtGui.QGridLayout()
+        sub_straight_grid.addWidget(straight_ray_label, 0, 0)
+        sub_straight_grid.addWidget(self.straight_ray_edit, 0, 1)
+        sub_straight_grid.setContentsMargins(0, 0, 0, 0)
+        sub_straight_widget.setLayout(sub_straight_grid)
+
+        #--- Curved Rays SubWidget ---#
+        sub_curved_widget = QtGui.QWidget()
+        sub_curved_grid = QtGui.QGridLayout()
+        sub_curved_grid.addWidget(curv_ray_label, 0, 0)
+        sub_curved_grid.addWidget(self.curv_ray_edit, 0, 1)
+        sub_curved_grid.setContentsMargins(0, 0, 0, 0)
+        sub_curved_widget.setLayout(sub_curved_grid)
 
         #------- SubGroupboxes -------#
         #--- Data Groupbox ---#
@@ -394,9 +457,9 @@ class InversionUI(QtGui.QFrame):
         data_grid = QtGui.QGridLayout()
         data_grid.addWidget(model_label, 0, 0)
         data_grid.addWidget(T_and_A_combo, 1, 0)
-        data_grid.addWidget(use_const_checkbox, 2, 0)
+        data_grid.addWidget(self.use_const_checkbox, 2, 0)
         data_grid.addWidget(mog_label, 0, 2)
-        data_grid.addWidget(self.mog_combo, 1, 2)
+        data_grid.addWidget(self.mog_list, 1, 2, 2, 1)
         data_groupbox.setLayout(data_grid)
 
         #--- Grid Groupbox ---#
@@ -413,18 +476,15 @@ class InversionUI(QtGui.QFrame):
         prev_inv_grid.addWidget(btn_View, 1, 0)
         prev_inv_grid.addWidget(btn_Delete, 1, 1)
         prev_inv_grid.addWidget(btn_Load, 1, 2)
-        prev_inv_grid.addWidget(use_Rays_checkbox, 0, 2)
+        prev_inv_grid.addWidget(self.use_Rays_checkbox, 0, 2)
         prev_inv_groupbox.setLayout(prev_inv_grid)
 
         #--- Number of Iteration Groupbox ---#
         Iter_num_groupbox = QtGui.QGroupBox("Number of Iterations")
         Iter_num_grid = QtGui.QGridLayout()
-        Iter_num_grid.addWidget(straight_ray_label, 0, 0)
-        Iter_num_grid.addWidget(straight_ray_edit, 0, 1)
-        Iter_num_grid.addWidget(curv_ray_label, 0, 2)
-        Iter_num_grid.addWidget(curv_ray_edit, 0, 3)
+        Iter_num_grid.addWidget(sub_straight_widget, 0, 0)
+        Iter_num_grid.addWidget(sub_curved_widget, 0, 1)
         Iter_num_groupbox.setLayout(Iter_num_grid)
-
 
         #--- Inversion Parameters Groupbox ---#
         Inv_Param_groupbox = QtGui.QGroupBox(" Inversion Parameters")
@@ -435,16 +495,14 @@ class InversionUI(QtGui.QFrame):
         self.Inv_Param_grid.addWidget(btn_GO, 3, 1)
         Inv_Param_groupbox.setLayout(self.Inv_Param_grid)
 
-
-
         #--- Figures Groupbox ---#
         fig_groupbox = QtGui.QGroupBox("Figures")
         fig_grid = QtGui.QGridLayout()
-        fig_grid.addWidget(set_color_checkbox, 0, 0)
+        fig_grid.addWidget(self.set_color_checkbox, 0, 0)
         fig_grid.addWidget(Min_labeli, 0, 1)
-        fig_grid.addWidget(Min_editi, 0, 2)
+        fig_grid.addWidget(self.Min_editi, 0, 2)
         fig_grid.addWidget(Max_labeli, 0, 3)
-        fig_grid.addWidget(Max_editi, 0, 4)
+        fig_grid.addWidget(self.Max_editi, 0, 4)
         fig_grid.addWidget(fig_combo, 0, 5)
         fig_groupbox.setLayout(fig_grid)
 
@@ -459,14 +517,14 @@ class InversionUI(QtGui.QFrame):
         #------- Global Widget Disposition -------#
         global_widget = QtGui.QWidget()
         global_grid = QtGui.QGridLayout()
-        global_grid.addWidget(data_groupbox, 0, 0, 3, 1)
-        global_grid.addWidget(Grid_groupbox, 3, 0)
-        global_grid.addWidget(prev_inv_groupbox, 4, 0)
-        global_grid.addWidget(Inv_Param_groupbox, 5, 0, 6, 1)
+        global_grid.addWidget(data_groupbox, 0, 0)
+        global_grid.addWidget(Grid_groupbox, 1, 0)
+        global_grid.addWidget(prev_inv_groupbox, 2, 0)
+        global_grid.addWidget(Inv_Param_groupbox, 3, 0)
         global_grid.addWidget(Sub_right_Widget, 0, 1)
-        global_grid.addWidget(self.invmanager, 1, 1, 10, 2)
+        global_grid.addWidget(self.invmanager, 1, 1, 4, 2)
         global_grid.setColumnStretch(2, 300)
-        global_grid.setRowStretch(8, 100)
+        global_grid.setRowStretch(0, 100)
         global_widget.setLayout(global_grid)
 
         #------- Master Grid Disposition -------#
@@ -560,6 +618,25 @@ class InvFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
 
+class InvLSQRParams:
+    def __init__(self):
+        self.tomoAtt = 0
+        self.selectedMogs = []
+        self.numItStraight = 0
+        self.numItCurved = 0
+        self.saveInvData = 1
+        self.useCont = 0
+        self.tol = 0
+        self.wCont = 0
+        self.alphax = 0
+        self.alphay = 0
+        self.alphaz = 0
+        self.order = 1
+        self.nbreiter = 0
+        self.dv_max = 0
+
+
+
 #--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):
     def __init__(self, label, ha='left',  parent=None):
@@ -575,7 +652,10 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    Model_ui = InversionUI()
-    Model_ui.showMaximized()
+    inv_ui = InversionUI()
+    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
+    inv_ui.update_data()
+    inv_ui.update_grid()
+    inv_ui.showMaximized()
 
     sys.exit(app.exec_())
