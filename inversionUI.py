@@ -72,10 +72,19 @@ class InversionUI(QtGui.QFrame):
         if self.model_ind == '':
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "First, load a model in order to do Inversion"
                                                     , buttons=QtGui.QMessageBox.Ok)
-            return
-        if self.T_and_A_combo.currentText() == 'Traveltime':
+
+        if len(self.mog_list.selectedIndexes()) == 0:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please select Mogs"
+                                                        , buttons=QtGui.QMessageBox.Ok)
+
+        elif self.T_and_A_combo.currentText() == 'Traveltime':
             self.lsqrParams.tomoAtt = 0
             data, idata = Model.getModelData(model, self.air, self.lsqrParams.selectedMogs, 'tt')
+            #data = np.array([model.grid.Tx[idata, :], model.grid.Rx[idata, :], model.grid.TxCosDir[idata, :], model.grid.RxCosDir[idata, :]]).T
+            print(model.grid.TxCosDir)
+            print(model.grid.RxCosDir)
+            print(np.shape(data))
+
     def initinvUI(self):
 
         #------- Widget Creation -------#
@@ -665,6 +674,6 @@ if __name__ == '__main__':
     inv_ui = InversionUI()
     inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
     inv_ui.openmain.ok()
-    inv_ui.showMaximized()
+    inv_ui.show()
 
     sys.exit(app.exec_())

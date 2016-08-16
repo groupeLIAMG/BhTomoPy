@@ -225,7 +225,7 @@ class gridEditor(QtGui.QWidget):
 
     def update_model_grid(self):
         self.model.models[self.model_ind].grid = self.gUI.grid
-        print(self.model.models[self.model_ind].grid.grx)
+
 
     def plot_boreholes(self):
 
@@ -496,7 +496,6 @@ class Grid2DUI(QtGui.QWidget):
         #- ComboBoxes Actions -#
         self.borehole_combo.activated.connect(self.update_input)
 
-
         #--- SubWidgets ---#
         sub_param_widget        = QtGui.QWidget()
         sub_param_grid          = QtGui.QGridLayout()
@@ -699,8 +698,9 @@ class GridViewFig(FigureCanvasQTAgg):
         az, dip = self.gUI.get_azimuth_dip()
         self.gUI.grid.Tx = Grid.transl_rotat(self.gUI.data.Tx_p, self.gUI.grid.x0, az, dip)
         self.gUI.grid.Rx = Grid.transl_rotat(self.gUI.data.Rx_p, self.gUI.grid.x0, az, dip)
-        self.gUI.grid.TxCosDir = Grid.transl_rotat(self.gUI.data.TxCosDir, np.array([0, 0, 0]), az, dip)
-        self.gUI.grid.RxCosDir = Grid.transl_rotat(self.gUI.data.RxCosDir, np.array([0, 0, 0]), az, dip)
+        self.gUI.grid.TxCosDir = Grid.transl_rotat(self.gUI.data.TxCosDir.T, np.array([0, 0, 0]), az, dip)
+        self.gUI.grid.RxCosDir = Grid.transl_rotat(self.gUI.data.RxCosDir.T, np.array([0, 0, 0]), az, dip)
+
 
         self.gUI.grid.in_vect = self.gUI.data.in_vect
 
@@ -709,8 +709,6 @@ class GridViewFig(FigureCanvasQTAgg):
         nzm = self.gUI.grid.border[2]
         nzp = self.gUI.grid.border[3]
 
-        print(nxm)
-        print(nxp)
 
         xmin = min(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 0]), axis= 0).flatten()) - 0.5 * self.gUI.dx
         xmax = max(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 0]), axis= 0).flatten()) + 0.5 * self.gUI.dx
