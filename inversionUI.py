@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 import sys
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 import matplotlib as mpl
 from model import Model
+import scipy as spy
 import pickle
 
 
@@ -65,7 +68,7 @@ class InversionUI(QtGui.QFrame):
         self.lsqrParams.alphaz = float(self.smoothing_weight_z_edit.text())
         self.lsqrParams.order = int(self.smoothing_order_combo.currentText())
         self.lsqrParams.nbreiter = float(self.max_iter_edit.text())
-        self.lsqrParams.dv_max = float(self.veloc_var_edit.text())
+        self.lsqrParams.dv_max = 0.01*float(self.veloc_var_edit.text())
 
     def doInv(self):
         model = self.models[self.model_ind]
@@ -80,10 +83,67 @@ class InversionUI(QtGui.QFrame):
         elif self.T_and_A_combo.currentText() == 'Traveltime':
             self.lsqrParams.tomoAtt = 0
             data, idata = Model.getModelData(model, self.air, self.lsqrParams.selectedMogs, 'tt')
-            #data = np.array([model.grid.Tx[idata, :], model.grid.Rx[idata, :], model.grid.TxCosDir[idata, :], model.grid.RxCosDir[idata, :]]).T
-            print(model.grid.TxCosDir)
-            print(model.grid.RxCosDir)
-            print(np.shape(data))
+            data = np.concatenate((model.grid.Tx[idata, :], model.grid.Rx[idata, :], data, model.grid.TxCosDir[idata, :], model.grid.RxCosDir[idata, :]), axis=1)
+            print(data.shape)
+            print(data[:, 8])
+
+        L = np.array([])
+        rays = np.array([])
+        if self.use_Rays_checkbox.isChecked():
+            # Change L and Rays
+            pass
+
+        if self.algo_combo.currentText() == 'LSQR Solver':
+            self.update_params()
+            self.invLSQR(self.lsqrParams, data, idata, model.grid, L)
+
+
+    def invLSQR(self, params, data, idata, grid, L):
+        self.tomo = Tomo()
+
+        if data.shape[1] >= 9:
+            self.tomo.no_trace = data[:, 8]
+
+        if np.all(L == 0):
+             L = grid.getForwardStraightRays(idata)
+
+        #self.tomo.x = 0.5*(grid.grx[0:-2] + grid.grx[1:-1])
+        #self.tomo.z = 0.5*(grid.grz[0:-2] + grid.grz[1:-1])
+
+        #if not np.all(grid.gry == 0):
+        #    self.tomo.y = 0.5*(grid.gry[0:-2] + grid.gry[1:-1])
+        #else:
+        #    self.tomo.y = np.array([])
+
+        #cont = np.array([])
+        # Ajouter les conditions par rapport au
+        # contraintes de vélocité appliquées dans grid editor
+
+        #Dx, Dy, Dz = grid.derivative(params.order)
+
+        #for noIter in range(params.numItCurved + params.numItStraight):
+        #    self.invFig.ax.set_title('LSQR Inversion - Solving System Iteration {}'.format(str(noIter)))
+
+        #    if noIter == 1:
+        #        l_moy = np.mean(data[:, 6]/ np.sum((L), axis= 1))
+        #    else:
+        #        l_moy = np.mean(self.tomo.s)
+        #    mta = np.sum((L*l_moy), axis= 1)
+        #    dt = data[:, 6] - mta
+
+        #    if noIter == 1:
+        #        s_o = l_moy * np.ones(L.shape[1]).T
+
+        #    A = np.concatenate((L, Dx*params.alphax, Dy*alphay, Dz*alphaz), axis= 0)
+        #    b = np.concatenate((dt, np.zeros(Dx.shape[0]).T, np.zeros(Dy.shape[0]).T, np.zeros(Dz.shape[0]).T))
+
+        #    if not np.all(cont == 0) and params.useCont == 1:
+                #TODO
+        #        pass
+
+        #    x, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var = spy.sparse.linalg.lsqr(A, b, atol= params.tol, btol= params.tol, iter_lim = params.nbreiter)
+
+
 
     def initinvUI(self):
 
@@ -639,20 +699,34 @@ class InvFig(FigureCanvasQTAgg):
 
 class InvLSQRParams:
     def __init__(self):
-        self.tomoAtt = 0
-        self.selectedMogs = []
-        self.numItStraight = 0
-        self.numItCurved = 0
-        self.saveInvData = 1
-        self.useCont = 0
-        self.tol = 0
-        self.wCont = 0
-        self.alphax = 0
-        self.alphay = 0
-        self.alphaz = 0
-        self.order = 1
-        self.nbreiter = 0
-        self.dv_max = 0
+        self.tomoAtt        = 0
+        self.selectedMogs   = []
+        self.numItStraight  = 0
+        self.numItCurved    = 0
+        self.saveInvData    = 1
+        self.useCont        = 0
+        self.tol            = 0
+        self.wCont          = 0
+        self.alphax         = 0
+        self.alphay         = 0
+        self.alphaz         = 0
+        self.order          = 1
+        self.nbreiter       = 0
+        self.dv_max         = 0
+
+class Tomo:
+    def __init__(self):
+        self.rays   = np.array([])
+        self.L      = np.array([])
+        self.invData = np.array([])
+        self.no_trace = np.array([])
+        self.x = np.array([])
+        self.y = np.array([])
+        self.z = np.array([])
+        self.s = 0
+        self.res = np.array([])
+        self.var_res = np.array([])
+
 
 
 
