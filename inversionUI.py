@@ -3,6 +3,7 @@ from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 import matplotlib as mpl
+from model import Model
 import pickle
 
 
@@ -17,6 +18,7 @@ class InversionUI(QtGui.QFrame):
         self.models = []
         self.air = []
         self.filename = ''
+        self.model_ind = ''
         self.initUI()
         self.initinvUI()
 
@@ -26,12 +28,11 @@ class InversionUI(QtGui.QFrame):
         dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
     def update_data(self):
-        for mog in self.mogs:
+        for mog in self.models[self.model_ind].mogs:
             self.mog_list.addItem(mog.name)
 
     def update_grid(self):
-        model = self.models[0]
-        print(model.name)
+        model = self.models[self.model_ind]
         if np.all(model.grid.grx == 0) or np.all(model.grid.grx == 0):
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion"
                                                 ,buttons=QtGui.QMessageBox.Ok)
@@ -65,10 +66,16 @@ class InversionUI(QtGui.QFrame):
         self.lsqrParams.order = int(self.smoothing_order_combo.currentText())
         self.lsqrParams.nbreiter = float(self.max_iter_edit.text())
         self.lsqrParams.dv_max = float(self.veloc_var_edit.text())
-        print('coucou')
 
-
-
+    def doInv(self):
+        model = self.models[self.model_ind]
+        if self.model_ind == '':
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "First, load a model in order to do Inversion"
+                                                    , buttons=QtGui.QMessageBox.Ok)
+            return
+        if self.T_and_A_combo.currentText() == 'Traveltime':
+            self.lsqrParams.tomoAtt = 0
+            data, idata = Model.getModelData(model, self.air, self.lsqrParams.selectedMogs, 'tt')
     def initinvUI(self):
 
         #------- Widget Creation -------#
@@ -238,6 +245,9 @@ class InversionUI(QtGui.QFrame):
         btn_Load        = QtGui.QPushButton("Remove Structure")
         btn_GO          = QtGui.QPushButton("GO")
 
+        #- Buttons Action -#
+        btn_GO.clicked.connect(self.doInv)
+
         #--- Label ---#
         model_label                 = MyQLabel("Model :", ha= 'center')
         cells_label                 = MyQLabel("Cells", ha= 'center')
@@ -327,17 +337,17 @@ class InversionUI(QtGui.QFrame):
         self.mog_list.itemSelectionChanged.connect(self.update_params)
 
         #--- combobox ---#
-        T_and_A_combo            = QtGui.QComboBox()
-        prev_inversion_combo     = QtGui.QComboBox()
+        self.T_and_A_combo            = QtGui.QComboBox()
+        self.prev_inversion_combo     = QtGui.QComboBox()
         self.algo_combo               = QtGui.QComboBox()
-        fig_combo                = QtGui.QComboBox()
+        self.fig_combo                = QtGui.QComboBox()
 
 
         #------- Items in the comboboxes --------#
         #--- Time and Amplitude Combobox's Items ---#
-        T_and_A_combo.addItem("Traveltime")
-        T_and_A_combo.addItem("Amplitude - Peak-to-Peak")
-        T_and_A_combo.addItem("Amplitude - Centroid Frequency")
+        self.T_and_A_combo.addItem("Traveltime")
+        self.T_and_A_combo.addItem("Amplitude - Peak-to-Peak")
+        self.T_and_A_combo.addItem("Amplitude - Centroid Frequency")
 
         #--- Algorithm Combobox's Items ---#
         self.algo_combo.addItem("LSQR Solver")
@@ -349,25 +359,25 @@ class InversionUI(QtGui.QFrame):
 
 
         #--- Figure Combobox'S Items ---#
-        fig_combo.addItem("cmr")
-        fig_combo.addItem("polarmap")
-        fig_combo.addItem("parula")
-        fig_combo.addItem("jet")
-        fig_combo.addItem("hsv")
-        fig_combo.addItem("hot")
-        fig_combo.addItem("cool")
-        fig_combo.addItem("autumn")
-        fig_combo.addItem("spring")
-        fig_combo.addItem("winter")
-        fig_combo.addItem("summer")
-        fig_combo.addItem("gray")
-        fig_combo.addItem("bone")
-        fig_combo.addItem("copper")
-        fig_combo.addItem("pink")
-        fig_combo.addItem("prism")
-        fig_combo.addItem("flag")
-        fig_combo.addItem("colorcube")
-        fig_combo.addItem("lines")
+        #fig_combo.addItem("cmr")
+        #fig_combo.addItem("polarmap")
+        #fig_combo.addItem("parula")
+        #fig_combo.addItem("jet")
+        #fig_combo.addItem("hsv")
+        #fig_combo.addItem("hot")
+        #fig_combo.addItem("cool")
+        #fig_combo.addItem("autumn")
+        #fig_combo.addItem("spring")
+        #fig_combo.addItem("winter")
+        #fig_combo.addItem("summer")
+        #fig_combo.addItem("gray")
+        #fig_combo.addItem("bone")
+        #fig_combo.addItem("copper")
+        #fig_combo.addItem("pink")
+        #fig_combo.addItem("prism")
+        #fig_combo.addItem("flag")
+        #fig_combo.addItem("colorcube")
+        #fig_combo.addItem("lines")
 
         #------- Manager for InvFig -------#
         self.invFig = InvFig(self)
@@ -456,7 +466,7 @@ class InversionUI(QtGui.QFrame):
         data_groupbox = QtGui.QGroupBox("Data")
         data_grid = QtGui.QGridLayout()
         data_grid.addWidget(model_label, 0, 0)
-        data_grid.addWidget(T_and_A_combo, 1, 0)
+        data_grid.addWidget(self.T_and_A_combo, 1, 0)
         data_grid.addWidget(self.use_const_checkbox, 2, 0)
         data_grid.addWidget(mog_label, 0, 2)
         data_grid.addWidget(self.mog_list, 1, 2, 2, 1)
@@ -472,7 +482,7 @@ class InversionUI(QtGui.QFrame):
         #--- Previous Inversion Groupbox ---#
         prev_inv_groupbox = QtGui.QGroupBox("Previous Inversions")
         prev_inv_grid = QtGui.QGridLayout()
-        prev_inv_grid.addWidget(prev_inversion_combo, 0, 0, 1, 2)
+        prev_inv_grid.addWidget(self.prev_inversion_combo, 0, 0, 1, 2)
         prev_inv_grid.addWidget(btn_View, 1, 0)
         prev_inv_grid.addWidget(btn_Delete, 1, 1)
         prev_inv_grid.addWidget(btn_Load, 1, 2)
@@ -503,7 +513,7 @@ class InversionUI(QtGui.QFrame):
         fig_grid.addWidget(self.Min_editi, 0, 2)
         fig_grid.addWidget(Max_labeli, 0, 3)
         fig_grid.addWidget(self.Max_editi, 0, 4)
-        fig_grid.addWidget(fig_combo, 0, 5)
+        fig_grid.addWidget(self.fig_combo, 0, 5)
         fig_groupbox.setLayout(fig_grid)
 
         #--- Figure Groupbox dependent SubWidget ---#
@@ -563,15 +573,15 @@ class OpenMainData(QtGui.QWidget):
         self.inv.boreholes, self.inv.mogs, self.inv.air, self.inv.models = pickle.load(file)
 
         self.database_edit.setText(rname)
-        for mog in self.inv.mogs:
-
-            self.mog_combo.addItem(mog.name)
+        for model in self.inv.models:
+            self.model_combo.addItem(model.name)
 
 
     def cancel(self):
         self.close()
 
     def ok(self):
+        self.inv.model_ind = self.model_combo.currentIndex()
         self.inv.update_data()
         self.inv.update_grid()
         self.close()
@@ -594,7 +604,7 @@ class OpenMainData(QtGui.QWidget):
         self.btn_ok.clicked.connect(self.ok)
 
         #--- Combobox ---#
-        self.mog_combo = QtGui.QComboBox()
+        self.model_combo = QtGui.QComboBox()
 
         #- Combobox's Action -#
 
@@ -602,7 +612,7 @@ class OpenMainData(QtGui.QWidget):
         master_grid = QtGui.QGridLayout()
         master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
         master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
+        master_grid.addWidget(self.model_combo, 2, 0, 1, 2)
         master_grid.addWidget(self.btn_ok, 3, 0)
         master_grid.addWidget(self.btn_cancel, 3 ,1)
         self.setLayout(master_grid)
@@ -654,8 +664,7 @@ if __name__ == '__main__':
 
     inv_ui = InversionUI()
     inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
-    inv_ui.update_data()
-    inv_ui.update_grid()
+    inv_ui.openmain.ok()
     inv_ui.showMaximized()
 
     sys.exit(app.exec_())
