@@ -746,7 +746,8 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     inv_ui = InversionUI()
-    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
+#    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
+    inv_ui.openmain.load_file('test_constraints.p')
     inv_ui.openmain.ok()
     inv_ui.show()
 

@@ -70,7 +70,7 @@ namespace ttcr {
                      double* traveltimes,
                      PyObject* L) const;
         
-        static void Lsr2d(const double* Tx,
+        static int Lsr2d(const double* Tx,
                           const double* Rx,
                           const size_t nTx,
                           const double* grx,
@@ -79,7 +79,7 @@ namespace ttcr {
                           const size_t n_grz,
                           PyObject* L);
 
-		static void Lsr2da(const double* Tx,
+		static int Lsr2da(const double* Tx,
 						   const double* Rx,
 						   const size_t nTx,
 						   const double* grx,

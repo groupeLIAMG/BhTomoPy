@@ -491,7 +491,7 @@ namespace ttcr {
         return 0;
     }
     
-    void Grid2Dttcr::Lsr2d(const double* Tx,
+    int Grid2Dttcr::Lsr2d(const double* Tx,
                            const double* Rx,
                            const size_t nTx,
                            const double* grx,
@@ -681,11 +681,14 @@ namespace ttcr {
 				}
             }
         }
-		indptr_p[nTx] = k;
+
+	  indptr_p[nTx] = k;
         size_t nnz = k;
 
-		data_p = (double*)realloc( data_p, nnz*sizeof(double) );
+	   data_p = (double*)realloc( data_p, nnz*sizeof(double) );
 		indices_p = (int64_t*)realloc( indices_p, nnz*sizeof(int64_t) );
+
+        import_array();  // to use PyArray_SimpleNewFromData
 
         npy_intp dims[] = {static_cast<npy_intp>(nnz)};
         PyObject* data = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, data_p);
@@ -695,10 +698,12 @@ namespace ttcr {
         PyTuple_SetItem(L, 0, data);
         PyTuple_SetItem(L, 1, indices);
         PyTuple_SetItem(L, 2, indptr);
+
+        return 0;
     }
 
 
-	void Grid2Dttcr::Lsr2da(const double* Tx,
+	int Grid2Dttcr::Lsr2da(const double* Tx,
 							const double* Rx,
 							const size_t nTx,
 							const double* grx,
@@ -898,6 +903,8 @@ namespace ttcr {
 		data_p = (double*)realloc( data_p, nnz*sizeof(double) );
 		indices_p = (int64_t*)realloc( indices_p, nnz*sizeof(int64_t) );
 
+            import_array();  // to use PyArray_SimpleNewFromData
+
 		npy_intp dims[] = {static_cast<npy_intp>(nnz)};
 		PyObject* data = PyArray_SimpleNewFromData(1, dims, NPY_DOUBLE, data_p);
 		PyObject* indices = PyArray_SimpleNewFromData(1, dims, NPY_INT64, indices_p);
@@ -906,5 +913,7 @@ namespace ttcr {
 		PyTuple_SetItem(L, 0, data);
 		PyTuple_SetItem(L, 1, indices);
 		PyTuple_SetItem(L, 2, indptr);
+
+            return 0;
 	}
 }

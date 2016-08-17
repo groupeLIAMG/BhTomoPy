@@ -45,9 +45,9 @@ cdef extern from "Grid2Dttcr.h" namespace "ttcr":
         int raytrace(vector[sxz[double]]&,vector[double]&,vector[sxz[double]]&,double*,object,object)
         int raytrace(vector[sxz[double]]&,vector[double]&,vector[sxz[double]]&,double*,object)
         @staticmethod
-        void Lsr2d(double*,double*,size_t,double*,size_t,double*,size_t,object)
+        int Lsr2d(double*,double*,size_t,double*,size_t,double*,size_t,object)
         @staticmethod
-        void Lsr2da(double*,double*,size_t,double*,size_t,double*,size_t,object)
+        int Lsr2da(double*,double*,size_t,double*,size_t,double*,size_t,object)
 
 
 
