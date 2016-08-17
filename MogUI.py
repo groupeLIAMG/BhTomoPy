@@ -342,7 +342,7 @@ class MOGUI(QtGui.QWidget):
         ind3 = self.trace_num_combo.currentIndex()
         unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
         for j in ind2:
-            self.Tx_elev_value_label.setText(str((list(unique_Tx_z[::-1]))[j.row()]))
+            self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[j.row()]))
 
         self.value_elev_label.setText(str((list(unique_Tx_z))[ind3]))
 
@@ -2169,25 +2169,34 @@ class RayCoverageFig(FigureCanvasQTAgg):
             ind_picked = np.where(Tx_Rx_zs[0, picked_tt] == Tx[n])[0]
 
             if show_type == 'Show picked and unpicked':
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
-                                       Y= Tx_Rx_ys[:, ind_unpicked],
-                                       Z= Tx_Rx_zs[:, ind_unpicked],
+                tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
+                tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
+                tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
+                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_unpicked],
+                                       Y= tmp_Tx_Rx_ys[:, ind_unpicked],
+                                       Z= tmp_Tx_Rx_zs[:, ind_unpicked],
                                        rstride=1,
                                        cstride=1,
                                        color='red')
 
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_picked],
-                                       Y= Tx_Rx_ys[:, ind_picked],
-                                       Z= Tx_Rx_zs[:, ind_picked],
+                tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
+                tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
+                tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
+                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_picked],
+                                       Y= tmp_Tx_Rx_ys[:, ind_picked],
+                                       Z= tmp_Tx_Rx_zs[:, ind_picked],
                                        rstride=1,
                                        cstride=1,
                                        color='green')
                 self.draw()
 
             elif show_type == 'Show picked only':
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_picked],
-                                       Y= Tx_Rx_ys[:, ind_picked],
-                                       Z= Tx_Rx_zs[:, ind_picked],
+                tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
+                tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
+                tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
+                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_picked],
+                                       Y= tmp_Tx_Rx_ys[:, ind_picked],
+                                       Z= tmp_Tx_Rx_zs[:, ind_picked],
                                        rstride=1,
                                        cstride=1,
                                        color='green')
@@ -2195,9 +2204,12 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.draw()
 
             elif show_type == 'Show unpicked only':
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, ind_unpicked],
-                                       Y= Tx_Rx_ys[:, ind_unpicked],
-                                       Z= Tx_Rx_zs[:, ind_unpicked],
+                tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
+                tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
+                tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
+                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_unpicked],
+                                       Y= tmp_Tx_Rx_ys[:, ind_unpicked],
+                                       Z= tmp_Tx_Rx_zs[:, ind_unpicked],
                                        rstride=1,
                                        cstride=1,
                                        color='red')
