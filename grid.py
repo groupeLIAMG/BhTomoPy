@@ -442,6 +442,49 @@ class Grid2D(Grid):
 
         return True
 
+    def derivative(self, order, normalize = False):
+        dx = 1
+        dz = 1
+        if normalize:
+            dx = self.dx()
+            dz = self.dz()
+
+        nx = len(self.grx) - 1
+        nz = len(self.grz) - 1
+        Dy = np.array([])
+        if order == 1:
+            idx = 1/dx
+            idz = 1/dz
+
+            i = np.zeros((1, nz * nx * 2))
+            j = np.zeros((1, nz * nx * 2))
+            v = np.zeros((1, nz * nx * 2))
+
+            #print(v.shape)
+            i[0, :2*nz] = np.concatenate((np.arange(1, nz+1), np.arange(1, nz+1)))
+            j[0, :2*nz] = np.concatenate((np.arange(1, nz+1), nz + np.arange(1, nz+1)))
+            v[0, :2*nz] = np.concatenate((-idx + np.zeros(nz), idx + np.zeros(nz)))
+
+            #print(i[0, :2*nz])
+            #print(j[0, :2*nz])
+            #print(v[0, :2*nz])
+
+
+            for n in range(1, nx):
+                i[0, :2*nz] = i[0, :2*nz] + n*2*nz
+                i[0, :2*nz] = n * nz + np.concatenate((np.arange(1, nz+1), np.arange(1, nz+1)))
+                j[0, (n)*2*nz:(n+1)*2*nz] = n*nz + np.concatenate((-nz + np.arange(1, nz+1), nz + np.arange(1, nz+1)))
+                v[0, (n)*2*nz:(n+1)*2*nz] = 0.5 * np.concatenate((-idx + np.zeros(nz), idx + np.zeros(nz)))
+            for e in i[0, :]:
+                print(e)
+            print()
+            #print(j)
+            #print()
+            #print(v)
+
+
+
+
 
 
 

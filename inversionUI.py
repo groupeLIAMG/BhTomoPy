@@ -107,41 +107,41 @@ class InversionUI(QtGui.QFrame):
         if np.all(L == 0):
              L = grid.getForwardStraightRays(idata)
 
-        #self.tomo.x = 0.5*(grid.grx[0:-2] + grid.grx[1:-1])
-        #self.tomo.z = 0.5*(grid.grz[0:-2] + grid.grz[1:-1])
+        self.tomo.x = 0.5*(grid.grx[0:-2] + grid.grx[1:-1])
+        self.tomo.z = 0.5*(grid.grz[0:-2] + grid.grz[1:-1])
 
-        #if not np.all(grid.gry == 0):
-        #    self.tomo.y = 0.5*(grid.gry[0:-2] + grid.gry[1:-1])
-        #else:
-        #    self.tomo.y = np.array([])
+        if not np.all(grid.gry == 0):
+            self.tomo.y = 0.5*(grid.gry[0:-2] + grid.gry[1:-1])
+        else:
+            self.tomo.y = np.array([])
 
-        #cont = np.array([])
+        cont = np.array([])
         # Ajouter les conditions par rapport au
         # contraintes de vélocité appliquées dans grid editor
 
-        #Dx, Dy, Dz = grid.derivative(params.order)
+        Dx, Dy, Dz = grid.derivative(params.order)
 
-        #for noIter in range(params.numItCurved + params.numItStraight):
-        #    self.invFig.ax.set_title('LSQR Inversion - Solving System Iteration {}'.format(str(noIter)))
+        for noIter in range(params.numItCurved + params.numItStraight):
+            self.invFig.ax.set_title('LSQR Inversion - Solving System Iteration {}'.format(str(noIter)))
 
-        #    if noIter == 1:
-        #        l_moy = np.mean(data[:, 6]/ np.sum((L), axis= 1))
-        #    else:
-        #        l_moy = np.mean(self.tomo.s)
-        #    mta = np.sum((L*l_moy), axis= 1)
-        #    dt = data[:, 6] - mta
+            if noIter == 1:
+                l_moy = np.mean(data[:, 6]/ np.sum((L), axis= 1))
+            else:
+                l_moy = np.mean(self.tomo.s)
+            mta = np.sum((L*l_moy), axis= 1)
+            dt = data[:, 6] - mta
 
-        #    if noIter == 1:
-        #        s_o = l_moy * np.ones(L.shape[1]).T
+            if noIter == 1:
+                s_o = l_moy * np.ones(L.shape[1]).T
 
-        #    A = np.concatenate((L, Dx*params.alphax, Dy*alphay, Dz*alphaz), axis= 0)
-        #    b = np.concatenate((dt, np.zeros(Dx.shape[0]).T, np.zeros(Dy.shape[0]).T, np.zeros(Dz.shape[0]).T))
+            A = np.concatenate((L, Dx*params.alphax, Dy*alphay, Dz*alphaz), axis= 0)
+            b = np.concatenate((dt, np.zeros(Dx.shape[0]).T, np.zeros(Dy.shape[0]).T, np.zeros(Dz.shape[0]).T))
 
-        #    if not np.all(cont == 0) and params.useCont == 1:
+            if not np.all(cont == 0) and params.useCont == 1:
                 #TODO
-        #        pass
+                pass
 
-        #    x, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var = spy.sparse.linalg.lsqr(A, b, atol= params.tol, btol= params.tol, iter_lim = params.nbreiter)
+            x, istop, itn, r1norm, r2norm, anorm, acond, arnorm, xnorm, var = spy.sparse.linalg.lsqr(A, b, atol= params.tol, btol= params.tol, iter_lim = params.nbreiter)
 
 
 
@@ -284,8 +284,6 @@ class InversionUI(QtGui.QFrame):
         if self.algo_combo.currentText() == 'LSQR Solver':
             current = self.Inv_Param_grid.layout()
             widget = current.itemAtPosition(2, 0).widget()
-
-
 
             widget.setHidden(True)
             self.Inv_Param_grid.removeWidget(widget)
@@ -749,6 +747,6 @@ if __name__ == '__main__':
 #    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
     inv_ui.openmain.load_file('test_constraints.p')
     inv_ui.openmain.ok()
-    inv_ui.show()
+    inv_ui.showMaximized()
 
     sys.exit(app.exec_())

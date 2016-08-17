@@ -62,6 +62,7 @@ class ManualAmpUI(QtGui.QFrame):
             self.ntrace_label.setText(str(self.mog.data.ntrace))
 
         self.upperFig.plot_amplitude()
+        self.lowerFig.plot_spectra()
 
     def update_settings_edits(self):
         self.value_tmin_edit.setText(str(np.round(self.mog.data.timestp[0], 4)))
@@ -532,13 +533,13 @@ class UpperFig(FigureCanvasQTAgg):
 
     UpperTracePickedSignal = QtCore.pyqtSignal(bool)
 
-    def __init__(self, tt):
+    def __init__(self, ui):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(UpperFig, self).__init__(fig)
         self.initFig()
         self.trc_number = 0
-        self.tt = tt
+        self.ui = ui
         self.mpl_connect('button_press_event', self.onclick)
         #self.mpl_connect('key_press_event', self.press)
         self.isTracingOn = False
@@ -568,20 +569,20 @@ class UpperFig(FigureCanvasQTAgg):
 
     def plot_amplitude(self):
 
-        n = int(self.tt.Tnum_Edit.text())
+        n = int(self.ui.Tnum_Edit.text())
 
         self.trc_number = n-1
 
-        trace = self.tt.mog.data.rdata[:, self.trc_number]
+        trace = self.ui.mog.data.rdata[:, self.trc_number]
 
-        self.ax.set_xlim(self.tt.mog.data.timestp[0], self.tt.mog.data.timestp[-1])
+        self.ax.set_xlim(self.ui.mog.data.timestp[0], self.ui.mog.data.timestp[-1])
         self.ax.set_ylim(min(trace.flatten()), max(trace.flatten()))
 
-        self.pick_amp_tmin.set_xdata(self.tt.mog.amp_tmin[self.trc_number])
-        self.pick_amp_tmax.set_xdata(self.tt.mog.amp_tmax[self.trc_number])
+        self.pick_amp_tmin.set_xdata(self.ui.mog.amp_tmin[self.trc_number])
+        self.pick_amp_tmax.set_xdata(self.ui.mog.amp_tmax[self.trc_number])
 
         self.trace.set_ydata(trace)
-        self.trace.set_xdata(self.tt.mog.data.timestp)
+        self.trace.set_xdata(self.ui.mog.data.timestp)
         self.draw()
 
 
@@ -596,22 +597,22 @@ class UpperFig(FigureCanvasQTAgg):
 
             if self.x != None and self.y != None:
 
-                self.tt.mog.amp_tmin[self.trc_number] = event.xdata
+                self.ui.mog.amp_tmin[self.trc_number] = event.xdata
 
-                self.tt.update_control_center()
+                self.ui.update_control_center()
                 self.UpperTracePickedSignal.emit(True)
 
         elif event.button == 2:
 
-            self.tt.next_trace()
+            self.ui.next_trace()
 
         elif event.button == 3:
 
             if self.x != None and self.y != None:
 
-                self.tt.mog.amp_tmax[self.trc_number] = event.xdata
+                self.ui.mog.amp_tmax[self.trc_number] = event.xdata
 
-                self.tt.update_control_center()
+                self.ui.update_control_center()
                 self.UpperTracePickedSignal.emit(True)
 
 
@@ -621,12 +622,12 @@ class UpperFig(FigureCanvasQTAgg):
 
 class LowerFig(FigureCanvasQTAgg):
     LowerTracePickedSignal = QtCore.pyqtSignal(bool)
-    def __init__(self, tt):
+    def __init__(self, ui):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(LowerFig, self).__init__(fig)
         self.initFig()
-        self.tt = tt
+        self.ui = ui
         self.mpl_connect('button_press_event', self.onclick)
         self.isTracingOn = False
 
@@ -635,6 +636,24 @@ class LowerFig(FigureCanvasQTAgg):
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
 
+        self.spectrum_plot, = self.ax.plot([],
+                                           [],
+                                           color='b')
+
+    def plot_spectra(self):
+        self.ax.cla()
+        n = int(self.ui.Tnum_Edit.text())
+
+        self.trc_number = n-1
+
+        trace = self.ui.mog.data.rdata[:, self.trc_number]
+
+        Pxx = np.fft.rfft(trace, axis=0)
+        print(Pxx)
+
+        self.ax.plot(np.abs(Pxx))
+        #self.spectrum_plot.set_ydata(Pxx)
+        #self.ax.set_xlim(min(Pxx), max(Pxx))
 
 
 
@@ -796,7 +815,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualAmpUI()
-    manual_ui.openmain.load_file('save test.p')
+    manual_ui.openmain.load_file('test_constraints.p')
     manual_ui.update_control_center()
     manual_ui.update_settings_edits()
     manual_ui.showMaximized()
