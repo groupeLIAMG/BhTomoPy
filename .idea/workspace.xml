@@ -8,7 +8,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/inversionUI.py" afterPath="$PROJECT_DIR$/inversionUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cutils/cgrid2d.cp35-win_amd64.pyd" afterPath="$PROJECT_DIR$/cutils/cgrid2d.cp35-win_amd64.pyd" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cutils/segy.cp35-win_amd64.pyd" afterPath="$PROJECT_DIR$/cutils/segy.cp35-win_amd64.pyd" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cutils/cgrid2d.cpp" afterPath="$PROJECT_DIR$/cutils/cgrid2d.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model.py" afterPath="$PROJECT_DIR$/model.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cutils/segy.c" afterPath="$PROJECT_DIR$/cutils/segy.c" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -34,10 +38,20 @@
         <entry file="file://$PROJECT_DIR$/grid.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="23" />
+              <caret line="500" column="20" selection-start-line="500" selection-start-column="20" selection-end-line="500" selection-end-column="42" />
               <folding>
                 <element signature="e#766#777#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="cgrid2d.pyx" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="23" column="33" selection-start-line="23" selection-start-column="33" selection-end-line="23" selection-end-column="33" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -46,7 +60,7 @@
         <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="182" column="13" selection-start-line="182" selection-start-column="12" selection-end-line="182" selection-end-column="13" />
+              <caret line="184" column="10" selection-start-line="184" selection-start-column="10" selection-end-line="184" selection-end-column="10" />
               <folding />
             </state>
           </provider>
@@ -55,8 +69,8 @@
       <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/inversionUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.56772333">
-              <caret line="102" column="0" selection-start-line="102" selection-start-column="0" selection-end-line="102" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.2910663">
+              <caret line="105" column="0" selection-start-line="105" selection-start-column="0" selection-end-line="105" selection-end-column="0" />
               <folding>
                 <element signature="e#25#35#0" expanded="true" />
               </folding>
@@ -68,7 +82,7 @@
         <entry file="file://$PROJECT_DIR$/model.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="35" column="1" selection-start-line="35" selection-start-column="1" selection-end-line="35" selection-end-column="1" />
+              <caret line="44" column="0" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -167,10 +181,10 @@
         <option value="$PROJECT_DIR$/Covariance.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
-        <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
-        <option value="$PROJECT_DIR$/grid.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
+        <option value="$PROJECT_DIR$/model.py" />
+        <option value="$PROJECT_DIR$/grid.py" />
         <option value="$PROJECT_DIR$/inversionUI.py" />
       </list>
     </option>
@@ -255,7 +269,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="testData" />
+              <option name="myItemId" value="cutils" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -522,12 +536,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00127" summary="changement dans mogdata pour timestp&#10;update du pas d'échantillonnage dans upper fig&#10;et plus">
-      <created>1470153683069</created>
-      <option name="number" value="00127" />
-      <option name="project" value="LOCAL" />
-      <updated>1470153683070</updated>
     </task>
     <task id="LOCAL-00128" summary="Stats fonctionelles">
       <created>1470164283136</created>
@@ -817,7 +825,13 @@
       <option name="project" value="LOCAL" />
       <updated>1471370663993</updated>
     </task>
-    <option name="localTasksCounter" value="176" />
+    <task id="LOCAL-00176" summary="début invLSQR">
+      <created>1471374956167</created>
+      <option name="number" value="00176" />
+      <option name="project" value="LOCAL" />
+      <updated>1471374956168</updated>
+    </task>
+    <option name="localTasksCounter" value="177" />
     <servers />
   </component>
   <component name="TodoView">
@@ -887,7 +901,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update manual amp UI" />
     <MESSAGE value="slight modifications" />
     <MESSAGE value="nouvelle fonctionalité : changement de nom de database" />
     <MESSAGE value="update manual ampUI" />
@@ -912,7 +925,8 @@
     <MESSAGE value="update inversion ui" />
     <MESSAGE value="getModelData fonctionnel pour le cas tt" />
     <MESSAGE value="grid TxCosDir et RxCosDir fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="grid TxCosDir et RxCosDir fixed" />
+    <MESSAGE value="début invLSQR" />
+    <option name="LAST_COMMIT_MESSAGE" value="début invLSQR" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -926,7 +940,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="87" />
+      <option name="time" value="88" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -1065,13 +1079,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/borehole.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1151,14 +1158,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="35" column="1" selection-start-line="35" selection-start-column="1" selection-end-line="35" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1180,7 +1179,23 @@
     <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="182" column="13" selection-start-line="182" selection-start-column="12" selection-end-line="182" selection-end-column="13" />
+          <caret line="184" column="10" selection-start-line="184" selection-start-column="10" selection-end-line="184" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="23" column="33" selection-start-line="23" selection-start-column="33" selection-end-line="23" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="44" column="0" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1188,7 +1203,7 @@
     <entry file="file://$PROJECT_DIR$/grid.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="23" />
+          <caret line="500" column="20" selection-start-line="500" selection-start-column="20" selection-end-line="500" selection-end-column="42" />
           <folding>
             <element signature="e#766#777#0" expanded="true" />
           </folding>
@@ -1197,8 +1212,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/inversionUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.56772333">
-          <caret line="102" column="0" selection-start-line="102" selection-start-column="0" selection-end-line="102" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.2910663">
+          <caret line="105" column="0" selection-start-line="105" selection-start-column="0" selection-end-line="105" selection-end-column="0" />
           <folding>
             <element signature="e#25#35#0" expanded="true" />
           </folding>

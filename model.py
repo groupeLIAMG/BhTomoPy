@@ -33,6 +33,7 @@ class Model:
             et = fac_dt*mog.f_et*mog.et.T
             in_vect = mog.in_vect.T
             no = np.arange(mog.data.ntrace).T
+
             if len(mogs) > 1:
                 for n in range(1, len(model.mogs)):
                     mog = mogs[n]
@@ -43,6 +44,8 @@ class Model:
                     no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis = 0)
 
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
+            print(ind.shape)
+            print(np.where(ind == True)[0])
             data = np.array([tt[ind], et[ind], no[ind]]).T
 
 
