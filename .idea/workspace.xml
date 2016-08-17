@@ -8,10 +8,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/BhTomoPy.iml" afterPath="$PROJECT_DIR$/.idea/BhTomoPy.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -110,8 +107,8 @@
       <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1128">
-              <caret line="2211" column="46" selection-start-line="2211" selection-start-column="46" selection-end-line="2211" selection-end-column="46" />
+            <state relative-caret-position="176">
+              <caret line="970" column="79" selection-start-line="970" selection-start-column="79" selection-end-line="970" selection-end-column="79" />
               <folding />
             </state>
           </provider>
@@ -513,13 +510,6 @@
       <option name="presentableId" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00129" summary="intermediate saves fonctionnel">
-      <created>1470164874308</created>
-      <option name="number" value="00129" />
-      <option name="presentableId" value="LOCAL-00129" />
-      <option name="project" value="LOCAL" />
-      <updated>1470164874308</updated>
-    </task>
     <task id="LOCAL-00130" summary="apparent velocity fonctionel">
       <created>1470166358749</created>
       <option name="number" value="00130" />
@@ -856,7 +846,14 @@
       <option name="project" value="LOCAL" />
       <updated>1471443219137</updated>
     </task>
-    <option name="localTasksCounter" value="178" />
+    <task id="LOCAL-00178" summary="update raycoverage">
+      <created>1471468300160</created>
+      <option name="number" value="00178" />
+      <option name="presentableId" value="LOCAL-00178" />
+      <option name="project" value="LOCAL" />
+      <updated>1471468300160</updated>
+    </task>
+    <option name="localTasksCounter" value="179" />
     <servers />
   </component>
   <component name="TodoView">
@@ -926,7 +923,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="slight modifications" />
     <MESSAGE value="nouvelle fonctionalité : changement de nom de database" />
     <MESSAGE value="update manual ampUI" />
     <MESSAGE value="update pour grid ui" />
@@ -951,7 +947,8 @@
     <MESSAGE value="getModelData fonctionnel pour le cas tt" />
     <MESSAGE value="grid TxCosDir et RxCosDir fixed" />
     <MESSAGE value="début invLSQR" />
-    <option name="LAST_COMMIT_MESSAGE" value="début invLSQR" />
+    <MESSAGE value="update raycoverage" />
+    <option name="LAST_COMMIT_MESSAGE" value="update raycoverage" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1240,8 +1237,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1128">
-          <caret line="2211" column="46" selection-start-line="2211" selection-start-column="46" selection-end-line="2211" selection-end-column="46" />
+        <state relative-caret-position="176">
+          <caret line="970" column="79" selection-start-line="970" selection-start-column="79" selection-end-line="970" selection-end-column="79" />
           <folding />
         </state>
       </provider>

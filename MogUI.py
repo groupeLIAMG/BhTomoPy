@@ -344,7 +344,7 @@ class MOGUI(QtGui.QWidget):
         for j in ind2:
             self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[j.row()]))
 
-        self.value_elev_label.setText(str((list(unique_Tx_z))[ind3]))
+        self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3-1]))
 
 
     def search_Tx_elev(self):
@@ -972,7 +972,7 @@ class MOGUI(QtGui.QWidget):
 
         #--- Combobox ---#
         self.show_type_combo = QtGui.QComboBox()
-        show_list = ['Show picked and unpicked', 'show picked only', 'show unpicked only']
+        show_list = ['Show picked and unpicked', 'Show picked only', 'Show unpicked only']
         self.show_type_combo.addItems(show_list)
         self.show_type_combo.activated.connect(self.plot_ray_coverage)
 
