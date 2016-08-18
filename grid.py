@@ -482,14 +482,6 @@ class Grid2D(Grid):
             #print()
             #print(v)
 
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
 
     from mpl_toolkits.mplot3d import Axes3D
