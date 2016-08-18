@@ -126,21 +126,21 @@ class InversionUI(QtGui.QFrame):
         #Dx, Dy, Dz = grid.derivative(params.order)
 
         for noIter in range(params.numItCurved + params.numItStraight):
-            print(noIter)
-            self.algo_label.setText('LSQR Inversion -')
-            self.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
+
             app.processEvents()
+
             if noIter == 0:
                 l_moy = np.mean(data[:, 6]/ L.sum(axis= 1))
             else:
                 l_moy = np.mean(self.tomo.s)
 
+            # We make sur to have a b array whit (m,) shape
             mta = L.sum(axis= 1)*l_moy
             mta = np.hstack(mta).T
 
             tmp = mta.flat
-
             tmp = list(tmp)
+
             mta = np.asarray(tmp)
 
             dt = data[:, 6] - mta
@@ -159,6 +159,11 @@ class InversionUI(QtGui.QFrame):
             ans = linalg.lsqr(A, b, atol= params.tol, btol= params.tol, iter_lim = params.nbreiter)
             x = ans[0]
 
+            if noIter == 0:
+                self.tomo.res[0] = ans[3]
+            else:
+                np.append(self.tomo.res, ans[3])
+
 
             if max(abs(s_o/(x+l_moy) - 1)) > params.dv_max:
                 fac = min(abs( (s_o/(params.dv_max+1)-l_moy)/x ))
@@ -170,23 +175,18 @@ class InversionUI(QtGui.QFrame):
             tt,L,rays = grid.raytrace(self.tomo.s, data[:, 0:3], data[:, 3:6])
             print('ray trace ans', tt)
 
+            self.algo_label.setText('LSQR Inversion -')
+            self.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
             self.invFig.plot_inv(self.tomo.s, grid, noIter)
 
+            if params.saveInvData == 1:
+                tt = L * self.tomo.s
+                print(data[:, 6] - tt)
 
-
-
-            #if params.saveInvData == 1:
-            #    tt = L * self.tomo.s
-            #    if noIter == 0:
-            #        self.tomo.invData.res[0] = data[:, 6] - tt
-            #        self.tomo.invData.s[0] = self.tomo.s
-            #    else:
-            #        np.insert(self.tomo.invData.res, noIter, data[:, 6] - tt)
-            #        np.insert(self.tomo.invData.s, noIter, self.tomo.s)
+                np.append(self.tomo.invData.res, data[:, 6] - tt)
+                np.append(self.tomo.invData.s, self.tomo.s)
 
             self.tomo.L = L
-
-
 
     def initinvUI(self):
 
@@ -194,6 +194,7 @@ class InversionUI(QtGui.QFrame):
         #--- Labels ---#
         num_simulation_label        = MyQLabel("Number of Simulations", ha='right')
         slowness_label              = MyQLabel("Slowness", ha='right')
+        islowness_label              = MyQLabel("Slowness", ha='center')
         separ_label                 = MyQLabel("|", ha= 'center')
         traveltime_label            = MyQLabel("Traveltime", ha= 'right')
         solver_tol_label            = MyQLabel('Solver Tolerance', ha= 'right')
@@ -204,6 +205,11 @@ class InversionUI(QtGui.QFrame):
         smoothing_weight_z_label    = MyQLabel('Smoothing weight z', ha= 'right')
         smoothing_order_label       = MyQLabel('Smoothing operator order', ha= 'right')
         veloc_var_label             = MyQLabel('Max velocity varitation per iteration[%]', ha= 'right')
+        range_x_label = MyQLabel('Range X', ha= 'right')
+        range_z_label = MyQLabel('Range Z', ha= 'right')
+        theta_x_label = MyQLabel('theta X', ha= 'right')
+        sill_label = MyQLabel('Sill', ha= 'right')
+
 
         #--- Edits ---#
         self.num_simulation_edit     = QtGui.QLineEdit('128')
@@ -217,6 +223,11 @@ class InversionUI(QtGui.QFrame):
         self.smoothing_weight_z_edit = QtGui.QLineEdit('10')
         self.veloc_var_edit          = QtGui.QLineEdit('50')
 
+        self.range_x_edit = QtGui.QLineEdit()
+        self.range_z_edit = QtGui.QLineEdit()
+        self.theta_x_edit = QtGui.QLineEdit()
+        self.sill_edit = QtGui.QLineEdit()
+
         #- Edits' Disposition -#
         self.num_simulation_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.slowness_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -228,6 +239,10 @@ class InversionUI(QtGui.QFrame):
         self.smoothing_weight_y_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.smoothing_weight_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.veloc_var_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.range_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.range_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.theta_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.sill_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         self.num_simulation_edit.setFixedWidth(100)
         self.slowness_edit.setFixedWidth(100)
@@ -261,6 +276,7 @@ class InversionUI(QtGui.QFrame):
         #--- ComboBoxes ---#
         self.geostat_struct_combo     = QtGui.QComboBox()
         self.smoothing_order_combo = QtGui.QComboBox()
+        self.param_combo = QtGui.QComboBox()
 
         #- Comboboxes Actions -#
         self.smoothing_order_combo.activated.connect(self.update_params)
@@ -269,13 +285,43 @@ class InversionUI(QtGui.QFrame):
         test_list                = QtGui.QListWidget()     #list for the Parameters Groupbox
 
         #--- Combobox's Items ---#
+        params = ['Cubic', 'Sperical', 'Gaussian', 'Exponential', 'Linear', 'Thin Plate', 'Gravimetric', 'Magnetic', 'Hole Effect Sine', 'Hole Effect Cosine']
+        self.param_combo.addItems(params)
         self.geostat_struct_combo.addItem("Structure no 1")
         self.smoothing_order_combo.addItems(['1', '2'])
+
+
+        #--- Slowness Frame ---#
+        slownessFrame = QtGui.QFrame()
+        slownessGrid = QtGui.QGridLayout()
+        slownessGrid.addWidget(islowness_label)
+        slownessFrame.setLayout(slownessGrid)
+
+        #--- Param SubWidget ---#
+        sub_param_widget = QtGui.QWidget()
+        sub_param_grid = QtGui.QGridLayout()
+        sub_param_grid.addWidget(slownessFrame, 0, 1)
+        sub_param_grid.addWidget(self.param_combo, 1, 1)
+        sub_param_grid.addWidget(range_x_label, 2, 0)
+        sub_param_grid.addWidget(range_z_label, 3, 0)
+        sub_param_grid.addWidget(theta_x_label, 4, 0)
+        sub_param_grid.addWidget(sill_label, 5, 0)
+        sub_param_grid.addWidget(self.range_x_edit, 2, 1)
+        sub_param_grid.addWidget(self.range_z_edit, 3, 1)
+        sub_param_grid.addWidget(self.theta_x_edit, 4, 1)
+        sub_param_grid.addWidget(self.sill_edit, 5, 1)
+        sub_param_widget.setLayout(sub_param_grid)
+
+
+        scrollArea = QtGui.QScrollArea()
+        #scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
+        scrollArea.setWidget(sub_param_widget)
 
         #--- Parameters Groupbox ---#
         Param_groupbox = QtGui.QGroupBox("Parameters")
         Param_grid = QtGui.QGridLayout()
-        Param_grid.addWidget(test_list, 0, 0)
+        Param_grid.addWidget(scrollArea, 0, 0)
+        Param_grid.setVerticalSpacing(0)
         Param_groupbox.setLayout(Param_grid)
 
         #--- Nugget Effect Groupbox ---#
@@ -388,8 +434,8 @@ class InversionUI(QtGui.QFrame):
         self.step_Yi_label          = MyQLabel("0", ha= 'center')          # the self. extension need to be applied.
         self.step_Zi_label          = MyQLabel("0", ha= 'center')          # I just don't know all of them at the moment
         self.num_cells_label        = MyQLabel("0", ha= 'center')
-        self.algo_label             = MyQLabel('iyviyv', ha= 'right')
-        self.noIter_label           = MyQLabel('iyvvjuoo', ha= 'left')
+        self.algo_label             = MyQLabel('', ha= 'right')
+        self.noIter_label           = MyQLabel('', ha= 'left')
 
         #--- Setting Label's color ---#
         self.num_cells_label.setPalette(palette)
@@ -456,7 +502,6 @@ class InversionUI(QtGui.QFrame):
         self.algo_combo               = QtGui.QComboBox()
         self.fig_combo                = QtGui.QComboBox()
 
-
         #------- Items in the comboboxes --------#
         #--- Time and Amplitude Combobox's Items ---#
         self.T_and_A_combo.addItem("Traveltime")
@@ -489,10 +534,7 @@ class InversionUI(QtGui.QFrame):
         iterFrame.setLayout(iterGrid)
         iterFrame.setStyleSheet('background: white')
 
-
-
         #------- SubWidgets -------#
-
         #--- Algo SubWidget ---#
         Sub_algo_Widget = QtGui.QWidget()
         Sub_algo_Grid = QtGui.QGridLayout()
@@ -622,17 +664,18 @@ class InversionUI(QtGui.QFrame):
 
         #------- Global Widget Disposition -------#
         global_widget = QtGui.QWidget()
-        global_grid = QtGui.QGridLayout()
-        global_grid.addWidget(data_groupbox, 0, 0, 3, 1)
-        global_grid.addWidget(Grid_groupbox, 3, 0)
-        global_grid.addWidget(prev_inv_groupbox, 5, 0)
-        global_grid.addWidget(Inv_Param_groupbox, 6, 0)
-        global_grid.addWidget(Sub_right_Widget, 0, 1)
-        global_grid.addWidget(iterFrame, 0, 2)
-        global_grid.addWidget(self.invmanager, 1, 1, 8, 2)
-        global_grid.setColumnStretch(2, 300)
-        global_grid.setRowStretch(8, 100)
-        global_widget.setLayout(global_grid)
+        self.global_grid = QtGui.QGridLayout()
+        self.global_grid.addWidget(data_groupbox, 0, 0, 3, 1)
+        self.global_grid.addWidget(Grid_groupbox, 3, 0)
+        self.global_grid.addWidget(prev_inv_groupbox, 5, 0)
+        self.global_grid.addWidget(Inv_Param_groupbox, 6, 0)
+        self.global_grid.addWidget(Sub_right_Widget, 0, 1)
+        self.global_grid.addWidget(iterFrame, 0, 2)
+        self.global_grid.addWidget(self.invmanager, 1, 1, 7, 2)
+        self.global_grid.setColumnStretch(2, 300)
+        self.global_grid.setVerticalSpacing(1)
+        self.global_grid.setRowStretch(7, 100)
+        global_widget.setLayout(self.global_grid)
 
         #------- Master Grid Disposition -------#
         master_grid = QtGui.QGridLayout()
@@ -640,7 +683,6 @@ class InversionUI(QtGui.QFrame):
         master_grid.addWidget(global_widget, 1, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
-
 
 class OpenMainData(QtGui.QWidget):
     def __init__(self, inv, parent=None):
@@ -714,7 +756,6 @@ class OpenMainData(QtGui.QWidget):
         master_grid.addWidget(self.btn_cancel, 3 ,1)
         self.setLayout(master_grid)
 
-
 class InvFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig_width, fig_height = 4, 4
@@ -727,34 +768,31 @@ class InvFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
+        self.ax2 = self.figure.axes[1]
+        self.ax.set_visible(False)
+        self.ax2.set_visible(False)
 
-        self.first_tomo = self.ax.imshow(np.zeros((2,2)),
-                                         interpolation= 'none',
-                                         cmap= 'plasma',
-                                         aspect= 'auto')
-        self.first_tomo.set_visible(False)
 
     def plot_inv(self, slowness, grid, noIter):
+        self.ax.set_visible(True)
+        self.ax2.set_visible(True)
+        self.ax
         self.ax.cla()
-        self.ax2 = self.figure.axes[1]
+
         self.ax.set_title('LSQR')
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
+
         cmax = max(np.abs(1/slowness))
         cmin = min(np.abs(1/slowness))
         mog = self.ui.models[self.ui.model_ind].mogs[0]
 
-
         slowness = slowness.reshape((grid.grx.size -1, grid.grz.size-1)).T
 
-        #self.first_tomo.set_data(slowness)
-        #self.first_tomo.autoscale()
-        #self.first_tomo.set_extent([grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
-        #self.ax.set_xlim(grid.grx[0], grid.grx[-1])
-        #self.ax.set_xlim(grid.grz[0], grid.grz[-1])
 
         h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= 'inferno', vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
         mpl.colorbar.Colorbar(self.ax2, h)
+
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(8)
 
@@ -787,7 +825,7 @@ class Tomo:
         self.y = np.array([])
         self.z = np.array([])
         self.s = 0
-        self.res = np.array([])
+        self.res = np.array([0])
         self.var_res = np.array([])
 
 class invData:
