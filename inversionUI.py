@@ -312,9 +312,9 @@ class InversionUI(QtGui.QFrame):
         sub_param_grid.addWidget(self.sill_edit, 5, 1)
         sub_param_widget.setLayout(sub_param_grid)
 
-
+        #--- Scroll Area which contains the Geostatistical Parameters ---#
         scrollArea = QtGui.QScrollArea()
-        #scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
+        scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
         scrollArea.setWidget(sub_param_widget)
 
         #--- Parameters Groupbox ---#

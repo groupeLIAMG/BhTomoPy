@@ -2132,15 +2132,11 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
                                        Y= Tx_Rx_ys[:, unpicked_tt],
                                        Z= Tx_Rx_zs[:, unpicked_tt],
-                                       rstride=1,
-                                       cstride=1,
                                        color='red')
 
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
                                        Y= Tx_Rx_ys[:, picked_tt],
                                        Z= Tx_Rx_zs[:, picked_tt],
-                                       rstride=1,
-                                       cstride=1,
                                        color='green')
 
                 self.draw()
@@ -2149,8 +2145,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
                                        Y= Tx_Rx_ys[:, picked_tt],
                                        Z= Tx_Rx_zs[:, picked_tt],
-                                       rstride=1,
-                                       cstride=1,
                                        color='green')
                 self.draw()
 
@@ -2158,8 +2152,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
                                        Y= Tx_Rx_ys[:, unpicked_tt],
                                        Z= Tx_Rx_zs[:, unpicked_tt],
-                                       rstride=1,
-                                       cstride=1,
                                        color='red')
                 self.draw()
         else:
@@ -2175,8 +2167,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_unpicked],
                                        Y= tmp_Tx_Rx_ys[:, ind_unpicked],
                                        Z= tmp_Tx_Rx_zs[:, ind_unpicked],
-                                       rstride=1,
-                                       cstride=1,
                                        color='red')
 
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
@@ -2185,8 +2175,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_picked],
                                        Y= tmp_Tx_Rx_ys[:, ind_picked],
                                        Z= tmp_Tx_Rx_zs[:, ind_picked],
-                                       rstride=1,
-                                       cstride=1,
                                        color='green')
                 self.draw()
 
@@ -2197,8 +2185,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_picked],
                                        Y= tmp_Tx_Rx_ys[:, ind_picked],
                                        Z= tmp_Tx_Rx_zs[:, ind_picked],
-                                       rstride=1,
-                                       cstride=1,
                                        color='green')
 
                 self.draw()
@@ -2210,8 +2196,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_unpicked],
                                        Y= tmp_Tx_Rx_ys[:, ind_unpicked],
                                        Z= tmp_Tx_Rx_zs[:, ind_unpicked],
-                                       rstride=1,
-                                       cstride=1,
                                        color='red')
 
                 self.draw()
