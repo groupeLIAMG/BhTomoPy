@@ -48,11 +48,13 @@ class ModelUI(QtGui.QWidget):
         for mog in self.mog.MOGs:
             self.chooseMog.mog_combo.addItem(mog.name)
 
-
-
     def add_mog(self):
         self.update_mog_combo()
-        self.chooseMog.show()
+        if len(self.models) != 0:
+            self.chooseMog.show()
+        else:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please create a model before adding MOGs to it"
+                                                    ,buttons=QtGui.QMessageBox.Ok)
 
 
     def remove_mog(self):
@@ -169,10 +171,11 @@ class ModelUI(QtGui.QWidget):
 
 
 class ChooseModelMOG(QtGui.QWidget):
+
     def __init__(self, model, parent=None):
         super(ChooseModelMOG, self).__init__()
         self.setWindowTitle("bh_thomoPy/Choose MOGs")
-        self.model= model
+        self.model = model
         self.initUI()
 
     def add_mog(self):
@@ -184,23 +187,28 @@ class ChooseModelMOG(QtGui.QWidget):
         self.model.model_mog_list.addItem(self.model.mog.MOGs[ind].name)
         self.model.models[n].mogs.append(self.model.mog.MOGs[ind])
         self.model.update_models_boreholes()
+        self.model.modellogSignal.emit("{} as been added to {}'s MOGs".format(self.model.mog.MOGs[ind].name, self.model.models[n].name))
+
 
     def initUI(self):
         #------- Widgets -------#
         #--- ComboBox ---#
         self.mog_combo = QtGui.QComboBox()
         #--- Buttons ---#
-        ok_btn = QtGui.QPushButton('Ok')
+        add_btn = QtGui.QPushButton('Add')
         cancel_btn = QtGui.QPushButton('Cancel')
+        done_btn = QtGui.QPushButton('Done')
 
         #- Buttons Actions -#
-        ok_btn.clicked.connect(self.add_mog)
+        add_btn.clicked.connect(self.add_mog)
+        done_btn.clicked.connect(self.close)
 
         #--- Buttons SubWidget ---#
         sub_btn_widget = QtGui.QWidget()
         sub_btn_grid = QtGui.QGridLayout()
-        sub_btn_grid.addWidget(ok_btn, 0, 0)
+        sub_btn_grid.addWidget(add_btn, 0, 0)
         sub_btn_grid.addWidget(cancel_btn, 0, 1)
+        sub_btn_grid.addWidget(done_btn, 1, 0, 1, 2)
         sub_btn_widget.setLayout(sub_btn_grid)
 
         #--- Master Grid ---#

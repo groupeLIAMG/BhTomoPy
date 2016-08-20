@@ -117,12 +117,13 @@ class DatabaseUI(QtGui.QWidget):
 
         if '\\' in filename:
             rname = filename.split('\\')
+            rname = rname[-1]
         elif '/' in filename:
             rname = filename.split('/')
+            rname = rname[-1]
         else:
             rname = filename
 
-        rname = rname[-1]
         if '.p' in rname:
             rname = rname[:-2]
         if '.pkl' in rname:
@@ -151,7 +152,7 @@ class DatabaseUI(QtGui.QWidget):
         self.mog.update_edits()
         self.mog.MOG_list.setCurrentRow(0)
         self.mog.update_spectra_and_coverage_Tx_num_list()
-        self.mog.update_spectra_Tx_elev_value_label()
+        self.mog.update_spectra_and_coverage_Tx_elev_value_label()
         self.mog.update_edits()
         self.mog.update_prune_edits_info()
         self.mog.update_prune_info()

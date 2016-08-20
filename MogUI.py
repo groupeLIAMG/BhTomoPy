@@ -18,6 +18,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 #from spectrum import arburg
 import re
+import pickle
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -79,7 +80,7 @@ class MOGUI(QtGui.QWidget):
         self.update_List_Widget()
         self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
         self.update_spectra_and_coverage_Tx_num_list()
-        self.update_spectra_Tx_elev_value_label()
+        self.update_spectra_and_coverage_Tx_elev_value_label()
         self.update_edits()
         self.update_prune_edits_info()
         self.update_prune_info()
@@ -299,7 +300,6 @@ class MOGUI(QtGui.QWidget):
 
     def detrend_rad(self, inp):
         """
-
         :param inp: the input data to be straightenend
         :return:
         """
@@ -334,17 +334,17 @@ class MOGUI(QtGui.QWidget):
         self.trace_num_combo.setCurrentIndex(0)
 
 
-    def update_spectra_Tx_elev_value_label(self):
+    def update_spectra_and_coverage_Tx_elev_value_label(self):
         ind1 = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind1[0].row()]
         self.Tx_elev_value_label.clear()
         ind2 = self.Tx_num_list.selectedIndexes()
-        ind3 = self.trace_num_combo.currentIndex()
+        ind3 = int(self.trace_num_edit.text())
         unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
         for j in ind2:
-            self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[j.row()]))
+            self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[-j.row()]))
 
-        self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3-1]))
+        self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3]))
 
 
     def search_Tx_elev(self):
@@ -382,7 +382,6 @@ class MOGUI(QtGui.QWidget):
             self.MOG_list.addItem(mog.name)
         self.mogInfoSignal.emit(len(self.MOG_list))
 
-
     def update_Tx_and_Rx_Widget(self, liste):
         self.Tx_combo.clear()
         self.Rx_combo.clear()
@@ -412,18 +411,12 @@ class MOGUI(QtGui.QWidget):
                 d = np.sqrt(np.sum(v**2, axis= 1))
                 l = v/ np.kron(d, np.array([1, 1, 1]))
 
-
-
-
-
                 #TODO:
                 #for n in range(np.shape(tmp)[0]):
                 #    ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
                 #    mog.TxCosDir[ind, 1] = l[n,1]
                 #    mog.TxCosDir[ind, 2] = l[n,2]
                 #    mog.TxCosDir[ind, 3] = l[n,3]
-
-
 
             Tx = self.borehole.boreholes[iTx]
             Rx = self.borehole.boreholes[iRx]
@@ -553,13 +546,15 @@ class MOGUI(QtGui.QWidget):
 
     def plot_ray_coverage(self):
         if len(self.MOGs) != 0:
+
             ind = self.MOG_list.selectedIndexes()
             coverage_ind = self.trace_num_combo.currentIndex()
             show_type = self.show_type_combo.currentText()
             entire_state = self.entire_coverage_check.isChecked()
-            n = self.trace_num_combo.currentIndex()
+            n = int(self.trace_num_edit.text()) - 1
+
             self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()], n, show_type, entire_state)
-            self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
+            #self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
             self.raymanager.show()
         else:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
@@ -578,6 +573,19 @@ class MOGUI(QtGui.QWidget):
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
+    def next_trace(self):
+        n = int(self.trace_num_edit.text())
+        n += 1
+        self.trace_num_edit.setText(str(n))
+        self.update_spectra_and_coverage_Tx_elev_value_label()
+        self.plot_ray_coverage()
+
+    def prev_trace(self):
+        n = int(self.trace_num_edit.text())
+        n -= 1
+        self.trace_num_edit.setText(str(n))
+        self.update_spectra_and_coverage_Tx_elev_value_label()
+        self.plot_ray_coverage()
 
     def export_tt(self):
         if len(self.MOGs) != 0:
@@ -791,6 +799,10 @@ class MOGUI(QtGui.QWidget):
             self.deltat.min_combo.addItem(str(mog.name))
         self.deltat.getcompat()
 
+    def import_mog(self):
+        self.openMain = OpenMainData(self)
+        self.openMain.show()
+
     def update_color_scale(self):
         if self.color_scale_combo.currentText() == 'Low':
             self.color_scale_edit.setText('28000')
@@ -812,8 +824,6 @@ class MOGUI(QtGui.QWidget):
         zopraysmanagergrid.addWidget(self.zopraystool, 0, 0)
         zopraysmanagergrid.addWidget(self.zopraysFig, 1, 0)
         self.zopraysmanager.setLayout(zopraysmanagergrid)
-
-
 
         #-------- Creation of the manager for the Stats Amp figure -------#
         self.statsampFig = StatsAmpFig()
@@ -957,14 +967,35 @@ class MOGUI(QtGui.QWidget):
         self.prunemanager.setLayout(prunemanagergrid)
 
         #------- Widgets in Raycoverage -------#
+        #--- Edit ---#
+        self.trace_num_edit = QtGui.QLineEdit('1')
+
+        #- Edit's Actions -#
+        self.trace_num_edit.editingFinished.connect(self.plot_ray_coverage)
+        self.trace_num_edit.editingFinished.connect(self.update_spectra_and_coverage_Tx_elev_value_label)
+
+        #- Edit's Disposition -#
+        self.trace_num_edit.setAlignment(QtCore.Qt.AlignHCenter)
+
+        #--- Buttons ---#
+        next_trace_btn = QtGui.QPushButton('Next Trace')
+        prev_trace_btn = QtGui.QPushButton('Prev Trace')
+
+        #- Buttons' Actions -#
+        next_trace_btn.clicked.connect(self.next_trace)
+        prev_trace_btn.clicked.connect(self.prev_trace)
+
         #--- List ---#
         self.trace_num_combo = QtGui.QComboBox()
-        self.trace_num_combo.activated.connect(self.update_spectra_Tx_elev_value_label)
+
+        #- List Actions -#
+        self.trace_num_combo.activated.connect(self.update_spectra_and_coverage_Tx_elev_value_label)
         self.trace_num_combo.activated.connect(self.plot_ray_coverage)
 
         #--- Labels ---#
         coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
         self.value_elev_label = MyQLabel('', ha= 'left')
+        trace_label = MyQLabel('Trace Number: ', ha= 'right')
 
         #--- CheckBox ---#
         self.entire_coverage_check = QtGui.QCheckBox('Show entire coverage')
@@ -983,15 +1014,44 @@ class MOGUI(QtGui.QWidget):
         sub_coverage_elev_grid.addWidget(self.value_elev_label, 0, 1)
         sub_coverage_elev_widget.setLayout(sub_coverage_elev_grid)
 
+        #--- Trace SubWidget ---#
+        sub_trace_widget = QtGui.QWidget()
+        sub_trace_grid = QtGui.QGridLayout()
+        sub_trace_grid.addWidget(trace_label, 0, 0)
+        sub_trace_grid.addWidget(self.trace_num_edit, 0, 1)
+        sub_trace_grid.setContentsMargins(0, 0, 0, 0)
+        sub_trace_widget.setLayout(sub_trace_grid)
+
+        #--- Buttons SubWidget ---#
+        sub_buttons_widget = QtGui.QWidget()
+        sub_buttons_grid = QtGui.QGridLayout()
+        sub_buttons_grid.addWidget(next_trace_btn, 0, 1)
+        sub_buttons_grid.addWidget(prev_trace_btn, 0, 0)
+        sub_buttons_grid.setContentsMargins(0, 0, 0, 0)
+        sub_buttons_widget.setLayout(sub_buttons_grid)
+
         #--- Global SubWidget ---#
+        #First Option
+        #sub_coverage_widget = QtGui.QWidget()
+        #sub_coverage_grid = QtGui.QGridLayout()
+        #sub_coverage_grid.addWidget(self.trace_num_combo, 0, 0)
+        #sub_coverage_grid.addWidget(sub_coverage_elev_widget, 1, 0)
+        #sub_coverage_grid.addWidget(self.entire_coverage_check, 2, 0)
+        #sub_coverage_grid.addWidget(self.show_type_combo, 3, 0)
+        #sub_coverage_grid.setRowStretch(4, 100)
+        #sub_coverage_widget.setLayout(sub_coverage_grid)
+
+        #Second Option
         sub_coverage_widget = QtGui.QWidget()
         sub_coverage_grid = QtGui.QGridLayout()
-        sub_coverage_grid.addWidget(self.trace_num_combo, 0, 0)
-        sub_coverage_grid.addWidget(sub_coverage_elev_widget, 1, 0)
-        sub_coverage_grid.addWidget(self.entire_coverage_check, 2, 0)
-        sub_coverage_grid.addWidget(self.show_type_combo, 3, 0)
-        sub_coverage_grid.setRowStretch(4, 100)
+        sub_coverage_grid.addWidget(sub_trace_widget, 0, 0)
+        sub_coverage_grid.addWidget(sub_buttons_widget, 1, 0)
+        sub_coverage_grid.addWidget(sub_coverage_elev_widget, 2, 0)
+        sub_coverage_grid.addWidget(self.entire_coverage_check, 3, 0)
+        sub_coverage_grid.addWidget(self.show_type_combo, 4, 0)
+        sub_coverage_grid.setRowStretch(5, 100)
         sub_coverage_widget.setLayout(sub_coverage_grid)
+
 
         # -------- Creation of the manager for the Ray Coverage figure -------#
         self.raycoverageFig = RayCoverageFig()
@@ -1190,7 +1250,7 @@ class MOGUI(QtGui.QWidget):
 
         #- List Widget -#
         self.Tx_num_list = QtGui.QListWidget()
-        self.Tx_num_list.itemSelectionChanged.connect(self.update_spectra_Tx_elev_value_label)
+        self.Tx_num_list.itemSelectionChanged.connect(self.update_spectra_and_coverage_Tx_elev_value_label)
         self.Tx_num_list.clicked.connect(self.plot_spectra)
         self.Tx_num_list.setFixedWidth(200)
 
@@ -1368,6 +1428,7 @@ class MOGUI(QtGui.QWidget):
         btn_export_tau.clicked.connect(self.export_tau)
         btn_Prune.clicked.connect(self.plot_prune)
         btn_delta_t_mog.clicked.connect(self.start_delta_t)
+        btn_Import.clicked.connect(self.import_mog)
 
 
         #--- Sub Widgets ---#
@@ -2126,6 +2187,14 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_ys = Tx_Rx_ys.T
         Tx_Rx_zs = Tx_Rx_zs.T
 
+        percent_coverage = 100* np.round((len(picked_tt)/mog.data.ntrace), 4)
+        self.ax.set_title(str(percent_coverage) + ' %')
+
+        self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
+        self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
+        self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
+
 
         if entire_state:
             if show_type == 'Show picked and unpicked':
@@ -2157,7 +2226,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
         else:
             Tx = np.unique(mog.data.Tx_z)
             ind_unpicked = np.where(Tx_Rx_zs[0, unpicked_tt] == Tx[n])[0]
-            print(ind_unpicked)
             ind_picked = np.where(Tx_Rx_zs[0, picked_tt] == Tx[n])[0]
 
             if show_type == 'Show picked and unpicked':
@@ -2199,17 +2267,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                                        color='red')
 
                 self.draw()
-
-
-
-
-        percent_coverage = 100* np.round((len(picked_tt)/mog.data.ntrace), 4)
-        self.ax.set_title(str(percent_coverage) + ' %')
-
-        self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
-        self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
-        self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
-        self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
 
 
@@ -2566,6 +2623,79 @@ class DeltaTMOG(QtGui.QWidget):
         master_grid.addWidget(done_btn, 5, 1)
         self.setLayout(master_grid)
 
+class OpenMainData(QtGui.QWidget):
+    def __init__(self, ui, parent=None):
+        super(OpenMainData, self).__init__()
+        self.setWindowTitle("Choose Data")
+        self.database_list = []
+        self.ui = ui
+        self.initUI()
+
+    def openfile(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+
+        self.load_file(filename)
+
+    def load_file(self, filename):
+        rname = filename.split('/')
+        rname = rname[-1]
+        if '.p' in rname:
+            rname = rname[:-2]
+        if '.pkl' in rname:
+            rname = rname[:-4]
+        if '.pickle' in rname:
+            rname = rname[:-7]
+        file = open(filename, 'rb')
+
+        boreholes, self.mogs, air, models = pickle.load(file)
+        self.database_edit.setText(rname)
+        for mog in self.mogs:
+            self.mog_combo.addItem(mog.name)
+
+
+    def cancel(self):
+        self.close()
+
+    def ok(self):
+        n = self.mog_combo.currentIndex()
+        mog = self.mogs[n]
+        self.ui.MOGs.append(mog)
+        self.ui.update_List_Widget()
+        self.ui.MOG_list.setCurrentRow(len(self.ui.MOGs) - 1)
+        self.ui.update_spectra_and_coverage_Tx_num_list()
+        self.ui.update_spectra_and_coverage_Tx_elev_value_label()
+        self.ui.update_edits()
+        self.ui.update_prune_edits_info()
+        self.ui.update_prune_info()
+        self.close()
+
+    def initUI(self):
+
+        #-------  Widgets --------#
+        #--- Edit ---#
+        self.database_edit = QtGui.QLineEdit()
+        #- Edit Action -#
+        self.database_edit.setReadOnly(True)
+        #--- Buttons ---#
+        self.btn_database = QtGui.QPushButton('Choose Database')
+        self.btn_ok = QtGui.QPushButton('Ok')
+        self.btn_cancel = QtGui.QPushButton('Cancel')
+
+        #- Buttons' Actions -#
+        self.btn_cancel.clicked.connect(self.cancel)
+        self.btn_database.clicked.connect(self.openfile)
+        self.btn_ok.clicked.connect(self.ok)
+
+        #--- Combobox ---#
+        self.mog_combo = QtGui.QComboBox()
+
+        master_grid = QtGui.QGridLayout()
+        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
+        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
+        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
+        master_grid.addWidget(self.btn_ok, 3, 0)
+        master_grid.addWidget(self.btn_cancel, 3 ,1)
+        self.setLayout(master_grid)
 
 
 
