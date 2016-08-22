@@ -446,6 +446,16 @@ class Grid2D(Grid):
     def derivative(self, order, normalize = False):
         """
         Compute spatial derivative operators for grid _cells_
+        
+        For 1st order:
+            forward operator is (u_{i+1} - u_i)/dx
+            centered operator is (u_{i+1} - u_{i-1})/(2dx)
+            backward operator is (u_i - u_{i-1})/dx
+            
+        For 2nd order:
+            forward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2
+            centered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2
+            backward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2
         """
         dx = 1
         dz = 1
@@ -455,19 +465,19 @@ class Grid2D(Grid):
 
         nx = len(self.grx) - 1
         nz = len(self.grz) - 1
-
         
         if order == 1:
+
+            # forward operator is (u_{i+1} - u_i)/dx
+            # centered operator is (u_{i+1} - u_{i-1})/(2dx)
+            # backward operator is (u_i - u_{i-1})/dx
+
             idx = 1/dx
             idz = 1/dz
 
             i = np.kron(np.arange(nx*nz),np.ones((2,)))
             j = np.zeros((nz * nx * 2,))
             v = np.zeros((nz * nx * 2,))
-
-            # forward operator is (u_{i+1} - u_i)/dx
-            # centered operator is (u_{i+1} - u_{i-1})/(2dx)
-            # backward operator is (u_i - u_{i-1})/dx
             
             jj = np.vstack((np.hstack((0,np.arange(nx-1))),np.hstack((np.arange(1,nx), nx-1)))).T
             jj = jj.flatten()
@@ -498,8 +508,42 @@ class Grid2D(Grid):
             
             Dz = csr_matrix((v,(i,j)))
         else:  # 2nd order
-            pass
+        
+            # forward operator is (u_i - 2u_{i+1} + u_{i+2})/dx^2
+            # centered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2
+            # backward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2
             
+            idx2 = 1/(dx*dx)
+            idz2 = 1/(dz*dz)
+            
+            i = np.kron(np.arange(nx*nz),np.ones((3,)))
+            j = np.zeros((nz * nx * 3,))
+            v = np.zeros((nz * nx * 3,))
+            
+            jj = np.vstack((np.hstack((0,np.arange(nx-2),nx-3)),np.hstack((1,np.arange(1,nx-1), nx-2)),np.hstack((2,np.arange(2,nx), nx-1)))).T
+            jj = jj.flatten()
+            vd = idx2*np.tile(np.array([1.0,-2.0,1.0]),(nx,))
+            
+            for n in range(nz):
+                j[n*3*nx:(n+1)*3*nx] = n*nx + jj
+                v[n*3*nx:(n+1)*3*nx] = vd
+                
+            Dx = csr_matrix((v,(i,j)))
+            
+            jj = np.vstack((np.arange(nx),nx+np.arange(nx),2*nx+np.arange(nx))).T
+            jj = jj.flatten()
+            j[:3*nx] = jj
+            vd = vd*idz2/idx2
+            v[:3*nx] = vd
+            
+            for n in range(1,nz-1):
+                j[n*3*nx:(n+1)*3*nx] = (n-1)*nx + jj
+                v[n*3*nx:(n+1)*3*nx] = vd
+            
+            j[(nz-1)*3*nx:nz*3*nx] = (nz-3)*nx + jj
+            v[(nz-1)*3*nx:nz*3*nx] = vd
+            
+            Dz = csr_matrix((v,(i,j)))
             
         # no derivative along y, empty Dy matrix
         Dy = csr_matrix(Dx.shape)
@@ -661,8 +705,8 @@ if __name__ == '__main__':
         plt.show()
 
     if testDeriv:
-        grx = np.linspace(0,3,num=5)
-        grz = np.linspace(0,6,num=10)
+        grx = np.linspace(0,3,num=8)
+        grz = np.linspace(0,6,num=9)
         nx=len(grx)-1
         nz=len(grz)-1
 
@@ -676,7 +720,7 @@ if __name__ == '__main__':
         nc = grid.getNumberOfCells()
         s = np.ones((nc,))
         s[0] = 2
-        s[9] = 2
+        s[24] = 2
         s[-1] = 2
         
         dsx = Dx*s
@@ -686,6 +730,27 @@ if __name__ == '__main__':
         plt.colorbar()
         plt.show()
 
+        plt.matshow(dsx.reshape((nz,nx)))
+        plt.colorbar()
+        plt.show()
+        
+        plt.matshow(Dz.toarray())
+        plt.show()
+        
+        plt.matshow(dsz.reshape((nz,nx)))
+        plt.colorbar()
+        plt.show()
+        
+        
+        
+        Dx,Dy,Dz = grid.derivative(2)
+        
+        plt.matshow(Dx.toarray())
+        plt.show()
+        
+        dsx = Dx*s
+        dsz = Dz*s
+        
         plt.matshow(dsx.reshape((nz,nx)))
         plt.colorbar()
         plt.show()
