@@ -356,15 +356,16 @@ class MOGUI(QtGui.QWidget):
             ind = self.MOG_list.selectedIndexes()
             for i in range(len(self.MOGs[ind[0].row()].data.Tx_z)):
                 if self.MOGs[ind[0].row()].data.Tx_z[i] == item:
-                    self.Tx_num_list.setCurrentRow(i)
+                    self.Tx_num_list.setCurrentRow(i + 1)
                 elif item not in self.MOGs[ind[0].row()].data.Tx_z:
-                    idx = np.argmin((np.abs(self.MOGs[ind[0].row()].data.Tx_z-item)))
-                    self.Tx_num_list.setCurrentRow(idx)
+                    idx = np.argmin((np.abs(np.unique(self.MOGs[ind[0].row()].data.Tx_z) - item)))
+                    print(idx)
+                    self.Tx_num_list.setCurrentRow(idx + 1)
                     green = QtGui.QPalette()
                     green.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
-                    self.search_info_label.setText('{} is not a value in this data, {} is the closest'.format(item, np.around(self.MOGs[ind[0].row()].data.Tx_z[idx], decimals=1 )))
+                    self.search_info_label.setText('{} is not a value in this data, {} is the closest'.format(item, np.unique(self.MOGs[ind[0].row()].data.Tx_z)[idx], decimals=1))
                     self.search_info_label.setPalette(green)
-                self.update_spectra_Tx_elev_value_label()
+                self.update_spectra_and_coverage_Tx_elev_value_label()
 
         elif self.search_combo.currentText() == 'Search with Number':
             item = float(self.search_elev_edit.text())
