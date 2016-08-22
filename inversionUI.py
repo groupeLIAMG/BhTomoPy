@@ -172,7 +172,7 @@ class InversionUI(QtGui.QFrame):
 
             self.tomo.s = x + l_moy
 
-            tt,L,rays = grid.raytrace(self.tomo.s, data[:, 0:3], data[:, 3:6])
+            tt,L,self.tomo.rays = grid.raytrace(self.tomo.s, data[:, 0:3], data[:, 3:6])
             print('ray trace ans', tt)
 
             self.algo_label.setText('LSQR Inversion -')
@@ -186,6 +186,10 @@ class InversionUI(QtGui.QFrame):
                 np.append(self.tomo.invData.s, self.tomo.s)
 
             self.tomo.L = L
+
+    def plot_rays(self):
+        self.raysFig.plot_rays()
+        self.rays_manager.show()
 
     def initinvUI(self):
 
@@ -389,7 +393,7 @@ class InversionUI(QtGui.QFrame):
 
     def initUI(self):
 
-        # ------- Manager for InvFig -------#
+        #-------- Manager for InvFig -------#
         self.invFig = InvFig(self)
         self.invtool = NavigationToolbar2QT(self.invFig, self)
         self.invmanager = QtGui.QWidget()
@@ -399,6 +403,16 @@ class InversionUI(QtGui.QFrame):
         inv_grid.setContentsMargins(0, 0, 0, 0)
         inv_grid.setVerticalSpacing(0)
         self.invmanager.setLayout(inv_grid)
+
+        #-------Manager for RaysFig ------#
+        self.raysFig = RaysFig(self)
+        self.raystool = NavigationToolbar2QT(self.raysFig, self)
+        self.rays_manager = QtGui.QWidget()
+        rays_grid = QtGui.QGridLayout()
+        rays_grid.addWidget(self.raystool, 0, 0)
+        rays_grid.addWidget(self.raysFig, 1, 0)
+        self.rays_manager.setLayout(rays_grid)
+
 
         #--- Color for the labels ---#
         palette = QtGui.QPalette()
@@ -428,21 +442,23 @@ class InversionUI(QtGui.QFrame):
         algo_label                  = MyQLabel("Algorithm", ha= 'right')
         straight_ray_label          = MyQLabel("Straight Rays", ha= 'right')
         curv_ray_label              = MyQLabel("Curved Rays", ha= 'right')
-
-
         step_label                  = MyQLabel("Step :", ha= 'center')
         Xi_label                    = MyQLabel("X", ha= 'center')          # The Xi, Yi and Zi  QLabels are practically the
         Yi_label                    = MyQLabel("Y", ha= 'center')          # same as the X, Y and Z  QLabels, it's just that
         Zi_label                    = MyQLabel("Z", ha= 'center')          # QtGui does not allow to use the same QLabel
-        self.X_min_label            = MyQLabel("0", ha= 'center')          # twice or more. So we had to create new Qlabels
+                                                                           # twice or more. So we had to create new Qlabels
+
+        # These Labels are bein set as attributes of the InversionUI class because they need to be modified
+        # depending on the model's informations
+        self.X_min_label            = MyQLabel("0", ha= 'center')
         self.Y_min_label            = MyQLabel("0", ha= 'center')
         self.Z_min_label            = MyQLabel("0", ha= 'center')
-        self.X_max_label            = MyQLabel("0", ha= 'center')          # All the self.Something variables are defined
-        self.Y_max_label            = MyQLabel("0", ha= 'center')          # that way because they will be modified throughout
-        self.Z_max_label            = MyQLabel("0", ha= 'center')          # the processing of BH_THOMO.
-        self.step_Xi_label          = MyQLabel("0", ha= 'center')          # Note: there are still a lot of variables which
-        self.step_Yi_label          = MyQLabel("0", ha= 'center')          # the self. extension need to be applied.
-        self.step_Zi_label          = MyQLabel("0", ha= 'center')          # I just don't know all of them at the moment
+        self.X_max_label            = MyQLabel("0", ha= 'center')
+        self.Y_max_label            = MyQLabel("0", ha= 'center')
+        self.Z_max_label            = MyQLabel("0", ha= 'center')
+        self.step_Xi_label          = MyQLabel("0", ha= 'center')
+        self.step_Yi_label          = MyQLabel("0", ha= 'center')
+        self.step_Zi_label          = MyQLabel("0", ha= 'center')
         self.num_cells_label        = MyQLabel("0", ha= 'center')
         self.algo_label             = MyQLabel('', ha= 'right')
         self.noIter_label           = MyQLabel('', ha= 'left')
@@ -495,9 +511,32 @@ class InversionUI(QtGui.QFrame):
         saveAction = QtGui.QAction('Save', self)
         saveAction.triggered.connect(self.savefile)
 
+        exportAction = QtGui.QAction('Export', self)
+        tomoAction = QtGui.QAction('Tomogram', self)
+        simulAction = QtGui.QAction('Simulations', self)
+
+        raysAction = QtGui.QAction('Rays', self)
+        raysAction.triggered.connect(self.plot_rays)
+
+        densityAction = QtGui.QAction('Ray Density', self)
+        residAction = QtGui.QAction('Residuals', self)
+
         #--- ToolBar ---#
         self.tool = QtGui.QMenuBar()
         fileMenu = self.tool.addMenu('&File')
+        resultsMenu = self.tool.addMenu('&Results')
+
+
+
+
+
+
+
+
+
+
+        resultsMenu.addActions([exportAction, tomoAction, simulAction, raysAction, densityAction, residAction])
+
         fileMenu.addAction(openAction)
         fileMenu.addAction(saveAction)
 
@@ -692,7 +731,6 @@ class InversionUI(QtGui.QFrame):
         Sub_right_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_right_Widget.setLayout(Sub_right_Grid)
 
-
         #------- Global Widget Disposition -------#
         global_widget = QtGui.QWidget()
         self.global_grid = QtGui.QGridLayout()
@@ -777,8 +815,6 @@ class OpenMainData(QtGui.QWidget):
         self.model_combo = QtGui.QComboBox()
 
         #- Combobox's Action -#
-
-
         master_grid = QtGui.QGridLayout()
         master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
         master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
@@ -805,18 +841,18 @@ class InvFig(FigureCanvasQTAgg):
 
 
     def plot_inv(self):
-        slowness = self.ui.tomo.s
-        grid = self.ui.models[self.ui.model_ind].grid
-        noIter = self.ui.noIter
+
         self.ax.set_visible(True)
         self.ax2.set_visible(True)
         self.ax
         self.ax.cla()
-
         self.ax.set_title('LSQR')
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
 
+        slowness = self.ui.tomo.s
+        grid = self.ui.models[self.ui.model_ind].grid
+        noIter = self.ui.noIter
         cmax = max(np.abs(1/slowness))
         cmin = min(np.abs(1/slowness))
         mog = self.ui.models[self.ui.model_ind].mogs[0]
@@ -837,6 +873,23 @@ class InvFig(FigureCanvasQTAgg):
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(8)
 
+        self.draw()
+
+class RaysFig(FigureCanvasQTAgg):
+    def __init__(self, ui):
+        fig_width, fig_height = 4, 4
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        super(RaysFig, self).__init__(fig)
+        self.ui = ui
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+
+    def plot_rays(self):
+        self.ax.cla()
+        for n in range(len(self.ui.tomo.rays)):
+            self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1])
         self.draw()
 
 class InvLSQRParams:

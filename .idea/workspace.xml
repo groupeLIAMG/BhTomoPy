@@ -7,7 +7,7 @@
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="130" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui">
+    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/inversionUI.py" afterPath="$PROJECT_DIR$/inversionUI.py" />
     </list>
@@ -33,7 +33,7 @@
       <file leaf-file-name="grid.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/grid.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5916">
+            <state relative-caret-position="-5284">
               <caret line="354" column="0" selection-start-line="354" selection-start-column="0" selection-end-line="354" selection-end-column="0" />
               <folding />
             </state>
@@ -60,12 +60,11 @@
       <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/inversionUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="134">
-              <caret line="549" column="58" selection-start-line="549" selection-start-column="58" selection-end-line="549" selection-end-column="58" />
+            <state relative-caret-position="237">
+              <caret line="891" column="80" selection-start-line="891" selection-start-column="80" selection-end-line="891" selection-end-column="80" />
               <folding>
                 <element signature="e#25#35#0" expanded="true" />
-                <element signature="e#7091#17116#0" expanded="false" />
-                <element signature="e#32715#34883#0" expanded="false" />
+                <element signature="e#7193#17218#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -88,8 +87,8 @@
       <file leaf-file-name="BoreholeUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2788">
-              <caret line="172" column="43" selection-start-line="172" selection-start-column="43" selection-end-line="172" selection-end-column="43" />
+            <state relative-caret-position="170">
+              <caret line="355" column="56" selection-start-line="355" selection-start-column="56" selection-end-line="355" selection-end-column="73" />
               <folding />
             </state>
           </provider>
@@ -548,13 +547,6 @@
       <option name="presentableId" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00136" summary="update zop">
-      <created>1470253580873</created>
-      <option name="number" value="00136" />
-      <option name="presentableId" value="LOCAL-00136" />
-      <option name="project" value="LOCAL" />
-      <updated>1470253580874</updated>
-    </task>
     <task id="LOCAL-00137" summary="incertitude sur les valeurs de vitesse">
       <created>1470254682142</created>
       <option name="number" value="00137" />
@@ -891,7 +883,14 @@
       <option name="project" value="LOCAL" />
       <updated>1471881293446</updated>
     </task>
-    <option name="localTasksCounter" value="185" />
+    <task id="LOCAL-00185" summary="update set color limits inversionUI">
+      <created>1471893677003</created>
+      <option name="number" value="00185" />
+      <option name="presentableId" value="LOCAL-00185" />
+      <option name="project" value="LOCAL" />
+      <updated>1471893677003</updated>
+    </task>
+    <option name="localTasksCounter" value="186" />
     <servers />
   </component>
   <component name="TodoView">
@@ -961,7 +960,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update spectra" />
     <MESSAGE value="Zop et ZopRays fixed" />
     <MESSAGE value="build grid fonctionnel" />
     <MESSAGE value="début stats best fit plane&#10;" />
@@ -986,7 +984,8 @@
     <MESSAGE value="update MOGUI, DatabaseUI et ModelUI" />
     <MESSAGE value="MOGUI &gt; Spectra &gt; Search with elevation fixed" />
     <MESSAGE value="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui" />
-    <option name="LAST_COMMIT_MESSAGE" value="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui" />
+    <MESSAGE value="update set color limits inversionUI" />
+    <option name="LAST_COMMIT_MESSAGE" value="update set color limits inversionUI" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1000,7 +999,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="96" />
+      <option name="time" value="97" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -1196,22 +1195,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/grid.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5916">
-          <caret line="354" column="0" selection-start-line="354" selection-start-column="0" selection-end-line="354" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2788">
-          <caret line="172" column="43" selection-start-line="172" selection-start-column="43" selection-end-line="172" selection-end-column="43" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2805">
@@ -1279,14 +1262,29 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/grid.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-5284">
+          <caret line="354" column="0" selection-start-line="354" selection-start-column="0" selection-end-line="354" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="355" column="56" selection-start-line="355" selection-start-column="56" selection-end-line="355" selection-end-column="73" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/inversionUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="134">
-          <caret line="549" column="58" selection-start-line="549" selection-start-column="58" selection-end-line="549" selection-end-column="58" />
+        <state relative-caret-position="237">
+          <caret line="891" column="80" selection-start-line="891" selection-start-column="80" selection-end-line="891" selection-end-column="80" />
           <folding>
             <element signature="e#25#35#0" expanded="true" />
-            <element signature="e#7091#17116#0" expanded="false" />
-            <element signature="e#32715#34883#0" expanded="false" />
+            <element signature="e#7193#17218#0" expanded="false" />
           </folding>
         </state>
       </provider>
