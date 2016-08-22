@@ -128,6 +128,7 @@ class ModelUI(QtGui.QWidget):
         btn_Remove_Model.clicked.connect(self.del_model)
         btn_Remove_MOG.clicked.connect(self.remove_mog)
         btn_Add_MOG.clicked.connect(self.add_mog)
+        btn_Create_Grid.clicked.connect(self.start_grid)
         btn_Edit_Grid.clicked.connect(self.start_grid)
 
         #--- Lists ---#
@@ -209,6 +210,7 @@ class ChooseModelMOG(QtGui.QWidget):
         sub_btn_grid.addWidget(add_btn, 0, 0)
         sub_btn_grid.addWidget(cancel_btn, 0, 1)
         sub_btn_grid.addWidget(done_btn, 1, 0, 1, 2)
+        sub_btn_grid.setContentsMargins(0, 0, 0, 0)
         sub_btn_widget.setLayout(sub_btn_grid)
 
         #--- Master Grid ---#

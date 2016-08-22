@@ -48,6 +48,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         self.database.load_file(filename)
         self.manual_tt.openmain.load_file(filename)
         self.manual_tt.update_control_center()
+        self.manual_amp.openmain.load_file(filename)
 
     def show(self):
         super(Bh_ThomoPyUI, self).show()
@@ -115,7 +116,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         btn_Cov_Mod.clicked.connect(self.covar.show)
         btn_Inversion.clicked.connect(self.inv.show)
         btn_Interpretation.clicked.connect(self.interp.show)
-        btn_Manual_Amplitude_Picking.clicked.connect(self.manual_tt.show)
+        btn_Manual_Amplitude_Picking.clicked.connect(self.manual_amp.showMaximized)
 
         #--- Image ---#
         pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")

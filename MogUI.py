@@ -359,7 +359,6 @@ class MOGUI(QtGui.QWidget):
                     self.Tx_num_list.setCurrentRow(i + 1)
                 elif item not in self.MOGs[ind[0].row()].data.Tx_z:
                     idx = np.argmin((np.abs(np.unique(self.MOGs[ind[0].row()].data.Tx_z) - item)))
-                    print(idx)
                     self.Tx_num_list.setCurrentRow(idx + 1)
                     green = QtGui.QPalette()
                     green.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)

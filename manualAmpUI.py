@@ -6,7 +6,8 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationTool
 import pickle
 import numpy as np
 import re
-
+import scipy as spy
+from scipy import signal
 
 
 
@@ -61,6 +62,7 @@ class ManualAmpUI(QtGui.QFrame):
             self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
             self.ntrace_label.setText(str(self.mog.data.ntrace))
 
+        self.update_settings_edits()
         self.upperFig.plot_amplitude()
         self.lowerFig.plot_spectra()
 
@@ -455,11 +457,11 @@ class ManualAmpUI(QtGui.QFrame):
             self.lowerFig.isTracingOn = True
 
 class OpenMainData(QtGui.QWidget):
-    def __init__(self, tt, parent=None):
+    def __init__(self, ui, parent=None):
         super(OpenMainData, self).__init__()
         self.setWindowTitle("Choose Data")
         self.database_list = []
-        self.tt = tt
+        self.ui = ui
         self.initUI()
 
     def openfile(self):
@@ -468,7 +470,7 @@ class OpenMainData(QtGui.QWidget):
         self.load_file(filename)
 
     def load_file(self, filename):
-        self.tt.filename = filename
+        self.ui.filename = filename
         rname = filename.split('/')
         rname = rname[-1]
         if '.p' in rname:
@@ -479,10 +481,10 @@ class OpenMainData(QtGui.QWidget):
             rname = rname[:-7]
         file = open(filename, 'rb')
 
-        self.tt.boreholes, self.tt.mogs, self.tt.air, self.tt.models = pickle.load(file)
+        self.ui.boreholes, self.ui.mogs, self.ui.air, self.ui.models = pickle.load(file)
 
         self.database_edit.setText(rname)
-        for mog in self.tt.mogs:
+        for mog in self.ui.mogs:
 
             self.mog_combo.addItem(mog.name)
 
@@ -491,9 +493,7 @@ class OpenMainData(QtGui.QWidget):
         self.close()
 
     def ok(self):
-        self.tt.update_control_center()
-        self.tt.update_settings_edits()
-        self.tt.upperFig.plot_amplitude()
+        self.ui.update_control_center()
 
         self.close()
 
@@ -518,7 +518,7 @@ class OpenMainData(QtGui.QWidget):
         self.mog_combo = QtGui.QComboBox()
 
         #- Combobox's Action -#
-        self.mog_combo.activated.connect(self.tt.update_control_center)
+        self.mog_combo.activated.connect(self.ui.update_control_center)
 
         master_grid = QtGui.QGridLayout()
         master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
@@ -567,7 +567,14 @@ class UpperFig(FigureCanvasQTAgg):
                                         ymax=1,
                                         color='g')
 
+        self.pick_amp_tmax.set_visible(False)
+        self.pick_amp_tmin.set_visible(False)
+        self.trace.set_visible(False)
+
     def plot_amplitude(self):
+        self.pick_amp_tmax.set_visible(True)
+        self.pick_amp_tmin.set_visible(True)
+        self.trace.set_visible(True)
 
         n = int(self.ui.Tnum_Edit.text())
 
@@ -628,6 +635,7 @@ class LowerFig(FigureCanvasQTAgg):
         super(LowerFig, self).__init__(fig)
         self.initFig()
         self.ui = ui
+        self.trace_number = 0
         self.mpl_connect('button_press_event', self.onclick)
         self.isTracingOn = False
 
@@ -642,16 +650,34 @@ class LowerFig(FigureCanvasQTAgg):
 
     def plot_spectra(self):
         self.ax.cla()
+        if 'ns' in self.ui.mog.data.tunits:
+            fac_f = 10 ** 6
+            fac_t = 10 ** -9
+        elif 'ms' in self.ui.mog.data.tunits:
+            fac_f = 10 ** 3
+            fac_t = 10 ** -3
+
+        dt = self.ui.mog.data.timec * self.ui.mog.fac_dt
+        dt = dt * fac_t
+        Fs = 1 / dt
+
         n = int(self.ui.Tnum_Edit.text())
 
         self.trc_number = n-1
-
         trace = self.ui.mog.data.rdata[:, self.trc_number]
-
-        Pxx = np.fft.rfft(trace, axis=0)
-        print(Pxx)
-
-        self.ax.plot(np.abs(Pxx))
+        if self.ui.mog.amp_tmin[self.trc_number] != -1 and self.ui.mog.amp_tmax[self.trc_number] != -1:
+            imin = np.argmin((np.abs(self.ui.mog.data.timestp - self.ui.mog.amp_tmin[self.trc_number])))
+            imax = np.argmin((np.abs(self.ui.mog.data.timestp - self.ui.mog.amp_tmax[self.trc_number])))
+            trace = trace[imin:imax]
+            #freq, tmp = spy.signal.welch(trace, Fs)
+            #Pxx = tmp.T
+            Pxx = np.fft.rfft(trace, axis=0)
+            freq = np.fft.rfftfreq(len(Pxx), Fs)
+            print(freq)
+            print(freq.shape)
+            print(Pxx.shape)
+            #self.ax.plot(Pxx, freq)
+            self.draw()
         #self.spectrum_plot.set_ydata(Pxx)
         #self.ax.set_xlim(min(Pxx), max(Pxx))
 

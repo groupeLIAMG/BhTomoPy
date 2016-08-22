@@ -100,6 +100,7 @@ class ManualttUI(QtGui.QFrame):
                 self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
 
         self.check_save()
+        self.update_a_and_t_edits()
         self.upperFig.plot_amplitude()
         self.lowerFig.plot_trace_data()
 
@@ -552,9 +553,6 @@ class OpenMainData(QtGui.QWidget):
 
     def ok(self):
         self.tt.update_control_center()
-        self.tt.update_a_and_t_edits()
-        self.tt.upperFig.plot_amplitude()
-        self.tt.lowerFig.plot_trace_data()
         self.close()
 
     def initUI(self):
