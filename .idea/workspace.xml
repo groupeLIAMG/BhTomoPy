@@ -7,13 +7,9 @@
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="130" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
+    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ModelUI.py" afterPath="$PROJECT_DIR$/ModelUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bh_tomoPyUI.py" afterPath="$PROJECT_DIR$/bh_tomoPyUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/manualAmpUI.py" afterPath="$PROJECT_DIR$/manualAmpUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/manual_ttUI.py" afterPath="$PROJECT_DIR$/manual_ttUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/inversionUI.py" afterPath="$PROJECT_DIR$/inversionUI.py" />
     </list>
     <ignored path="BhTomoPy.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -51,18 +47,25 @@
               <caret line="674" column="47" selection-start-line="674" selection-start-column="47" selection-end-line="674" selection-end-column="47" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
+                <marker date="1471881212345" expanded="true" signature="19113:21255" placeholder="..." />
+                <marker date="1471881212345" expanded="true" signature="21292:24102" placeholder="..." />
+                <marker date="1471881212345" expanded="true" signature="21789:22656" placeholder="..." />
+                <marker date="1471881212345" expanded="true" signature="24139:28846" placeholder="..." />
+                <marker date="1471881212345" expanded="true" signature="24920:26137" placeholder="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/inversionUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="64" column="69" selection-start-line="64" selection-start-column="69" selection-end-line="64" selection-end-column="69" />
+            <state relative-caret-position="134">
+              <caret line="549" column="58" selection-start-line="549" selection-start-column="58" selection-end-line="549" selection-end-column="58" />
               <folding>
                 <element signature="e#25#35#0" expanded="true" />
+                <element signature="e#7091#17116#0" expanded="false" />
+                <element signature="e#32715#34883#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -112,10 +115,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ModelUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ModelUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
+            <state relative-caret-position="306">
               <caret line="113" column="0" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
               <folding />
             </state>
@@ -204,12 +207,12 @@
         <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/grid.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
-        <option value="$PROJECT_DIR$/inversionUI.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
         <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
         <option value="$PROJECT_DIR$/manualAmpUI.py" />
+        <option value="$PROJECT_DIR$/inversionUI.py" />
       </list>
     </option>
   </component>
@@ -294,7 +297,7 @@
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file://C:/Users/Utilisateur/PycharmProjects/BhTomoPy/DatabaseUI.py" />
     <property name="FullScreen" value="false" />
   </component>
-  <component name="RunManager" selected="Python.manualAmpUI">
+  <component name="RunManager" selected="Python.inversionUI">
     <configuration default="false" name="DatabaseUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -523,11 +526,11 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.manualAmpUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
-        <item index="2" class="java.lang.String" itemvalue="Python.manual_ttUI" />
-        <item index="3" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-        <item index="4" class="java.lang.String" itemvalue="Python.inversionUI" />
+        <item index="0" class="java.lang.String" itemvalue="Python.inversionUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.manual_ttUI" />
+        <item index="2" class="java.lang.String" itemvalue="Python.manualAmpUI" />
+        <item index="3" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
+        <item index="4" class="java.lang.String" itemvalue="Python.DatabaseUI" />
       </list>
     </recent_temporary>
   </component>
@@ -544,13 +547,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00135" summary="update correction t0">
-      <created>1470244857635</created>
-      <option name="number" value="00135" />
-      <option name="presentableId" value="LOCAL-00135" />
-      <option name="project" value="LOCAL" />
-      <updated>1470244857636</updated>
     </task>
     <task id="LOCAL-00136" summary="update zop">
       <created>1470253580873</created>
@@ -888,7 +884,14 @@
       <option name="project" value="LOCAL" />
       <updated>1471877629691</updated>
     </task>
-    <option name="localTasksCounter" value="184" />
+    <task id="LOCAL-00184" summary="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui">
+      <created>1471881293446</created>
+      <option name="number" value="00184" />
+      <option name="presentableId" value="LOCAL-00184" />
+      <option name="project" value="LOCAL" />
+      <updated>1471881293446</updated>
+    </task>
+    <option name="localTasksCounter" value="185" />
     <servers />
   </component>
   <component name="TodoView">
@@ -958,7 +961,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="update coords" />
     <MESSAGE value="update spectra" />
     <MESSAGE value="Zop et ZopRays fixed" />
     <MESSAGE value="build grid fonctionnel" />
@@ -983,7 +985,8 @@
     <MESSAGE value="update raycoverage et inversion ui" />
     <MESSAGE value="update MOGUI, DatabaseUI et ModelUI" />
     <MESSAGE value="MOGUI &gt; Spectra &gt; Search with elevation fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="MOGUI &gt; Spectra &gt; Search with elevation fixed" />
+    <MESSAGE value="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui" />
+    <option name="LAST_COMMIT_MESSAGE" value="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -997,7 +1000,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="95" />
+      <option name="time" value="96" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -1233,16 +1236,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/inversionUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="64" column="69" selection-start-line="64" selection-start-column="69" selection-end-line="64" selection-end-column="69" />
-          <folding>
-            <element signature="e#25#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-368">
@@ -1261,6 +1254,11 @@
           <caret line="674" column="47" selection-start-line="674" selection-start-column="47" selection-end-line="674" selection-end-column="47" />
           <folding>
             <element signature="e#24#34#0" expanded="true" />
+            <marker date="1471881212345" expanded="true" signature="19113:21255" placeholder="..." />
+            <marker date="1471881212345" expanded="true" signature="21292:24102" placeholder="..." />
+            <marker date="1471881212345" expanded="true" signature="21789:22656" placeholder="..." />
+            <marker date="1471881212345" expanded="true" signature="24139:28846" placeholder="..." />
+            <marker date="1471881212345" expanded="true" signature="24920:26137" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -1275,9 +1273,21 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ModelUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
+        <state relative-caret-position="306">
           <caret line="113" column="0" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inversionUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="134">
+          <caret line="549" column="58" selection-start-line="549" selection-start-column="58" selection-end-line="549" selection-end-column="58" />
+          <folding>
+            <element signature="e#25#35#0" expanded="true" />
+            <element signature="e#7091#17116#0" expanded="false" />
+            <element signature="e#32715#34883#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>

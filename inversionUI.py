@@ -126,7 +126,7 @@ class InversionUI(QtGui.QFrame):
         #Dx, Dy, Dz = grid.derivative(params.order)
 
         for noIter in range(params.numItCurved + params.numItStraight):
-
+            self.noIter = noIter
             app.processEvents()
 
             if noIter == 0:
@@ -177,11 +177,10 @@ class InversionUI(QtGui.QFrame):
 
             self.algo_label.setText('LSQR Inversion -')
             self.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
-            self.invFig.plot_inv(self.tomo.s, grid, noIter)
+            self.invFig.plot_inv()
 
             if params.saveInvData == 1:
                 tt = L * self.tomo.s
-                print(data[:, 6] - tt)
 
                 np.append(self.tomo.invData.res, data[:, 6] - tt)
                 np.append(self.tomo.invData.s, self.tomo.s)
@@ -390,6 +389,17 @@ class InversionUI(QtGui.QFrame):
 
     def initUI(self):
 
+        # ------- Manager for InvFig -------#
+        self.invFig = InvFig(self)
+        self.invtool = NavigationToolbar2QT(self.invFig, self)
+        self.invmanager = QtGui.QWidget()
+        inv_grid = QtGui.QGridLayout()
+        inv_grid.addWidget(self.invtool, 0, 0)
+        inv_grid.addWidget(self.invFig, 1, 0)
+        inv_grid.setContentsMargins(0, 0, 0, 0)
+        inv_grid.setVerticalSpacing(0)
+        self.invmanager.setLayout(inv_grid)
+
         #--- Color for the labels ---#
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
@@ -465,6 +475,10 @@ class InversionUI(QtGui.QFrame):
         self.Min_editi.setAlignment(QtCore.Qt.AlignHCenter)
         self.Max_editi.setAlignment(QtCore.Qt.AlignHCenter)
 
+        #- Edits' Actions -#
+        self.Min_editi.editingFinished.connect(self.invFig.plot_inv)
+        self.Max_editi.editingFinished.connect(self.invFig.plot_inv)
+
         #--- Checkboxes ---#
         self.use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
         self.use_Rays_checkbox               = QtGui.QCheckBox("Use Rays")         # of it
@@ -472,6 +486,7 @@ class InversionUI(QtGui.QFrame):
 
         #- Checboxes Actions -#
         self.use_const_checkbox.stateChanged.connect(self.update_params)
+        self.set_color_checkbox.stateChanged.connect(self.invFig.plot_inv)
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
@@ -502,6 +517,8 @@ class InversionUI(QtGui.QFrame):
         self.algo_combo               = QtGui.QComboBox()
         self.fig_combo                = QtGui.QComboBox()
 
+
+
         #------- Items in the comboboxes --------#
         #--- Time and Amplitude Combobox's Items ---#
         self.T_and_A_combo.addItem("Traveltime")
@@ -512,19 +529,33 @@ class InversionUI(QtGui.QFrame):
         self.algo_combo.addItem("LSQR Solver")
         self.algo_combo.addItem("Geostatistic")
 
-        #- Algorithm ComboBoxes Action -#
+        #- ComboBoxes Action -#
         self.algo_combo.activated.connect(self.initinvUI)
+        self.fig_combo.activated.connect(self.invFig.plot_inv)
 
-        #------- Manager for InvFig -------#
-        self.invFig = InvFig(self)
-        self.invtool = NavigationToolbar2QT(self.invFig, self)
-        self.invmanager = QtGui.QWidget()
-        inv_grid = QtGui.QGridLayout()
-        inv_grid.addWidget(self.invtool, 0, 0)
-        inv_grid.addWidget(self.invFig,1, 0)
-        inv_grid.setContentsMargins(0, 0, 0, 0)
-        inv_grid.setVerticalSpacing(0)
-        self.invmanager.setLayout(inv_grid)
+        #--- Figure's ComboBox's Items ---#
+
+        list1 = ['viridis', 'inferno', 'plasma', 'magma']
+        list2 = ['Blues', 'BuGn', 'BuPu',
+                'GnBu', 'Greens', 'Greys', 'Oranges', 'OrRd',
+                'PuBu', 'PuBuGn', 'PuRd', 'Purples', 'RdPu',
+                'Reds', 'YlGn', 'YlGnBu', 'YlOrBr', 'YlOrRd']
+        list3 = ['afmhot', 'autumn', 'bone', 'cool',
+                             'copper', 'gist_heat', 'gray', 'hot',
+                             'pink', 'spring', 'summer', 'winter']
+        list4 = ['BrBG', 'bwr', 'coolwarm', 'PiYG', 'PRGn', 'PuOr',
+                             'RdBu', 'RdGy', 'RdYlBu', 'RdYlGn', 'Spectral',
+                             'seismic']
+        list5 =  ['gist_earth', 'terrain', 'ocean', 'gist_stern',
+                             'brg', 'CMRmap', 'cubehelix',
+                             'gnuplot', 'gnuplot2', 'gist_ncar',
+                             'nipy_spectral', 'jet', 'rainbow',
+                             'gist_rainbow', 'hsv', 'flag', 'prism']
+        self.fig_combo.addItems(list1)
+        self.fig_combo.addItems(list2)
+        self.fig_combo.addItems(list3)
+        self.fig_combo.addItems(list4)
+        self.fig_combo.addItems(list5)
 
         #------- Frame for number of Iterations -------#
         iterFrame = QtGui.QFrame()
@@ -773,7 +804,10 @@ class InvFig(FigureCanvasQTAgg):
         self.ax2.set_visible(False)
 
 
-    def plot_inv(self, slowness, grid, noIter):
+    def plot_inv(self):
+        slowness = self.ui.tomo.s
+        grid = self.ui.models[self.ui.model_ind].grid
+        noIter = self.ui.noIter
         self.ax.set_visible(True)
         self.ax2.set_visible(True)
         self.ax
@@ -786,11 +820,18 @@ class InvFig(FigureCanvasQTAgg):
         cmax = max(np.abs(1/slowness))
         cmin = min(np.abs(1/slowness))
         mog = self.ui.models[self.ui.model_ind].mogs[0]
+        color_limits_state = self.ui.set_color_checkbox.isChecked()
+        cmap = 'inferno'
+
+        if color_limits_state:
+            cmax = float(self.ui.Max_editi.text())
+            cmin = float(self.ui.Min_editi.text())
+            cmap = self.ui.fig_combo.currentText()
 
         slowness = slowness.reshape((grid.grx.size -1, grid.grz.size-1)).T
 
 
-        h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= 'inferno', vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
+        h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= cmap, vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
         mpl.colorbar.Colorbar(self.ax2, h)
 
         for tick in self.ax.xaxis.get_major_ticks():
