@@ -12,7 +12,7 @@ class Model:
         self.tlinv_res  = None  # Time-lapse inversion results
 
     @staticmethod
-    def getModelData(model, air, selected_mogs, type):
+    def getModelData(model, air, selected_mogs, type1, type2= ''):
         data = np.array([])
         type2 = ''
 
@@ -23,7 +23,7 @@ class Model:
         for i in selected_mogs:
             mogs.append(model.mogs[i.row()])
 
-        if type == 'tt':
+        if type1 == 'tt':
             fac_dt = 1
 
             mog = mogs[0]
@@ -44,12 +44,28 @@ class Model:
                     no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis = 0)
 
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
-            print(ind.shape)
-            print(np.where(ind == True)[0])
+
             data = np.array([tt[ind], et[ind], no[ind]]).T
 
 
             return data, ind
+
+        if type2 == 'depth':
+            data, ind = getModelData(model, air, selected_mogs, type1)
+            mog = mogs[0]
+            tt = mog.Tx_z_orig.T
+            et = mog.Tx_z_orig.T
+            in_vect = mog.in_vect.T
+            if len(mogs) > 1:
+                for n in (1, len(mogs)):
+                    tt = np.concatenate((tt, mogs[n].Tx_z_orig.T), axis= 0)
+                    et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis= 0)
+                    in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis= 0)
+
+            ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
+            data = np.array([tt[ind], et[ind], no[ind]]).T
+            return data, ind
+
 
 
 
