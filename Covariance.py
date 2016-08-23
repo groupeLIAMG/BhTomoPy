@@ -22,9 +22,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
+from enum import IntEnum
 
 import numpy as np
+
 
 class Covariance:
     """
@@ -34,7 +35,7 @@ class Covariance:
         self.range = r
         self.angle = a
         self.sill = s
-        self.type = '' # To be defined by CovarianceModels
+        self.type = None # To be defined by CovarianceModels
 
     def trans(self, cx):
         d = cx.ndim
@@ -86,10 +87,167 @@ class Covariance:
             
         return np.sqrt(h)
         
+
+class CovarianceCubic(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Cubic
         
-if __name__ == '__main__':
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * (1.0-3.0*np.minimum(h,1)**2 + 2.0*np.minimum(h,1)**3)
+        
+class CovarianceExponential(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Exponential
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * np.exp(-h)
     
-    cm = Covariance(np.array([10.0,3.0]), np.array([30]), np.array([2.5]))
+class CovarianceGaussian(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Gaussian
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * np.exp(-h**2)
+        
+class CovarianceGravimetric(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Gravimetric
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * (h**2 + 1)**-0.5
+
+class CovarianceHoleEffectCosine(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Hole_Effect_Cosine
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * np.cos(2.0*np.pi*h)
+
+class CovarianceHoleEffectSine(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Hole_Effect_Sine
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * np.sin(np.maximum(np.finfo(float).eps,2.0*np.pi*h))/np.maximum(np.finfo(float).eps,2.0*np.pi*h)
+
+class CovarianceLinear(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Linear
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * (1.0-h)
+        
+class CovarianceMagnetic(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Magnetic
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * (h**2 + 1)**-1.5
+    
+class CovarianceNugget(Covariance):
+    def __init__(self, s):
+        Covariance.__init__(self,np.array([1.0, 1.0]), np.array([0.0]), s)
+        self.type = CovarianceModels.Nugget
+        
+    def compute(self, x, x0):
+        d = x.ndim
+        if d==2:
+            d=x.shape[1]
+        self.range = np.ones((d,))
+        if d==3:
+            self.angle = np.zeros((3,))
+        else:
+            self.angle = np.array([0.0])
+            
+        h = self.compute_h(x, x0)
+        return self.sill * (h==0)
+        
+class CovarianceSpherical(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Spherical
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * (1-(1.5*np.minimum(h,1) - 0.5*(np.minimum(h,1))**3))
+        
+class CovarianceThinPlate(Covariance):
+    def __init__(self,r,a,s):
+        Covariance.__init__(self,r,a,s)
+        self.type = CovarianceModels.Thin_Plate
+        
+    def compute(self, x, x0):
+        h = self.compute_h(x, x0)
+        return self.sill * h**2 * np.log(np.maximum(h,np.finfo(float).eps))
+    
+
+
+class CovarianceModels(IntEnum):
+    Cubic = 0
+    Spherical = 1
+    Gaussian = 2
+    Exponential = 3
+    Linear = 4
+    Thin_Plate = 5
+    Gravimetric = 6
+    Magnetic = 7
+    Hole_Effect_Sine = 8
+    Hole_Effect_Cosine = 9
+    Nugget = 10
+    
+    @staticmethod
+    def buildCov(type,r,a,s):
+        if type==0:
+            return CovarianceCubic(r,a,s)
+        elif type==1:
+            return CovarianceSpherical(r,a,s)
+        elif type==2:
+            return CovarianceGaussian(r,a,s)
+        elif type==3:
+            return CovarianceExponential(r,a,s)
+        elif type==4:
+            return CovarianceLinear(r,a,s)
+        elif type==5:
+            return CovarianceThinPlate(r,a,s)
+        elif type==6:
+            return CovarianceGravimetric(r,a,s)
+        elif type==7:
+            return CovarianceMagnetic(r,a,s)
+        elif type==8:
+            return CovarianceHoleEffectSine(r,a,s)
+        elif type==9:
+            return CovarianceHoleEffectCosine(r,a,s)
+        elif type==10:
+            return CovarianceNugget(s)
+        else:
+            raise ValueError('Undefined covariance model')
+    
+    @staticmethod
+    def detDefault2D():
+        return CovarianceSpherical(np.array([4.0,4.0]),np.array([0.0]), 1.0)
+
+    @staticmethod
+    def detDefault3D():
+        return CovarianceSpherical(np.array([4.0,4.0,4.0]),np.array([0.0,0.0,0.0]), 1.0)
+
+
+if __name__ == '__main__':
     
     x=np.array([[0.0,0.0],
                 [0.0,1.0],
@@ -97,9 +255,47 @@ if __name__ == '__main__':
                 [0.0,20.0],
                 [0.0,25.0]])
                 
-    h = cm.compute_h(x,x)
+    cm = Covariance(np.array([10.0,3.0]), np.array([30]), 2.5)
     
-    cm = Covariance(np.array([10.0,3.0,5.0]), np.array([30,15,10.0]), np.array([2.5]))
+    cm = CovarianceCubic(np.array([10.0,3.0]), np.array([30]), 2.5)
+    
+    h = cm.compute_h(x,x)
+    k = cm.compute(x,x)
+
+    cm = CovarianceExponential(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k2 = cm.compute(x,x)
+
+    cm = CovarianceGaussian(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k3 = cm.compute(x,x)
+
+    cm = CovarianceGravimetric(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k4 = cm.compute(x,x)
+
+    cm = CovarianceHoleEffectCosine(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k5 = cm.compute(x,x)
+    
+    cm = CovarianceHoleEffectSine(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k6 = cm.compute(x,x)
+    
+    cm = CovarianceLinear(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k7 = cm.compute(x,x)
+
+    cm = CovarianceMagnetic(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k8 = cm.compute(x,x)
+    
+    cm = CovarianceNugget(np.array([2.5]))
+    k9 = cm.compute(x,x)
+    
+    cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), 2.5)
+    k10 = cm.compute(x,x)
+
+    cm = CovarianceModels.buildCov(5, np.array([10.0,3.0]), np.array([30]), 2.5)
+    k11 = cm.compute(x,x)
+    
+    
+    
+    
+    cm = Covariance(np.array([10.0,3.0,5.0]), np.array([30,15,10.0]), 2.5)
     
     x=np.array([[0.0,0.0,0.0],
                 [0.0,1.0,5.0],
