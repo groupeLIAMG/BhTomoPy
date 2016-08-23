@@ -218,6 +218,10 @@ class InversionUI(QtGui.QFrame):
         self.residualsFig.plot_residuals()
         self.residuals_manager.showMaximized()
 
+    def plot_tomo(self):
+        self.tomoFig.plot_tomo()
+        self.tomo_manager.show()
+
     def initinvUI(self):
 
         #------- Widget Creation -------#
@@ -458,6 +462,16 @@ class InversionUI(QtGui.QFrame):
         residuals_grid.addWidget(self.residualsFig, 1, 0)
         self.residuals_manager.setLayout(residuals_grid)
 
+        #-------Manager for TomoFig ------#
+        self.tomoFig = TomoFig(self)
+        self.tomotool = NavigationToolbar2QT(self.tomoFig, self)
+        self.tomo_manager = QtGui.QWidget()
+        tomo_grid = QtGui.QGridLayout()
+        tomo_grid.addWidget(self.tomotool, 0, 0)
+        tomo_grid.addWidget(self.tomoFig, 1, 0)
+        self.tomo_manager.setLayout(tomo_grid)
+
+
         #--- Color for the labels ---#
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
@@ -556,7 +570,10 @@ class InversionUI(QtGui.QFrame):
         saveAction.triggered.connect(self.savefile)
 
         exportAction = QtGui.QAction('Export', self)
+
         tomoAction = QtGui.QAction('Tomogram', self)
+        tomoAction.triggered.connect(self.plot_tomo)
+
         simulAction = QtGui.QAction('Simulations', self)
 
         raysAction = QtGui.QAction('Rays', self)
@@ -1049,7 +1066,39 @@ class ResidualsFig(FigureCanvasQTAgg):
         return r
 
 
+class TomoFig(FigureCanvasQTAgg):
+    def __init__(self, ui):
+        fig_width, fig_height = 6, 10
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height),dpi= 80, facecolor='white')
+        super(TomoFig, self).__init__(fig)
+        self.ui = ui
+        self.initFig()
 
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        divider = make_axes_locatable(self.ax)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
+        self.ax2 = self.figure.axes[1]
+        self.ax2.set_title('m/ns')
+
+    def plot_tomo(self):
+        grid = self.ui.models[self.ui.model_ind].grid
+        s = self.ui.tomo.s
+
+        cmax = max(1/s)
+        cmin = min(1/s)
+
+        s = s.reshape((grid.grx.size -1, grid.grz.size-1)).T
+
+        h = self.ax.imshow(1/s, interpolation= 'none', cmap= 'inferno', vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
+        mpl.colorbar.Colorbar(self.ax2, h)
+
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(8)
+
+
+
+        self.draw()
 
 
 
