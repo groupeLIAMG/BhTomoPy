@@ -54,7 +54,7 @@ class Model:
             data, ind = getModelData(model, air, selected_mogs, type1)
             mog = mogs[0]
             tt = mog.Tx_z_orig.T
-            et = mog.Tx_z_orig.T
+            et = mog.Rx_z_orig.T
             in_vect = mog.in_vect.T
             if len(mogs) > 1:
                 for n in (1, len(mogs)):

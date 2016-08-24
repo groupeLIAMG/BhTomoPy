@@ -75,18 +75,18 @@ class Grid:
 
     @property
     def dx(self):
-        return self.grx[1]-self.grx[0]
+        return self.grx[1] - self.grx[0]
 
     @property
     def dy(self):
         if len(self.gry) == 0:
             return 0
         else:
-            return self.gry[1]-self.gry[0]
+            return self.gry[1] - self.gry[0]
 
     @property
     def dz(self):
-        return self.grz[1]-self.grz[0]
+        return self.grz[1] - self.grz[0]
 
 
 
@@ -684,9 +684,9 @@ if __name__ == '__main__':
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
 
-    testRaytrace = False
-    testStatic = False
-    testDeriv = False
+    testRaytrace = True
+    testStatic = True
+    testDeriv = True
     testFFTMA = True
 
     if testRaytrace:
@@ -694,6 +694,8 @@ if __name__ == '__main__':
         grz = np.linspace(0,15,num=31)
 
         grid = Grid2D(grx,grz)
+
+        print(grid.dx)
 
         nc = grid.getNumberOfCells()
         slowness = np.ones((nc,))

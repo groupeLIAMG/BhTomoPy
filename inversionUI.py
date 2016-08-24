@@ -17,6 +17,7 @@ class InversionUI(QtGui.QFrame):
         self.setWindowTitle("bh_thomoPy/Inversion")
         self.openmain = OpenMainData(self)
         self.lsqrParams = InvLSQRParams()
+        self.tomo = None
         self.mogs = []
         self.boreholes = []
         self.models = []
@@ -31,9 +32,8 @@ class InversionUI(QtGui.QFrame):
         if self.model_ind == '':
             # If theres no selected model
             return
-        if not self.tomo:
+        if self.tomo is None:
             save_file = open(self.filename, 'wb')
-            self.models[self.model_ind].inv_res = self.tomo
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             return
         if self.algo_combo.currentText() == 'LSQR Solver':
@@ -43,7 +43,7 @@ class InversionUI(QtGui.QFrame):
         else:
             dType = '-att'
 
-        inversion_name, ok = QtGui.QInputDialog.getText(self,'Save inversion results', 'Name of Inversion:', text= 'tomo (date) {} {}'.format(dType, cov))
+        inversion_name, ok = QtGui.QInputDialog.getText(self,'Save inversion results', 'Name of Inversion:', text= 'tomo (insert date) {} {}'.format(dType, cov))
         if ok:
             inv_res_info = (inversion_name, self.tomo, self.lsqrParams)
             self.models[self.model_ind].inv_res.append(inv_res_info)
@@ -54,11 +54,15 @@ class InversionUI(QtGui.QFrame):
                                                 ,buttons=QtGui.QMessageBox.Ok)
 
     def update_previous(self):
+        self.prev_inversion_combo.clear()
+        self.prev_inv.clear()
         if len(self.models[self.model_ind].inv_res) != 0:
             for result in self.models[self.model_ind].inv_res:
+
                 # result[0] == name
                 # result[1] == tomo
                 # result[2] == params
+
                 self.prev_inversion_combo.addItem(result[0])
                 self.prev_inv.append(results)
 
@@ -76,16 +80,16 @@ class InversionUI(QtGui.QFrame):
         else:
             self.X_min_label.setText(str(np.round(model.grid.grx[0], 3)))
             self.X_max_label.setText(str(np.round(model.grid.grx[-1], 3)))
-            self.step_Xi_label.setText(str(model.grid.dx()))
+            self.step_Xi_label.setText(str(model.grid.dx))
 
             self.Z_min_label.setText(str(np.round(model.grid.grz[0], 3)))
             self.Z_max_label.setText(str(np.round(model.grid.grz[-1], 3)))
-            self.step_Zi_label.setText(str(model.grid.dz()))
+            self.step_Zi_label.setText(str(model.grid.dz))
 
             if model.grid.type == '3D':
                 self.Y_min_label.setText(str(np.round(model.grid.gry[0], 3)))
                 self.Y_max_label.setText(str(np.round(model.grid.gry[-1], 3)))
-                self.step_Yi_label.setText(str(model.grid.dy()))
+                self.step_Yi_label.setText(str(model.grid.dy))
 
             self.num_cells_label.setText(str(model.grid.getNumberOfCells()))
 
@@ -180,13 +184,14 @@ class InversionUI(QtGui.QFrame):
             if noIter == 0:
                 s_o = l_moy * np.ones(L.shape[1]).T
 
-            #A = np.array([[L],
-            #              [Dx*params.alphax],
-            #              [Dy*params.alphay],
-            #              [Dz*params.alphaz]])
+            print(Dx)
+            print(Dz)
 
-            #b = np.array([dt, np.zeros((Dx.shape[0], 1)), np.zeros((Dy.shape[0], 1)), np.zeros((Dz.shape[0], 1))])
+            #A = spy.sparse.vstack([L, Dx*params.alphax, Dz*params.alphaz])
+            #print(A.shape)
 
+            #b = np.concatenate((dt, np.zeros(Dx.shape[0]), np.zeros(Dz.shape[0])))
+            #print(b.shape)
             A = L
             b = dt
 
@@ -235,6 +240,10 @@ class InversionUI(QtGui.QFrame):
         self.algo_label.setText('LSQR Inversion -')
         self.noIter_label.setText('Finished, {} Iterations Done'.format(noIter+1))
 
+    def delete_prev(self):
+        n = self.prev_inversion_combo.currentIndex()
+        del self.models[self.model_ind].inv_res[n]
+        self.update_previous()
 
     def plot_rays(self):
         self.raysFig.plot_rays()
@@ -251,6 +260,10 @@ class InversionUI(QtGui.QFrame):
     def plot_tomo(self):
         self.tomoFig.plot_tomo()
         self.tomo_manager.show()
+
+    def view_prev(self):
+        self.previnvFig.plot_tomo()
+        self.prev_inv_manager.show()
 
     def initinvUI(self):
 
@@ -501,6 +514,15 @@ class InversionUI(QtGui.QFrame):
         tomo_grid.addWidget(self.tomoFig, 1, 0)
         self.tomo_manager.setLayout(tomo_grid)
 
+        #-------Manager for TomoFig ------#
+        self.previnvFig = PrevInvFig(self)
+        self.previnvtool = NavigationToolbar2QT(self.previnvFig, self)
+        self.prev_inv_manager = QtGui.QWidget()
+        prev_inv_grid = QtGui.QGridLayout()
+        prev_inv_grid.addWidget(self.previnvtool, 0, 0)
+        prev_inv_grid.addWidget(self.previnvFig, 1, 0)
+        self.prev_inv_manager.setLayout(prev_inv_grid)
+
 
         #--- Color for the labels ---#
         palette = QtGui.QPalette()
@@ -515,6 +537,7 @@ class InversionUI(QtGui.QFrame):
 
         #- Buttons Action -#
         btn_GO.clicked.connect(self.doInv)
+        btn_View.clicked.connect(self.view_prev)
 
         #--- Label ---#
         model_label                 = MyQLabel("Model :", ha= 'center')
@@ -962,8 +985,8 @@ class RaysFig(FigureCanvasQTAgg):
     def plot_rays(self):
         self.ax.cla()
         for n in range(len(self.ui.tomo.rays)):
-            h = self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1])
-        mpl.colorbar.Colorbar(self.ax2, h)
+            self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1])
+        #mpl.colorbar.Colorbar(self.ax2, h)
         self.draw()
 
 class RayDensityFig(FigureCanvasQTAgg):
@@ -1055,9 +1078,9 @@ class ResidualsFig(FigureCanvasQTAgg):
 
         depth, i = Model.getModelData(model, self.ui.air, self.ui.lsqrParams.selectedMogs, 'tt', type2= 'depth')
         dTx = np.sort(np.unique(depth[:, 0]))
-        print(dTx.shape)
+        print(dTx)
         dRx = np.sort(np.unique(depth[:, 1]))
-        print(dRx.shape)
+        print(dRx)
         imdata = np.empty((len(dTx), len(dRx), ))
         imdata[:] = np.NAN
 
@@ -1137,8 +1160,63 @@ class TomoFig(FigureCanvasQTAgg):
 
         self.draw()
 
+class PrevInvFig(FigureCanvasQTAgg):
+    def __init__(self, ui):
+        fig_width, fig_height = 6, 10
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height),dpi= 80, facecolor='white')
+        super(PrevInvFig, self).__init__(fig)
+        self.ui = ui
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.05, 0.07, 0.9, 0.9])
+        divider = make_axes_locatable(self.ax)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
+        self.ax2 = self.figure.axes[1]
+        self.ax2.set_title('m/ns', fontsize= 10)
+        self.ax.set_xlabel('Distance [m]')
+        self.ax.set_ylabel('Elevation [m]')
+
+    def plot_tomo(self):
+        grid = self.ui.models[self.ui.model_ind].grid
+        n = self.ui.prev_inversion_combo.currentIndex()
+        selected_inv_res = self.ui.models[self.ui.model_ind].inv_res[n]
+        s = selected_inv_res[1].s
+
+        cmax = max(1/s)
+        cmin = min(1/s)
+
+        s = s.reshape((grid.grx.size -1, grid.grz.size-1)).T
+
+        self.ax.set_title(selected_inv_res[0])
+
+        h = self.ax.imshow(1/s, interpolation= 'none', cmap= 'inferno', vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
+        mpl.colorbar.Colorbar(self.ax2, h)
+
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(7)
 
 
+
+        self.draw()
+
+class SimulationsFig(FigureCanvasQTAgg):
+    def __init__(self, ui):
+        fig_width, fig_height = 6, 10
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height),dpi= 80, facecolor='white')
+        super(PrevInvFig, self).__init__(fig)
+        self.ui = ui
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.07, 0.07, 0.3, 0.9])
+        self.ax2 = self.figure.add_axes([0.07, 0.07, 0.6, 0.9])
+        divider = make_axes_locatable(self.ax)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
+        divider = make_axes_locatable(self.ax2)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
+        self.ax3 = self.figure.axes[2]
+        self.ax4 = self.figure.axes[3]
 
 class InvLSQRParams:
     def __init__(self):
@@ -1174,8 +1252,6 @@ class invData:
     def __init__(self):
         self.res = np.array([0])
         self.s = np.array([0])
-
-
 
 #--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):
