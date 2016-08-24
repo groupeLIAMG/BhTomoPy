@@ -303,4 +303,4 @@ if __name__ == '__main__':
                 [0.0,20.0,8.0],
                 [0.0,25.0,3.0]])
                 
-    h2 = cm.compute_h(x,x)
+    h2 = cm.compute_h(x,np.zeros((1,3)))

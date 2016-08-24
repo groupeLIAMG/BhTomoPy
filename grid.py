@@ -25,11 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import math
 import numpy as np
 from scipy.sparse import csr_matrix
+import h5py
 
 from cutils import cgrid2d
 
 from utils import nargout
-
+import Covariance
 
 class Grid:
     """
@@ -59,7 +60,7 @@ class Grid:
         Returns the number of cells of the grid
         """
         nc = (self.grx.size-1)*(self.grz.size-1)
-        if self.gry.size>1:
+        if self.gry.size > 1:
             nc *= self.gry.size-1
         return nc
 
@@ -67,20 +68,23 @@ class Grid:
         """
         Returns a tuple with the number of cells in each dimension
         """
-        if self.gry.size>1:
+        if self.gry.size > 1:
             return (self.grx.size-1, self.gry.size-1, self.grz.size-1)
         else:
             return (self.grx.size-1, self.grz.size-1)
 
+    @property
     def dx(self):
         return self.grx[1]-self.grx[0]
 
+    @property
     def dy(self):
-        if len(self.gry)==0:
+        if len(self.gry) == 0:
             return 0
         else:
             return self.gry[1]-self.gry[0]
 
+    @property
     def dz(self):
         return self.grz[1]-self.grz[0]
 
@@ -109,7 +113,7 @@ class Grid:
         nout = nargout()
 
         m = X.shape[0]
-        if m<3:
+        if m < 3:
             raise ValueError('At least 3 data points required')
 
         x0 = np.mean(X, axis=0).T
@@ -351,7 +355,8 @@ class Grid2D(Grid):
                     typeG = b'tilted'
                 else:
                     typeG = b'elliptical'
-            self.cgrid = cgrid2d.Grid2Dcpp(typeG,nx,nz,dx,dz,self.grx[0],self.grz[0],self.nsnx,self.nsnz,self.nthreads)
+            self.cgrid = cgrid2d.Grid2Dcpp(typeG,nx,nz,dx,dz,self.grx[0],self.grz[0],
+                                           self.nsnx,self.nsnz,self.nthreads)
 
         if nout==2:
             tt,L = self.cgrid.raytrace(slowness,xi,theta,Tx,Rx,t0)
@@ -410,7 +415,8 @@ class Grid2D(Grid):
         nx = np.ceil((xmax-xmin)/dx)
         nz = np.ceil((zmax-zmin)/dz)
 
-        c = np.vstack( [xmin+np.kron(np.ones((nz,)), np.arange(nx)*dx), zmin+np.kron(np.arange(nz), np.ones((nx,))*dz)] ).T
+        c = np.vstack( [xmin+np.kron(np.ones((nz,)), np.arange(nx)*dx),
+                        zmin+np.kron(np.arange(nz), np.ones((nx,))*dz)] ).T
         return c
 
 
@@ -479,9 +485,11 @@ class Grid2D(Grid):
             j = np.zeros((nz * nx * 2,))
             v = np.zeros((nz * nx * 2,))
             
-            jj = np.vstack((np.hstack((0,np.arange(nx-1))),np.hstack((np.arange(1,nx), nx-1)))).T
+            jj = np.vstack((np.hstack((0,np.arange(nx-1))),
+                            np.hstack((np.arange(1,nx), nx-1)))).T
             jj = jj.flatten()
-            vd = idx*np.hstack((np.array([-1,1]),np.tile(np.array([-0.5,0.5]),(nx-2,)),np.array([-1,1])))
+            vd = idx*np.hstack((np.array([-1,1]),
+                                np.tile(np.array([-0.5,0.5]),(nx-2,)),np.array([-1,1])))
             
             for n in range(nz):
                 j[n*2*nx:(n+1)*2*nx] = n*nx + jj
@@ -520,7 +528,9 @@ class Grid2D(Grid):
             j = np.zeros((nz * nx * 3,))
             v = np.zeros((nz * nx * 3,))
             
-            jj = np.vstack((np.hstack((0,np.arange(nx-2),nx-3)),np.hstack((1,np.arange(1,nx-1), nx-2)),np.hstack((2,np.arange(2,nx), nx-1)))).T
+            jj = np.vstack((np.hstack((0,np.arange(nx-2),nx-3)),
+                            np.hstack((1,np.arange(1,nx-1), nx-2)),
+                            np.hstack((2,np.arange(2,nx), nx-1)))).T
             jj = jj.flatten()
             vd = idx2*np.tile(np.array([1.0,-2.0,1.0]),(nx,))
             
@@ -550,6 +560,124 @@ class Grid2D(Grid):
         
         return Dx,Dy,Dz
         
+    def preFFTMA(self, cm):
+        """
+        Compute matrix G for FFT-MA simulations
+        
+        INPUT
+            cm: list of covariance models
+            
+        OUTPUT
+            G: covariance matrix in spectral domain
+        """
+        small = 1.0e-6
+        Nx = 2*self.grx.size
+        Nz = 2*self.grz.size
+        
+        Nx2 = Nx/2
+        Nz2 = Nz/2
+        
+        x = self.dx * np.hstack((np.arange(Nx2), np.arange(-Nx2+1,1)))
+        z = self.dz * np.hstack((np.arange(Nz2), np.arange(-Nz2+1,1)))
+
+        x = np.kron(x,np.ones((Nz,)))
+        z = np.kron(z,np.ones((1,Nx)).T).flatten()
+        
+        d = 0
+        for c in cm:
+            d = d + c.compute(np.vstack((x,z)).T, np.zeros((1,2)))
+        K = d.reshape(Nx,Nz).T
+        
+        mk = True
+        while mk:
+            mk = False
+            if np.min(K[:,0])>small:
+                # Enlarge grid to make sure that covariance falls to zero
+                Nz = 2*Nz
+                mk = True
+            
+            if np.min(K[0,:])>small:
+                Nx = 2*Nx
+                mk = True
+            
+            if mk:
+                Nx2 = Nx/2
+                Nz2 = Nz/2
+        
+                x = self.dx * np.hstack((np.arange(Nx2), np.arange(-Nx2+1,1)))
+                z = self.dz * np.hstack((np.arange(Nz2), np.arange(-Nz2+1,1)))
+
+                x = np.kron(x,np.ones((Nz,)))
+                z = np.kron(z,np.ones((1,Nx)).T).flatten()
+        
+                d = 0
+                for c in cm:
+                    d = d + c.compute(np.vstack((x,z)).T, np.zeros((1,2)))
+                    K = d.reshape(Nx,Nz).T
+            
+        return np.sqrt(np.fft.fft2(K))
+        
+    def FFTMA(self, G):
+        """
+        Perform FFT-MA simulation using pre-computed spectral matrix
+        
+        INPUT
+            G: covariance matrix in spectral domain as return by preFFTMA
+            
+        OUTPUT
+            Z: simulated field
+        """
+        Nz,Nx = G.shape
+        U = np.random.randn(G.shape[0], G.shape[1])
+        Z = np.real(np.fft.ifft2(G*U))
+        
+        return Z[int(round((Nz+2)/2)):(int(round((Nz+2)/2))+self.grz.size-1),
+                 int(round((Nx+2)/2)):(int(round((Nx+2)/2))+self.grx.size-1)]
+        
+    def toXdmf(self, field, fieldname, filename):
+        """
+        Save a field in xdmf format
+        
+        INPUT
+            field: data array of size equal to the number of cells in the grid
+            fieldname: name to be assinged to the data (string)
+            filename: name of xdmf file (string)
+        """
+        nx = self.grx.size-1
+        nz = self.grz.size-1
+        ox = self.grx[0] + self.dx/2
+        oz = self.grz[0] + self.dz/2
+        
+        f = open(filename,'w')
+
+        f.write('<?xml version="1.0" ?>\n')
+        f.write('<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>\n')
+        f.write('<Xdmf xmlns:xi="http://www.w3.org/2003/XInclude" Version="2.2">\n')
+        f.write(' <Domain>\n')
+        f.write('   <Grid Name="Structured Grid" GridType="Uniform">\n')
+        f.write('     <Topology TopologyType="2DCORECTMesh" NumberOfElements="'+
+        repr(nz+1)+' '+repr(nx+1)+'"/>\n')
+        f.write('     <Geometry GeometryType="ORIGIN_DXDY">\n')
+        f.write('       <DataItem Dimensions="2 " NumberType="Float" Precision="4" Format="XML">\n')
+        f.write('          '+repr(oz)+' '+repr(ox)+'\n')
+        f.write('       </DataItem>\n')
+        f.write('       <DataItem Dimensions="2 " NumberType="Float" Precision="4" Format="XML">\n')
+        f.write('        '+repr(self.dz)+' '+repr(self.dx)+'\n')
+        f.write('       </DataItem>\n')
+        f.write('     </Geometry>\n')
+        f.write('     <Attribute Name="'+fieldname+'" AttributeType="Scalar" Center="Cell">\n')
+        f.write('       <DataItem Dimensions="'+repr(nz)+' '+repr(nx)+
+        '" NumberType="Float" Precision="4" Format="HDF">'+filename+'.h5:/'+fieldname+'</DataItem>\n')
+        f.write('     </Attribute>\n')
+        f.write('   </Grid>\n')
+        f.write(' </Domain>\n')
+        f.write('</Xdmf>\n')
+        
+        f.close()
+        
+        h5f = h5py.File(filename+'.h5', 'w')
+        h5f.create_dataset(fieldname, data=field.reshape((nx,nz)).astype(np.float32))
+        h5f.close()
 
 if __name__ == '__main__':
 
@@ -558,7 +686,8 @@ if __name__ == '__main__':
 
     testRaytrace = False
     testStatic = False
-    testDeriv = True
+    testDeriv = False
+    testFFTMA = True
 
     if testRaytrace:
         grx = np.linspace(0,10,num=21)
@@ -569,8 +698,18 @@ if __name__ == '__main__':
         nc = grid.getNumberOfCells()
         slowness = np.ones((nc,))
 
-        Tx = np.array([[0.2, 0.0, 0.2],[0.2, 0.0, 0.2],[0.2, 0.0, 0.2],[0.2, 0.0, 1.2],[0.2, 0.0, 1.2],[0.2, 0.0, 1.2]])
-        Rx = np.array([[9.8, 0.0, 0.2],[9.8, 0.0, 3.2],[9.8, 0.0, 6.2],[9.8, 0.0, 0.2],[9.8, 0.0, 3.2],[9.8, 0.0, 6.2]])
+        Tx = np.array([[0.2, 0.0, 0.2],
+                       [0.2, 0.0, 0.2],
+                       [0.2, 0.0, 0.2],
+                       [0.2, 0.0, 1.2],
+                       [0.2, 0.0, 1.2],
+                       [0.2, 0.0, 1.2]])
+        Rx = np.array([[9.8, 0.0, 0.2],
+                       [9.8, 0.0, 3.2],
+                       [9.8, 0.0, 6.2],
+                       [9.8, 0.0, 0.2],
+                       [9.8, 0.0, 3.2],
+                       [9.8, 0.0, 6.2]])
         t0 = np.zeros([6,])
 
         tt1,L1,rays1 = grid.raytrace(slowness, Tx, Rx, t0)
@@ -761,3 +900,22 @@ if __name__ == '__main__':
         plt.matshow(dsz.reshape((nz,nx)))
         plt.colorbar()
         plt.show()
+        
+    if testFFTMA:
+        grx = np.linspace(0,3,num=50)
+        grz = np.linspace(0,6,num=100)
+        nx=len(grx)-1
+        nz=len(grz)-1
+
+        grid = Grid2D(grx,grz)
+        
+        cm = [Covariance.CovarianceExponential(np.array([5.0,2.0]), np.array([0]), 2.5)]
+
+        G = grid.preFFTMA(cm)
+        
+        Z = grid.FFTMA(G)
+        
+        plt.matshow(Z)
+        plt.show()
+        
+        grid.toXdmf(Z,'fftma','test.xmf')
