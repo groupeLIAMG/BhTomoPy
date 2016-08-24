@@ -10,6 +10,8 @@ import scipy as spy
 from scipy.sparse import linalg
 import pickle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy import interpolate
+from invLSQR import invLSQR
 
 class InversionUI(QtGui.QFrame):
     def __init__(self, parent=None):
@@ -25,6 +27,7 @@ class InversionUI(QtGui.QFrame):
         self.prev_inv = []
         self.filename = ''
         self.model_ind = ''
+        self.noIter = 0
         self.initUI()
         self.initinvUI()
 
@@ -133,7 +136,8 @@ class InversionUI(QtGui.QFrame):
 
         if self.algo_combo.currentText() == 'LSQR Solver':
             self.update_params()
-            self.invLSQR(self.lsqrParams, data, idata, model.grid, L)
+
+            self.tomo = invLSQR(self.lsqrParams, data, idata, model.grid, L, app, self)
 
 
     def invLSQR(self, params, data, idata, grid, L):
@@ -184,17 +188,13 @@ class InversionUI(QtGui.QFrame):
             if noIter == 0:
                 s_o = l_moy * np.ones(L.shape[1]).T
 
-            print(Dx)
-            print(Dz)
-
-            #A = spy.sparse.vstack([L, Dx*params.alphax, Dz*params.alphaz])
+            A = spy.sparse.vstack([L, Dx*params.alphax, Dz*params.alphaz])
             #print(A.shape)
 
-            #b = np.concatenate((dt, np.zeros(Dx.shape[0]), np.zeros(Dz.shape[0])))
+            b = np.concatenate((dt, np.zeros(Dx.shape[0]), np.zeros(Dz.shape[0])))
             #print(b.shape)
-            A = L
-            b = dt
-
+            #A = L
+            #b = dt
 
             if not np.all(cont == 0) and params.useCont == 1:
                 #TODO
@@ -933,7 +933,7 @@ class InvFig(FigureCanvasQTAgg):
         self.ax2.set_visible(False)
 
 
-    def plot_inv(self):
+    def plot_inv(self, s):
 
         self.ax.set_visible(True)
         self.ax2.set_visible(True)
@@ -943,7 +943,7 @@ class InvFig(FigureCanvasQTAgg):
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
 
-        slowness = self.ui.tomo.s
+        slowness = s
         grid = self.ui.models[self.ui.model_ind].grid
         noIter = self.ui.noIter
         cmax = max(np.abs(1/slowness))
@@ -957,7 +957,7 @@ class InvFig(FigureCanvasQTAgg):
             cmin = float(self.ui.Min_editi.text())
 
 
-        slowness = slowness.reshape((grid.grx.size -1, grid.grz.size-1)).T
+        slowness = slowness.reshape((grid.grz.size -1, grid.grx.size-1))
 
 
         h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= cmap, vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
@@ -984,9 +984,25 @@ class RaysFig(FigureCanvasQTAgg):
 
     def plot_rays(self):
         self.ax.cla()
+
+        res = self.ui.tomo.invData.res[:, -1]
+
+        rmax = 1.001*max(np.abs(res.flatten()))
+        rmin = -rmax
+
+        c = np.array([[0, 0, 1],
+                      [0.8, 0.8, 0.8],
+                      [1, 0, 0]])
+
+        c = interpolate.interp1d(np.arange(-100, 101, 100).T, c.T)( np.arange(-100, 101, 2).T)
+        m = 200/(rmax-rmin)
+
+
         for n in range(len(self.ui.tomo.rays)):
-            self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1])
-        #mpl.colorbar.Colorbar(self.ax2, h)
+            p = m*res[n]
+            color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
+            self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1], c= color)
+            #mpl.colorbar.Colorbar(self.ax2, h)
         self.draw()
 
 class RayDensityFig(FigureCanvasQTAgg):
@@ -1235,23 +1251,7 @@ class InvLSQRParams:
         self.nbreiter       = 0
         self.dv_max         = 0
 
-class Tomo:
-    def __init__(self):
-        self.rays   = np.array([])
-        self.L      = np.array([])
-        self.invData = invData()
-        self.no_trace = np.array([])
-        self.x = np.array([])
-        self.y = np.array([])
-        self.z = np.array([])
-        self.s = 0
-        self.res = np.array([0])
-        self.var_res = np.array([])
 
-class invData:
-    def __init__(self):
-        self.res = np.array([0])
-        self.s = np.array([0])
 
 #--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):
