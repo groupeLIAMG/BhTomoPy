@@ -7,8 +7,12 @@
     <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="130" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
+    <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="tomogram">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_constraints.p" afterPath="$PROJECT_DIR$/test_constraints.p" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_constraints_backup.p" afterPath="$PROJECT_DIR$/test_constraints_backup.p" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DatabaseUI.py" afterPath="$PROJECT_DIR$/DatabaseUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/inversionUI.py" afterPath="$PROJECT_DIR$/inversionUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model.py" afterPath="$PROJECT_DIR$/model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -52,16 +56,35 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/inversionUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.46131805">
-              <caret line="1081" column="26" selection-start-line="1081" selection-start-column="26" selection-end-line="1081" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="1196" column="54" selection-start-line="1196" selection-start-column="54" selection-end-line="1196" selection-end-column="54" />
               <folding>
                 <element signature="e#25#35#0" expanded="true" />
-                <element signature="e#8255#18280#0" expanded="false" />
-                <element signature="e#35207#37373#0" expanded="false" />
+                <element signature="e#9460#19485#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.17127071">
+              <caret line="307" column="44" selection-start-line="307" selection-start-column="44" selection-end-line="307" selection-end-column="44" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="cgrid2d.pyx" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="55" column="0" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -70,7 +93,7 @@
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1955" column="8" selection-start-line="1955" selection-start-column="8" selection-end-line="1960" selection-end-column="63" />
+              <caret line="216" column="20" selection-start-line="216" selection-start-column="20" selection-end-line="216" selection-end-column="117" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -83,16 +106,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="355" column="56" selection-start-line="355" selection-start-column="56" selection-end-line="355" selection-end-column="73" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="mog.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mog.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="96" column="50" selection-start-line="96" selection-start-column="50" selection-end-line="96" selection-end-column="50" />
               <folding />
             </state>
           </provider>
@@ -112,7 +125,7 @@
         <entry file="file://$PROJECT_DIR$/model.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="56" column="32" selection-start-line="56" selection-start-column="32" selection-end-line="56" selection-end-column="32" />
+              <caret line="10" column="27" selection-start-line="10" selection-start-column="27" selection-end-line="10" selection-end-column="27" />
               <folding />
             </state>
           </provider>
@@ -188,7 +201,6 @@
         <option value="$PROJECT_DIR$/testData/Covariance.py" />
         <option value="$PROJECT_DIR$/Covariance.py" />
         <option value="$PROJECT_DIR$/grid.py" />
-        <option value="$PROJECT_DIR$/DatabaseUI.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
@@ -196,6 +208,7 @@
         <option value="$PROJECT_DIR$/manualAmpUI.py" />
         <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/inversionUI.py" />
+        <option value="$PROJECT_DIR$/DatabaseUI.py" />
       </list>
     </option>
   </component>
@@ -203,9 +216,10 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-7" />
-    <option name="width" value="1378" />
-    <option name="height" value="735" />
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1382" />
+    <option name="height" value="744" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -249,6 +263,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -270,7 +285,6 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -514,11 +528,11 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.inversionUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.manual_ttUI" />
-        <item index="2" class="java.lang.String" itemvalue="Python.manualAmpUI" />
-        <item index="3" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
-        <item index="4" class="java.lang.String" itemvalue="Python.DatabaseUI" />
+        <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.inversionUI" />
+        <item index="2" class="java.lang.String" itemvalue="Python.manual_ttUI" />
+        <item index="3" class="java.lang.String" itemvalue="Python.manualAmpUI" />
+        <item index="4" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
       </list>
     </recent_temporary>
   </component>
@@ -532,12 +546,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00138" summary="update zop">
-      <created>1470256434360</created>
-      <option name="number" value="00138" />
-      <option name="project" value="LOCAL" />
-      <updated>1470256434365</updated>
     </task>
     <task id="LOCAL-00139" summary="update layout database ui et manualtt ui">
       <created>1470328102766</created>
@@ -827,7 +835,13 @@
       <option name="project" value="LOCAL" />
       <updated>1471982297563</updated>
     </task>
-    <option name="localTasksCounter" value="187" />
+    <task id="LOCAL-00187" summary="tomogram">
+      <created>1471983278763</created>
+      <option name="number" value="00187" />
+      <option name="project" value="LOCAL" />
+      <updated>1471983278763</updated>
+    </task>
+    <option name="localTasksCounter" value="188" />
     <servers />
   </component>
   <component name="TodoView">
@@ -840,22 +854,22 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="0" width="1378" height="735" extended-state="0" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24104477" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24032739" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37810946" sideWeight="0.51044774" order="10" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3283582" sideWeight="0.49179104" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32669982" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3747927" sideWeight="0.48955223" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3627451" sideWeight="0.48955223" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37417218" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37254903" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -897,7 +911,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="build grid fonctionnel" />
     <MESSAGE value="début stats best fit plane&#10;" />
     <MESSAGE value="update manual amp ui" />
     <MESSAGE value="gestion d'action interface graphique&#10;" />
@@ -922,7 +935,8 @@
     <MESSAGE value="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui" />
     <MESSAGE value="update set color limits inversionUI" />
     <MESSAGE value="update des résultats de l'inversion" />
-    <option name="LAST_COMMIT_MESSAGE" value="update des résultats de l'inversion" />
+    <MESSAGE value="tomogram" />
+    <option name="LAST_COMMIT_MESSAGE" value="tomogram" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1102,25 +1116,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="33" selection-start-line="23" selection-start-column="33" selection-end-line="23" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/scipy/sparse/linalg/interface.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="172" column="11" selection-start-line="172" selection-start-column="11" selection-end-line="172" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="174" column="12" selection-start-line="174" selection-start-column="12" selection-end-line="175" selection-end-column="82" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1170,7 +1169,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.50285715">
           <caret line="95" column="0" selection-start-line="95" selection-start-column="0" selection-end-line="95" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1182,16 +1180,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MogUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1955" column="8" selection-start-line="1955" selection-start-column="8" selection-end-line="1960" selection-end-column="63" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1200,23 +1188,48 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/MogUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="216" column="20" selection-start-line="216" selection-start-column="20" selection-end-line="216" selection-end-column="117" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/model.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="56" column="32" selection-start-line="56" selection-start-column="32" selection-end-line="56" selection-end-column="32" />
+          <caret line="10" column="27" selection-start-line="10" selection-start-column="27" selection-end-line="10" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="55" column="0" selection-start-line="55" selection-start-column="0" selection-end-line="55" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/inversionUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.46131805">
-          <caret line="1081" column="26" selection-start-line="1081" selection-start-column="26" selection-end-line="1081" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1196" column="54" selection-start-line="1196" selection-start-column="54" selection-end-line="1196" selection-end-column="54" />
           <folding>
             <element signature="e#25#35#0" expanded="true" />
-            <element signature="e#8255#18280#0" expanded="false" />
-            <element signature="e#35207#37373#0" expanded="false" />
+            <element signature="e#9460#19485#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.17127071">
+          <caret line="307" column="44" selection-start-line="307" selection-start-column="44" selection-end-line="307" selection-end-column="44" />
+          <folding />
         </state>
       </provider>
     </entry>

@@ -21,17 +21,47 @@ class InversionUI(QtGui.QFrame):
         self.boreholes = []
         self.models = []
         self.air = []
+        self.prev_inv = []
         self.filename = ''
         self.model_ind = ''
         self.initUI()
         self.initinvUI()
 
     def savefile(self):
+        if self.model_ind == '':
+            # If theres no selected model
+            return
+        if not self.tomo:
+            save_file = open(self.filename, 'wb')
+            self.models[self.model_ind].inv_res = self.tomo
+            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+            return
+        if self.algo_combo.currentText() == 'LSQR Solver':
+            cov = '-LSQR'
+        if self.T_and_A_combo.currentText() == 'Traveltime':
+            dType = '-vel'
+        else:
+            dType = '-att'
+
+        inversion_name, ok = QtGui.QInputDialog.getText(self,'Save inversion results', 'Name of Inversion:', text= 'tomo (date) {} {}'.format(dType, cov))
+        if ok:
+            inv_res_info = (inversion_name, self.tomo, self.lsqrParams)
+            self.models[self.model_ind].inv_res.append(inv_res_info)
+
         save_file = open(self.filename, 'wb')
-        self.models[self.model_ind].inv_res = self.tomo
         pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
         dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
+
+    def update_previous(self):
+        if len(self.models[self.model_ind].inv_res) != 0:
+            for result in self.models[self.model_ind].inv_res:
+                # result[0] == name
+                # result[1] == tomo
+                # result[2] == params
+                self.prev_inversion_combo.addItem(result[0])
+                self.prev_inv.append(results)
+
     def update_data(self):
         for mog in self.models[self.model_ind].mogs:
             self.mog_list.addItem(mog.name)
@@ -478,9 +508,9 @@ class InversionUI(QtGui.QFrame):
 
         #------- Widgets Creation -------#
         #--- Buttons Set ---#
-        btn_View        = QtGui.QPushButton("Show Stats")
-        btn_Delete      = QtGui.QPushButton("Add Structure")
-        btn_Load        = QtGui.QPushButton("Remove Structure")
+        btn_View        = QtGui.QPushButton("View")
+        btn_Delete      = QtGui.QPushButton("Delete")
+        btn_Load        = QtGui.QPushButton("Load")
         btn_GO          = QtGui.QPushButton("GO")
 
         #- Buttons Action -#
@@ -831,6 +861,7 @@ class OpenMainData(QtGui.QWidget):
         self.inv.model_ind = self.model_combo.currentIndex()
         self.inv.update_data()
         self.inv.update_grid()
+        self.inv.update_previous()
         self.close()
 
     def initUI(self):
@@ -957,7 +988,7 @@ class RayDensityFig(FigureCanvasQTAgg):
         dim = self.ui.models[self.ui.model_ind].grid.getNcell()
         grid = self.ui.models[self.ui.model_ind].grid
 
-        #rd = np.full((1368,), sum(self.ui.tomo.L))
+
         tmp = sum(self.ui.tomo.L)
         rd = tmp.toarray()
         rd = rd.reshape((grid.grx.size -1, grid.grz.size-1)).T
@@ -1042,7 +1073,11 @@ class ResidualsFig(FigureCanvasQTAgg):
 
                 #progressBar.setValue(i/len(dTx))
 
-
+        z = np.zeros(imdata.shape)
+        nan_ind = np.isnan(imdata)
+        not_nan_ind = np.isfinite(imdata)
+        z[nan_ind] = 0
+        z[not_nan_ind] = 1
 
         self.ax1.plot(np.arange(nIt), rms[:nIt], marker = 'o', ls= 'none')
         self.ax1.set_xlim(-0.3, nIt - 0.7)
@@ -1075,11 +1110,13 @@ class TomoFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.05, 0.07, 0.9, 0.9])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
         self.ax2 = self.figure.axes[1]
-        self.ax2.set_title('m/ns')
+        self.ax2.set_title('m/ns', fontsize= 10)
+        self.ax.set_xlabel('Distance [m]')
+        self.ax.set_ylabel('Elevation [m]')
 
     def plot_tomo(self):
         grid = self.ui.models[self.ui.model_ind].grid
@@ -1094,7 +1131,7 @@ class TomoFig(FigureCanvasQTAgg):
         mpl.colorbar.Colorbar(self.ax2, h)
 
         for tick in self.ax.xaxis.get_major_ticks():
-            tick.label.set_fontsize(8)
+            tick.label.set_fontsize(7)
 
 
 
@@ -1157,7 +1194,7 @@ if __name__ == '__main__':
 
     inv_ui = InversionUI()
 #    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
-    inv_ui.openmain.load_file('test_constraints.p')
+    inv_ui.openmain.load_file('test_constraints_backup.p')
     inv_ui.openmain.ok()
     inv_ui.showMaximized()
     #residuals = ResidualsFig(inv_ui)
