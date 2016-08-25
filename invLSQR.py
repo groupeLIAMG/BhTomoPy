@@ -28,7 +28,7 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
 
         for noIter in range(params.numItCurved + params.numItStraight):
             if ui != None and app != None:
-                ui.noIter = noIter
+                ui.gv.noIter = noIter
                 app.processEvents()
 
             if noIter == 0:
@@ -84,7 +84,7 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
             if ui != None:
                 ui.algo_label.setText('LSQR Inversion -')
                 ui.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
-                ui.invFig.plot_inv(tomo.s)
+                ui.gv.invFig.plot_inv(tomo.s)
             else:
                 print('LSQR Inversion - Ray Tracing, Iteration {}'.format(noIter+1))
 

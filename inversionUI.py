@@ -27,7 +27,6 @@ class InversionUI(QtGui.QFrame):
         self.prev_inv = []
         self.filename = ''
         self.model_ind = ''
-        self.noIter = 0
         self.initUI()
         self.initinvUI()
 
@@ -383,16 +382,9 @@ class InversionUI(QtGui.QFrame):
 
     def initUI(self):
 
-        #-------- Manager for InvFig -------#
-        self.invFig = InvFig(self)
-        self.invtool = NavigationToolbar2QT(self.invFig, self)
-        self.invmanager = QtGui.QWidget()
-        inv_grid = QtGui.QGridLayout()
-        inv_grid.addWidget(self.invtool, 0, 0)
-        inv_grid.addWidget(self.invFig, 1, 0)
-        inv_grid.setContentsMargins(0, 0, 0, 0)
-        inv_grid.setVerticalSpacing(0)
-        self.invmanager.setLayout(inv_grid)
+        #------- Frame to fill invFig's place before loading model -------#
+        self.inv_frame = QtGui.QFrame()
+        self.inv_frame.setStyleSheet('background: white')
 
         #-------Manager for RaysFig ------#
         self.raysFig = RaysFig(self)
@@ -519,8 +511,8 @@ class InversionUI(QtGui.QFrame):
         self.Max_editi.setAlignment(QtCore.Qt.AlignHCenter)
 
         #- Edits' Actions -#
-        self.Min_editi.editingFinished.connect(self.invFig.plot_inv)
-        self.Max_editi.editingFinished.connect(self.invFig.plot_inv)
+        #self.Min_editi.editingFinished.connect(self.invFig.plot_inv)
+        #self.Max_editi.editingFinished.connect(self.invFig.plot_inv)
 
         #--- Checkboxes ---#
         self.use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
@@ -529,7 +521,7 @@ class InversionUI(QtGui.QFrame):
 
         #- Checboxes Actions -#
         self.use_const_checkbox.stateChanged.connect(self.update_params)
-        self.set_color_checkbox.stateChanged.connect(self.invFig.plot_inv)
+        #self.set_color_checkbox.stateChanged.connect(self.invFig.plot_inv)
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
@@ -746,7 +738,7 @@ class InversionUI(QtGui.QFrame):
         self.global_grid.addWidget(Inv_Param_groupbox, 6, 0)
         self.global_grid.addWidget(Sub_right_Widget, 0, 1)
         self.global_grid.addWidget(iterFrame, 0, 2)
-        self.global_grid.addWidget(self.invmanager, 1, 1, 7, 2)
+        self.global_grid.addWidget(self.inv_frame, 1, 1, 7, 2)
         self.global_grid.setColumnStretch(2, 300)
         self.global_grid.setVerticalSpacing(1)
         self.global_grid.setRowStretch(7, 100)
@@ -796,6 +788,9 @@ class OpenMainData(QtGui.QWidget):
 
     def ok(self):
         self.inv.model_ind = self.model_combo.currentIndex()
+        self.inv.inv_frame.setHidden(True)
+        self.inv.gv = Gridviewer(self.inv.models[self.inv.model_ind].grid, self.inv)
+        self.inv.global_grid.addWidget(self.inv.gv, 1, 1, 7, 2)
         self.inv.update_data()
         self.inv.update_grid()
         self.inv.update_previous()
@@ -831,10 +826,11 @@ class OpenMainData(QtGui.QWidget):
         self.setLayout(master_grid)
 
 class InvFig(FigureCanvasQTAgg):
-    def __init__(self, ui):
+    def __init__(self, gv, ui):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
         super(InvFig, self).__init__(fig)
+        self.gv = gv
         self.ui = ui
         self.initFig()
 
@@ -859,12 +855,11 @@ class InvFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Elevation [m]')
         self.ax2.set_title('m/ns')
 
-        grid = self.ui.models[self.ui.model_ind].grid
+        grid = self.gv.grid
         slowness = s.reshape((grid.grx.size -1, grid.grz.size-1)).T
-        noIter = self.ui.noIter
+        noIter = self.gv.noIter
         cmax = max(np.abs(1/s))
         cmin = min(np.abs(1/s))
-        mog = self.ui.models[self.ui.model_ind].mogs[0]
         color_limits_state = self.ui.set_color_checkbox.isChecked()
         cmap = self.ui.fig_combo.currentText()
 
@@ -897,10 +892,6 @@ class InvFig(FigureCanvasQTAgg):
                 tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step])
             else:
                 tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step, 4*tick_step])
-
-
-
-
 
         self.ax.set_xticks(tick_arrangement)
         self.ax.invert_yaxis()
@@ -1174,8 +1165,27 @@ class SimulationsFig(FigureCanvasQTAgg):
         self.ax4 = self.figure.axes[3]
 
 class Gridviewer(QtGui.QWidget):
-    def __init__(self):
-        pass
+    def __init__(self, grid, ui):
+        super(Gridviewer, self).__init__()
+        self.grid = grid
+        self.ui = ui
+        if self.grid.type == '2D':
+            self.init2DUI()
+        self.noIter = 0
+
+    def init2DUI(self):
+        #-------- Manager for InvFig -------#
+        self.invFig = InvFig(self, self.ui)
+        self.invtool = NavigationToolbar2QT(self.invFig, self)
+        inv_grid = QtGui.QGridLayout()
+        inv_grid.addWidget(self.invtool, 0, 0)
+        inv_grid.addWidget(self.invFig, 1, 0)
+        inv_grid.setContentsMargins(0, 0, 0, 0)
+        inv_grid.setVerticalSpacing(0)
+        self.setLayout(inv_grid)
+
+
+
 
 class InvLSQRParams:
     def __init__(self):
