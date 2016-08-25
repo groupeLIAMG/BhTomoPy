@@ -269,9 +269,11 @@ class Grid2D(Grid):
     Class for 2D grids
 
 
-    Note: - grid data stored in 2D arrays should be nz x nx in size
-          - when building vectors from 2D grid data (with numpy.flatten()), X is
-            the "fast" axis, contrary to matlab where it is Z
+    Important: the raytracing codes are based on a column-major order
+            for the slowness vector (Z is the "fast" axis).
+            To visualize the slowness model with Z axis vertical and X horizontal,
+            the vector should be reshaped as 
+            slowness.reshape(nx,nz).T
 
     """
 
@@ -485,35 +487,37 @@ class Grid2D(Grid):
             j = np.zeros((nz * nx * 2,))
             v = np.zeros((nz * nx * 2,))
             
-            jj = np.vstack((np.hstack((0,np.arange(nx-1))),
-                            np.hstack((np.arange(1,nx), nx-1)))).T
+                            
+            jj = np.vstack((np.arange(nz),nz+np.arange(nz))).T
             jj = jj.flatten()
-            vd = idx*np.hstack((np.array([-1,1]),
-                                np.tile(np.array([-0.5,0.5]),(nx-2,)),np.array([-1,1])))
+            j[:2*nz] = jj
+            vd = idx * np.tile(np.array([-1,1]),(nz,))
+            v[:2*nz] = vd
             
-            for n in range(nz):
-                j[n*2*nx:(n+1)*2*nx] = n*nx + jj
-                v[n*2*nx:(n+1)*2*nx] = vd
+            jj = np.vstack((-nz+np.arange(nz),nz+np.arange(nz))).T
+            jj = jj.flatten()
+            for n in range(1,nx-1):
+                j[n*2*nz:(n+1)*2*nz] = n*nz + jj
+                v[n*2*nz:(n+1)*2*nz] = 0.5*vd
+            
+            jj = np.vstack((-nz+np.arange(nz),np.arange(nz))).T
+            jj = jj.flatten()
+            j[(nx-1)*2*nz:nx*2*nz] = (nx-1)*nz + jj
+            v[(nx-1)*2*nz:nx*2*nz] = vd
             
             Dx = csr_matrix((v,(i,j)))
 
-            jj = np.vstack((np.arange(nx),nx+np.arange(nx))).T
-            jj = jj.flatten()
-            j[:2*nx] = jj
-            vd = idz * np.tile(np.array([-1,1]),(nx,))
-            v[:2*nx] = vd
-            
-            jj = np.vstack((-nx+np.arange(nx),nx+np.arange(nx))).T
-            jj = jj.flatten()
-            for n in range(1,nz-1):
-                j[n*2*nx:(n+1)*2*nx] = n*nx + jj
-                v[n*2*nx:(n+1)*2*nx] = 0.5*vd
 
-            jj = np.vstack((-nx+np.arange(nx),np.arange(nx))).T
+            jj = np.vstack((np.hstack((0,np.arange(nz-1))),
+                            np.hstack((np.arange(1,nz), nz-1)))).T
             jj = jj.flatten()
-            j[(nz-1)*2*nx:nz*2*nx] = (nz-1)*nx + jj
-            v[(nz-1)*2*nx:nz*2*nx] = vd
+            vd = idz*np.hstack((np.array([-1,1]),
+                                np.tile(np.array([-0.5,0.5]),(nz-2,)),np.array([-1,1])))
             
+            for n in range(nx):
+                j[n*2*nz:(n+1)*2*nz] = n*nz + jj
+                v[n*2*nz:(n+1)*2*nz] = vd
+
             Dz = csr_matrix((v,(i,j)))
         else:  # 2nd order
         
@@ -528,31 +532,32 @@ class Grid2D(Grid):
             j = np.zeros((nz * nx * 3,))
             v = np.zeros((nz * nx * 3,))
             
-            jj = np.vstack((np.hstack((0,np.arange(nx-2),nx-3)),
-                            np.hstack((1,np.arange(1,nx-1), nx-2)),
-                            np.hstack((2,np.arange(2,nx), nx-1)))).T
+            jj = np.vstack((np.arange(nz),nz+np.arange(nz),2*nz+np.arange(nz))).T
             jj = jj.flatten()
-            vd = idx2*np.tile(np.array([1.0,-2.0,1.0]),(nx,))
+            j[:3*nz] = jj
+            vd = idx2*np.tile(np.array([1.0,-2.0,1.0]),(nz,))
+            v[:3*nz] = vd
             
-            for n in range(nz):
-                j[n*3*nx:(n+1)*3*nx] = n*nx + jj
-                v[n*3*nx:(n+1)*3*nx] = vd
+            for n in range(1,nx-1):
+                j[n*3*nz:(n+1)*3*nz] = (n-1)*nz + jj
+                v[n*3*nz:(n+1)*3*nz] = vd
                 
+            j[(nx-1)*3*nz:nx*3*nz] = (nx-3)*nz + jj
+            v[(nx-1)*3*nz:nx*3*nz] = vd
+
             Dx = csr_matrix((v,(i,j)))
             
-            jj = np.vstack((np.arange(nx),nx+np.arange(nx),2*nx+np.arange(nx))).T
+            
+            jj = np.vstack((np.hstack((0,np.arange(nz-2),nz-3)),
+                            np.hstack((1,np.arange(1,nz-1), nz-2)),
+                            np.hstack((2,np.arange(2,nz), nz-1)))).T
             jj = jj.flatten()
-            j[:3*nx] = jj
             vd = vd*idz2/idx2
-            v[:3*nx] = vd
             
-            for n in range(1,nz-1):
-                j[n*3*nx:(n+1)*3*nx] = (n-1)*nx + jj
-                v[n*3*nx:(n+1)*3*nx] = vd
-            
-            j[(nz-1)*3*nx:nz*3*nx] = (nz-3)*nx + jj
-            v[(nz-1)*3*nx:nz*3*nx] = vd
-            
+            for n in range(nx):
+                j[n*3*nz:(n+1)*3*nz] = n*nz + jj
+                v[n*3*nz:(n+1)*3*nz] = vd
+                        
             Dz = csr_matrix((v,(i,j)))
             
         # no derivative along y, empty Dy matrix
@@ -586,17 +591,17 @@ class Grid2D(Grid):
         d = 0
         for c in cm:
             d = d + c.compute(np.vstack((x,z)).T, np.zeros((1,2)))
-        K = d.reshape(Nx,Nz).T
+        K = d.reshape(Nx,Nz)
         
         mk = True
         while mk:
             mk = False
-            if np.min(K[:,0])>small:
+            if np.min(K[0,:])>small:
                 # Enlarge grid to make sure that covariance falls to zero
                 Nz = 2*Nz
                 mk = True
             
-            if np.min(K[0,:])>small:
+            if np.min(K[:,0])>small:
                 Nx = 2*Nx
                 mk = True
             
@@ -613,7 +618,7 @@ class Grid2D(Grid):
                 d = 0
                 for c in cm:
                     d = d + c.compute(np.vstack((x,z)).T, np.zeros((1,2)))
-                    K = d.reshape(Nx,Nz).T
+                K = d.reshape(Nx,Nz)
             
         return np.sqrt(np.fft.fft2(K))
         
@@ -625,14 +630,14 @@ class Grid2D(Grid):
             G: covariance matrix in spectral domain as return by preFFTMA
             
         OUTPUT
-            Z: simulated field
+            Z: simulated field of size nx x nz
         """
-        Nz,Nx = G.shape
+        Nx,Nz = G.shape
         U = np.random.randn(G.shape[0], G.shape[1])
         Z = np.real(np.fft.ifft2(G*U))
         
-        return Z[int(round((Nz+2)/2)):(int(round((Nz+2)/2))+self.grz.size-1),
-                 int(round((Nx+2)/2)):(int(round((Nx+2)/2))+self.grx.size-1)]
+        return Z[int(round((Nx+2)/2)):(int(round((Nx+2)/2))+self.grx.size-1),
+                 int(round((Nz+2)/2)):(int(round((Nz+2)/2))+self.grz.size-1)]
         
     def toXdmf(self, field, fieldname, filename):
         """
@@ -676,7 +681,7 @@ class Grid2D(Grid):
         f.close()
         
         h5f = h5py.File(filename+'.h5', 'w')
-        h5f.create_dataset(fieldname, data=field.reshape((nx,nz)).astype(np.float32))
+        h5f.create_dataset(fieldname, data=field.reshape((nx,nz)).T.astype(np.float32))
         h5f.close()
 
 if __name__ == '__main__':
@@ -684,10 +689,11 @@ if __name__ == '__main__':
     from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
 
-    testRaytrace = True
-    testStatic = True
+    testRaytrace = False
+    testRaytrace2 = True
+    testStatic = False
     testDeriv = True
-    testFFTMA = True
+    testFFTMA = False
 
     if testRaytrace:
         grx = np.linspace(0,10,num=21)
@@ -754,7 +760,37 @@ if __name__ == '__main__':
         plt.matshow(Lsr.toarray())
 
         plt.show()
+        
+    if testRaytrace2:
+        grx = np.linspace(0,10,num=21)
+        grz = np.linspace(0,15,num=31)
 
+        grid = Grid2D(grx,grz)
+
+        nc = grid.getNumberOfCells()
+        slowness = np.ones((nc,))
+        slowness = slowness.reshape((20,30))
+        slowness[:,:10] = 0.5
+
+        plt.matshow(slowness.T)
+        plt.show()
+        
+        s = slowness.flatten()
+        print(s[8:13])
+        
+        z = np.arange(1,15)
+        
+        Tx = np.vstack((np.ones(z.size), np.zeros(z.size),z)).T
+        Rx = np.vstack((9+np.ones(z.size), np.zeros(z.size),z)).T
+        
+        grid.Tx = Tx
+        grid.Rx = Rx
+
+        Lsr = grid.getForwardStraightRays()
+        ttsr = Lsr*s
+        
+        print(ttsr)
+        
     if testStatic:
 
         class Borehole:
@@ -856,29 +892,34 @@ if __name__ == '__main__':
         Dx,Dy,Dz = grid.derivative(1)
         
         plt.matshow(Dx.toarray())
+        plt.title('Dx')
         plt.show()
         
         nc = grid.getNumberOfCells()
         s = np.ones((nc,))
         s[0] = 2
-        s[24] = 2
+        s[27] = 2
         s[-1] = 2
         
         dsx = Dx*s
         dsz = Dz*s
         
-        plt.matshow(s.reshape((nz,nx)))
+        plt.matshow(s.reshape((nx,nz)).T)
+        plt.title('s')
         plt.colorbar()
         plt.show()
 
-        plt.matshow(dsx.reshape((nz,nx)))
+        plt.matshow(dsx.reshape((nx,nz)).T)
+        plt.title('dsx')
         plt.colorbar()
         plt.show()
         
         plt.matshow(Dz.toarray())
+        plt.title('Dz')
         plt.show()
         
-        plt.matshow(dsz.reshape((nz,nx)))
+        plt.matshow(dsz.reshape((nx,nz)).T)
+        plt.title('dsz')
         plt.colorbar()
         plt.show()
         
@@ -887,19 +928,23 @@ if __name__ == '__main__':
         Dx,Dy,Dz = grid.derivative(2)
         
         plt.matshow(Dx.toarray())
+        plt.title('Dx O2')
         plt.show()
         
         dsx = Dx*s
         dsz = Dz*s
         
-        plt.matshow(dsx.reshape((nz,nx)))
+        plt.matshow(dsx.reshape((nx,nz)).T)
+        plt.title('dsx O2')
         plt.colorbar()
         plt.show()
         
         plt.matshow(Dz.toarray())
+        plt.title('Dz O2')
         plt.show()
         
-        plt.matshow(dsz.reshape((nz,nx)))
+        plt.matshow(dsz.reshape((nx,nz)).T)
+        plt.title('dsz O2')
         plt.colorbar()
         plt.show()
         
@@ -917,7 +962,7 @@ if __name__ == '__main__':
         
         Z = grid.FFTMA(G)
         
-        plt.matshow(Z)
+        plt.matshow(Z.T)
         plt.show()
         
         grid.toXdmf(Z,'fftma','test.xmf')

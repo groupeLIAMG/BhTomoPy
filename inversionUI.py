@@ -943,11 +943,11 @@ class InvFig(FigureCanvasQTAgg):
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
 
-        slowness = s
         grid = self.ui.models[self.ui.model_ind].grid
+        slowness = s.reshape((grid.grx.size -1, grid.grz.size-1)).T
         noIter = self.ui.noIter
-        cmax = max(np.abs(1/slowness))
-        cmin = min(np.abs(1/slowness))
+        cmax = max(np.abs(1/s))
+        cmin = min(np.abs(1/s))
         mog = self.ui.models[self.ui.model_ind].mogs[0]
         color_limits_state = self.ui.set_color_checkbox.isChecked()
         cmap = self.ui.fig_combo.currentText()
@@ -955,10 +955,6 @@ class InvFig(FigureCanvasQTAgg):
         if color_limits_state:
             cmax = float(self.ui.Max_editi.text())
             cmin = float(self.ui.Min_editi.text())
-
-
-        slowness = slowness.reshape((grid.grz.size -1, grid.grx.size-1))
-
 
         h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= cmap, vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
         mpl.colorbar.Colorbar(self.ax2, h)
