@@ -19,6 +19,9 @@ from mpl_toolkits.mplot3d import axes3d
 #from spectrum import arburg
 import re
 import pickle
+from computeSNR import compute_SNR
+from data_select import data_select
+from scipy import interpolate
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -234,8 +237,8 @@ class MOGUI(QtGui.QWidget):
                         self.air[n].tt_done = np.zeros(data.ntrace, dtype=bool) # the tt_done is a zeros array and whenever a ray arrives,
                                                                                 # its value will be changed to one
                         self.air[n].d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
-                        self.air[n].fac_dt = 1  # to be defined
-                        self.air[n].in_vect = np.ones(data.ntrace, dtype= bool) # in_vect is the vector which help to plot the figures of Airshots
+                        self.air[n].fac_dt = 1
+                        self.air[n].in_vect = np.ones(data.ntrace, dtype= bool)
                         self.MOGs[i.row()].av = n
                         if len(distance_list) == 1:
                             self.air[n].method ='fixed_antenna'
@@ -274,7 +277,7 @@ class MOGUI(QtGui.QWidget):
                     distance, ok = QtGui.QInputDialog.getText(self, "Distance", 'Enter distance between Tx and Rx')
                     if ok:
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
-
+                        distance_list = [float(i) for i in distance_list]
                         if len(distance_list) > 1:
                             if len(distance_list)!= data.ntrace:
                                 self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
@@ -386,13 +389,14 @@ class MOGUI(QtGui.QWidget):
                 d = np.sqrt(np.sum(v**2, axis= 1))
                 l = v/ np.kron(d, np.array([1, 1, 1]))
 
-                #TODO:
+                #TODO finir la condition pour 'true positions'
                 #for n in range(np.shape(tmp)[0]):
                 #    ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
                 #    mog.TxCosDir[ind, 1] = l[n,1]
                 #    mog.TxCosDir[ind, 2] = l[n,2]
                 #    mog.TxCosDir[ind, 3] = l[n,3]
 
+            #TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS si ils sont modifiés
             Tx = self.borehole.boreholes[iTx]
             Rx = self.borehole.boreholes[iRx]
             mog.Tx = Tx
@@ -421,16 +425,15 @@ class MOGUI(QtGui.QWidget):
                         mog.data.Rx_z = Rx.Z - mog.data.RxOffset - mog.Rx_z_orig
                         mog.RxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
 
+                #TODO: Forages non verticaux
 
-
+            #TODO: faire la condition pour le mode VRP
             elif self.Type_combo.currentText() == 'VSP/VRP':
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
 
             if iTx == iRx:
                 dialog = QtGui.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
                                                        buttons=QtGui.QMessageBox.Ok)
-
-
 
             if Tx != Rx:
                 self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
@@ -588,26 +591,6 @@ class MOGUI(QtGui.QWidget):
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
-    def compute_SNR(self):
-        ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-        SNR = np.ones(mog.data.ntrace)
-
-        max_amps = np.amax(np.abs(self.detrend_rad(mog.data.rdata)))
-        i = np.nonzero(np.abs(self.detrend_rad(mog.data.rdata)) == max_amps)[0]
-
-        width = 60
-
-        i1 = i - width / 2
-        i2 = i + width / 2
-        i1[i1 < 1] = 1
-        i2[i2 > mog.data.nptsptrc] = mog.data.nptsptrc
-
-        for n in range(mog.data.ntrace):
-            SNR[n] = np.std(mog.data.rdata[i1[n]:i2[n], n]) / np.std(mog.data.rdata[:width, n])
-
-        return SNR
-
     def update_prune(self):
         """
         This method updates the figure containing the points of Tx and Rx
@@ -708,7 +691,8 @@ class MOGUI(QtGui.QWidget):
             mog.in_Rx_vect[false_index] = False
 
         if use_snr:
-            SNR = self.compute_SNR()
+            #TODO Faire la fonction detrend_rad
+            SNR = compute_SNR(mog)
 
         mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1).astype(bool)
 
@@ -751,6 +735,8 @@ class MOGUI(QtGui.QWidget):
         self.value_Tx_Rx_removed_label.setText(str(np.round(removed_Tx_and_Rx)))
         self.value_ray_angle_removed_label.setText(str(np.round(((180-selected_angle)/180)*100)))
         self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
+
+        # TODO updater le label qui contient la valeur du S/M ration lorsque la fonction computeSNR sera finie
 
     def start_merge(self):
         self.mergemog = MergeMog(self)
@@ -1291,9 +1277,7 @@ class MOGUI(QtGui.QWidget):
         sub_total_grid.setRowStretch(1, 100)
         sub_total_widget.setLayout(sub_total_grid)
 
-
         #------ Creation of the Manager for the Spectra figure -------#
-
         self.spectraFig = SpectraFig()
         self.spectratool = NavigationToolbar2QT(self.spectraFig, self)
         self.spectramanager = QtGui.QWidget()
@@ -1305,7 +1289,6 @@ class MOGUI(QtGui.QWidget):
         spectramanagergrid.addWidget(sub_total_widget, 1, 6)
         spectramanagergrid.setColumnStretch(1, 100)
         self.spectramanager.setLayout(spectramanagergrid)
-
 
         #------- Widgets Creation -------#
         #--- Buttons Set ---#
@@ -1327,9 +1310,9 @@ class MOGUI(QtGui.QWidget):
         btn_Prune                   = QtGui.QPushButton("Prune")
         btn_delta_t_mog             = QtGui.QPushButton(" Create {}t MOG".format(char2))
 
-
         #--- List ---#
         self.MOG_list = QtGui.QListWidget()
+
         #--- List Actions ---#
         self.MOG_list.itemSelectionChanged.connect(self.update_edits)
 
@@ -1405,7 +1388,6 @@ class MOGUI(QtGui.QWidget):
         btn_delta_t_mog.clicked.connect(self.start_delta_t)
         btn_Import.clicked.connect(self.import_mog)
 
-
         #--- Sub Widgets ---#
         #- Sub AirShots Widget-#
         Sub_AirShots_Widget                 = QtGui.QWidget()
@@ -1422,7 +1404,6 @@ class MOGUI(QtGui.QWidget):
         Sub_AirShots_Grid.addWidget(self.Air_Shot_Before_edit, 4, 2, 1, 2)
         Sub_AirShots_Grid.addWidget(self.Air_Shot_After_edit, 5, 2, 1, 2)
         Sub_AirShots_Widget.setLayout(Sub_AirShots_Grid)
-
 
         #- Sub Labels, Checkbox and Edits Widget -#
         Sub_Labels_Checkbox_and_Edits_Widget = QtGui.QWidget()
@@ -1564,6 +1545,7 @@ class SpectraFig(FigureCanvasQTAgg):
 
         fac_f = 1
         fac_t = 1
+
         if 'ns' in mog.data.tunits:
             fac_f = 10**6
             fac_t = 10**-9
@@ -1588,7 +1570,9 @@ class SpectraFig(FigureCanvasQTAgg):
 
         traces = normalised_rdata[:, ind]
 
+
         if filter_state:
+            # Applying Lowpass Filter
             halfFs = Fs / 2
             wp = 1.4 * f0 / halfFs
             ws = 1.6 * f0 / halfFs
@@ -1621,6 +1605,7 @@ class SpectraFig(FigureCanvasQTAgg):
                             interpolation='none',
                             extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
 
+        #TODO calculer le spectre avec la méthode Burg
         if method == 'Burg - Order 2':
             Pxx = arburg(traces, 2)
             self.ax2.imshow(np.log10(Pxx).T[:, :Fmax], cmap='plasma', aspect='auto',
@@ -1631,12 +1616,13 @@ class SpectraFig(FigureCanvasQTAgg):
             Pxx = spectrum.arburg(traces[:, nt], 4)
 
         win_snr = np.round(20 / mog.data.timec)
-        SNR = self.data_select(traces, f0, dt, win_snr)
+        SNR = data_select(traces, f0, dt, win_snr)
         SNR = SNR[::-1]
 
         cmax = max(traces.flatten())
         cmin = -cmax
 
+        # These next conditions ensure the consistency ok the link between the signal to noise ratio and the amplitudes
         if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
             self.ax1.imshow(traces.T,
                             extent= [0, mog.data.nptsptrc, mog.data.Rx_z[ind][0], mog.data.Rx_z[ind][-1]],
@@ -1674,9 +1660,6 @@ class SpectraFig(FigureCanvasQTAgg):
 
             self.ax3.set_xscale('log')
 
-
-
-
         mpl.axes.Axes.set_title(self.ax1, 'Normalized amplitude')
         mpl.axes.Axes.set_title(self.ax2, 'Log Power spectra')
         mpl.axes.Axes.set_title(self.ax3, 'Signal-to-Noise Ratio')
@@ -1686,44 +1669,6 @@ class SpectraFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'SNR')
 
         self.draw()
-
-    def data_select(self, data, freq, dt, L= 100, treshold= 5, medfilt_len= 10):
-
-        shape = np.shape(data)
-        N, M = shape[0], shape[1]
-        std_sig = np.zeros(M).T
-        ind_data_select = np.zeros(M, dtype= bool).T
-        ind_max = np.zeros(M).T
-        nb_p = np.round(1/(dt*freq))
-        width = 60
-        if medfilt_len>0:
-            data = spy.signal.medfilt(data)
-
-        for i in range(M):
-            Amax        = np.amax(data[:, i])
-
-            ind1        = np.argmax(data[:, i])
-
-            ind_max[i]  = ind1
-
-            ind         = np.arange(ind1-nb_p, ind1+2*nb_p+1)
-
-            if ind[0] < 1:
-                ind = np.arange(1, ind1+width)
-
-            elif ind[-1] < 1:
-                ind = np.arange(ind1-width, ind1)
-
-
-
-            std_sig[i] = np.std(data[int(ind[0]):int(ind[-1]),i])
-
-
-        std_noise = np.std(data[-1-L: -1, :])
-        SNR = std_sig/std_noise
-        ind_data_select[SNR > treshold] = True
-
-        return SNR
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -1788,14 +1733,19 @@ class ZOPFig(FigureCanvasQTAgg):
                           mew= 1,
                           ls = 'None')
 
-            self.ax2.plot([in_plus[zop_picked_ind], in_minus[zop_picked_ind]], [mog.data.Rx_z[zop_ind], mog.data.Rx_z[zop_ind]], color= 'grey' )
+            self.ax2.plot([in_plus[zop_picked_ind], in_minus[zop_picked_ind]],
+                          [mog.data.Rx_z[zop_ind], mog.data.Rx_z[zop_ind]],
+                          color= 'grey')
             self.ax2.set_xlabel('Apparent velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
             self.ax2.set_ylim(zmin, zmax)
 
 
         if scont_state:
-            self.ax2.plot(1/mog.Tx.scont.valeur, mog.Tx.scont.z, color= 'black')
+            self.ax2.plot(1/mog.Tx.scont.valeur,
+                          mog.Tx.scont.z,
+                          color= 'black')
 
+        #TODO: faire le module bh_tomo_amp afin de pouvoir obtenir les informations sur les amplitudes
         if amp_state:
             rayl = np.sqrt((mog.data.Tx_x[zop_ind] - mog.data.Rx_x[zop_ind])**2
                          + (mog.data.Tx_y[zop_ind] - mog.data.Rx_y[zop_ind])**2
@@ -1822,9 +1772,6 @@ class ZOPFig(FigureCanvasQTAgg):
                         markersize= 5,
                         mew= 2,
                         ls = 'None')
-
-
-
 
         self.draw()
 
@@ -2015,17 +1962,26 @@ class VAppFig(FigureCanvasQTAgg):
          #   print(n)
         Tx = np.array([mog.data.Tx_x[ind], mog.data.Tx_y[ind], mog.data.Tx_z[ind]]).T
         Rx = np.array([mog.data.Rx_x[ind], mog.data.Rx_y[ind], mog.data.Rx_z[ind]]).T
-        vmin = min(vapp)
         vmax = max(vapp)
+        vmin = min(vapp)
+        print(vmax, 'vmax')
+        print(vmin, 'vmin')
         X = np.concatenate((Tx, Rx), axis= 0)
 
-        x0, a = self.lsplane(X)
-        el = (np.pi - a[2])*180/np.pi
-        az = np.arctan(np.cos(a[1])/np.cos(a[1])) * 180/np.pi
-        vapp /= max(vapp)
-        for n in range(len(vapp)):
+        c = np.array([[0, 0, 1],
+                      [0, 1, 0],
+                      [1, 0, 0]])
 
-            self.ax.plot([Tx[n, 0], Rx[n, 0]], [Tx[n, 1], Rx[n, 1]], [Tx[n, 2], Rx[n, 2]], c= (vapp[n], 0, 0))
+        c = interpolate.interp1d(np.arange(-100, 101, 100).T, c.T)( np.arange(-100, 101, 2).T)
+        m = 200/(vmax - vmin)
+        b = -100 - m * vmin
+
+        #TODO mettre une colorbar qui affiche le scaling de la vitesse apparente
+        for n in range(len(vapp)):
+            p = m*vapp[n] + b
+
+            color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
+            self.ax.plot([Tx[n, 0], Rx[n, 0]], [Tx[n, 1], Rx[n, 1]], [Tx[n, 2], Rx[n, 2]], c= color)
 
         self.ax.text2D(0.05, 0.95, "{} - Apparent Velocity".format(mog.name), transform=self.ax.transAxes)
 
@@ -2084,6 +2040,7 @@ class StatsAmpFig(FigureCanvasQTAgg):
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
     def plot_stats(self, mog):
+        #TODO faire le module Bh_Tomo_amp afin d'avoir les données nécessaires pour les statistiques sur les amplitudes pointées
         hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x) ** 2
                       + (mog.data.Tx_y - mog.data.Rx_y) ** 2
                       + (mog.data.Tx_z - mog.data.Rx_z) ** 2)
@@ -2134,8 +2091,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
         picked_tt = np.where(mog.tt != -1)[0]
         unpicked_tt = np.where(mog.tt == -1)[0]
         picked = np.where(mog.in_vect == 1)[0]
-
-
 
         Tx_xs = mog.data.Tx_x
         Rx_xs = mog.data.Rx_x
@@ -2430,8 +2385,6 @@ class MergeMog(QtGui.QWidget):
                 self.mog.update_List_Widget()
                 self.close()
 
-
-
         elif self.erase_check.isChecked() == False:
             self.mog.MOGs.append(newMog)
             self.mergemoglogSignal.emit("MOG {} have been created by the merge of {} and {}".format(newName,
@@ -2561,9 +2514,6 @@ class DeltaTMOG(QtGui.QWidget):
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)
                                                    ,buttons= QtGui.QMessageBox.Ok)
 
-
-
-
     def initUI(self):
         #------- Widgets -------#
         #--- Buttons ---#
@@ -2671,9 +2621,6 @@ class OpenMainData(QtGui.QWidget):
         master_grid.addWidget(self.btn_ok, 3, 0)
         master_grid.addWidget(self.btn_cancel, 3 ,1)
         self.setLayout(master_grid)
-
-
-
 
 if __name__ == '__main__':
 
