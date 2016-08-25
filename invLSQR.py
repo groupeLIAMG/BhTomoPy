@@ -2,7 +2,7 @@ import numpy as np
 import scipy as spy
 from scipy.sparse import linalg
 
-def invLSQR(params, data, idata, grid, L, app, ui= None):
+def invLSQR(params, data, idata, grid, L, app= None, ui= None):
         tomo = Tomo()
 
         if data.shape[1] >= 9:
@@ -27,8 +27,9 @@ def invLSQR(params, data, idata, grid, L, app, ui= None):
         Dx, Dy, Dz = grid.derivative(params.order)
 
         for noIter in range(params.numItCurved + params.numItStraight):
-            ui.noIter = noIter
-            app.processEvents()
+            if ui != None and app != None:
+                ui.noIter = noIter
+                app.processEvents()
 
             if noIter == 0:
                 l_moy = np.mean(data[:, 6]/ L.sum(axis= 1))
@@ -80,10 +81,12 @@ def invLSQR(params, data, idata, grid, L, app, ui= None):
 
             tt, L, tomo.rays = grid.raytrace(tomo.s, data[:, 0:3], data[:, 3:6])
 
-
-            ui.algo_label.setText('LSQR Inversion -')
-            ui.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
-            ui.invFig.plot_inv(tomo.s)
+            if ui != None:
+                ui.algo_label.setText('LSQR Inversion -')
+                ui.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
+                ui.invFig.plot_inv(tomo.s)
+            else:
+                print('LSQR Inversion - Ray Tracing, Iteration {}'.format(noIter+1))
 
             if params.saveInvData == 1:
                 tt = L * tomo.s
@@ -98,9 +101,11 @@ def invLSQR(params, data, idata, grid, L, app, ui= None):
                     tomo.invData.s = np.concatenate((tomo.invData.s, np.array([tomo.s]).T), axis= 1)
 
             tomo.L = L
-
-        ui.algo_label.setText('LSQR Inversion -')
-        ui.noIter_label.setText('Finished, {} Iterations Done'.format(noIter+1))
+        if ui != None:
+            ui.algo_label.setText('LSQR Inversion -')
+            ui.noIter_label.setText('Finished, {} Iterations Done'.format(noIter+1))
+        else:
+            print('LSQR Inversion - Finished, {} Iterations Done'.format(noIter+1))
         return tomo
 
 

@@ -139,125 +139,40 @@ class InversionUI(QtGui.QFrame):
 
             self.tomo = invLSQR(self.lsqrParams, data, idata, model.grid, L, app, self)
 
-
-    def invLSQR(self, params, data, idata, grid, L):
-        self.tomo = Tomo()
-
-        if data.shape[1] >= 9:
-            self.tomo.no_trace = data[:, 8]
-
-        if np.all(L == 0):
-             L = grid.getForwardStraightRays(idata)
-
-        self.tomo.x = 0.5*(grid.grx[0:-2] + grid.grx[1:-1])
-        self.tomo.z = 0.5*(grid.grz[0:-2] + grid.grz[1:-1])
-
-        if not np.all(grid.gry == 0):
-            self.tomo.y = 0.5*(grid.gry[0:-2] + grid.gry[1:-1])
-        else:
-            self.tomo.y = np.array([])
-
-        cont = np.array([])
-        #TODO:  Ajouter les conditions par rapport au contraintes de vélocité appliquées dans grid editor
-
-
-
-        Dx, Dy, Dz = grid.derivative(params.order)
-
-        for noIter in range(params.numItCurved + params.numItStraight):
-            self.noIter = noIter
-            app.processEvents()
-
-            if noIter == 0:
-                l_moy = np.mean(data[:, 6]/ L.sum(axis= 1))
-            else:
-                l_moy = np.mean(self.tomo.s)
-
-            # We make sur to have a b array whit (m,) shape
-            mta = L.sum(axis= 1)*l_moy
-            mta = np.hstack(mta).T
-
-            tmp = mta.flat
-            tmp = list(tmp)
-
-            mta = np.asarray(tmp)
-
-            dt = data[:, 6] - mta
-            dt = dt.T
-
-            if noIter == 0:
-                s_o = l_moy * np.ones(L.shape[1]).T
-
-            A = spy.sparse.vstack([L, Dx*params.alphax, Dz*params.alphaz])
-            #print(A.shape)
-
-            b = np.concatenate((dt, np.zeros(Dx.shape[0]), np.zeros(Dz.shape[0])))
-            #print(b.shape)
-            #A = L
-            #b = dt
-
-            if not np.all(cont == 0) and params.useCont == 1:
-                #TODO
-                pass
-
-            ans = linalg.lsqr(A, b, atol= params.tol, btol= params.tol, iter_lim = params.nbreiter)
-            x = ans[0]
-
-            if noIter == 0:
-                self.tomo.res[0] = ans[3]
-            else:
-                np.append(self.tomo.res, ans[3])
-
-
-            if max(abs(s_o/(x+l_moy) - 1)) > params.dv_max:
-                fac = min(abs( (s_o/(params.dv_max+1)-l_moy)/x ))
-                x = fac*x
-                s_o = x + l_moy
-
-            self.tomo.s = x + l_moy
-
-            tt,L,self.tomo.rays = grid.raytrace(self.tomo.s, data[:, 0:3], data[:, 3:6])
-
-
-            self.algo_label.setText('LSQR Inversion -')
-            self.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
-            self.invFig.plot_inv()
-
-            if params.saveInvData == 1:
-                tt = L * self.tomo.s
-                if noIter == 0:
-                    self.tomo.invData.res = np.array([data[:, 6] - tt]).T
-                    self.tomo.invData.s = np.array([self.tomo.s]).T
-
-                else:
-
-                    self.tomo.invData.res = np.concatenate((self.tomo.invData.res, np.array([data[:, 6] - tt]).T), axis= 1)
-
-                    self.tomo.invData.s = np.concatenate((self.tomo.invData.s, np.array([self.tomo.s]).T), axis= 1)
-
-            self.tomo.L = L
-
-        self.algo_label.setText('LSQR Inversion -')
-        self.noIter_label.setText('Finished, {} Iterations Done'.format(noIter+1))
-
     def delete_prev(self):
         n = self.prev_inversion_combo.currentIndex()
         del self.models[self.model_ind].inv_res[n]
         self.update_previous()
 
+    def plot_inv(self):
+        s = self.tomo.s
+        self.invFig.plot_inv(s)
+
     def plot_rays(self):
+        if self.tomo == None:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+                                                    , buttons=QtGui.QMessageBox.Ok)
         self.raysFig.plot_rays()
         self.rays_manager.show()
 
     def plot_ray_density(self):
+        if self.tomo == None:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+                                                    , buttons=QtGui.QMessageBox.Ok)
         self.raydensityFig.plot_ray_density()
         self.ray_density_manager.show()
 
     def plot_residuals(self):
+        if self.tomo == None:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+                                                    , buttons=QtGui.QMessageBox.Ok)
         self.residualsFig.plot_residuals()
         self.residuals_manager.showMaximized()
 
     def plot_tomo(self):
+        if self.tomo == None:
+            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+                                                    , buttons=QtGui.QMessageBox.Ok)
         self.tomoFig.plot_tomo()
         self.tomo_manager.show()
 
@@ -271,7 +186,7 @@ class InversionUI(QtGui.QFrame):
         #--- Labels ---#
         num_simulation_label        = MyQLabel("Number of Simulations", ha='right')
         slowness_label              = MyQLabel("Slowness", ha='right')
-        islowness_label              = MyQLabel("Slowness", ha='center')
+        islowness_label             = MyQLabel("Slowness", ha='center')
         separ_label                 = MyQLabel("|", ha= 'center')
         traveltime_label            = MyQLabel("Traveltime", ha= 'right')
         solver_tol_label            = MyQLabel('Solver Tolerance', ha= 'right')
@@ -351,21 +266,22 @@ class InversionUI(QtGui.QFrame):
         ellip_veloc_checkbox            = QtGui.QCheckBox("Elliptical Velocity Anisotropy")
 
         #--- ComboBoxes ---#
-        self.geostat_struct_combo     = QtGui.QComboBox()
-        self.smoothing_order_combo = QtGui.QComboBox()
+        self.geostat_struct_combo       = QtGui.QComboBox()
+        self.smoothing_order_combo      = QtGui.QComboBox()
         self.param_combo = QtGui.QComboBox()
 
         #- Comboboxes Actions -#
         self.smoothing_order_combo.activated.connect(self.update_params)
 
         #--- List ---#
-        test_list                = QtGui.QListWidget()     #list for the Parameters Groupbox
+        test_list                       = QtGui.QListWidget()     #list for the Parameters Groupbox
 
         #--- Combobox's Items ---#
         params = ['Cubic', 'Sperical', 'Gaussian', 'Exponential', 'Linear', 'Thin Plate', 'Gravimetric', 'Magnetic', 'Hole Effect Sine', 'Hole Effect Cosine']
         self.param_combo.addItems(params)
         self.geostat_struct_combo.addItem("Structure no 1")
-        self.smoothing_order_combo.addItems(['1', '2'])
+        self.smoothing_order_combo.addItems(['2', '1'])
+
 
 
         #--- Slowness Frame ---#
@@ -391,7 +307,7 @@ class InversionUI(QtGui.QFrame):
 
         #--- Scroll Area which contains the Geostatistical Parameters ---#
         scrollArea = QtGui.QScrollArea()
-        scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
+        #scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
         scrollArea.setWidget(sub_param_widget)
 
         #--- Parameters Groupbox ---#
@@ -663,8 +579,6 @@ class InversionUI(QtGui.QFrame):
         self.algo_combo               = QtGui.QComboBox()
         self.fig_combo                = QtGui.QComboBox()
 
-
-
         #------- Items in the comboboxes --------#
         #--- Time and Amplitude Combobox's Items ---#
         self.T_and_A_combo.addItem("Traveltime")
@@ -677,7 +591,7 @@ class InversionUI(QtGui.QFrame):
 
         #- ComboBoxes Action -#
         self.algo_combo.activated.connect(self.initinvUI)
-        self.fig_combo.activated.connect(self.invFig.plot_inv)
+        self.fig_combo.activated.connect(self.plot_inv)
 
         #--- Figure's ComboBox's Items ---#
 
@@ -925,7 +839,7 @@ class InvFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.05, 0.06, 0.9, 0.9])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
         self.ax2 = self.figure.axes[1]
@@ -939,9 +853,11 @@ class InvFig(FigureCanvasQTAgg):
         self.ax2.set_visible(True)
         self.ax
         self.ax.cla()
+        self.ax2.cla()
         self.ax.set_title('LSQR')
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
+        self.ax2.set_title('m/ns')
 
         grid = self.ui.models[self.ui.model_ind].grid
         slowness = s.reshape((grid.grx.size -1, grid.grz.size-1)).T
@@ -956,11 +872,38 @@ class InvFig(FigureCanvasQTAgg):
             cmax = float(self.ui.Max_editi.text())
             cmin = float(self.ui.Min_editi.text())
 
-        h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= cmap, vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
+        h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= cmap, vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[-1], grid.grz[0]])
         mpl.colorbar.Colorbar(self.ax2, h)
 
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(8)
+
+        if grid.grx[0] < 0:
+            tick_range = grid.grx[0] - grid.grx[-1]
+        elif grid >= 0:
+            tick_range = grid.grx[-1] - grid.grx[0]
+
+        tick_step1 = tick_range % 4
+        tick_step = np.round(tick_range / 4)
+        print(tick_range)
+        if grid.grx[0] < 0:
+            if 4*tick_step < grid.grx[0]:
+                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step])
+            else:
+                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step, 4*tick_step])
+
+        if grid.grx[0] >= 0:
+            if 4*tick_step > grid.grx[-1]:
+                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step])
+            else:
+                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step, 4*tick_step])
+
+
+
+
+
+        self.ax.set_xticks(tick_arrangement)
+        self.ax.invert_yaxis()
 
         self.draw()
 
@@ -1229,6 +1172,10 @@ class SimulationsFig(FigureCanvasQTAgg):
         divider.append_axes('right', size= 0.5, pad= 0.1)
         self.ax3 = self.figure.axes[2]
         self.ax4 = self.figure.axes[3]
+
+class Gridviewer(QtGui.QWidget):
+    def __init__(self):
+        pass
 
 class InvLSQRParams:
     def __init__(self):
