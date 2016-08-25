@@ -145,7 +145,7 @@ class InversionUI(QtGui.QFrame):
 
     def plot_inv(self):
         s = self.tomo.s
-        self.invFig.plot_inv(s)
+        self.gv.invFig.plot_lsqr_inv(s)
 
     def plot_rays(self):
         if self.tomo == None:
@@ -511,8 +511,8 @@ class InversionUI(QtGui.QFrame):
         self.Max_editi.setAlignment(QtCore.Qt.AlignHCenter)
 
         #- Edits' Actions -#
-        #self.Min_editi.editingFinished.connect(self.invFig.plot_inv)
-        #self.Max_editi.editingFinished.connect(self.invFig.plot_inv)
+        self.Min_editi.editingFinished.connect(self.plot_inv)
+        self.Max_editi.editingFinished.connect(self.plot_inv)
 
         #--- Checkboxes ---#
         self.use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
@@ -521,7 +521,7 @@ class InversionUI(QtGui.QFrame):
 
         #- Checboxes Actions -#
         self.use_const_checkbox.stateChanged.connect(self.update_params)
-        #self.set_color_checkbox.stateChanged.connect(self.invFig.plot_inv)
+        self.set_color_checkbox.stateChanged.connect(self.plot_inv)
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
@@ -713,14 +713,14 @@ class InversionUI(QtGui.QFrame):
 
         #--- Figures Groupbox ---#
         fig_groupbox = QtGui.QGroupBox("Figures")
-        fig_grid = QtGui.QGridLayout()
-        fig_grid.addWidget(self.set_color_checkbox, 0, 0)
-        fig_grid.addWidget(Min_labeli, 0, 1)
-        fig_grid.addWidget(self.Min_editi, 0, 2)
-        fig_grid.addWidget(Max_labeli, 0, 3)
-        fig_grid.addWidget(self.Max_editi, 0, 4)
-        fig_grid.addWidget(self.fig_combo, 0, 5)
-        fig_groupbox.setLayout(fig_grid)
+        self.fig_grid = QtGui.QGridLayout()
+        self.fig_grid.addWidget(self.set_color_checkbox, 0, 0)
+        self.fig_grid.addWidget(Min_labeli, 0, 1)
+        self.fig_grid.addWidget(self.Min_editi, 0, 2)
+        self.fig_grid.addWidget(Max_labeli, 0, 3)
+        self.fig_grid.addWidget(self.Max_editi, 0, 4)
+        self.fig_grid.addWidget(self.fig_combo, 0, 5)
+        fig_groupbox.setLayout(self.fig_grid)
 
         #--- Figure Groupbox dependent SubWidget ---#
         Sub_right_Widget = QtGui.QWidget()
@@ -835,25 +835,40 @@ class InvFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.06, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.05, 0.06, 0.25, 0.9])
+        self.ax3 = self.figure.add_axes([0.375, 0.06, 0.25, 0.9])
+        self.ax5 = self.figure.add_axes([0.7, 0.06, 0.25, 0.9])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
-        self.ax2 = self.figure.axes[1]
+
+        divider = make_axes_locatable(self.ax3)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
+
+        divider = make_axes_locatable(self.ax5)
+        divider.append_axes('right', size= 0.5, pad= 0.1)
+
+        self.ax2 = self.figure.axes[3]
+        self.ax4 = self.figure.axes[4]
+        self.ax6 = self.figure.axes[5]
         self.ax.set_visible(False)
         self.ax2.set_visible(False)
+        self.ax3.set_visible(False)
+        self.ax4.set_visible(False)
+        self.ax5.set_visible(False)
+        self.ax6.set_visible(False)
 
+    def plot_lsqr_inv(self, s):
 
-    def plot_inv(self, s):
+        self.ax3.set_visible(True)
+        self.ax4.set_visible(True)
 
-        self.ax.set_visible(True)
-        self.ax2.set_visible(True)
-        self.ax
-        self.ax.cla()
-        self.ax2.cla()
-        self.ax.set_title('LSQR')
-        self.ax.set_xlabel('Distance [m]')
-        self.ax.set_ylabel('Elevation [m]')
-        self.ax2.set_title('m/ns')
+        self.ax3.cla()
+        self.ax4.cla()
+
+        self.ax3.set_title('LSQR')
+        self.ax3.set_xlabel('Distance [m]')
+        self.ax3.set_ylabel('Elevation [m]')
+        self.ax4.set_title('m/ns')
 
         grid = self.gv.grid
         slowness = s.reshape((grid.grx.size -1, grid.grz.size-1)).T
@@ -867,10 +882,11 @@ class InvFig(FigureCanvasQTAgg):
             cmax = float(self.ui.Max_editi.text())
             cmin = float(self.ui.Min_editi.text())
 
-        h = self.ax.imshow(np.abs(1/slowness), interpolation= 'none',cmap= cmap, vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[-1], grid.grz[0]])
-        mpl.colorbar.Colorbar(self.ax2, h)
+        h = self.ax3.imshow(np.abs(1/slowness), interpolation= 'none',cmap= cmap, vmax= cmax, vmin= cmin, extent= [grid.grx[0], grid.grx[-1], grid.grz[-1], grid.grz[0]])
 
-        for tick in self.ax.xaxis.get_major_ticks():
+        mpl.colorbar.Colorbar(self.ax4, h)
+
+        for tick in self.ax3.xaxis.get_major_ticks():
             tick.label.set_fontsize(8)
 
         if grid.grx[0] < 0:
@@ -880,7 +896,7 @@ class InvFig(FigureCanvasQTAgg):
 
         tick_step1 = tick_range % 4
         tick_step = np.round(tick_range / 4)
-        print(tick_range)
+
         if grid.grx[0] < 0:
             if 4*tick_step < grid.grx[0]:
                 tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step])
@@ -893,8 +909,8 @@ class InvFig(FigureCanvasQTAgg):
             else:
                 tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step, 4*tick_step])
 
-        self.ax.set_xticks(tick_arrangement)
-        self.ax.invert_yaxis()
+        self.ax3.set_xticks(tick_arrangement)
+        self.ax3.invert_yaxis()
 
         self.draw()
 
@@ -908,9 +924,6 @@ class RaysFig(FigureCanvasQTAgg):
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
-        divider = make_axes_locatable(self.ax)
-        divider.append_axes('right', size= 0.5, pad= 0.1)
-        self.ax2 = self.figure.axes[1]
 
     def plot_rays(self):
         self.ax.cla()
@@ -932,7 +945,7 @@ class RaysFig(FigureCanvasQTAgg):
             p = m*res[n]
             color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
             self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1], c= color)
-            #mpl.colorbar.Colorbar(self.ax2, h)
+
         self.draw()
 
 class RayDensityFig(FigureCanvasQTAgg):
@@ -1171,6 +1184,8 @@ class Gridviewer(QtGui.QWidget):
         self.ui = ui
         if self.grid.type == '2D':
             self.init2DUI()
+        if self.grid.type == '3D':
+            self.init3DUI()
         self.noIter = 0
 
     def init2DUI(self):
@@ -1184,8 +1199,21 @@ class Gridviewer(QtGui.QWidget):
         inv_grid.setVerticalSpacing(0)
         self.setLayout(inv_grid)
 
+    def init3DUI(self):
+        #-------- Manager for InvFig -------#
+        self.invFig = InvFig(self, self.ui)
+        self.invtool = NavigationToolbar2QT(self.invFig, self)
+        inv_grid = QtGui.QGridLayout()
+        inv_grid.addWidget(self.invtool, 0, 0)
+        inv_grid.addWidget(self.invFig, 1, 0)
+        inv_grid.setContentsMargins(0, 0, 0, 0)
+        inv_grid.setVerticalSpacing(0)
+        self.setLayout(inv_grid)
 
-
+        y_plane_label = MyQLabel('Y Plane', ha= 'right')
+        self.y_plane_scroll = QtGui.QScrollBar(QtCore.Qt.Horizontal)
+        self.ui.fig_grid.addWidget(y_plane_label, 0, 6)
+        self.ui.fig_grid.addWidget(self.y_plane_scroll, 0, 7)
 
 class InvLSQRParams:
     def __init__(self):

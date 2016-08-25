@@ -295,31 +295,6 @@ class MOGUI(QtGui.QWidget):
                             self.air[n].method ='walkaway'
                         self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
 
-                        print(self.air)
-
-
-    def detrend_rad(self, inp):
-        """
-        :param inp: the input data to be straightenend
-        :return:
-        """
-        n =30
-        m = np.shape(inp)[0]
-        m1 = np.mean(inp[0:n,])
-        m2 = np.mean(inp[(m-n-1):m,])
-
-        dm = (m2 - m1)/(m-1)
-
-        x = np.matlib.repmat(m1, m, 1)
-
-        subtract = np.add(x[0]*np.ones(m), np.arange(m)*dm)
-
-        out = np.zeros(np.shape(inp))
-        for n in range(np.shape(inp)[1]):
-            out[:, n]= np.subtract(inp[:, n], subtract)
-
-        return out
-
     def update_spectra_and_coverage_Tx_num_list(self):
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
