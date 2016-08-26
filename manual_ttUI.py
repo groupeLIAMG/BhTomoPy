@@ -6,7 +6,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationTool
 import pickle
 import numpy as np
 import re
-
+from inversionUI import InvLSQRParams
 
 
 
@@ -24,12 +24,11 @@ class ManualttUI(QtGui.QFrame):
         self.mog = 0
         self.initUI()
 
+        # Signals of communication between Upper and Lower Figures
         self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
         self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
-        #self.KeyPressed.connect(self.onkey)
-
 
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
@@ -52,8 +51,8 @@ class ManualttUI(QtGui.QFrame):
 
     def update_control_center(self):
         n = int(self.Tnum_Edit.text())-1
-
         ind = self.openmain.mog_combo.currentIndex()
+
         self.mog = self.mogs[ind]
         airshot_before = self.air[self.mog.av]
         airshot_after = self.air[self.mog.ap]
@@ -108,10 +107,10 @@ class ManualttUI(QtGui.QFrame):
         n = int(self.Tnum_Edit.text())
         ind = self.openmain.mog_combo.currentIndex()
         mog = self.mogs[ind]
+
         if self.lim_checkbox.isChecked():
             A_max = max(mog.data.rdata[:, n].flatten())
             A_min = min(mog.data.rdata[:, n].flatten())
-
             self.A_min_Edit.setText(str(A_min))
             self.A_max_Edit.setText(str(A_max))
         else:
@@ -134,6 +133,7 @@ class ManualttUI(QtGui.QFrame):
             self.air[self.mog.ap].tt[n] = -1.0
             self.air[self.mog.ap].et[n] = -1.0
             self.air[self.mog.ap].tt_done[n] = -1.0
+
         self.update_control_center()
 
     def next_trace_to_pick(self):
@@ -147,7 +147,9 @@ class ManualttUI(QtGui.QFrame):
             self.intermediate_saves()
 
     def intermediate_saves(self):
-        if float(self.Tnum_Edit.text()) % 50 == 0:
+        num_done = np.not_equal(self.mog.tt_done, 0)
+        num_done = sum(num_done.astype(int))
+        if num_done % 50 == 0:
             save_file = open(self.filename, 'wb')
             pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
             print('saved')
@@ -1117,10 +1119,13 @@ class LowerFig(FigureCanvasQTAgg):
         ind1 = np.not_equal(mog.tt, -1)
         ind2 = np.equal(mog.tt_done, 1).astype(int) + ind1.astype(int) + np.equal(mog.in_vect, 1).astype(int)
         ind2 = np.where(ind2 == 3)
+
+        #ind2 if the trace have had its time picked and havent been pruned
         if len(ind2) == 0 :
             vapp = 0
             return vapp
 
+        # hyp is the distance between Tx and Rx
         hyp = np.sqrt((mog.data.Tx_x[ind2]-mog.data.Rx_x[ind2])**2
                       + (mog.data.Tx_y[ind2] - mog.data.Rx_y[ind2] )**2
                       + (mog.data.Tx_z[ind2] -  mog.data.Rx_z[ind2] )**2)
@@ -1128,6 +1133,10 @@ class LowerFig(FigureCanvasQTAgg):
         tt = mog.tt[ind2]
         et = mog.et[ind2]
 
+        # Knowing the arrival times and the distance, we can calculate an apparent velocity
+        # the resulting velocity represents an homogeneous media
+
+        # In fact, calculating the vapp helps the user to know if his picked is realistic or not
         vapp = hyp/tt
         if np.all(et == 0):
             vapp = np.mean(vapp)
@@ -1197,9 +1206,7 @@ class LowerFig(FigureCanvasQTAgg):
 
                 self.LowerTracePickedSignal.emit(True)
 
-
         self.draw()
-
 
 class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent = None):
@@ -1209,7 +1216,6 @@ class StatsFig1(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-
 
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
@@ -1250,12 +1256,8 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax6.plot(t0)
         self.ax1.plot(hyp, et, marker='o', ls= 'None')
         self.ax3.plot(theta, et, marker='o', ls= 'None')
-
-
-
-
-
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
+
         mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
 
@@ -1277,8 +1279,6 @@ class StatsFig1(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
-
-
 #--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):
     def __init__(self, label, ha='left',  parent=None):
@@ -1296,7 +1296,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualttUI()
-    #manual_ui.openmain.load_file('save test.p')
+    manual_ui.openmain.load_file('test_constraints_backup.p')
     #manual_ui.update_control_center()
     #manual_ui.update_a_and_t_edits()
     #manual_ui.upperFig.plot_amplitude()

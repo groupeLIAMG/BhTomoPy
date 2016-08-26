@@ -123,8 +123,6 @@ class InversionUI(QtGui.QFrame):
         self.max_iter_edit.setText(str(self.lsqrParams.nbreiter))
         self.veloc_var_edit.setText(str(self.lsqrParams.dv_max))
 
-
-
     def doInv(self):
         model = self.models[self.model_ind]
         if self.model_ind == '':
@@ -140,6 +138,7 @@ class InversionUI(QtGui.QFrame):
             data, idata = Model.getModelData(model, self.air, self.lsqrParams.selectedMogs, 'tt')
             data = np.concatenate((model.grid.Tx[idata, :], model.grid.Rx[idata, :], data, model.grid.TxCosDir[idata, :], model.grid.RxCosDir[idata, :]), axis=1)
 
+        #TODO: Faire les autres cas du self.T_and_A_combo
 
         L = np.array([])
         rays = np.array([])
@@ -153,6 +152,10 @@ class InversionUI(QtGui.QFrame):
             self.update_params()
 
             self.tomo = invLSQR(self.lsqrParams, data, idata, model.grid, L, app, self)
+
+        if self.algo_combo.currentText() == 'Geostatistical':
+            #TODO: Faire l'inversion géostatistique
+            pass
 
     def plot_inv(self):
         s = self.tomo.s
@@ -189,12 +192,15 @@ class InversionUI(QtGui.QFrame):
     def load_prev(self):
         n = self.prev_inversion_combo.currentIndex()
         results = self.models[self.model_ind].inv_res[n]
+        name = results[0]
         tomo = results[1]
         params = results[2]
 
         self.tomo = tomo
-        if '-LSQR' in results[0]:
+        if '-LSQR' in name:
             self.lsqrParams = params
+
+        #TODO: Faire une classe contenant les paramètres pour les inversions géostatistiques
 
         self.algo_label.setText(results[0])
         self.noIter_label.setText('|  {} Iterations'.format(self.lsqrParams.numItCurved + self.lsqrParams.numItStraight))
@@ -303,16 +309,11 @@ class InversionUI(QtGui.QFrame):
         #- Comboboxes Actions -#
         self.smoothing_order_combo.activated.connect(self.update_params)
 
-        #--- List ---#
-        test_list                       = QtGui.QListWidget()     #list for the Parameters Groupbox
-
         #--- Combobox's Items ---#
         params = ['Cubic', 'Sperical', 'Gaussian', 'Exponential', 'Linear', 'Thin Plate', 'Gravimetric', 'Magnetic', 'Hole Effect Sine', 'Hole Effect Cosine']
         self.param_combo.addItems(params)
         self.geostat_struct_combo.addItem("Structure no 1")
         self.smoothing_order_combo.addItems(['2', '1'])
-
-
 
         #--- Slowness Frame ---#
         slownessFrame = QtGui.QFrame()
@@ -337,7 +338,6 @@ class InversionUI(QtGui.QFrame):
 
         #--- Scroll Area which contains the Geostatistical Parameters ---#
         scrollArea = QtGui.QScrollArea()
-        #scrollArea.setBackgroundRole(QtGui.QPalette.Dark)
         scrollArea.setWidget(sub_param_widget)
 
         #--- Parameters Groupbox ---#
@@ -626,7 +626,6 @@ class InversionUI(QtGui.QFrame):
 
         self.fig_combo.addItems(list1)
 
-
         #------- Frame for number of Iterations -------#
         iterFrame = QtGui.QFrame()
         iterGrid = QtGui.QGridLayout()
@@ -815,7 +814,6 @@ class OpenMainData(QtGui.QWidget):
         for model in self.inv.models:
             self.model_combo.addItem(model.name)
 
-
     def cancel(self):
         self.close()
 
@@ -834,8 +832,10 @@ class OpenMainData(QtGui.QWidget):
         #-------  Widgets --------#
         #--- Edit ---#
         self.database_edit = QtGui.QLineEdit()
+
         #- Edit Action -#
         self.database_edit.setReadOnly(True)
+
         #--- Buttons ---#
         self.btn_database = QtGui.QPushButton('Choose Database')
         self.btn_ok = QtGui.QPushButton('Ok')
@@ -927,20 +927,20 @@ class InvFig(FigureCanvasQTAgg):
         elif grid >= 0:
             tick_range = grid.grx[-1] - grid.grx[0]
 
-        tick_step1 = tick_range % 4
-        tick_step = np.round(tick_range / 4)
+        nticks = 4
+        tick_step = np.round(tick_range / nticks)
 
         if grid.grx[0] < 0:
             if 4*tick_step < grid.grx[0]:
-                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step])
+                tick_arrangement = tick_step*np.arange(nticks)
             else:
-                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step, 4*tick_step])
+                tick_arrangement = tick_step*np.arange(nticks+1)
 
         if grid.grx[0] >= 0:
             if 4*tick_step > grid.grx[-1]:
-                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step])
+                tick_arrangement = tick_step*np.arange(nticks)
             else:
-                tick_arrangement = np.array([0, tick_step, 2*tick_step, 3*tick_step, 4*tick_step])
+                tick_arrangement = tick_step*np.arange(nticks+1)
 
         self.ax3.set_xticks(tick_arrangement)
         self.ax3.invert_yaxis()
@@ -1161,11 +1161,11 @@ class PrevInvFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.07, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.05, 0.1, 0.9, 0.85])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
         self.ax2 = self.figure.axes[1]
-        self.ax2.set_title('m/ns', fontsize= 10)
+
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
 
@@ -1188,6 +1188,30 @@ class PrevInvFig(FigureCanvasQTAgg):
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(7)
 
+        self.ax2.set_ylabel('m/ns', fontsize= 10)
+        self.ax2.yaxis.set_label_position("right")
+
+        if grid.grx[0] < 0:
+            tick_range = grid.grx[0] - grid.grx[-1]
+        elif grid >= 0:
+            tick_range = grid.grx[-1] - grid.grx[0]
+
+        nticks = 4
+        tick_step = np.round(tick_range / nticks)
+
+        if grid.grx[0] < 0:
+            if 4*tick_step < grid.grx[0]:
+                tick_arrangement = tick_step*np.arange(nticks)
+            else:
+                tick_arrangement = tick_step*np.arange(nticks+1)
+
+        if grid.grx[0] >= 0:
+            if 4*tick_step > grid.grx[-1]:
+                tick_arrangement = tick_step*np.arange(nticks)
+            else:
+                tick_arrangement = tick_step*np.arange(nticks+1)
+
+        self.ax.set_xticks(tick_arrangement)
         self.ax.invert_yaxis()
 
 
@@ -1225,22 +1249,16 @@ class Gridviewer(QtGui.QWidget):
     def init2DUI(self):
         #-------- Manager for InvFig -------#
         self.invFig = InvFig(self, self.ui)
-        self.invtool = NavigationToolbar2QT(self.invFig, self)
         inv_grid = QtGui.QGridLayout()
-        inv_grid.addWidget(self.invtool, 0, 0)
-        inv_grid.addWidget(self.invFig, 1, 0)
-        inv_grid.setContentsMargins(0, 0, 0, 0)
+        inv_grid.addWidget(self.invFig, 0, 0)
         inv_grid.setVerticalSpacing(0)
         self.setLayout(inv_grid)
 
     def init3DUI(self):
         #-------- Manager for InvFig -------#
         self.invFig = InvFig(self, self.ui)
-        self.invtool = NavigationToolbar2QT(self.invFig, self)
         inv_grid = QtGui.QGridLayout()
-        inv_grid.addWidget(self.invtool, 0, 0)
-        inv_grid.addWidget(self.invFig, 1, 0)
-        inv_grid.setContentsMargins(0, 0, 0, 0)
+        inv_grid.addWidget(self.invFig, 0, 0)
         inv_grid.setVerticalSpacing(0)
         self.setLayout(inv_grid)
 
