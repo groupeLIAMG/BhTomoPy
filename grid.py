@@ -50,10 +50,10 @@ class Grid:
         self.Rx = np.array([])
         self.TxCosDir = np.array([])
         self.RxCosDir = np.array([])
-        self.bord = np.array([])
+        self.border = np.array([])
         self.Tx_Z_water = 0.0
         self.Rx_Z_water = 0.0
-        self.inGrid = np.array([])
+        self.in_vect = np.array([])
 
     def getNumberOfCells(self):
         """
@@ -292,8 +292,41 @@ class Grid2D(Grid):
         self.borehole_x0 = 1
         self.x0 = np.array([])
         self.type = None
-        self.in_vect = np.array([])
 
+    def __reduce__(self):
+        # cgrid excluded volontarily, it will be set to None after unpickling
+        # (cgrid is instantiated when needed in method raytrace)
+        # this is done to avoid writing code to pickle cython class Grid2Dcpp
+        return (Grid2D.rebuild,(self.grx, self.grz, self.cont, self.Tx, self.Rx,
+                                self.TxCosDir, self.RxCosDir, self.border,
+                                self.Tx_Z_water, self.Rx_Z_water, self.in_vect,
+                                self.nthreads, self.nsnx, self.nsnz, self.flip,
+                                self.borehole_x0, self.x0, self.type))
+        
+    @staticmethod
+    def rebuild(grx, grz, cont, Tx, Rx, TxCosDir, RxCosDir, border, Tx_Z_water,
+                Rx_Z_water, in_vect, nthreads, nsnx, nsnz, flip, borehole_x0, x0, _type):
+        
+        g = Grid2D(grx, grz, nthreads)
+        
+        g.cont = cont
+        g.Tx = Tx
+        g.Rx = Rx
+        g.TxCosDir = TxCosDir
+        g.RxCosDir = RxCosDir
+        g.border = border
+        g.Tx_Z_water = Tx_Z_water
+        g.Rx_Z_water = Rx_Z_water
+        g.in_vect = in_vect
+        g.nsnx = nsnx
+        g.nsnz = nsnz
+        g.flip = flip
+        g.borehole_x0 = borehole_x0
+        g.x0 = x0
+        g.type = _type
+        
+        return g
+        
 
     def raytrace(self, slowness, Tx, Rx, t0=(), xi=(), theta=()):
         """
@@ -690,10 +723,11 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     testRaytrace = False
-    testRaytrace2 = True
+    testRaytrace2 = False
     testStatic = False
-    testDeriv = True
+    testDeriv = False
     testFFTMA = False
+    testPickle = True
 
     if testRaytrace:
         grx = np.linspace(0,10,num=21)
@@ -790,6 +824,10 @@ if __name__ == '__main__':
         ttsr = Lsr*s
         
         print(ttsr)
+        
+        tt1,L1,rays1 = grid.raytrace(s, Tx, Rx)
+        
+        
         
     if testStatic:
 
@@ -966,3 +1004,74 @@ if __name__ == '__main__':
         plt.show()
         
         grid.toXdmf(Z,'fftma','test.xmf')
+        
+    if testPickle:
+        import pickle
+        
+        grx = np.linspace(0,10,num=21)
+        grz = np.linspace(0,15,num=31)
+
+        grid = Grid2D(grx,grz)
+        
+        z = np.arange(1,15)
+        
+        Tx = np.vstack((np.ones(z.size), np.zeros(z.size),z)).T
+        Rx = np.vstack((9+np.ones(z.size), np.zeros(z.size),z)).T
+        
+        grid.Tx = Tx
+        grid.Rx = Rx
+        
+        nc = grid.getNumberOfCells()
+        slowness = np.ones((nc,))
+        slowness = slowness.reshape((20,30))
+        slowness[:,:10] = 0.5
+       
+        s = slowness.flatten()
+
+
+        Lsr = grid.getForwardStraightRays()
+        ttsr = Lsr*s        
+        
+        with open('/tmp/data.pickle', 'wb') as f:
+            # Pickle the 'data' dictionary using the highest protocol available.
+            pickle.dump(grid, f, pickle.HIGHEST_PROTOCOL)
+            
+            
+        del grid
+        
+        with open('/tmp/data.pickle', 'rb') as f:
+            # The protocol version used is detected automatically, so we do not
+            # have to specify it.
+            grid = pickle.load(f)
+            
+            
+
+        Lsr1 = grid.getForwardStraightRays()
+        ttsr1 = Lsr1*s
+        
+        tt1,L1,rays1 = grid.raytrace(s, Tx, Rx)
+        
+        
+        with open('/tmp/data.pickle', 'wb') as f:
+            # Pickle the 'data' dictionary using the highest protocol available.
+            pickle.dump(grid, f, pickle.HIGHEST_PROTOCOL)
+            
+            
+        del grid
+        
+        with open('/tmp/data.pickle', 'rb') as f:
+            # The protocol version used is detected automatically, so we do not
+            # have to specify it.
+            grid = pickle.load(f)
+            
+        Lsr2 = grid.getForwardStraightRays()
+        ttsr2 = Lsr2*s
+        
+        tt2,L2,rays2 = grid.raytrace(s, Tx, Rx)
+
+        print(ttsr)
+        print(ttsr1)
+        print(ttsr2)
+        print(tt1)
+        print(tt2)
+        
