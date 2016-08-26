@@ -49,6 +49,7 @@ class InversionUI(QtGui.QFrame):
         if ok:
             inv_res_info = (inversion_name, self.tomo, self.lsqrParams)
             self.models[self.model_ind].inv_res.append(inv_res_info)
+            print(self.models[self.model_ind].inv_res)
 
         save_file = open(self.filename, 'wb')
         pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
@@ -66,7 +67,7 @@ class InversionUI(QtGui.QFrame):
                 # result[2] == params
 
                 self.prev_inversion_combo.addItem(result[0])
-                self.prev_inv.append(results)
+                self.prev_inv.append(result)
 
     def update_data(self):
         for mog in self.models[self.model_ind].mogs:
@@ -109,6 +110,21 @@ class InversionUI(QtGui.QFrame):
         self.lsqrParams.nbreiter = float(self.max_iter_edit.text())
         self.lsqrParams.dv_max = 0.01*float(self.veloc_var_edit.text())
 
+    def update_input_params(self):
+        self.straight_ray_edit.setText(str(self.lsqrParams.numItStraight ))
+        self.curv_ray_edit.setText(str(self.lsqrParams.numItCurved))
+        self.use_const_checkbox.setChecked(self.lsqrParams.useCont)
+        self.solver_tol_edit.setText(str(self.lsqrParams.tol))
+        self.constraints_weight_edit.setText(str(self.lsqrParams.wCont))
+        self.smoothing_weight_x_edit.setText(str(self.lsqrParams.alphax))
+        self.smoothing_weight_y_edit.setText(str(self.lsqrParams.alphay))
+        self.smoothing_weight_z_edit.setText(str(self.lsqrParams.alphaz))
+        self.smoothing_order_combo.setCurrentIndex(self.lsqrParams.order - 2)
+        self.max_iter_edit.setText(str(self.lsqrParams.nbreiter))
+        self.veloc_var_edit.setText(str(self.lsqrParams.dv_max))
+
+
+
     def doInv(self):
         model = self.models[self.model_ind]
         if self.model_ind == '':
@@ -137,11 +153,6 @@ class InversionUI(QtGui.QFrame):
             self.update_params()
 
             self.tomo = invLSQR(self.lsqrParams, data, idata, model.grid, L, app, self)
-
-    def delete_prev(self):
-        n = self.prev_inversion_combo.currentIndex()
-        del self.models[self.model_ind].inv_res[n]
-        self.update_previous()
 
     def plot_inv(self):
         s = self.tomo.s
@@ -175,9 +186,29 @@ class InversionUI(QtGui.QFrame):
         self.tomoFig.plot_tomo()
         self.tomo_manager.show()
 
+    def load_prev(self):
+        n = self.prev_inversion_combo.currentIndex()
+        results = self.models[self.model_ind].inv_res[n]
+        tomo = results[1]
+        params = results[2]
+
+        self.tomo = tomo
+        if '-LSQR' in results[0]:
+            self.lsqrParams = params
+
+        self.algo_label.setText(results[0])
+        self.noIter_label.setText('|  {} Iterations'.format(self.lsqrParams.numItCurved + self.lsqrParams.numItStraight))
+        self.plot_inv()
+        self.update_input_params()
+
     def view_prev(self):
         self.previnvFig.plot_tomo()
         self.prev_inv_manager.show()
+
+    def delete_prev(self):
+        n = self.prev_inversion_combo.currentIndex()
+        del self.models[self.model_ind].inv_res[n]
+        self.update_previous()
 
     def initinvUI(self):
 
@@ -446,6 +477,8 @@ class InversionUI(QtGui.QFrame):
         #- Buttons Action -#
         btn_GO.clicked.connect(self.doInv)
         btn_View.clicked.connect(self.view_prev)
+        btn_Delete.clicked.connect(self.delete_prev)
+        btn_Load.clicked.connect(self.load_prev)
 
         #--- Label ---#
         model_label                 = MyQLabel("Model :", ha= 'center')
@@ -1115,7 +1148,7 @@ class TomoFig(FigureCanvasQTAgg):
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(7)
 
-
+        self.ax.invert_yaxis()
 
         self.draw()
 
@@ -1155,6 +1188,7 @@ class PrevInvFig(FigureCanvasQTAgg):
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(7)
 
+        self.ax.invert_yaxis()
 
 
         self.draw()
