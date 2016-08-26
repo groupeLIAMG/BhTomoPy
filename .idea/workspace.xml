@@ -8,9 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test_constraints_backup.p" afterPath="$PROJECT_DIR$/test_constraints_backup.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/set_tick_arrangement.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/inversionUI.py" afterPath="$PROJECT_DIR$/inversionUI.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/manual_ttUI.py" afterPath="$PROJECT_DIR$/manual_ttUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -42,16 +41,27 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/inversionUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="202" column="83" selection-start-line="202" selection-start-column="83" selection-end-line="202" selection-end-column="83" />
+            <state vertical-scroll-proportion="-3.392265">
+              <caret line="1195" column="53" selection-start-line="1195" selection-start-column="53" selection-end-line="1195" selection-end-column="53" />
               <folding>
-                <element signature="e#9249#19104#0" expanded="false" />
-                <element signature="e#19137#36266#0" expanded="false" />
-                <element signature="e#36307#38701#0" expanded="false" />
+                <element signature="e#25#35#0" expanded="true" />
+                <element signature="e#9303#19158#0" expanded="false" />
+                <element signature="e#19191#36320#0" expanded="false" />
+                <element signature="e#36361#38755#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="set_tick_arrangement.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/set_tick_arrangement.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="24" column="27" selection-start-line="24" selection-start-column="27" selection-end-line="24" selection-end-column="27" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -68,11 +78,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.16574585">
+            <state vertical-scroll-proportion="0.0">
               <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="291" column="35" selection-start-line="291" selection-start-column="35" selection-end-line="291" selection-end-column="35" />
               <folding />
             </state>
           </provider>
@@ -117,6 +137,7 @@
     <setting file="file://$PROJECT_DIR$/MogUI.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/data_select.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/DatabaseUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/set_tick_arrangement.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/semi_auto_ttUI.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/grid.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/ModelUI.py" root0="SKIP_INSPECTION" />
@@ -170,8 +191,9 @@
         <option value="$PROJECT_DIR$/data_select.py" />
         <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/test.py" />
-        <option value="$PROJECT_DIR$/inversionUI.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
+        <option value="$PROJECT_DIR$/set_tick_arrangement.py" />
+        <option value="$PROJECT_DIR$/inversionUI.py" />
       </list>
     </option>
   </component>
@@ -387,7 +409,7 @@
       </FILE-GROUP>
     </UpdatedFiles>
   </component>
-  <component name="RunManager" selected="Python.manual_ttUI">
+  <component name="RunManager" selected="Python.inversionUI">
     <configuration default="false" name="DatabaseUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -604,8 +626,8 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.manual_ttUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.inversionUI" />
+        <item index="0" class="java.lang.String" itemvalue="Python.inversionUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.manual_ttUI" />
         <item index="2" class="java.lang.String" itemvalue="Python.test" />
         <item index="3" class="java.lang.String" itemvalue="Python.DatabaseUI" />
         <item index="4" class="java.lang.String" itemvalue="Python.grid" />
@@ -622,12 +644,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00147" summary="updates">
-      <created>1470684229272</created>
-      <option name="number" value="00147" />
-      <option name="project" value="LOCAL" />
-      <updated>1470684229272</updated>
     </task>
     <task id="LOCAL-00148" summary="nouvelle fonctionalité : changement de nom de database">
       <created>1470685070210</created>
@@ -917,7 +933,13 @@
       <option name="project" value="LOCAL" />
       <updated>1472220473254</updated>
     </task>
-    <option name="localTasksCounter" value="196" />
+    <task id="LOCAL-00196" summary="updates">
+      <created>1472227828179</created>
+      <option name="number" value="00196" />
+      <option name="project" value="LOCAL" />
+      <updated>1472227828179</updated>
+    </task>
+    <option name="localTasksCounter" value="197" />
     <servers />
   </component>
   <component name="TodoView">
@@ -933,7 +955,7 @@
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24032739" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24032739" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3267974" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37810946" sideWeight="0.51044774" order="10" side_tool="true" content_ui="tabs" />
@@ -990,7 +1012,6 @@
     <MESSAGE value=" affichage grid update&#10;" />
     <MESSAGE value="Grid2DUI" />
     <MESSAGE value="Grid2DUI fonctionnel" />
-    <MESSAGE value="updates" />
     <MESSAGE value="changement de layout en fonction de l'agorithme fixé" />
     <MESSAGE value="update inversion ui" />
     <MESSAGE value="getModelData fonctionnel pour le cas tt" />
@@ -1012,7 +1033,8 @@
     <MESSAGE value="Description de la fonction invLSQR et changements dans inversionUI" />
     <MESSAGE value="ajout des différents TODO et affichage de la vitesse apparente de stats tt" />
     <MESSAGE value="sauvegarde et reload des prev inversions fonctionnel" />
-    <option name="LAST_COMMIT_MESSAGE" value="sauvegarde et reload des prev inversions fonctionnel" />
+    <MESSAGE value="updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1031,7 +1053,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/Desktop/BhTomoPyJS/boreholeUIJS.py" />
     <entry file="file://$USER_HOME$/Downloads/exemple_show_widget_reimplementation.py" />
     <entry file="file://$USER_HOME$/Downloads/exemple_scrollbar_qt.py" />
     <entry file="file://$PROJECT_DIR$/toto.py" />
@@ -1128,6 +1149,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="482" column="0" selection-start-line="482" selection-start-column="0" selection-end-line="482" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1157,6 +1179,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.20547946">
           <caret line="47" column="13" selection-start-line="47" selection-start-column="13" selection-end-line="47" selection-end-column="13" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1199,14 +1222,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.20547946">
           <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.07534247">
-          <caret line="291" column="35" selection-start-line="291" selection-start-column="35" selection-end-line="291" selection-end-column="35" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1286,18 +1301,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/inversionUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="202" column="83" selection-start-line="202" selection-start-column="83" selection-end-line="202" selection-end-column="83" />
-          <folding>
-            <element signature="e#9249#19104#0" expanded="false" />
-            <element signature="e#19137#36266#0" expanded="false" />
-            <element signature="e#36307#38701#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1310,9 +1313,38 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.16574585">
+        <state vertical-scroll-proportion="0.0">
           <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="291" column="35" selection-start-line="291" selection-start-column="35" selection-end-line="291" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/set_tick_arrangement.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="24" column="27" selection-start-line="24" selection-start-column="27" selection-end-line="24" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inversionUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.392265">
+          <caret line="1195" column="53" selection-start-line="1195" selection-start-column="53" selection-end-line="1195" selection-end-column="53" />
+          <folding>
+            <element signature="e#25#35#0" expanded="true" />
+            <element signature="e#9303#19158#0" expanded="false" />
+            <element signature="e#19191#36320#0" expanded="false" />
+            <element signature="e#36361#38755#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>

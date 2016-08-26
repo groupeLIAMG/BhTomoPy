@@ -12,6 +12,7 @@ import pickle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import interpolate
 from invLSQR import invLSQR
+from set_tick_arrangement import set_tick_arrangement
 
 class InversionUI(QtGui.QFrame):
     def __init__(self, parent=None):
@@ -922,25 +923,7 @@ class InvFig(FigureCanvasQTAgg):
         for tick in self.ax3.xaxis.get_major_ticks():
             tick.label.set_fontsize(8)
 
-        if grid.grx[0] < 0:
-            tick_range = grid.grx[0] - grid.grx[-1]
-        elif grid >= 0:
-            tick_range = grid.grx[-1] - grid.grx[0]
-
-        nticks = 4
-        tick_step = np.round(tick_range / nticks)
-
-        if grid.grx[0] < 0:
-            if 4*tick_step < grid.grx[0]:
-                tick_arrangement = tick_step*np.arange(nticks)
-            else:
-                tick_arrangement = tick_step*np.arange(nticks+1)
-
-        if grid.grx[0] >= 0:
-            if 4*tick_step > grid.grx[-1]:
-                tick_arrangement = tick_step*np.arange(nticks)
-            else:
-                tick_arrangement = tick_step*np.arange(nticks+1)
+        tick_arrangement = set_tick_arrangement(grid)
 
         self.ax3.set_xticks(tick_arrangement)
         self.ax3.invert_yaxis()
@@ -949,18 +932,18 @@ class InvFig(FigureCanvasQTAgg):
 
 class RaysFig(FigureCanvasQTAgg):
     def __init__(self, ui):
-        fig_width, fig_height = 6, 10
+        fig_width, fig_height = 4, 10
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height),dpi= 80, facecolor='white')
         super(RaysFig, self).__init__(fig)
         self.ui = ui
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.25, 0.1, 0.5, 0.85])
 
     def plot_rays(self):
         self.ax.cla()
-
+        grid = self.ui.models[self.ui.model_ind].grid
         res = self.ui.tomo.invData.res[:, -1]
 
         rmax = 1.001*max(np.abs(res.flatten()))
@@ -979,6 +962,16 @@ class RaysFig(FigureCanvasQTAgg):
             color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
             self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1], c= color)
 
+        for tick in self.ax.xaxis.get_major_ticks():
+            tick.label.set_fontsize(8)
+
+        tick_arrangement = set_tick_arrangement(grid)
+
+        self.ax.set_ylim(grid.grz[0], grid.grz[-1])
+        self.ax.set_xticks(tick_arrangement)
+        self.ax.set_title('Rays')
+        self.ax.set_xlabel('Distance [m]')
+        self.ax.set_ylabel('Elevation [m]')
         self.draw()
 
 class RayDensityFig(FigureCanvasQTAgg):
@@ -996,19 +989,25 @@ class RayDensityFig(FigureCanvasQTAgg):
         self.ax2 = self.figure.axes[1]
 
     def plot_ray_density(self):
-        #nCells = self.ui.tomo.L.shape[1]/2
-        #Lx = self.ui.tomo.L[:, :nCells]
-        #Lz = self.ui.tomo.L[:, 1+nCells:-1]
 
         dim = self.ui.models[self.ui.model_ind].grid.getNcell()
         grid = self.ui.models[self.ui.model_ind].grid
 
-
         tmp = sum(self.ui.tomo.L)
         rd = tmp.toarray()
         rd = rd.reshape((grid.grx.size -1, grid.grz.size-1)).T
+
         h = self.ax.imshow(rd, interpolation= 'none', cmap= 'inferno')
         mpl.colorbar.Colorbar(self.ax2, h)
+
+        tick_arrangement = set_tick_arrangement(grid)
+
+        self.ax.set_title('Ray Density')
+        self.ax.set_xlabel('Distance [m]')
+        self.ax.set_ylabel('Elevation [m]')
+        self.ax.set_ylim(grd.grz[0], grid.grz[-1])
+        self.ax.set_xticks(tick_arrangement)
+
         self.draw()
 
 class ResidualsFig(FigureCanvasQTAgg):
@@ -1148,7 +1147,10 @@ class TomoFig(FigureCanvasQTAgg):
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(7)
 
+        tick_arrangement = set_tick_arrangement(grid)
+
         self.ax.invert_yaxis()
+        self.ax.set_xticks(tick_arrangement)
 
         self.draw()
 
@@ -1191,25 +1193,7 @@ class PrevInvFig(FigureCanvasQTAgg):
         self.ax2.set_ylabel('m/ns', fontsize= 10)
         self.ax2.yaxis.set_label_position("right")
 
-        if grid.grx[0] < 0:
-            tick_range = grid.grx[0] - grid.grx[-1]
-        elif grid >= 0:
-            tick_range = grid.grx[-1] - grid.grx[0]
-
-        nticks = 4
-        tick_step = np.round(tick_range / nticks)
-
-        if grid.grx[0] < 0:
-            if 4*tick_step < grid.grx[0]:
-                tick_arrangement = tick_step*np.arange(nticks)
-            else:
-                tick_arrangement = tick_step*np.arange(nticks+1)
-
-        if grid.grx[0] >= 0:
-            if 4*tick_step > grid.grx[-1]:
-                tick_arrangement = tick_step*np.arange(nticks)
-            else:
-                tick_arrangement = tick_step*np.arange(nticks+1)
+        tick_arrangement = set_tick_arrangement(grid)
 
         self.ax.set_xticks(tick_arrangement)
         self.ax.invert_yaxis()
