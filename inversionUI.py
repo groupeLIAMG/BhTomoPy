@@ -99,6 +99,7 @@ class InversionUI(QtGui.QFrame):
 
     def update_params(self):
         self.lsqrParams.selectedMogs = self.mog_list.selectedIndexes()
+        self.lsqrParams.selectedMogs = [i.row() for i in self.lsqrParams.selectedMogs]
         self.lsqrParams.numItStraight = int(self.straight_ray_edit.text())
         self.lsqrParams.numItCurved = int(self.curv_ray_edit.text())
         self.lsqrParams.useCont = self.use_const_checkbox.isChecked()
@@ -112,7 +113,7 @@ class InversionUI(QtGui.QFrame):
         self.lsqrParams.dv_max = 0.01*float(self.veloc_var_edit.text())
 
     def update_input_params(self):
-        self.straight_ray_edit.setText(str(self.lsqrParams.numItStraight ))
+        self.straight_ray_edit.setText(str(self.lsqrParams.numItStraight))
         self.curv_ray_edit.setText(str(self.lsqrParams.numItCurved))
         self.use_const_checkbox.setChecked(self.lsqrParams.useCont)
         self.solver_tol_edit.setText(str(self.lsqrParams.tol))
@@ -123,6 +124,8 @@ class InversionUI(QtGui.QFrame):
         self.smoothing_order_combo.setCurrentIndex(self.lsqrParams.order - 2)
         self.max_iter_edit.setText(str(self.lsqrParams.nbreiter))
         self.veloc_var_edit.setText(str(self.lsqrParams.dv_max))
+        self.update_params()
+
 
     def doInv(self):
         model = self.models[self.model_ind]
@@ -167,6 +170,7 @@ class InversionUI(QtGui.QFrame):
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
                                                     , buttons=QtGui.QMessageBox.Ok)
         self.raysFig.plot_rays()
+        self.update_Tx_elev()
         self.rays_manager.show()
 
     def plot_ray_density(self):
@@ -412,7 +416,91 @@ class InversionUI(QtGui.QFrame):
             self.Inv_Param_grid.addWidget(Geostat_groupbox, 2, 0, 1, 3)
             self.repaint()
 
+    def update_Tx_elev(self):
+        mog = self.mogs[self.mog_list.selectedIndexes()[0].row()]
+        n = int(self.trace_num_edit.text()) - 1
+        elev = np.unique(mog.data.Tx_z)[n]
+
+        if not self.entire_coverage_check.isChecked():
+            self.value_elev_label.setText(str(elev))
+        else:
+            self.value_elev_label.setText('-')
+
+    def next_trace(self):
+        n = int(self.trace_num_edit.text())
+        n += 1
+        self.trace_num_edit.setText(str(n))
+        self.plot_rays()
+
+
+    def prev_trace(self):
+        n = int(self.trace_num_edit.text())
+        n -= 1
+        self.trace_num_edit.setText(str(n))
+        self.plot_rays()
+
+
     def initUI(self):
+
+        #-------- Widgets in RaysFig --------#
+        #--- Edit ---#
+        self.trace_num_edit = QtGui.QLineEdit('1')
+
+        #- Edit's Actions -#
+        self.trace_num_edit.editingFinished.connect(self.plot_rays)
+
+
+        #- Edit's Disposition -#
+        self.trace_num_edit.setAlignment(QtCore.Qt.AlignHCenter)
+
+        #--- Buttons ---#
+        next_trace_btn = QtGui.QPushButton('Next Tx')
+        prev_trace_btn = QtGui.QPushButton('Prev Tx')
+
+        #- Buttons' Actions -#
+        next_trace_btn.clicked.connect(self.next_trace)
+        prev_trace_btn.clicked.connect(self.prev_trace)
+
+        #--- Labels ---#
+        coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
+        self.value_elev_label = MyQLabel('', ha= 'left')
+        trace_label = MyQLabel('Tx Number: ', ha= 'right')
+
+        #--- CheckBox ---#
+        self.entire_coverage_check = QtGui.QCheckBox('Show entire coverage')
+        self.entire_coverage_check.stateChanged.connect(self.plot_rays)
+
+        #--- Elevation SubWidget ---#
+        sub_coverage_elev_widget = QtGui.QWidget()
+        sub_coverage_elev_grid = QtGui.QGridLayout()
+        sub_coverage_elev_grid.addWidget(coverage_elev_label, 0, 0)
+        sub_coverage_elev_grid.addWidget(self.value_elev_label, 0, 1)
+        sub_coverage_elev_widget.setLayout(sub_coverage_elev_grid)
+
+        #--- Trace SubWidget ---#
+        sub_trace_widget = QtGui.QWidget()
+        sub_trace_grid = QtGui.QGridLayout()
+        sub_trace_grid.addWidget(trace_label, 0, 0)
+        sub_trace_grid.addWidget(self.trace_num_edit, 0, 1)
+        sub_trace_grid.setContentsMargins(0, 0, 0, 0)
+        sub_trace_widget.setLayout(sub_trace_grid)
+
+        #--- Buttons SubWidget ---#
+        sub_buttons_widget = QtGui.QWidget()
+        sub_buttons_grid = QtGui.QGridLayout()
+        sub_buttons_grid.addWidget(next_trace_btn, 0, 1)
+        sub_buttons_grid.addWidget(prev_trace_btn, 0, 0)
+        sub_buttons_grid.setContentsMargins(0, 0, 0, 0)
+        sub_buttons_widget.setLayout(sub_buttons_grid)
+
+        sub_coverage_widget = QtGui.QWidget()
+        sub_coverage_grid = QtGui.QGridLayout()
+        sub_coverage_grid.addWidget(sub_trace_widget, 0, 0)
+        sub_coverage_grid.addWidget(sub_buttons_widget, 1, 0)
+        sub_coverage_grid.addWidget(sub_coverage_elev_widget, 2, 0)
+        sub_coverage_grid.addWidget(self.entire_coverage_check, 3, 0)
+        sub_coverage_grid.setRowStretch(5, 100)
+        sub_coverage_widget.setLayout(sub_coverage_grid)
 
         #------- Frame to fill invFig's place before loading model -------#
         self.inv_frame = QtGui.QFrame()
@@ -423,11 +511,12 @@ class InversionUI(QtGui.QFrame):
         self.raystool = NavigationToolbar2QT(self.raysFig, self)
         self.rays_manager = QtGui.QWidget()
         rays_grid = QtGui.QGridLayout()
-        rays_grid.addWidget(self.raystool, 0, 0)
+        rays_grid.addWidget(self.raystool, 0, 0, 1, 2)
         rays_grid.addWidget(self.raysFig, 1, 0)
+        rays_grid.addWidget(sub_coverage_widget, 1, 1)
         self.rays_manager.setLayout(rays_grid)
 
-        #-------Manager for RaysFig ------#
+        #-------Manager for RayDensityFig ------#
         self.raydensityFig = RayDensityFig(self)
         self.raydensitytool = NavigationToolbar2QT(self.raydensityFig, self)
         self.ray_density_manager = QtGui.QWidget()
@@ -945,22 +1034,40 @@ class RaysFig(FigureCanvasQTAgg):
         self.ax.cla()
         grid = self.ui.models[self.ui.model_ind].grid
         res = self.ui.tomo.invData.res[:, -1]
+        mog = self.ui.mogs[self.ui.mog_list.selectedIndexes()[0].row()]
+
+        n = int(self.ui.trace_num_edit.text()) -1
+
+        Tx = np.unique(mog.data.Tx_z)
+        print(Tx)
+
+        ind1 = np.where(mog.tt != -1.0)[0]
+        ind2 = np.where(mog.data.Tx_z[ind1] == Tx[n])[0]
+        print(ind1)
+        print(ind2)
 
         rmax = 1.001*max(np.abs(res.flatten()))
         rmin = -rmax
 
         c = np.array([[0, 0, 1],
-                      [0.8, 0.8, 0.8],
+                      [1, 1, 1],
                       [1, 0, 0]])
 
         c = interpolate.interp1d(np.arange(-100, 101, 100).T, c.T)( np.arange(-100, 101, 2).T)
         m = 200/(rmax-rmin)
+        if not self.ui.entire_coverage_check.isChecked():
+            for n in ind2:
+                p = m*res[n]
+                color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
+                self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1], c= color)
+
+        elif self.ui.entire_coverage_check.isChecked():
+            for n in range(len(self.ui.tomo.rays)):
+                p = m*res[n]
+                color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
+                self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1], c= color)
 
 
-        for n in range(len(self.ui.tomo.rays)):
-            p = m*res[n]
-            color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
-            self.ax.plot(self.ui.tomo.rays[n][:, 0], self.ui.tomo.rays[n][:, -1], c= color)
 
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(8)
@@ -972,6 +1079,7 @@ class RaysFig(FigureCanvasQTAgg):
         self.ax.set_title('Rays')
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
+        self.ax.set_axis_bgcolor('grey')
         self.draw()
 
 class RayDensityFig(FigureCanvasQTAgg):
@@ -983,7 +1091,7 @@ class RayDensityFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9])
+        self.ax = self.figure.add_axes([0.05, 0.1, 0.9, 0.85])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size= 0.5, pad= 0.1)
         self.ax2 = self.figure.axes[1]
@@ -997,7 +1105,7 @@ class RayDensityFig(FigureCanvasQTAgg):
         rd = tmp.toarray()
         rd = rd.reshape((grid.grx.size -1, grid.grz.size-1)).T
 
-        h = self.ax.imshow(rd, interpolation= 'none', cmap= 'inferno')
+        h = self.ax.imshow(rd, interpolation= 'none', cmap= 'inferno', extent= [grid.grx[0], grid.grx[-1], grid.grz[-1], grid.grz[0]])
         mpl.colorbar.Colorbar(self.ax2, h)
 
         tick_arrangement = set_tick_arrangement(grid)
@@ -1005,7 +1113,7 @@ class RayDensityFig(FigureCanvasQTAgg):
         self.ax.set_title('Ray Density')
         self.ax.set_xlabel('Distance [m]')
         self.ax.set_ylabel('Elevation [m]')
-        self.ax.set_ylim(grd.grz[0], grid.grz[-1])
+        self.ax.set_ylim(grid.grz[0], grid.grz[-1])
         self.ax.set_xticks(tick_arrangement)
 
         self.draw()
@@ -1133,6 +1241,7 @@ class TomoFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Elevation [m]')
 
     def plot_tomo(self):
+        #TODO Changer le titre de la figure tout dépendant du type d'inversion
         grid = self.ui.models[self.ui.model_ind].grid
         s = self.ui.tomo.s
 
@@ -1267,8 +1376,6 @@ class InvLSQRParams:
         self.order          = 1
         self.nbreiter       = 0
         self.dv_max         = 0
-
-
 
 #--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):

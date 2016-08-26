@@ -21,7 +21,7 @@ class Model:
         in_vect = np.array([])
         mogs = []
         for i in selected_mogs:
-            mogs.append(model.mogs[i.row()])
+            mogs.append(model.mogs[i])
 
         if type1 == 'tt':
             fac_dt = 1

@@ -8,8 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/set_tick_arrangement.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/inversionUI.py" afterPath="$PROJECT_DIR$/inversionUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model.py" afterPath="$PROJECT_DIR$/model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -41,17 +42,26 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/inversionUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-3.392265">
-              <caret line="1195" column="53" selection-start-line="1195" selection-start-column="53" selection-end-line="1195" selection-end-column="53" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="126" column="28" selection-start-line="126" selection-start-column="28" selection-end-line="126" selection-end-column="28" />
               <folding>
                 <element signature="e#25#35#0" expanded="true" />
-                <element signature="e#9303#19158#0" expanded="false" />
-                <element signature="e#19191#36320#0" expanded="false" />
-                <element signature="e#36361#38755#0" expanded="false" />
+                <element signature="e#9449#19304#0" expanded="false" />
+                <element signature="e#42166#44509#0" expanded="false" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="model.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/model.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.3314917">
+              <caret line="23" column="36" selection-start-line="23" selection-start-column="36" selection-end-line="23" selection-end-column="36" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -70,7 +80,7 @@
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1279" column="72" selection-start-line="1279" selection-start-column="72" selection-end-line="1279" selection-end-column="72" />
+              <caret line="0" column="23" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
               <folding>
                 <element signature="e#24#34#0" expanded="true" />
               </folding>
@@ -102,7 +112,7 @@
         <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="2490" column="21" selection-start-line="2490" selection-start-column="21" selection-end-line="2490" selection-end-column="21" />
+              <caret line="566" column="0" selection-start-line="566" selection-start-column="0" selection-end-line="566" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -184,16 +194,16 @@
         <option value="$PROJECT_DIR$/manualAmpUI.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
         <option value="$PROJECT_DIR$/grid.py" />
-        <option value="$PROJECT_DIR$/model.py" />
         <option value="$USER_HOME$/Anaconda3/Lib/site-packages/scipy/interpolate/interpolate.py" />
         <option value="$PROJECT_DIR$/invLSQR.py" />
         <option value="$PROJECT_DIR$/computeSNR.py" />
         <option value="$PROJECT_DIR$/data_select.py" />
-        <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
         <option value="$PROJECT_DIR$/set_tick_arrangement.py" />
+        <option value="$PROJECT_DIR$/MogUI.py" />
         <option value="$PROJECT_DIR$/inversionUI.py" />
+        <option value="$PROJECT_DIR$/model.py" />
       </list>
     </option>
   </component>
@@ -627,9 +637,9 @@
     <recent_temporary>
       <list size="5">
         <item index="0" class="java.lang.String" itemvalue="Python.inversionUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.manual_ttUI" />
-        <item index="2" class="java.lang.String" itemvalue="Python.test" />
-        <item index="3" class="java.lang.String" itemvalue="Python.DatabaseUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.DatabaseUI" />
+        <item index="2" class="java.lang.String" itemvalue="Python.manual_ttUI" />
+        <item index="3" class="java.lang.String" itemvalue="Python.test" />
         <item index="4" class="java.lang.String" itemvalue="Python.grid" />
       </list>
     </recent_temporary>
@@ -644,12 +654,6 @@
       <created>1462809080136</created>
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
-    </task>
-    <task id="LOCAL-00148" summary="nouvelle fonctionalité : changement de nom de database">
-      <created>1470685070210</created>
-      <option name="number" value="00148" />
-      <option name="project" value="LOCAL" />
-      <updated>1470685070210</updated>
     </task>
     <task id="LOCAL-00149" summary="update manual ampUI">
       <created>1470689038360</created>
@@ -939,7 +943,13 @@
       <option name="project" value="LOCAL" />
       <updated>1472227828179</updated>
     </task>
-    <option name="localTasksCounter" value="197" />
+    <task id="LOCAL-00197" summary="updates">
+      <created>1472229277784</created>
+      <option name="number" value="00197" />
+      <option name="project" value="LOCAL" />
+      <updated>1472229277784</updated>
+    </task>
+    <option name="localTasksCounter" value="198" />
     <servers />
   </component>
   <component name="TodoView">
@@ -955,7 +965,7 @@
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24032739" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24032739" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3267974" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37810946" sideWeight="0.51044774" order="10" side_tool="true" content_ui="tabs" />
@@ -1247,14 +1257,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="74" column="0" selection-start-line="74" selection-start-column="0" selection-end-line="74" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ModelUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1267,6 +1269,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="166" column="41" selection-start-line="166" selection-start-column="41" selection-end-line="166" selection-end-column="41" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1274,6 +1277,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="67" column="0" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1285,29 +1289,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MogUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="2490" column="21" selection-start-line="2490" selection-start-column="21" selection-end-line="2490" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/invLSQR.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="117" column="13" selection-start-line="117" selection-start-column="13" selection-end-line="117" selection-end-column="13" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="1279" column="72" selection-start-line="1279" selection-start-column="72" selection-end-line="1279" selection-end-column="72" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1335,16 +1321,41 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/MogUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="566" column="0" selection-start-line="566" selection-start-column="0" selection-end-line="566" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="23" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/inversionUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.392265">
-          <caret line="1195" column="53" selection-start-line="1195" selection-start-column="53" selection-end-line="1195" selection-end-column="53" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="126" column="28" selection-start-line="126" selection-start-column="28" selection-end-line="126" selection-end-column="28" />
           <folding>
             <element signature="e#25#35#0" expanded="true" />
-            <element signature="e#9303#19158#0" expanded="false" />
-            <element signature="e#19191#36320#0" expanded="false" />
-            <element signature="e#36361#38755#0" expanded="false" />
+            <element signature="e#9449#19304#0" expanded="false" />
+            <element signature="e#42166#44509#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3314917">
+          <caret line="23" column="36" selection-start-line="23" selection-start-column="36" selection-end-line="23" selection-end-column="36" />
+          <folding />
         </state>
       </provider>
     </entry>

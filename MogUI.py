@@ -939,8 +939,8 @@ class MOGUI(QtGui.QWidget):
         self.trace_num_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- Buttons ---#
-        next_trace_btn = QtGui.QPushButton('Next Trace')
-        prev_trace_btn = QtGui.QPushButton('Prev Trace')
+        next_trace_btn = QtGui.QPushButton('Next Tx')
+        prev_trace_btn = QtGui.QPushButton('Prev Tx')
 
         #- Buttons' Actions -#
         next_trace_btn.clicked.connect(self.next_trace)
@@ -956,7 +956,7 @@ class MOGUI(QtGui.QWidget):
         #--- Labels ---#
         coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
         self.value_elev_label = MyQLabel('', ha= 'left')
-        trace_label = MyQLabel('Trace Number: ', ha= 'right')
+        trace_label = MyQLabel('Tx Number: ', ha= 'right')
 
         #--- CheckBox ---#
         self.entire_coverage_check = QtGui.QCheckBox('Show entire coverage')
@@ -1115,8 +1115,8 @@ class MOGUI(QtGui.QWidget):
         Sub_tol_grid.addWidget(self.tol_edit, 1, 0)
         Sub_tol_grid.setAlignment(QtCore.Qt.AlignCenter)
         Sub_tol_widget.setLayout(Sub_tol_grid)
-        #------- Groupboxes in ZOP -------#
 
+        #------- Groupboxes in ZOP -------#
         #--- Color Scale GroupBox ---#
         color_group = QtGui.QGroupBox('Color Scale')
         color_grid = QtGui.QGridLayout()
