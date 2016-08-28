@@ -2,6 +2,23 @@ import numpy as np
 import scipy as spy
 from scipy.sparse import linalg
 
+class InvLSQRParams:
+    def __init__(self):
+        self.tomoAtt        = 0
+        self.selectedMogs   = []
+        self.numItStraight  = 0
+        self.numItCurved    = 0
+        self.saveInvData    = 1
+        self.useCont        = 0
+        self.tol            = 0
+        self.wCont          = 0
+        self.alphax         = 0
+        self.alphay         = 0
+        self.alphaz         = 0
+        self.order          = 1
+        self.nbreiter       = 0
+        self.dv_max         = 0
+
 def invLSQR(params, data, idata, grid, L, app= None, ui= None):
     """
     Input:
@@ -68,7 +85,7 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
         tomo.y = np.array([])
 
     cont = np.array([])
-    #TODO:  Ajouter les conditions par rapport au contraintes de vélocité appliquées dans grid editor
+    #TODO:  Ajouter les conditions par rapport au contraintes de vï¿½locitï¿½ appliquï¿½es dans grid editor
 
 
     # Getting our spatial derivative elements

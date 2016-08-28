@@ -11,8 +11,8 @@ from scipy.sparse import linalg
 import pickle
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import interpolate
-from invLSQR import invLSQR
-from set_tick_arrangement import set_tick_arrangement
+from inversion import invLSQR, InvLSQRParams
+from utils import set_tick_arrangement
 
 class InversionUI(QtGui.QFrame):
     def __init__(self, parent=None):
@@ -1359,23 +1359,6 @@ class Gridviewer(QtGui.QWidget):
         self.y_plane_scroll = QtGui.QScrollBar(QtCore.Qt.Horizontal)
         self.ui.fig_grid.addWidget(y_plane_label, 0, 6)
         self.ui.fig_grid.addWidget(self.y_plane_scroll, 0, 7)
-
-class InvLSQRParams:
-    def __init__(self):
-        self.tomoAtt        = 0
-        self.selectedMogs   = []
-        self.numItStraight  = 0
-        self.numItCurved    = 0
-        self.saveInvData    = 1
-        self.useCont        = 0
-        self.tol            = 0
-        self.wCont          = 0
-        self.alphax         = 0
-        self.alphay         = 0
-        self.alphaz         = 0
-        self.order          = 1
-        self.nbreiter       = 0
-        self.dv_max         = 0
 
 #--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):

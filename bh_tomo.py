@@ -1,20 +1,20 @@
 import sys
 from PyQt4 import QtGui, QtCore
-from DatabaseUI import DatabaseUI
-from manual_ttUI import ManualttUI
-from covarUI import CovarUI
-from inversionUI import InversionUI
-from interpUI import InterpretationUI
-from semi_auto_ttUI import SemiAutottUI
-from manualAmpUI import ManualAmpUI
+from database_ui import DatabaseUI
+from manual_tt_ui import ManualttUI
+from covar_ui import CovarUI
+from inversion_ui import InversionUI
+from interp_ui import InterpretationUI
+from semi_auto_tt_ui import SemiAutottUI
+from manual_amp_ui import ManualAmpUI
 import os
 
 
-class Bh_ThomoPyUI(QtGui.QWidget):
+class BhTomoPy(QtGui.QWidget):
 
     def __init__(self, parent=None):
-        super(Bh_ThomoPyUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy")
+        super(BhTomoPy, self).__init__()
+        self.setWindowTitle("BhTomoPy")
 
         self.database = DatabaseUI()
         self.manual_tt = ManualttUI()
@@ -51,7 +51,7 @@ class Bh_ThomoPyUI(QtGui.QWidget):
         self.manual_amp.openmain.load_file(filename)
 
     def show(self):
-        super(Bh_ThomoPyUI, self).show()
+        super(BhTomoPy, self).show()
 
         # Get initial geometry of the widget:
         qr = self.frameGeometry()
@@ -307,7 +307,7 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    Bh_ThomoPy_ui = Bh_ThomoPyUI()
-    Bh_ThomoPy_ui.show()
+    bh_tomo = BhTomoPy()
+    bh_tomo.show()
 
     sys.exit(app.exec_())

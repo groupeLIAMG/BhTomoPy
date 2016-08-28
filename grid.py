@@ -30,7 +30,7 @@ import h5py
 from cutils import cgrid2d
 
 from utils import nargout
-import Covariance
+import covar
 
 class Grid:
     """
@@ -994,7 +994,7 @@ if __name__ == '__main__':
 
         grid = Grid2D(grx,grz)
         
-        cm = [Covariance.CovarianceExponential(np.array([5.0,2.0]), np.array([0]), 2.5)]
+        cm = [covar.CovarianceExponential(np.array([5.0,2.0]), np.array([0]), 2.5)]
 
         G = grid.preFFTMA(cm)
         

@@ -387,8 +387,8 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    BoreholeUI_ui = BoreholeUI()
-    BoreholeUI_ui.show()
+    bh_ui = BoreholeUI()
+    bh_ui.show()
 
     sys.exit(app.exec_())
 

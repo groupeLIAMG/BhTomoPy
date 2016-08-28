@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import sys
 from PyQt4 import QtGui, QtCore
-from BoreholeUI import BoreholeUI
-from ModelUI import ModelUI, gridEditor
-from MogUI import MOGUI, MergeMog
-from InfoUI import InfoUI
-from MogData import MogData
+from borehole_ui import BoreholeUI
+from model_ui import ModelUI, gridEditor
+from mog_ui import MOGUI, MergeMog
+from info_ui import InfoUI
+from mog import MogData
 import time
 import matplotlib.image as mpimg
 import pickle

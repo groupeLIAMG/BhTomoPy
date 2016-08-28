@@ -6,7 +6,6 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationTool
 import pickle
 import numpy as np
 import re
-from inversionUI import InvLSQRParams
 
 
 

@@ -2,10 +2,9 @@
 import sys
 import os
 from PyQt4 import QtGui, QtCore
-from MogData import MogData
-from mog import Mog, AirShots
+from mog import MogData, Mog, AirShots
 from database import Database
-from ModelUI import gridEditor
+from model_ui import gridEditor
 from unicodedata import *
 import matplotlib as mpl
 import scipy as spy
@@ -19,8 +18,7 @@ from mpl_toolkits.mplot3d import axes3d
 #from spectrum import arburg
 import re
 import pickle
-from computeSNR import compute_SNR
-from data_select import data_select
+from utils import compute_SNR, data_select
 from scipy import interpolate
 
 
