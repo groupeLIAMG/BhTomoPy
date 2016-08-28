@@ -18,7 +18,7 @@ class BoreholeUI(QtGui.QWidget):
 
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Borehole")
+        self.setWindowTitle("BhTomoPy/Borehole")
         self.boreholes = []   # we initialize a list which will contain instances of Borehole class
         self.db = Database()
         self.initUI()
@@ -63,7 +63,7 @@ class BoreholeUI(QtGui.QWidget):
         This method will create an instance of the Borehole class and initialize it, while showing the value of all its
         attributes in the coordinates edits
         """
-        name, ok = QtGui.QInputDialog.getText(self, "Borehole creation", "Borehole's name")
+        name, ok = QtGui.QInputDialog.getText(self, "Borehole creation", "Borehole name")
         if ok :
             self.boreholes.append(Borehole(str(name)))
             self.update_List_Widget()
@@ -391,4 +391,3 @@ if __name__ == '__main__':
     bh_ui.show()
 
     sys.exit(app.exec_())
-

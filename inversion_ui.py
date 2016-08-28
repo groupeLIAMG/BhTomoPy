@@ -17,7 +17,7 @@ from utils import set_tick_arrangement
 class InversionUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(InversionUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Inversion")
+        self.setWindowTitle("BhTomoPy/Inversion")
         self.openmain = OpenMainData(self)
         self.lsqrParams = InvLSQRParams()
         self.tomo = None

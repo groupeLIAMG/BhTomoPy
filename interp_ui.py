@@ -6,7 +6,7 @@ from unicodedata import *
 class InterpretationUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(InterpretationUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Inversion")
+        self.setWindowTitle("BhTomoPy/Inversion")
         self.initUI()
 
     def initUI(self):

@@ -13,7 +13,7 @@ import pickle
 class DatabaseUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Database")
+        self.setWindowTitle("BhTomoPy/Database")
         #--- Other Modules Instance ---#
         self.actual_time = time.asctime()[11:16]
         self.bh = BoreholeUI()
@@ -165,6 +165,10 @@ class DatabaseUI(QtGui.QWidget):
 
     def savefile(self):
 
+        if self.filename == '':
+            self.saveasfile()
+            return
+
         try:
             save_file = open(self.filename, 'wb')
             try:
@@ -183,7 +187,6 @@ class DatabaseUI(QtGui.QWidget):
     def saveasfile(self):
         try:
             filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', self.name, filter= 'pickle (*.p *.pkl *.pickle)', )
-            print(filename)
             save_file = open(filename, 'wb')
             try:
                 self.model.gridui.update_model_grid()
@@ -193,6 +196,7 @@ class DatabaseUI(QtGui.QWidget):
             dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
             self.update_log("Database was saved successfully")
+            self.filename = filename
         except:
             dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
                                                     , buttons=QtGui.QMessageBox.Ok)

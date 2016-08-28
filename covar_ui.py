@@ -4,7 +4,7 @@ from PyQt4 import QtGui, QtCore
 class CovarUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(CovarUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Covariance")
+        self.setWindowTitle("BhTomoPy/Covariance")
         self.initUI()
 
     def initUI(self):

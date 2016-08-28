@@ -13,7 +13,7 @@ class ManualttUI(QtGui.QFrame):
     KeyPressed = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         super(ManualttUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Manual Traveltime Picking")
+        self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
         self.openmain = OpenMainData(self)
         self.mogs = []
         self.air = []
