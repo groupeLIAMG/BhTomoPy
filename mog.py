@@ -18,9 +18,202 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import re
 import numpy as np
 from PyQt4 import QtGui, QtCore
-from MogData import MogData
+
+class MogData:
+    """
+    Class to hold multi-offset gather (mog) data
+    """
+
+    def __init__(self, name='', date=None):
+        self.ntrace       = 0       # number of traces
+        self.nptsptrc     = 0       # number of points per trace
+        self.rstepsz      = 0       # size of step used
+        self.rnomfreq     = 0       # nominal frequency of antenna
+        self.csurvmod     = ''      # survey mode
+        self.timec        = 0       # the step of time data
+        self.rdata        = 0       # raw data
+        self.tdata        = None    # time data
+        self.timestp      = 0       # matrix of range self.nptstrc containing all the time referencies
+        self.Tx_x         = 0       # x position of the transmitor
+        self.Tx_y         = 0       # y position of the transmitor
+        self.Tx_z         = 0       # z position of the transmitor
+        self.Rx_x         = 0       # x position of the receptor
+        self.Rx_y         = 0       # y position of the receptor
+        self.Rx_z         = 0       # z position of the receptor
+        self.antennas     = ''      # name of the antenna
+        self.synthetique  = 0       # if 1 results from numerical modelling and 0 for field data
+        self.tunits       = 0       # time units
+        self.cunits       = ''      # coordinates units
+        self.TxOffset     = 0       # length of he transmittor which is above the surface
+        self.RxOffset     = 0       # length of he receptor which is above the surface
+        self.comment      = ''      # is defined by the presence of any comment in the file
+        self.date         = ''      # the date of the data sample
+        self.name         = name
+
+    def readRAMAC(self, basename):
+        """
+        load data in Malå RAMAC format
+        """
+        rname = basename.split('/')  # the split method gives us back a list which contains al the caracter that were
+        rname = rname[-1]
+
+        self.name = rname
+        self.tunits = 'ns'
+        self.cunits = 'm'
+
+        self.readRAD(basename)
+        self.readRD3(basename)
+        self.readTLF(basename)
+
+        self.TxOffset = 0
+        self.RxOffset = 0
+
+        if not self.synthetique:
+
+            if self.rnomfreq == 100.0:
+                self.TxOffset = 0.665
+                self.RxOffset = 0.665
+            elif self.rnomfreq == 250.0:
+                self.TxOffset = 0.325
+                self.RxOffset = 0.365
+
+        self.Tx_z = self.Tx_z[:self.ntrace]
+        self.Rx_z = self.Rx_z[:self.ntrace]
+
+        self.Tx_y = np.zeros(self.ntrace)
+        self.Rx_y = np.zeros(self.ntrace)
+        self.Tx_x = np.zeros(self.ntrace)
+        self.Rx_x = np.zeros(self.ntrace)
+
+
+
+
+    def readRAD(self, basename):
+        """
+        load content of Malå header file (*.rad extension)
+        """
+        try:
+            file = open(basename, 'r')
+        except:
+            try:
+                file = open(basename + ".rad", 'r')
+            except:
+                try:
+                    file = open(basename + ".RAD", 'r')
+                except:
+                    raise IOError (" Cannot open Rad file: {}".format(basename))
+
+        # knowing he file's content, we make sure to read every line while looking for keywords. When we've found on of
+        # these keyword, we either search the int('\d+'), the float(r"[-+]?\d*\.\d+|\d+") or a str by getting the
+        # needed information on the line
+
+        # the search function returns 3 things, the type, the span(i.e. the index(es) of the element that was found )
+        # and the group(i.e. the found element)
+
+        lines = file.readlines()
+        for line in lines:
+            if "SAMPLES:" in line:
+                self.nptsptrc = int(re.search('\d+', line).group())
+            elif "FREQUENCY:" in line:
+                self.timec = float(re.search(r"[-+]?\d*\.\d+|\d+", line).group())
+            elif "OPERATOR:" in line:
+                if 'MoRad' in line  or 'syntetic' in line:
+                    self.synthetique = True
+                else:
+                    self.synthetique = False
+            elif "ANTENNAS:" in line :
+                start, end = re.search('\d+', line).span()
+                self.rnomfreq = float(line[start:end])
+                self.antennas = line[9:].strip('\n')
+            elif "LAST TRACE" in line:
+                self.ntrace = int(re.search('\d+', line).group())
+
+        self.timec = 1000.0/self.timec
+        self.timestp = self.timec*np.arange(self.nptsptrc)
+
+        if self.synthetique == False :
+          self.antennas = self.antennas + "  - Ramac"
+
+        file.close()
+        #print(self.nptsptrc)    # these prints will be deleted
+        #print(self.timec)
+        #print(self.synthetique)
+        #print(self.rnomfreq)
+        #print(self.antennas)
+        #print(self.ntrace)
+
+
+    def readRD3(self, basename):
+        """
+        load content of *.rd3 extension
+        fact: RD3 stands for Ray Dream Designer 3 graphics
+        """
+        try:
+            file = open(basename, 'rb')
+        except:
+            try:
+                file = open(basename + ".rd3", 'rb')
+            except:
+                try:
+                    file = open(basename + ".RD3", 'rb')
+                except:
+                    raise IOError(" Cannot open RD3 file: {}".format(basename))
+
+        self.rdata = np.fromfile(file, dtype= 'int16', count= self.nptsptrc*self.ntrace)
+        self.rdata.resize((self.ntrace, self.nptsptrc))
+        self.rdata = self.rdata.T
+
+
+    def readTLF(self, basename):
+        """
+        load content of *.TLF extension
+        """
+        try:
+            file = open(basename, 'r')
+        except:
+            try:
+                file = open(basename + ".tlf", 'r')
+            except:
+                try:
+                    file = open(basename + ".TLF", 'r')
+                except:
+                    raise IOError(" Cannot open TLF file: {}".format(basename))
+        self.Tx_z = np.array([])
+        self.Rx_z = np.array([])
+        lines = file.readlines()[1:]
+        for line in lines:
+            line_content = re.findall(r"[-+]?\d*\.\d+|\d+", line )
+            tnd          = int(line_content[0])     # frist trace
+            tnf          = int(line_content[1])     # last trace
+            Rxd          = float(line_content[2])   # first coordinate of the Rx
+            Rxf          = float(line_content[3])   # last coordinate of the Rx
+            Tx           = float(line_content[4])   # Tx's fixed position
+            nt           = tnf - tnd + 1
+            if nt == 1:
+                dRx = 1
+                if Rxd > Rxf :
+                    Rxd = Rxf
+            else:
+                dRx = (Rxf - Rxd)/ (nt - 1)
+
+
+            vect = np.arange(Rxd,Rxf+dRx/2, dRx)
+
+            if nt > 0:
+                self.Tx_z = np.append(self.Tx_z, (Tx*np.ones(np.abs(nt))))
+                self.Rx_z = np.concatenate((self.Rx_z, vect))
+        file.close()
+
+
+    def readSEGY(self, basename):
+        """
+
+        :param basename:
+        :return:
+        """
 
 
 class AirShots:
@@ -113,7 +306,7 @@ class Mog:
         fac_dt_ap = 1
         if self.useAirShots == 0:
             t0 = np.zeros(ndata)
-            return
+            return t0, fac_dt_av, fac_dt_ap
         elif air_before.name == '' and air_after.name == ''  and self.useAirShots == 1 :
             t0 = np.zeros(ndata)
             raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
@@ -128,7 +321,7 @@ class Mog:
             if 'walkaway' in air_before.method:
                 pass #TODO get_t0_wa
 
-        if air_after != '':
+        if air_after.name != '':
             if 'fixed_antenna' in air_before.method:
                 t0ap = self.get_t0_fixed(air_after, v_air)
 
@@ -141,40 +334,31 @@ class Mog:
 
         if np.all(t0av == 0) and np.all(t0ap == 0):
             t0 = np.zeros((1, ndata))
-        elif len(t0av) == 0:
+        elif t0av == 0:
             t0 = t0ap*np.zeros((1, ndata))
-        elif len(t0ap) == 0:
+        elif t0ap == 0:
             t0 = t0av*np.zeros((1, ndata))
         else:
-            dt0 = t0av - t0ap
+            dt0 = t0ap - t0av
             ddt0 = dt0/(ndata-1)
             t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
 
-        return t0
+        return t0, fac_dt_av, fac_dt_ap
     @staticmethod
     def load_self(mog):
         Mog.getID(mog.ID)
 
     @staticmethod
     def get_t0_fixed(shot, v):
-        times = shot.tt # à vérifier
+        times = shot.tt
         std_times = shot.et
-        ind = []
-        for i in range(len(times.flatten())):
-            if times[i] != -1:
-                ind.append(i)
-        minus_ind = np.transpose(np.nonzero(std_times))
-
-        if len(minus_ind) == 0:
+        ind = np.where(times != -1.0)[0]
+        if np.all(std_times == -1.0):
             times = np.mean(times[ind])
         else:
-            std_tot = 0
-            for i in ind:
-                std_tot = std_tot + std_times[i]
-            times = sum(times[ind]*std_times[ind]/std_tot)
-
-        t0 = times - shot.d_TxRx/v
-        return  t0
+            times = sum(times[ind] * std_times[ind])/sum(std_times[ind])
+        t0 = times - float(shot.d_TxRx[0])/v
+        return t0
 
     @staticmethod
     def getID(*args):
@@ -203,10 +387,11 @@ class Mog:
             if self.data.synthetique == 1:
                 tt = self.tt
                 t0 = np.zeros(np.shape(tt))
-                return
+                return tt, t0
             else:
                 airBefore = air[self.av]
                 airAfter = air[self.ap]
+
                 t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
 
             if self.av != '':
@@ -227,6 +412,7 @@ class Mog:
 
             t0 = self.fac_dt * t0
             tt = self.fac_dt * self.tt - t0
+
             return tt, t0
 
 
@@ -249,7 +435,3 @@ if __name__ == '__main__':
     md.readRAMAC('testData/formats/ramac/t0102')
     m.data = md
     m.initialize()
-
-
-
-

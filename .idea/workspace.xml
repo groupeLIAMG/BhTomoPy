@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="205" />
-    <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="248" />
-    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="876" />
-    <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="124" />
+    <bookmark url="file://$PROJECT_DIR$/manual_ttUI.py" line="302" />
+    <bookmark url="file://$PROJECT_DIR$/semi_auto_ttUI.py" line="239" />
+    <bookmark url="file://$PROJECT_DIR$/MogUI.py" line="1029" />
+    <bookmark url="file://$PROJECT_DIR$/DatabaseUI.py" line="130" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a364f796-c889-4b06-9273-009541863f5b" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/manual_ttUI.py" afterPath="$PROJECT_DIR$/manual_ttUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MogUI.py" afterPath="$PROJECT_DIR$/MogUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/inversionUI.py" afterPath="$PROJECT_DIR$/inversionUI.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/model.py" afterPath="$PROJECT_DIR$/model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="BhTomoPy.iws" />
@@ -22,7 +24,7 @@
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CreatePatchCommitExecutor">
-    <option name="PATCH_PATH" value="" />
+    <option name="PATCH_PATH" value="C:\Users\Elie\Documents\GitHub\BhTomoPy" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
@@ -30,48 +32,58 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
+      <file leaf-file-name="semi_auto_ttUI.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="293" column="4" selection-start-line="293" selection-start-column="4" selection-end-line="293" selection-end-column="4" />
+              <caret line="359" column="42" selection-start-line="359" selection-start-column="42" selection-end-line="359" selection-end-column="42" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="inversionUI.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/inversionUI.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="126" column="28" selection-start-line="126" selection-start-column="28" selection-end-line="126" selection-end-column="28" />
               <folding>
-                <element signature="e#24#34#0" expanded="true" />
+                <element signature="e#25#35#0" expanded="true" />
+                <element signature="e#9449#19304#0" expanded="false" />
+                <element signature="e#42166#44509#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="bh_tomoPyUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
+      <file leaf-file-name="model.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/model.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="201" column="59" selection-start-line="201" selection-start-column="59" selection-end-line="201" selection-end-column="59" />
-              <folding>
-                <element signature="e#0#10#0" expanded="true" />
-              </folding>
+            <state vertical-scroll-proportion="0.3314917">
+              <caret line="23" column="36" selection-start-line="23" selection-start-column="36" selection-end-line="23" selection-end-column="36" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/MogUI.py">
+      <file leaf-file-name="set_tick_arrangement.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/set_tick_arrangement.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="1348" column="0" selection-start-line="1348" selection-start-column="0" selection-end-line="1348" selection-end-column="0" />
-              <folding>
-                <element signature="e#24#34#0" expanded="true" />
-              </folding>
+              <caret line="24" column="27" selection-start-line="24" selection-start-column="27" selection-end-line="24" selection-end-column="27" />
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="manual_ttUI.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6213018">
-              <caret line="506" column="133" selection-start-line="506" selection-start-column="133" selection-end-line="506" selection-end-column="133" />
-              <folding />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="23" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
+              <folding>
+                <element signature="e#24#34#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -80,37 +92,37 @@
         <entry file="file://$PROJECT_DIR$/test.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="12" column="22" selection-start-line="12" selection-start-column="22" selection-end-line="12" selection-end-column="22" />
+              <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="BoreholeUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
+      <file leaf-file-name="DatabaseUI.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="138" column="0" selection-start-line="138" selection-start-column="0" selection-end-line="138" selection-end-column="0" />
+              <caret line="291" column="35" selection-start-line="291" selection-start-column="35" selection-end-line="291" selection-end-column="35" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="InfoUI.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/InfoUI.py">
+      <file leaf-file-name="MogUI.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/MogUI.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+              <caret line="566" column="0" selection-start-line="566" selection-start-column="0" selection-end-line="566" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mog.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mog.py">
+      <file leaf-file-name="invLSQR.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/invLSQR.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="26" column="46" selection-start-line="26" selection-start-column="46" selection-end-line="26" selection-end-column="46" />
+              <caret line="117" column="13" selection-start-line="117" selection-start-column="13" selection-end-line="117" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -129,12 +141,22 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/ModelUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/inversionUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/manualAmpUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/model.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/MogUI.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/mog.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/manual_ttUI.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/semi_auto_ttUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/data_select.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/DatabaseUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/set_tick_arrangement.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/semi_auto_ttUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/grid.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/ModelUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/mog.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/BoreholeUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/Covariance.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/manual_ttUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/bh_tomoPyUI.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/invLSQR.py" root0="SKIP_INSPECTION" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -149,28 +171,39 @@
         <option value="$USER_HOME$/Desktop/BhTomoPyJS/borehole.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/interpUI.py" />
-        <option value="$PROJECT_DIR$/inversionUI.py" />
         <option value="$PROJECT_DIR$/scanf.py" />
         <option value="$USER_HOME$/Downloads/exemple_signaux.py" />
         <option value="$PROJECT_DIR$/covarUI.py" />
-        <option value="$PROJECT_DIR$/borehole.py" />
         <option value="$PROJECT_DIR$/database.py" />
         <option value="$PROJECT_DIR$/toto.py" />
-        <option value="$PROJECT_DIR$/semi_auto_ttUI.py" />
         <option value="$PROJECT_DIR$/mpl_exemple.py" />
         <option value="$USER_HOME$/Downloads/pyplot_two_subplots.py" />
-        <option value="$PROJECT_DIR$/MogData.py" />
-        <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/InfoUI.py" />
         <option value="$USER_HOME$/Downloads/ginput_demo.py" />
+        <option value="$PROJECT_DIR$/semi_auto_ttUI.py" />
+        <option value="$PROJECT_DIR$/MogData.py" />
+        <option value="$PROJECT_DIR$/mog.py" />
+        <option value="$USER_HOME$/Anaconda3/Lib/site-packages/spectrum/burg.py" />
+        <option value="$USER_HOME$/Anaconda3/Lib/site-packages/spectrum/__init__.py" />
+        <option value="$PROJECT_DIR$/borehole.py" />
+        <option value="$PROJECT_DIR$/BoreholeUI.py" />
+        <option value="$PROJECT_DIR$/testData/Covariance.py" />
+        <option value="$PROJECT_DIR$/Covariance.py" />
         <option value="$PROJECT_DIR$/ModelUI.py" />
         <option value="$PROJECT_DIR$/bh_tomoPyUI.py" />
-        <option value="$PROJECT_DIR$/BoreholeUI.py" />
-        <option value="$PROJECT_DIR$/mog.py" />
-        <option value="$PROJECT_DIR$/MogUI.py" />
+        <option value="$PROJECT_DIR$/manualAmpUI.py" />
         <option value="$PROJECT_DIR$/DatabaseUI.py" />
+        <option value="$PROJECT_DIR$/grid.py" />
+        <option value="$USER_HOME$/Anaconda3/Lib/site-packages/scipy/interpolate/interpolate.py" />
+        <option value="$PROJECT_DIR$/invLSQR.py" />
+        <option value="$PROJECT_DIR$/computeSNR.py" />
+        <option value="$PROJECT_DIR$/data_select.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/manual_ttUI.py" />
+        <option value="$PROJECT_DIR$/set_tick_arrangement.py" />
+        <option value="$PROJECT_DIR$/MogUI.py" />
+        <option value="$PROJECT_DIR$/inversionUI.py" />
+        <option value="$PROJECT_DIR$/model.py" />
       </list>
     </option>
   </component>
@@ -226,7 +259,6 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -247,10 +279,11 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/cutils" />
     <property name="recentsLimit" value="5" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
@@ -273,7 +306,120 @@
     <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file://C:/Users/Utilisateur/PycharmProjects/BhTomoPy/DatabaseUI.py" />
     <property name="FullScreen" value="false" />
   </component>
-  <component name="RunManager" selected="Python.manual_ttUI">
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/cutils/cgrid2d.cpp</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/cutils/cgrid2d.cpython-35m-darwin.so</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/cutils/cgrid2d.pyx</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/grid.py</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
+  </component>
+  <component name="RunManager" selected="Python.inversionUI">
     <configuration default="false" name="DatabaseUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -291,7 +437,7 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="bh_tomoPyUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="inversionUI" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -303,7 +449,24 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="BhTomoPy" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/bh_tomoPyUI.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/inversionUI.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="grid" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="BhTomoPy" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/grid.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -321,23 +484,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="BhTomoPy" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="ginput_demo" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/Downloads" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="BhTomoPy" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/Downloads/ginput_demo.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -483,18 +629,18 @@
     </configuration>
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-      <item index="1" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
-      <item index="2" class="java.lang.String" itemvalue="Python.test" />
-      <item index="3" class="java.lang.String" itemvalue="Python.ginput_demo" />
+      <item index="1" class="java.lang.String" itemvalue="Python.inversionUI" />
+      <item index="2" class="java.lang.String" itemvalue="Python.grid" />
+      <item index="3" class="java.lang.String" itemvalue="Python.test" />
       <item index="4" class="java.lang.String" itemvalue="Python.manual_ttUI" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.manual_ttUI" />
-        <item index="1" class="java.lang.String" itemvalue="Python.test" />
-        <item index="2" class="java.lang.String" itemvalue="Python.DatabaseUI" />
-        <item index="3" class="java.lang.String" itemvalue="Python.bh_tomoPyUI" />
-        <item index="4" class="java.lang.String" itemvalue="Python.ginput_demo" />
+        <item index="0" class="java.lang.String" itemvalue="Python.inversionUI" />
+        <item index="1" class="java.lang.String" itemvalue="Python.DatabaseUI" />
+        <item index="2" class="java.lang.String" itemvalue="Python.manual_ttUI" />
+        <item index="3" class="java.lang.String" itemvalue="Python.test" />
+        <item index="4" class="java.lang.String" itemvalue="Python.grid" />
       </list>
     </recent_temporary>
   </component>
@@ -509,301 +655,301 @@
       <option name="number" value="Default" />
       <updated>1462809080136</updated>
     </task>
-    <task id="LOCAL-00058" summary="squelette merge et zop">
-      <created>1464960817731</created>
-      <option name="number" value="00058" />
+    <task id="LOCAL-00149" summary="update manual ampUI">
+      <created>1470689038360</created>
+      <option name="number" value="00149" />
       <option name="project" value="LOCAL" />
-      <updated>1464960817733</updated>
+      <updated>1470689038360</updated>
     </task>
-    <task id="LOCAL-00059" summary="squelette Stats tt">
-      <created>1464970825797</created>
-      <option name="number" value="00059" />
+    <task id="LOCAL-00150" summary="update pour grid ui">
+      <created>1470766906207</created>
+      <option name="number" value="00150" />
       <option name="project" value="LOCAL" />
-      <updated>1464970825797</updated>
+      <updated>1470766906210</updated>
     </task>
-    <task id="LOCAL-00060" summary="squelette Stats Ampl">
-      <created>1464975534687</created>
-      <option name="number" value="00060" />
+    <task id="LOCAL-00151" summary="implémentation de boreholes pour models&#10;">
+      <created>1470768810014</created>
+      <option name="number" value="00151" />
       <option name="project" value="LOCAL" />
-      <updated>1464975534687</updated>
+      <updated>1470768810014</updated>
     </task>
-    <task id="LOCAL-00061" summary="squelette Ray Coverage">
-      <created>1464977436734</created>
-      <option name="number" value="00061" />
+    <task id="LOCAL-00152" summary="début de build grid et preparegriddata fonctionel">
+      <created>1470773711802</created>
+      <option name="number" value="00152" />
       <option name="project" value="LOCAL" />
-      <updated>1464977436734</updated>
+      <updated>1470773711802</updated>
     </task>
-    <task id="LOCAL-00062" summary="statsttFig bug fix">
-      <created>1464980582006</created>
-      <option name="number" value="00062" />
+    <task id="LOCAL-00153" summary="update coords">
+      <created>1470842816612</created>
+      <option name="number" value="00153" />
       <option name="project" value="LOCAL" />
-      <updated>1464980582008</updated>
+      <updated>1470842816623</updated>
     </task>
-    <task id="LOCAL-00063" summary="squelette prune fini (Ajout d'un modele 3d)">
-      <created>1465061883244</created>
-      <option name="number" value="00063" />
+    <task id="LOCAL-00154" summary="update spectra">
+      <created>1470843826557</created>
+      <option name="number" value="00154" />
       <option name="project" value="LOCAL" />
-      <updated>1465061883245</updated>
+      <updated>1470843826557</updated>
     </task>
-    <task id="LOCAL-00064" summary="ajout axes dans pruneFig">
-      <created>1465062052668</created>
-      <option name="number" value="00064" />
+    <task id="LOCAL-00155" summary="Zop et ZopRays fixed">
+      <created>1470844993389</created>
+      <option name="number" value="00155" />
       <option name="project" value="LOCAL" />
-      <updated>1465062052669</updated>
+      <updated>1470844993390</updated>
     </task>
-    <task id="LOCAL-00065" summary="ajout démo dans prune">
-      <created>1465415705174</created>
-      <option name="number" value="00065" />
+    <task id="LOCAL-00156" summary="build grid fonctionnel">
+      <created>1470845109569</created>
+      <option name="number" value="00156" />
       <option name="project" value="LOCAL" />
-      <updated>1465415705176</updated>
+      <updated>1470845109569</updated>
     </task>
-    <task id="LOCAL-00066" summary="ajout démo dans prune">
-      <created>1465419435696</created>
-      <option name="number" value="00066" />
+    <task id="LOCAL-00157" summary="début stats best fit plane&#10;">
+      <created>1470846901329</created>
+      <option name="number" value="00157" />
       <option name="project" value="LOCAL" />
-      <updated>1465419435696</updated>
+      <updated>1470846901329</updated>
     </task>
-    <task id="LOCAL-00067" summary="ien entre skip Tx, skip Rx et le pruneFig fonctionnel">
-      <created>1466446391929</created>
-      <option name="number" value="00067" />
+    <task id="LOCAL-00158" summary="update manual amp ui">
+      <created>1470847293676</created>
+      <option name="number" value="00158" />
       <option name="project" value="LOCAL" />
-      <updated>1466446391930</updated>
+      <updated>1470847293677</updated>
     </task>
-    <task id="LOCAL-00068" summary="lien entre min elev, max elev et la restriction des points fonctionnel">
-      <created>1466450555059</created>
-      <option name="number" value="00068" />
+    <task id="LOCAL-00159" summary="gestion d'action interface graphique&#10;">
+      <created>1470941743542</created>
+      <option name="number" value="00159" />
       <option name="project" value="LOCAL" />
-      <updated>1466450555059</updated>
+      <updated>1470941743542</updated>
     </task>
-    <task id="LOCAL-00069" summary="gestion d'exceptions non nécessaires">
-      <created>1466450789472</created>
-      <option name="number" value="00069" />
+    <task id="LOCAL-00160" summary="ray coverage update unfinished">
+      <created>1470948109253</created>
+      <option name="number" value="00160" />
       <option name="project" value="LOCAL" />
-      <updated>1466450789472</updated>
+      <updated>1470948109253</updated>
     </task>
-    <task id="LOCAL-00070" summary="update elev dans le module prune et debut de rounding factor">
-      <created>1466519882245</created>
-      <option name="number" value="00070" />
+    <task id="LOCAL-00161" summary="ray coverage update unfinished">
+      <created>1470948115318</created>
+      <option name="number" value="00161" />
       <option name="project" value="LOCAL" />
-      <updated>1466519882246</updated>
+      <updated>1470948115318</updated>
     </task>
-    <task id="LOCAL-00071" summary="début update coords">
-      <created>1466601143632</created>
-      <option name="number" value="00071" />
+    <task id="LOCAL-00162" summary="update grid2d">
+      <created>1471030303537</created>
+      <option name="number" value="00162" />
       <option name="project" value="LOCAL" />
-      <updated>1466601143634</updated>
+      <updated>1471030303539</updated>
     </task>
-    <task id="LOCAL-00072" summary="Ajout de la liste boreholes lié dans mog ui et changement du main pour faciliter les tests">
-      <created>1466603488009</created>
-      <option name="number" value="00072" />
+    <task id="LOCAL-00163" summary="affichage de la grille focntionnel">
+      <created>1471033790040</created>
+      <option name="number" value="00163" />
       <option name="project" value="LOCAL" />
-      <updated>1466603488009</updated>
+      <updated>1471033790040</updated>
     </task>
-    <task id="LOCAL-00073" summary="fonction update_prune(équivalent de update dans la version matlab) fonctionelle pour le skip et l'élévation">
-      <created>1467845408933</created>
-      <option name="number" value="00073" />
+    <task id="LOCAL-00164" summary=" affichage grid update&#10;">
+      <created>1471034197533</created>
+      <option name="number" value="00164" />
       <option name="project" value="LOCAL" />
-      <updated>1467845408935</updated>
+      <updated>1471034197533</updated>
     </task>
-    <task id="LOCAL-00074" summary="round factor de prune est fonctionnel">
-      <created>1467848300338</created>
-      <option name="number" value="00074" />
+    <task id="LOCAL-00165" summary=" affichage grid update&#10;">
+      <created>1471034449275</created>
+      <option name="number" value="00165" />
       <option name="project" value="LOCAL" />
-      <updated>1467848300338</updated>
+      <updated>1471034449275</updated>
     </task>
-    <task id="LOCAL-00075" summary="début de l'implémentation des méthodes pour min et max theta">
-      <created>1467924094666</created>
-      <option name="number" value="00075" />
+    <task id="LOCAL-00166" summary=" affichage grid update&#10;">
+      <created>1471034643623</created>
+      <option name="number" value="00166" />
       <option name="project" value="LOCAL" />
-      <updated>1467924094666</updated>
+      <updated>1471034643623</updated>
     </task>
-    <task id="LOCAL-00076" summary="commentaires par rapport à update prune">
-      <created>1467926950674</created>
-      <option name="number" value="00076" />
+    <task id="LOCAL-00167" summary=" affichage grid update&#10;">
+      <created>1471034695540</created>
+      <option name="number" value="00167" />
       <option name="project" value="LOCAL" />
-      <updated>1467926950674</updated>
+      <updated>1471034695540</updated>
     </task>
-    <task id="LOCAL-00077" summary="restrictions par rapport à theta fonctionelles et ajour de commentaires">
-      <created>1468246637126</created>
-      <option name="number" value="00077" />
+    <task id="LOCAL-00168" summary="Grid2DUI">
+      <created>1471271299829</created>
+      <option name="number" value="00168" />
       <option name="project" value="LOCAL" />
-      <updated>1468246637126</updated>
+      <updated>1471271299830</updated>
     </task>
-    <task id="LOCAL-00078" summary="début de merge mog">
-      <created>1468257824951</created>
-      <option name="number" value="00078" />
+    <task id="LOCAL-00169" summary="Grid2DUI fonctionnel">
+      <created>1471272873850</created>
+      <option name="number" value="00169" />
       <option name="project" value="LOCAL" />
-      <updated>1468257824953</updated>
+      <updated>1471272873850</updated>
     </task>
-    <task id="LOCAL-00079" summary="plot de ray coverage modifié (pas encore fonctionnel à 100%)">
-      <created>1468326641405</created>
-      <option name="number" value="00079" />
+    <task id="LOCAL-00170" summary="updates">
+      <created>1471283715403</created>
+      <option name="number" value="00170" />
       <option name="project" value="LOCAL" />
-      <updated>1468326641405</updated>
+      <updated>1471283715403</updated>
     </task>
-    <task id="LOCAL-00080" summary="Ajout de messages pour le log et solutions pour ray coverage">
-      <created>1468335658365</created>
-      <option name="number" value="00080" />
+    <task id="LOCAL-00171" summary="updates">
+      <created>1471287835647</created>
+      <option name="number" value="00171" />
       <option name="project" value="LOCAL" />
-      <updated>1468335658367</updated>
+      <updated>1471287835648</updated>
     </task>
-    <task id="LOCAL-00081" summary="debut spectra">
-      <created>1468349620440</created>
-      <option name="number" value="00081" />
+    <task id="LOCAL-00172" summary="changement de layout en fonction de l'agorithme fixé">
+      <created>1471294001274</created>
+      <option name="number" value="00172" />
       <option name="project" value="LOCAL" />
-      <updated>1468349620440</updated>
+      <updated>1471294001275</updated>
     </task>
-    <task id="LOCAL-00082" summary="essai de méthodes dans spectra">
-      <created>1468422817966</created>
-      <option name="number" value="00082" />
+    <task id="LOCAL-00173" summary="update inversion ui">
+      <created>1471359643439</created>
+      <option name="number" value="00173" />
       <option name="project" value="LOCAL" />
-      <updated>1468422817966</updated>
+      <updated>1471359643441</updated>
     </task>
-    <task id="LOCAL-00083" summary="modelui update">
-      <created>1468444301512</created>
-      <option name="number" value="00083" />
+    <task id="LOCAL-00174" summary="getModelData fonctionnel pour le cas tt">
+      <created>1471364353644</created>
+      <option name="number" value="00174" />
       <option name="project" value="LOCAL" />
-      <updated>1468444301513</updated>
+      <updated>1471364353645</updated>
     </task>
-    <task id="LOCAL-00084" summary="graphiques boreholes et grid view de la classe GridUI fonctionnels">
-      <created>1468514933117</created>
-      <option name="number" value="00084" />
+    <task id="LOCAL-00175" summary="grid TxCosDir et RxCosDir fixed">
+      <created>1471370663993</created>
+      <option name="number" value="00175" />
       <option name="project" value="LOCAL" />
-      <updated>1468514933117</updated>
+      <updated>1471370663993</updated>
     </task>
-    <task id="LOCAL-00085" summary="Grid UI dépendant de Model UI pour pouvoir éditer un grid">
-      <created>1468525545773</created>
-      <option name="number" value="00085" />
+    <task id="LOCAL-00176" summary="début invLSQR">
+      <created>1471374956167</created>
+      <option name="number" value="00176" />
       <option name="project" value="LOCAL" />
-      <updated>1468525545773</updated>
+      <updated>1471374956168</updated>
     </task>
-    <task id="LOCAL-00086" summary="changement du signal de Tx et Rx combo afin de ne pas avoir d'erreur lors de l'ajout ou de l'importation de bhs">
-      <created>1468529502530</created>
-      <option name="number" value="00086" />
+    <task id="LOCAL-00177" summary="début invLSQR">
+      <created>1471443219136</created>
+      <option name="number" value="00177" />
       <option name="project" value="LOCAL" />
-      <updated>1468529502530</updated>
+      <updated>1471443219137</updated>
     </task>
-    <task id="LOCAL-00087" summary="update du lien entre les mogs et Tx/Rx combo">
-      <created>1468530062155</created>
-      <option name="number" value="00087" />
+    <task id="LOCAL-00178" summary="update raycoverage">
+      <created>1471468300160</created>
+      <option name="number" value="00178" />
       <option name="project" value="LOCAL" />
-      <updated>1468530062155</updated>
+      <updated>1471468300160</updated>
     </task>
-    <task id="LOCAL-00088" summary="création de delta t mog et fonction getcompat fonctionelle">
-      <created>1468604521560</created>
-      <option name="number" value="00088" />
+    <task id="LOCAL-00179" summary="Inversion fonctionnelle !! :D">
+      <created>1471548326128</created>
+      <option name="number" value="00179" />
       <option name="project" value="LOCAL" />
-      <updated>1468604521562</updated>
+      <updated>1471548326129</updated>
     </task>
-    <task id="LOCAL-00089" summary="Merge Mog fonctionnel">
-      <created>1468610203191</created>
-      <option name="number" value="00089" />
+    <task id="LOCAL-00180" summary="update inversionUI">
+      <created>1471552331307</created>
+      <option name="number" value="00180" />
       <option name="project" value="LOCAL" />
-      <updated>1468610203191</updated>
+      <updated>1471552331310</updated>
     </task>
-    <task id="LOCAL-00090" summary="gestions derreurs avec merge mog">
-      <created>1468613727290</created>
-      <option name="number" value="00090" />
+    <task id="LOCAL-00181" summary="update raycoverage et inversion ui">
+      <created>1471624177358</created>
+      <option name="number" value="00181" />
       <option name="project" value="LOCAL" />
-      <updated>1468613727290</updated>
+      <updated>1471624177360</updated>
     </task>
-    <task id="LOCAL-00091" summary="Gestion d'erreurs par rapport à MergeMog et à GridUI">
-      <created>1468849676900</created>
-      <option name="number" value="00091" />
+    <task id="LOCAL-00182" summary="update MOGUI, DatabaseUI et ModelUI">
+      <created>1471709491056</created>
+      <option name="number" value="00182" />
       <option name="project" value="LOCAL" />
-      <updated>1468849676901</updated>
+      <updated>1471709491056</updated>
     </task>
-    <task id="LOCAL-00092" summary="Spectra fonctionel avec méthode welch et fourier">
-      <created>1468949931973</created>
-      <option name="number" value="00092" />
+    <task id="LOCAL-00183" summary="MOGUI &gt; Spectra &gt; Search with elevation fixed">
+      <created>1471877629691</created>
+      <option name="number" value="00183" />
       <option name="project" value="LOCAL" />
-      <updated>1468949931973</updated>
+      <updated>1471877629691</updated>
     </task>
-    <task id="LOCAL-00093" summary="stats tt complété, reste à tester lorsque le pointé sera fait">
-      <created>1469029992461</created>
-      <option name="number" value="00093" />
+    <task id="LOCAL-00184" summary="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui">
+      <created>1471881293446</created>
+      <option name="number" value="00184" />
       <option name="project" value="LOCAL" />
-      <updated>1469029992461</updated>
+      <updated>1471881293446</updated>
     </task>
-    <task id="LOCAL-00094" summary="sauvegarde de type enregistrer sous et ouverture de fichier fonctionelle">
-      <created>1469043929825</created>
-      <option name="number" value="00094" />
+    <task id="LOCAL-00185" summary="update set color limits inversionUI">
+      <created>1471893677003</created>
+      <option name="number" value="00185" />
       <option name="project" value="LOCAL" />
-      <updated>1469043929825</updated>
+      <updated>1471893677003</updated>
     </task>
-    <task id="LOCAL-00095" summary="début grid dans GridUI">
-      <created>1469049301017</created>
-      <option name="number" value="00095" />
+    <task id="LOCAL-00186" summary="update des résultats de l'inversion">
+      <created>1471982297544</created>
+      <option name="number" value="00186" />
       <option name="project" value="LOCAL" />
-      <updated>1469049301017</updated>
+      <updated>1471982297563</updated>
     </task>
-    <task id="LOCAL-00096" summary="update de linformationdans prune (reste S/M ratio)">
-      <created>1469119361208</created>
-      <option name="number" value="00096" />
+    <task id="LOCAL-00187" summary="tomogram">
+      <created>1471983278763</created>
+      <option name="number" value="00187" />
       <option name="project" value="LOCAL" />
-      <updated>1469119361209</updated>
+      <updated>1471983278763</updated>
     </task>
-    <task id="LOCAL-00097" summary="update pour l'ajout d'un mog dans model">
-      <created>1469123570443</created>
-      <option name="number" value="00097" />
+    <task id="LOCAL-00188" summary="update saveFile, et results">
+      <created>1472051397553</created>
+      <option name="number" value="00188" />
       <option name="project" value="LOCAL" />
-      <updated>1469123570448</updated>
+      <updated>1472051397553</updated>
     </task>
-    <task id="LOCAL-00098" summary="remove mog dans modelUI fonctionnel">
-      <created>1469124731212</created>
-      <option name="number" value="00098" />
+    <task id="LOCAL-00189" summary="update inversionUI">
+      <created>1472062460617</created>
+      <option name="number" value="00189" />
       <option name="project" value="LOCAL" />
-      <updated>1469124731212</updated>
+      <updated>1472062460618</updated>
     </task>
-    <task id="LOCAL-00099" summary="Sauvegarde et messages de confirmation">
-      <created>1469129868563</created>
-      <option name="number" value="00099" />
+    <task id="LOCAL-00190" summary="update inversionUI et changement dans invLSQR">
+      <created>1472071305803</created>
+      <option name="number" value="00190" />
       <option name="project" value="LOCAL" />
-      <updated>1469129868563</updated>
+      <updated>1472071305803</updated>
     </task>
-    <task id="LOCAL-00100" summary="Logo BH TOMO dans l'interface d'accueil,&#10;load database dans l'interface d'accueil fonctionnel,&#10;segmentation des classes dans MogUI&#10;">
-      <created>1469137445211</created>
-      <option name="number" value="00100" />
+    <task id="LOCAL-00191" summary="update inversionUI et changement dans invLSQR">
+      <created>1472137773792</created>
+      <option name="number" value="00191" />
       <option name="project" value="LOCAL" />
-      <updated>1469137445212</updated>
+      <updated>1472137773793</updated>
     </task>
-    <task id="LOCAL-00101" summary="Ray coverage fontionnel">
-      <created>1469192490563</created>
-      <option name="number" value="00101" />
+    <task id="LOCAL-00192" summary="réorganisation du initUI deinversionUI enfonction du type de grid&#10;">
+      <created>1472139701255</created>
+      <option name="number" value="00192" />
       <option name="project" value="LOCAL" />
-      <updated>1469192490563</updated>
+      <updated>1472139701255</updated>
     </task>
-    <task id="LOCAL-00102" summary="Gestion d'erreurs d'importation de fichiers dans database">
-      <created>1469192542679</created>
-      <option name="number" value="00102" />
+    <task id="LOCAL-00193" summary="Description de la fonction invLSQR et changements dans inversionUI">
+      <created>1472152093412</created>
+      <option name="number" value="00193" />
       <option name="project" value="LOCAL" />
-      <updated>1469192542679</updated>
+      <updated>1472152093414</updated>
     </task>
-    <task id="LOCAL-00103" summary="gestion d'erreurs &#10;">
-      <created>1469199685268</created>
-      <option name="number" value="00103" />
+    <task id="LOCAL-00194" summary="ajout des différents TODO et affichage de la vitesse apparente de stats tt">
+      <created>1472155575223</created>
+      <option name="number" value="00194" />
       <option name="project" value="LOCAL" />
-      <updated>1469199685268</updated>
+      <updated>1472155575223</updated>
     </task>
-    <task id="LOCAL-00104" summary="manual tt">
-      <created>1469475605893</created>
-      <option name="number" value="00104" />
+    <task id="LOCAL-00195" summary="sauvegarde et reload des prev inversions fonctionnel">
+      <created>1472220473252</created>
+      <option name="number" value="00195" />
       <option name="project" value="LOCAL" />
-      <updated>1469475605893</updated>
+      <updated>1472220473254</updated>
     </task>
-    <task id="LOCAL-00105" summary="Correction airshots dans MogUI, changement du main de manual tt et database afin de pouvoir accéder directement au fichier de sauvegarde, ajout de carrés pour les traces non pointées">
-      <created>1469548485684</created>
-      <option name="number" value="00105" />
+    <task id="LOCAL-00196" summary="updates">
+      <created>1472227828179</created>
+      <option name="number" value="00196" />
       <option name="project" value="LOCAL" />
-      <updated>1469548485688</updated>
+      <updated>1472227828179</updated>
     </task>
-    <task id="LOCAL-00106" summary="pointé dans le upperFig fonctionnel">
-      <created>1469564883950</created>
-      <option name="number" value="00106" />
+    <task id="LOCAL-00197" summary="updates">
+      <created>1472229277784</created>
+      <option name="number" value="00197" />
       <option name="project" value="LOCAL" />
-      <updated>1469564883950</updated>
+      <updated>1472229277784</updated>
     </task>
-    <option name="localTasksCounter" value="107" />
+    <option name="localTasksCounter" value="198" />
     <servers />
   </component>
   <component name="TodoView">
@@ -819,19 +965,19 @@
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.119791664" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.42973855" sideWeight="0.50744045" order="11" side_tool="true" content_ui="tabs" />
-      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3267974" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4019608" sideWeight="0.49255952" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37745097" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24032739" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3267974" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37810946" sideWeight="0.51044774" order="10" side_tool="true" content_ui="tabs" />
+      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3283582" sideWeight="0.49179104" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3251634" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3627451" sideWeight="0.48955223" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37254903" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -845,20 +991,20 @@
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4640523" sideWeight="0.50446427" order="11" side_tool="true" content_ui="tabs" />
-      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.37810946" sideWeight="0.51044774" order="10" side_tool="true" content_ui="tabs" />
+      <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.49702382" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3267974" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.43954247" sideWeight="0.4955357" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3505311" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3283582" sideWeight="0.49179104" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32669982" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.374183" sideWeight="0.48955223" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32789558" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24140508" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.38398692" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.375817" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout-to-restore>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -873,42 +1019,35 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="essai de méthodes dans spectra" />
-    <MESSAGE value="modelui update" />
-    <MESSAGE value="graphiques boreholes et grid view de la classe GridUI fonctionnels" />
-    <MESSAGE value="Grid UI dépendant de Model UI pour pouvoir éditer un grid" />
-    <MESSAGE value="changement du signal de Tx et Rx combo afin de ne pas avoir d'erreur lors de l'ajout ou de l'importation de bhs" />
-    <MESSAGE value="update du lien entre les mogs et Tx/Rx combo" />
-    <MESSAGE value="création de delta t mog et fonction getcompat fonctionelle" />
-    <MESSAGE value="Merge Mog fonctionnel" />
-    <MESSAGE value="gestions derreurs avec merge mog" />
-    <MESSAGE value="Gestion d'erreurs par rapport à MergeMog et à GridUI" />
-    <MESSAGE value="Spectra fonctionel avec méthode welch et fourier" />
-    <MESSAGE value="stats tt complété, reste à tester lorsque le pointé sera fait" />
-    <MESSAGE value="sauvegarde de type enregistrer sous et ouverture de fichier fonctionelle" />
-    <MESSAGE value="début grid dans GridUI" />
-    <MESSAGE value="update de linformationdans prune (reste S/M ratio)" />
-    <MESSAGE value="update pour l'ajout d'un mog dans model" />
-    <MESSAGE value="remove mog dans modelUI fonctionnel" />
-    <MESSAGE value="Sauvegarde et messages de confirmation" />
-    <MESSAGE value="Logo BH TOMO dans l'interface d'accueil,&#10;load database dans l'interface d'accueil fonctionnel,&#10;segmentation des classes dans MogUI&#10;" />
-    <MESSAGE value="Ray coverage fontionnel" />
-    <MESSAGE value="Gestion d'erreurs d'importation de fichiers dans database" />
-    <MESSAGE value="gestion d'erreurs &#10;" />
-    <MESSAGE value="manual tt" />
-    <MESSAGE value="Correction airshots dans MogUI, changement du main de manual tt et database afin de pouvoir accéder directement au fichier de sauvegarde, ajout de carrés pour les traces non pointées" />
-    <MESSAGE value="pointé dans le upperFig fonctionnel" />
-    <option name="LAST_COMMIT_MESSAGE" value="pointé dans le upperFig fonctionnel" />
+    <MESSAGE value=" affichage grid update&#10;" />
+    <MESSAGE value="Grid2DUI" />
+    <MESSAGE value="Grid2DUI fonctionnel" />
+    <MESSAGE value="changement de layout en fonction de l'agorithme fixé" />
+    <MESSAGE value="update inversion ui" />
+    <MESSAGE value="getModelData fonctionnel pour le cas tt" />
+    <MESSAGE value="grid TxCosDir et RxCosDir fixed" />
+    <MESSAGE value="début invLSQR" />
+    <MESSAGE value="update raycoverage" />
+    <MESSAGE value="Inversion fonctionnelle !! :D" />
+    <MESSAGE value="update raycoverage et inversion ui" />
+    <MESSAGE value="update MOGUI, DatabaseUI et ModelUI" />
+    <MESSAGE value="MOGUI &gt; Spectra &gt; Search with elevation fixed" />
+    <MESSAGE value="plusieurs updates d'interface utilisateur et tentative d'update de l'affichage du spectre de manual amp ui" />
+    <MESSAGE value="update set color limits inversionUI" />
+    <MESSAGE value="update des résultats de l'inversion" />
+    <MESSAGE value="tomogram" />
+    <MESSAGE value="update saveFile, et results" />
+    <MESSAGE value="update inversionUI" />
+    <MESSAGE value="update inversionUI et changement dans invLSQR" />
+    <MESSAGE value="réorganisation du initUI deinversionUI enfonction du type de grid&#10;" />
+    <MESSAGE value="Description de la fonction invLSQR et changements dans inversionUI" />
+    <MESSAGE value="ajout des différents TODO et affichage de la vitesse apparente de stats tt" />
+    <MESSAGE value="sauvegarde et reload des prev inversions fonctionnel" />
+    <MESSAGE value="updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="python-line">
-          <url>file://$PROJECT_DIR$/DatabaseUI.py</url>
-          <line>70</line>
-          <option name="timeStamp" value="62" />
-        </line-breakpoint>
-      </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
@@ -919,93 +1058,17 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="63" />
+      <option name="time" value="99" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/ModelUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="158" column="0" selection-start-line="158" selection-start-column="0" selection-end-line="158" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="39" column="75" selection-start-line="39" selection-start-column="75" selection-end-line="39" selection-end-column="75" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/InfoUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="55" column="47" selection-start-line="55" selection-start-column="47" selection-end-line="55" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mog.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="242" column="25" selection-start-line="242" selection-start-column="25" selection-end-line="242" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MogData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="121" column="0" selection-start-line="121" selection-start-column="0" selection-end-line="121" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/borehole.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scanf.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="703" column="48" selection-start-line="703" selection-start-column="48" selection-end-line="703" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/Downloads/exemple_signaux.py" />
-    <entry file="file://C:/Anaconda3/Lib/sre_compile.py" />
-    <entry file="file://C:/Anaconda3/Lib/re.py" />
-    <entry file="file://$USER_HOME$/.PyCharm40/system/python_stubs/1013586911/PyQt4/QtDesigner.py" />
-    <entry file="file://$USER_HOME$/Desktop/BhTomoPyJS/borehole.py" />
-    <entry file="file://$USER_HOME$/Desktop/BhTomoPyJS/boreholeUIJS.py" />
-    <entry file="file://C:/Anaconda3/Lib/site-packages/matplotlib/transforms.py" />
-    <entry file="file://C:/Anaconda3/Lib/site-packages/matplotlib/figure.py" />
-    <entry file="file://C:/Anaconda3/Lib/site-packages/matplotlib/backends/backend_qt5agg.py" />
     <entry file="file://$USER_HOME$/Downloads/exemple_show_widget_reimplementation.py" />
     <entry file="file://$USER_HOME$/Downloads/exemple_scrollbar_qt.py" />
     <entry file="file://$PROJECT_DIR$/toto.py" />
     <entry file="file://$PROJECT_DIR$/testsUI.py" />
     <entry file="file://$PROJECT_DIR$/mpl_exemple.py" />
     <entry file="file://$USER_HOME$/Downloads/scatter3d_demo.py" />
-    <entry file="file://C:/Anaconda3/Lib/codecs.py" />
-    <entry file="file://C:/Anaconda3/Lib/site-packages/numpy/lib/arraysetops.py" />
-    <entry file="file://C:/Anaconda3/Lib/site-packages/numpy/core/numeric.py" />
     <entry file="file://$USER_HOME$/Downloads/pyplot_two_subplots.py" />
     <entry file="file://$USER_HOME$/Downloads/lines3d_demo.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -1023,76 +1086,36 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/borehole.py">
+    <entry file="file://$USER_HOME$/Downloads/colormaps_reference.py" />
+    <entry file="file://$USER_HOME$/Downloads/keypress_demo.py" />
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/spectrum/__init__.py" />
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/spectrum/burg.py" />
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/ctypes/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
+          <caret line="424" column="0" selection-start-line="424" selection-start-column="0" selection-end-line="424" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/database.py">
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/spectrum/mtm.py" />
+    <entry file="file://$PROJECT_DIR$/cutils/Grid2D.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/covarUI.py">
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/matplotlib/backend_bases.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+          <caret line="2039" column="0" selection-start-line="2039" selection-start-column="0" selection-end-line="2039" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/interpUI.py">
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/matplotlib/backends/backend_qt5.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="15" column="50" selection-start-line="15" selection-start-column="50" selection-end-line="15" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/inversionUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="302" column="43" selection-start-line="302" selection-start-column="43" selection-end-line="302" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="22" selection-start-line="5" selection-start-column="22" selection-end-line="5" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="39" column="75" selection-start-line="39" selection-start-column="75" selection-end-line="39" selection-end-column="75" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MogData.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="121" column="0" selection-start-line="121" selection-start-column="0" selection-end-line="121" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="138" column="0" selection-start-line="138" selection-start-column="0" selection-end-line="138" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/InfoUI.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
-          <folding />
+          <caret line="325" column="0" selection-start-line="325" selection-start-column="0" selection-end-line="325" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1103,24 +1126,181 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ModelUI.py">
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/scipy/sparse/linalg/interface.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-19.626167">
-          <caret line="58" column="36" selection-start-line="58" selection-start-column="36" selection-end-line="58" selection-end-column="36" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="172" column="11" selection-start-line="172" selection-start-column="11" selection-end-line="172" selection-end-column="11" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/Downloads/colormaps_reference.py">
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/scipy/sparse/base.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5607477">
-          <caret line="54" column="43" selection-start-line="54" selection-start-column="43" selection-end-line="54" selection-end-column="52" />
+        <state vertical-scroll-proportion="0.50285715">
+          <caret line="95" column="0" selection-start-line="95" selection-start-column="0" selection-end-line="95" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cutils/cgrid2d.pyx">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="66" column="0" selection-start-line="63" selection-start-column="0" selection-end-line="66" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/numpy/core/numeric.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1868" column="0" selection-start-line="1868" selection-start-column="0" selection-end-line="1868" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/scipy/interpolate/interpolate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="482" column="0" selection-start-line="482" selection-start-column="0" selection-end-line="482" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.0017123288">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-5.9092464">
+          <caret line="50" column="52" selection-start-line="50" selection-start-column="52" selection-end-line="50" selection-end-column="52" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/borehole.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.71746576">
+          <caret line="127" column="0" selection-start-line="127" selection-start-column="0" selection-end-line="127" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/grid.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.20547946">
+          <caret line="47" column="13" selection-start-line="47" selection-start-column="13" selection-end-line="47" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BoreholeUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.15582192">
+          <caret line="355" column="56" selection-start-line="355" selection-start-column="56" selection-end-line="355" selection-end-column="73" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Covariance.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.48630136">
+          <caret line="291" column="80" selection-start-line="291" selection-start-column="80" selection-end-line="291" selection-end-column="80" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/computeSNR.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.025684932">
+          <caret line="1" column="14" selection-start-line="1" selection-start-column="14" selection-end-line="1" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/covarUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.546233">
+          <caret line="73" column="0" selection-start-line="73" selection-start-column="0" selection-end-line="73" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data_select.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.10445205">
+          <caret line="2" column="16" selection-start-line="2" selection-start-column="16" selection-end-line="2" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.20547946">
+          <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/InfoUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/interpUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.3664384">
+          <caret line="15" column="50" selection-start-line="15" selection-start-column="50" selection-end-line="15" selection-end-column="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/manualAmpUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="674" column="47" selection-start-line="674" selection-start-column="47" selection-end-line="674" selection-end-column="47" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ModelUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="347" column="8" selection-start-line="347" selection-start-column="8" selection-end-line="347" selection-end-column="40" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/mog.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="26" column="46" selection-start-line="26" selection-start-column="46" selection-end-line="26" selection-end-column="46" />
+          <caret line="166" column="41" selection-start-line="166" selection-start-column="41" selection-end-line="166" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MogData.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="67" column="0" selection-start-line="67" selection-start-column="0" selection-end-line="67" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/semi_auto_ttUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="359" column="42" selection-start-line="359" selection-start-column="42" selection-end-line="359" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/invLSQR.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="117" column="13" selection-start-line="117" selection-start-column="13" selection-end-line="117" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
           <folding />
         </state>
       </provider>
@@ -1128,45 +1308,53 @@
     <entry file="file://$PROJECT_DIR$/DatabaseUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="293" column="4" selection-start-line="293" selection-start-column="4" selection-end-line="293" selection-end-column="4" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
+          <caret line="291" column="35" selection-start-line="291" selection-start-column="35" selection-end-line="291" selection-end-column="35" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bh_tomoPyUI.py">
+    <entry file="file://$PROJECT_DIR$/set_tick_arrangement.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="201" column="59" selection-start-line="201" selection-start-column="59" selection-end-line="201" selection-end-column="59" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
-          </folding>
+          <caret line="24" column="27" selection-start-line="24" selection-start-column="27" selection-end-line="24" selection-end-column="27" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/MogUI.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="1348" column="0" selection-start-line="1348" selection-start-column="0" selection-end-line="1348" selection-end-column="0" />
-          <folding>
-            <element signature="e#24#34#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="12" column="22" selection-start-line="12" selection-start-column="22" selection-end-line="12" selection-end-column="22" />
+          <caret line="566" column="0" selection-start-line="566" selection-start-column="0" selection-end-line="566" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/manual_ttUI.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6213018">
-          <caret line="506" column="133" selection-start-line="506" selection-start-column="133" selection-end-line="506" selection-end-column="133" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="23" selection-start-line="0" selection-start-column="23" selection-end-line="0" selection-end-column="23" />
+          <folding>
+            <element signature="e#24#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/inversionUI.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="126" column="28" selection-start-line="126" selection-start-column="28" selection-end-line="126" selection-end-column="28" />
+          <folding>
+            <element signature="e#25#35#0" expanded="true" />
+            <element signature="e#9449#19304#0" expanded="false" />
+            <element signature="e#42166#44509#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3314917">
+          <caret line="23" column="36" selection-start-line="23" selection-start-column="36" selection-end-line="23" selection-end-column="36" />
           <folding />
         </state>
       </provider>
