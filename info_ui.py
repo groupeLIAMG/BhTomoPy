@@ -5,7 +5,7 @@ from PyQt4 import QtGui, QtCore
 class InfoUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(InfoUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Info")
+        self.setWindowTitle("BhTomoPy/Info")
         self.initUI()
 
     #------- Updating the information -------#

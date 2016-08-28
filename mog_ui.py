@@ -37,7 +37,7 @@ class MOGUI(QtGui.QWidget):
 
     def __init__(self, borehole, parent=None):
         super(MOGUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/MOGs")
+        self.setWindowTitle("BhTomoPy/MOGs")
         self.initUI()
         self.MOGs = []
         self.air = []

@@ -8,7 +8,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationTool
 class SemiAutottUI(QtGui.QWidget):
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Semi Automatic Traveltime Picking")
+        self.setWindowTitle("BhTomoPy/Semi Automatic Traveltime Picking")
         self.openmain = OpenMainData(self)
         self.initUI()
 

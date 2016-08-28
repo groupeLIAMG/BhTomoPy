@@ -16,7 +16,7 @@ class ModelUI(QtGui.QWidget):
 
     def __init__(self, borehole, mog, parent=None):
         super(ModelUI, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Models")
+        self.setWindowTitle("BhTomoPy/Models")
         self.borehole = borehole
         self.mog = mog
         self.models = []
@@ -175,7 +175,7 @@ class ChooseModelMOG(QtGui.QWidget):
 
     def __init__(self, model, parent=None):
         super(ChooseModelMOG, self).__init__()
-        self.setWindowTitle("bh_thomoPy/Choose MOGs")
+        self.setWindowTitle("BhTomoPy/Choose MOGs")
         self.model = model
         self.initUI()
 
@@ -223,7 +223,7 @@ class gridEditor(QtGui.QWidget):
 
     def __init__(self, model, parent=None):
         super(gridEditor, self).__init__()
-        self.setWindowTitle("bh_thomoPy/gridEditor")
+        self.setWindowTitle("BhTomoPy/gridEditor")
         self.gridinfo = GridInfoUI()
         self.constraintseditor = ConstraintsEditorUI()
         self.model = model
