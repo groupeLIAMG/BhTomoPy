@@ -1906,14 +1906,14 @@ class StatsttFig(FigureCanvasQTAgg):
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
 
-        vapp = hyp/(tt-t0[ind])
+        vapp = hyp/tt
         #n = np.arange(len(ind))
         #n = n[ind]
         ind2 = np.less(vapp, 0)
         ind2 = np.nonzero(ind2)[0]
 
         self.ax4.plot(hyp, tt, marker='o', ls= 'None')
-        self.ax5.plot(theta, hyp/tt, marker='o', ls= 'None')
+        self.ax5.plot(theta, hyp/(tt+t0[ind]), marker='o', ls= 'None')  # tt are corrected, must undo t0 correction
         self.ax2.plot(theta, vapp, marker='o', ls= 'None')
         self.ax6.plot(t0)
         self.ax1.plot(hyp, et, marker='o', ls= 'None')

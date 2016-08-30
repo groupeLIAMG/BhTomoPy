@@ -296,10 +296,12 @@ class ManualttUI(QtGui.QFrame):
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
+        openAction.setShortcut('Ctrl+O')
 #        openAction.triggered.connect(self.openmain.show)
         openAction.triggered.connect(self.openfile)
 
         saveAction = QtGui.QAction('Save', self)
+        saveAction.setShortcut('Ctrl+S')
         saveAction.triggered.connect(self.savefile)
 
         importAction = QtGui.QAction('Import ...', self)
@@ -1265,14 +1267,14 @@ class StatsFig1(FigureCanvasQTAgg):
         ind2 = np.nonzero(ind2)[0]
 
         self.ax4.plot(hyp, tt, marker='o', ls= 'None')
-        self.ax5.plot(theta, hyp/tt, marker='o', ls= 'None')
+        self.ax5.plot(theta, hyp/(tt+t0[ind]), marker='o', ls= 'None')  # tt are corrected, must undo t0 correction
         self.ax2.plot(theta, vapp, marker='o', ls= 'None')
         self.ax6.plot(t0)
         self.ax1.plot(hyp, et, marker='o', ls= 'None')
         self.ax3.plot(theta, et, marker='o', ls= 'None')
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
 
-        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
 
         mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
@@ -1286,7 +1288,7 @@ class StatsFig1(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
         mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
 
-        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
         mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
 
