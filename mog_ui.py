@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
-from PyQt4 import QtGui, QtCore
-from mog import MogData, Mog, AirShots
-from database import Database
-from model_ui import gridEditor
+import re
+import shelve
 from unicodedata import *
-import matplotlib as mpl
+
+from PyQt4 import QtGui, QtCore
+
 import scipy as spy
 from scipy import signal
+from scipy import interpolate
+import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 from numpy import linalg
@@ -16,10 +18,12 @@ from numpy import matlib
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 #from spectrum import arburg
-import re
-import pickle
+
+from mog import MogData, Mog, AirShots
+from database import Database
+from model_ui import gridEditor
 from utils import compute_SNR, data_select
-from scipy import interpolate
+from utils_ui import chooseMOG
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -43,9 +47,6 @@ class MOGUI(QtGui.QWidget):
         self.air = []
         self.borehole = borehole
         self.data_rep = ''
-
-
-
 
 
     def add_MOG(self):
@@ -759,8 +760,21 @@ class MOGUI(QtGui.QWidget):
         self.deltat.getcompat()
 
     def import_mog(self):
-        self.openMain = OpenMainData(self)
-        self.openMain.show()
+        mog_no, filename, ok = chooseMOG()
+        if ok == 1:
+            sfile = shelve.open(filename)
+            mogs = sfile['mogs']
+            mog = mogs[mog_no]
+            sfile.close()
+        
+            self.MOGs.append(mog)
+            self.update_List_Widget()
+            self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
+            self.update_spectra_and_coverage_Tx_num_list()
+            self.update_spectra_and_coverage_Tx_elev_value_label()
+            self.update_edits()
+            self.update_prune_edits_info()
+            self.update_prune_info()
 
     def update_color_scale(self):
         if self.color_scale_combo.currentText() == 'Low':
@@ -2462,7 +2476,7 @@ class DeltaTMOG(QtGui.QWidget):
             ids = []
             nc = 0
             if len(self.mog.MOGs) == 1:
-                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database",buttons= QtGui.QMessageBox.Ok)
+                QtGui.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database",buttons= QtGui.QMessageBox.Ok)
                 return
             for mog in self.mog.MOGs:
                 if mog != ref_mog:
@@ -2489,27 +2503,27 @@ class DeltaTMOG(QtGui.QWidget):
                 else:
                     pass
             if nc == 0 :
-                dialog = QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+                QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
 
             else:
                 self.show()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
 
     def done(self):
         if len(self.sub_combo) == 0:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtGui.QMessageBox.Ok)
         if not self.name_edit.text():
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please enter a name for new MOG",buttons= QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, 'Warning', "Please enter a name for new MOG",buttons= QtGui.QMessageBox.Ok)
 
         # Check if traveltimes were picked
         n = self.min_combo.currentIndex()
         refMog = self.mog.MOGs[n]
         ind = refMog.tt == -1
         if np.any(ind == True):
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)
+            QtGui.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)
                                                    ,buttons= QtGui.QMessageBox.Ok)
 
     def initUI(self):
@@ -2546,79 +2560,6 @@ class DeltaTMOG(QtGui.QWidget):
         master_grid.addWidget(done_btn, 5, 1)
         self.setLayout(master_grid)
 
-class OpenMainData(QtGui.QWidget):
-    def __init__(self, ui, parent=None):
-        super(OpenMainData, self).__init__()
-        self.setWindowTitle("Choose Data")
-        self.database_list = []
-        self.ui = ui
-        self.initUI()
-
-    def openfile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
-
-        self.load_file(filename)
-
-    def load_file(self, filename):
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
-
-        boreholes, self.mogs, air, models = pickle.load(file)
-        self.database_edit.setText(rname)
-        for mog in self.mogs:
-            self.mog_combo.addItem(mog.name)
-
-
-    def cancel(self):
-        self.close()
-
-    def ok(self):
-        n = self.mog_combo.currentIndex()
-        mog = self.mogs[n]
-        self.ui.MOGs.append(mog)
-        self.ui.update_List_Widget()
-        self.ui.MOG_list.setCurrentRow(len(self.ui.MOGs) - 1)
-        self.ui.update_spectra_and_coverage_Tx_num_list()
-        self.ui.update_spectra_and_coverage_Tx_elev_value_label()
-        self.ui.update_edits()
-        self.ui.update_prune_edits_info()
-        self.ui.update_prune_info()
-        self.close()
-
-    def initUI(self):
-
-        #-------  Widgets --------#
-        #--- Edit ---#
-        self.database_edit = QtGui.QLineEdit()
-        #- Edit Action -#
-        self.database_edit.setReadOnly(True)
-        #--- Buttons ---#
-        self.btn_database = QtGui.QPushButton('Choose Database')
-        self.btn_ok = QtGui.QPushButton('Ok')
-        self.btn_cancel = QtGui.QPushButton('Cancel')
-
-        #- Buttons' Actions -#
-        self.btn_cancel.clicked.connect(self.cancel)
-        self.btn_database.clicked.connect(self.openfile)
-        self.btn_ok.clicked.connect(self.ok)
-
-        #--- Combobox ---#
-        self.mog_combo = QtGui.QComboBox()
-
-        master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
-        master_grid.addWidget(self.btn_ok, 3, 0)
-        master_grid.addWidget(self.btn_cancel, 3 ,1)
-        self.setLayout(master_grid)
 
 if __name__ == '__main__':
 
