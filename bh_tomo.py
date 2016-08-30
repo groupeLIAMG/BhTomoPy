@@ -30,25 +30,19 @@ class BhTomoPy(QtGui.QWidget):
 
     def choosedb(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Choose Database')
+        if filename is not '':
+            if '.db' in filename:
+                filename = filename[:-3]
+            self.loaddb(filename)
 
-        self.laoddb(filename)
-
-    def laoddb(self, filename):
+    def loaddb(self, filename):
         # We create a load db methods to be able to load databases in the main
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
+        rname = os.path.basename(filename)
+        self.current_db.setText(rname)
 
-        self.current_db.setText(str(rname))
-        self.database.load_file(filename)
-        self.manual_tt.openmain.load_file(filename)
-        self.manual_tt.update_control_center()
-        self.manual_amp.openmain.load_file(filename)
+        self.database.filename = filename
+        self.manual_tt.filename = filename
+        self.manual_amp.filename = filename
 
     def show(self):
         super(BhTomoPy, self).show()

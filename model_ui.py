@@ -53,7 +53,7 @@ class ModelUI(QtGui.QWidget):
         if len(self.models) != 0:
             self.chooseMog.show()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please create a model before adding MOGs to it"
+            QtGui.QMessageBox.warning(self, 'Warning', "Please create a model before adding MOGs to it"
                                                     ,buttons=QtGui.QMessageBox.Ok)
 
 
@@ -68,8 +68,9 @@ class ModelUI(QtGui.QWidget):
     def update_model_mog_list(self):
         self.model_mog_list.clear()
         n = self.model_list.currentIndex().row()
-        for mog in self.models[n].mogs:
-            self.model_mog_list.addItem(mog.name)
+        if n > -1:
+            for mog in self.models[n].mogs:
+                self.model_mog_list.addItem(mog.name)
 
     def update_model_list(self):
         self.model_list.clear()

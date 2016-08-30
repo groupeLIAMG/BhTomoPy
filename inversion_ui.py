@@ -54,7 +54,7 @@ class InversionUI(QtGui.QFrame):
 
         save_file = open(self.filename, 'wb')
         pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-        dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+        QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
 
     def update_previous(self):

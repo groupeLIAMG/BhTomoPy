@@ -2,13 +2,12 @@
 import sys
 from PyQt4 import QtGui, QtCore
 from borehole_ui import BoreholeUI
-from model_ui import ModelUI, gridEditor
+from model_ui import ModelUI
 from mog_ui import MOGUI, MergeMog
 from info_ui import InfoUI
-from mog import MogData
 import time
-import matplotlib.image as mpimg
-import pickle
+import os
+import shelve
 
 class DatabaseUI(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -104,64 +103,58 @@ class DatabaseUI(QtGui.QWidget):
         translation = qr.topLeft()
 
         self.move(translation)
+        
+        if self.filename != '':
+            self.load_file(self.filename)
 
     def openfile(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
-
-
-        self.load_file(filename)
-
+        if filename is not '':
+            if '.db' in filename:
+                filename = filename[:-3]
+            self.load_file(filename)
 
     def load_file(self, filename):
         self.filename = filename
 
-        if '\\' in filename:
-            rname = filename.split('\\')
-            rname = rname[-1]
-        elif '/' in filename:
-            rname = filename.split('/')
-            rname = rname[-1]
-        else:
-            rname = filename
+        rname = os.path.basename(filename)
 
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
+        if '.db' in rname:
+            rname = rname[:-3]
 
-        self.boreholes, self.mogs, self.air, self.models = pickle.load(file)
-        self.update_database_info(rname)
-        self.update_log("Database '{}' was loaded successfully".format(rname))
+        try:
+            sfile = shelve.open(filename, 'r')
+    
+            self.bh.boreholes = sfile['boreholes']
+            self.mog.MOGs = sfile['mogs']
+            self.model.models = sfile['models']
+            self.mog.air = sfile['air']
+            
+            sfile.close()
+           
+            self.update_database_info(rname)
+            self.update_log("Database '{}' was loaded successfully".format(rname))
+    
+            self.bh.update_List_Widget()
+            self.bh.bh_list.setCurrentRow(0)
+            self.bh.update_List_Edits()
+    
+            self.mog.update_List_Widget()
+            self.mog.update_edits()
+            self.mog.MOG_list.setCurrentRow(0)
+            self.mog.update_spectra_and_coverage_Tx_num_list()
+            self.mog.update_spectra_and_coverage_Tx_elev_value_label()
+            self.mog.update_edits()
+            self.mog.update_prune_edits_info()
+            self.mog.update_prune_info()
+    
+            self.model.update_model_list()
+            self.model.update_model_mog_list()
 
-        self.bh.boreholes = self.boreholes
-        self.mog.MOGs = self.mogs
-        self.model.models = self.models
-        #self.grid.model = self.model
-
-
-        self.mog.air = self.air
-
-        self.bh.update_List_Widget()
-        self.bh.bh_list.setCurrentRow(0)
-        self.bh.update_List_Edits()
-
-        self.mog.update_List_Widget()
-        self.mog.update_edits()
-        self.mog.MOG_list.setCurrentRow(0)
-        self.mog.update_spectra_and_coverage_Tx_num_list()
-        self.mog.update_spectra_and_coverage_Tx_elev_value_label()
-        self.mog.update_edits()
-        self.mog.update_prune_edits_info()
-        self.mog.update_prune_info()
-
-        self.model.update_model_list()
-        self.model.update_model_mog_list()
-
-
-        #self.update_log('Error: Database file must be of pickle type')
+        except:
+            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be opened"
+                                                    , buttons=QtGui.QMessageBox.Ok)
+            self.update_log('Error: Database file must be of shelve type')
 
     def savefile(self):
 
@@ -170,38 +163,33 @@ class DatabaseUI(QtGui.QWidget):
             return
 
         try:
-            save_file = open(self.filename, 'wb')
+            sfile = shelve.open(self.filename, flag='c')
             try:
                 self.model.gridui.update_model_grid()
             except:
                 pass
-            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-            dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+
+            sfile['models'] = self.model.models
+            sfile['boreholes'] = self.bh.boreholes
+            sfile['mogs'] = self.mog.MOGs
+            sfile['air'] = self.mog.air
+            sfile.close()
+            
+            QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                     ,buttons=QtGui.QMessageBox.Ok)
             self.update_log("Database was saved successfully")
         except:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
+            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
                                                     , buttons=QtGui.QMessageBox.Ok)
             self.update_log('Error: Database could not be saved')
 
     def saveasfile(self):
-        try:
-            filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', self.name, filter= 'pickle (*.p *.pkl *.pickle)', )
-            save_file = open(filename, 'wb')
-            try:
-                self.model.gridui.update_model_grid()
-            except:
-                pass
-            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-            dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
-                                                    ,buttons=QtGui.QMessageBox.Ok)
-            self.update_log("Database was saved successfully")
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', self.name, filter= 'shelve (*.db)', )
+        if filename is not '':
+            if '.db' in filename:
+                filename = filename[:-3]
             self.filename = filename
-        except:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
-                                                    , buttons=QtGui.QMessageBox.Ok)
-
-            self.update_log('Error: Database could not be saved')
+            self.savefile()
 
     def editname(self):
         new_name, ok = QtGui.QInputDialog.getText(self, "Change Name", 'Enter new name for database')

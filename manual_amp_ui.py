@@ -3,8 +3,9 @@ import sys
 from PyQt4 import QtGui, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
-import pickle
+import shelve
 import numpy as np
+from utils_ui import chooseMOG
 import re
 import scipy as spy
 from scipy import signal
@@ -16,11 +17,11 @@ class ManualAmpUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(ManualAmpUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
-        self.openmain = OpenMainData(self)
+#        self.openmain = OpenMainData(self)
         self.mogs = []
-        self.air = []
-        self.boreholes = []
-        self.models = []
+#        self.air = []
+#        self.boreholes = []
+#        self.models = []
         self.filename = ''
         self.mog = 0
         self.initUI()
@@ -48,8 +49,8 @@ class ManualAmpUI(QtGui.QFrame):
     def update_control_center(self):
         n = int(self.Tnum_Edit.text())-1
 
-        ind = self.openmain.mog_combo.currentIndex()
-        self.mog = self.mogs[ind]
+#        ind = self.openmain.mog_combo.currentIndex()
+#        self.mog = self.mogs[ind]
 
         if len(self.mogs) == 0:
             return
@@ -89,52 +90,60 @@ class ManualAmpUI(QtGui.QFrame):
 
     def intermediate_saves(self):
         if float(self.Tnum_Edit.text()) % 50 == 0:
-            save_file = open(self.filename, 'wb')
-            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-            print('saved')
+            sfile = shelve.open(self.filename)
+            sfile['mogs'] = self.mogs
+            sfile.close()
+#            save_file = open(self.filename, 'wb')
+#            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+#            print('saved')
 
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
     def plot_stats(self):
-        ind = self.openmain.mog_combo.currentIndex()
-        mog = self.mogs[ind]
+#        ind = self.openmain.mog_combo.currentIndex()
+#        mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
-        self.statsFig1.plot_stats(mog, self.air)
+        self.statsFig1.plot_stats(self.mog, self.air)
         self.statsFig1.showMaximized()
 
     def savefile(self):
-        save_file = open(self.filename, 'wb')
-        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-        dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+        sfile = shelve.open(self.filename)
+        sfile['mogs'] = self.mogs
+        sfile.close()
+#        save_file = open(self.filename, 'wb')
+#        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+        QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
+
+    def openfile(self):
+        mog_no, filename, ok = chooseMOG(self.filename)
+        if ok == 1:
+            self.filename = filename
+            sfile = shelve.open(self.filename)
+            self.mogs = sfile['mogs']
+            self.mog = self.mogs[mog_no]
+
+            sfile.close()
+            self.update_control_center()
 
     def import_tt_file(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Import')
         self.load_tt_file(filename)
     def load_tt_file(self, filename):
         try:
-            file = open(filename, 'r')
+            info_tt = np.loadtxt(filename)
+            for row in info_tt:
+                trc_number = int(float(row[0]))
+                tt = float(row[1])
+                et = float(row[2])
+                self.mog.tt_done[trc_number - 1] = 1
+                self.mog.tt[trc_number - 1] = tt
+                self.mog.et[trc_number - 1] = et
+    
+            self.update_control_center()
         except:
-            try:
-                file = open(filename + ".dat", 'r')
-            except:
-                try:
-                    file = open(filename + ".DAT", 'r')
-                except:
-                    dialog = QtGui.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtGui.QMessageBox.Ok)
-
-        info_tt = np.loadtxt(filename)
-        for row in info_tt:
-            trc_number = int(float(row[0]))
-            tt = float(row[1])
-            et = float(row[2])
-            self.mog.tt_done[trc_number - 1] = 1
-            self.mog.tt[trc_number - 1] = tt
-            self.mog.et[trc_number - 1] = et
-
-
-        self.update_control_center()
+            QtGui.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtGui.QMessageBox.Ok)
 
 
     def initUI(self):
@@ -157,6 +166,7 @@ class ManualAmpUI(QtGui.QFrame):
         self.lowermanager = QtGui.QWidget()
         lowermanagergrid = QtGui.QGridLayout()
         lowermanagergrid.addWidget(self.lowerFig, 0, 0)
+        lowermanagergrid.setContentsMargins(0, 0, 0, 0)
         self.lowermanager.setLayout(lowermanagergrid)
 
         #------- Widgets Creation -------#
@@ -246,7 +256,8 @@ class ManualAmpUI(QtGui.QFrame):
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
-        openAction.triggered.connect(self.openmain.show)
+#        openAction.triggered.connect(self.openmain.show)
+        openAction.triggered.connect(self.openfile)
 
         saveAction = QtGui.QAction('Save', self)
         saveAction.triggered.connect(self.savefile)
@@ -436,7 +447,7 @@ class ManualAmpUI(QtGui.QFrame):
         master_grid.addWidget(Control_Center_GroupBox, 2, 2)
         master_grid.setRowStretch(1, 100)
         master_grid.setColumnStretch(1, 100)
-        master_grid.setContentsMargins(0, 0, 0, 0)
+        master_grid.setContentsMargins(10, 10, 10, 10)
         master_grid.setVerticalSpacing(0)
         self.setLayout(master_grid)
 
@@ -456,77 +467,77 @@ class ManualAmpUI(QtGui.QFrame):
             self.sender().setFlat(True)
             self.lowerFig.isTracingOn = True
 
-class OpenMainData(QtGui.QWidget):
-    def __init__(self, ui, parent=None):
-        super(OpenMainData, self).__init__()
-        self.setWindowTitle("Choose Data")
-        self.database_list = []
-        self.ui = ui
-        self.initUI()
-
-    def openfile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
-
-        self.load_file(filename)
-
-    def load_file(self, filename):
-        self.ui.filename = filename
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
-
-        self.ui.boreholes, self.ui.mogs, self.ui.air, self.ui.models = pickle.load(file)
-
-        self.database_edit.setText(rname)
-        for mog in self.ui.mogs:
-
-            self.mog_combo.addItem(mog.name)
-
-
-    def cancel(self):
-        self.close()
-
-    def ok(self):
-        self.ui.update_control_center()
-
-        self.close()
-
-    def initUI(self):
-
-        #-------  Widgets --------#
-        #--- Edit ---#
-        self.database_edit = QtGui.QLineEdit()
-        #- Edit Action -#
-        self.database_edit.setReadOnly(True)
-        #--- Buttons ---#
-        self.btn_database = QtGui.QPushButton('Choose Database')
-        self.btn_ok = QtGui.QPushButton('Ok')
-        self.btn_cancel = QtGui.QPushButton('Cancel')
-
-        #- Buttons' Actions -#
-        self.btn_cancel.clicked.connect(self.cancel)
-        self.btn_database.clicked.connect(self.openfile)
-        self.btn_ok.clicked.connect(self.ok)
-
-        #--- Combobox ---#
-        self.mog_combo = QtGui.QComboBox()
-
-        #- Combobox's Action -#
-        self.mog_combo.activated.connect(self.ui.update_control_center)
-
-        master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
-        master_grid.addWidget(self.btn_ok, 3, 0)
-        master_grid.addWidget(self.btn_cancel, 3 ,1)
-        self.setLayout(master_grid)
+#class OpenMainData(QtGui.QWidget):
+#    def __init__(self, ui, parent=None):
+#        super(OpenMainData, self).__init__()
+#        self.setWindowTitle("Choose Data")
+#        self.database_list = []
+#        self.ui = ui
+#        self.initUI()
+#
+#    def openfile(self):
+#        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+#
+#        self.load_file(filename)
+#
+#    def load_file(self, filename):
+#        self.ui.filename = filename
+#        rname = filename.split('/')
+#        rname = rname[-1]
+#        if '.p' in rname:
+#            rname = rname[:-2]
+#        if '.pkl' in rname:
+#            rname = rname[:-4]
+#        if '.pickle' in rname:
+#            rname = rname[:-7]
+#        file = open(filename, 'rb')
+#
+#        self.ui.boreholes, self.ui.mogs, self.ui.air, self.ui.models = pickle.load(file)
+#
+#        self.database_edit.setText(rname)
+#        for mog in self.ui.mogs:
+#
+#            self.mog_combo.addItem(mog.name)
+#
+#
+#    def cancel(self):
+#        self.close()
+#
+#    def ok(self):
+#        self.ui.update_control_center()
+#
+#        self.close()
+#
+#    def initUI(self):
+#
+#        #-------  Widgets --------#
+#        #--- Edit ---#
+#        self.database_edit = QtGui.QLineEdit()
+#        #- Edit Action -#
+#        self.database_edit.setReadOnly(True)
+#        #--- Buttons ---#
+#        self.btn_database = QtGui.QPushButton('Choose Database')
+#        self.btn_ok = QtGui.QPushButton('Ok')
+#        self.btn_cancel = QtGui.QPushButton('Cancel')
+#
+#        #- Buttons' Actions -#
+#        self.btn_cancel.clicked.connect(self.cancel)
+#        self.btn_database.clicked.connect(self.openfile)
+#        self.btn_ok.clicked.connect(self.ok)
+#
+#        #--- Combobox ---#
+#        self.mog_combo = QtGui.QComboBox()
+#
+#        #- Combobox's Action -#
+#        self.mog_combo.activated.connect(self.ui.update_control_center)
+#
+#        master_grid = QtGui.QGridLayout()
+#        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
+#        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
+#        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
+#        master_grid.addWidget(self.btn_ok, 3, 0)
+#        master_grid.addWidget(self.btn_cancel, 3 ,1)
+#        self.setLayout(master_grid)
 
 
 class UpperFig(FigureCanvasQTAgg):
@@ -841,9 +852,9 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualAmpUI()
-    manual_ui.openmain.load_file('test_constraints.p')
-    manual_ui.update_control_center()
-    manual_ui.update_settings_edits()
+    manual_ui.filename = 'test_constraints'
+#    manual_ui.update_control_center()
+#    manual_ui.update_settings_edits()
     manual_ui.showMaximized()
     #manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
