@@ -254,9 +254,7 @@ class gridEditor(QtGui.QWidget):
         self.data.TxCosDir = mog.TxCosDir.T
         self.data.RxCosDir = mog.RxCosDir.T
 
-
         self.data.boreholes = self.model.models[self.model_ind].boreholes
-
 
         if len(mogs) > 1:
             for n in range(1, len(mogs)):
@@ -265,19 +263,13 @@ class gridEditor(QtGui.QWidget):
                 tmp_Txyz = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
                 tmp_Rxyz = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
 
-                Tx = mog.Tx
-                Rx = mog.Rx
+#                Tx = mog.Tx
+#                Rx = mog.Rx
 
                 self.data.in_vect = np.concatenate((self.data.in_vect, mog.in_vect.T), axis= 0)
-
-
                 self.data.Tx = np.concatenate((self.data.Tx, tmp_Txyz), axis= 0)
-
-
                 self.data.Rx = np.concatenate((self.data.Rx, tmp_Rxyz), axis= 0)
-
                 self.data.TxCosDir = np.concatenate((self.data.TxCosDir, mog.TxCosDir.T), axis= 0)
-
                 self.data.RxCosDir = np.concatenate((self.data.RxCosDir, mog.RxCosDir.T), axis= 0)
 
             if Tx.Z_water != None:

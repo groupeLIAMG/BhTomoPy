@@ -42,7 +42,7 @@ class Borehole:
         self.diam      = 0.0            # BH's diameter
         self.scont     = np.array([])   # Matrix containing the slowness for each point of the BH's trajectory
         self.acont     = np.array([])   # Matrix containing the attenuation for each point of the BH's trajectory
-        self.fdata     = np.array([[0, 0, 0], [0, 0, 0]])    # Matrix containing the BH's trajectory in space
+        self.fdata     = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])    # Matrix containing the BH's trajectory in space
 
     @staticmethod
     def project(fdata, ldepth):

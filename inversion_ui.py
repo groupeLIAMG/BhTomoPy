@@ -8,21 +8,21 @@ import matplotlib as mpl
 from model import Model
 import scipy as spy
 from scipy.sparse import linalg
-import pickle
+import shelve
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import interpolate
 from inversion import invLSQR, InvLSQRParams
 from utils import set_tick_arrangement
+from utils_ui import chooseModel
 
 class InversionUI(QtGui.QFrame):
     def __init__(self, parent=None):
         super(InversionUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Inversion")
-        self.openmain = OpenMainData(self)
+#        self.openmain = OpenMainData(self)
         self.lsqrParams = InvLSQRParams()
         self.tomo = None
         self.mogs = []
-        self.boreholes = []
         self.models = []
         self.air = []
         self.prev_inv = []
@@ -36,8 +36,9 @@ class InversionUI(QtGui.QFrame):
             # If theres no selected model
             return
         if self.tomo is None:
-            save_file = open(self.filename, 'wb')
-            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+            sfile = shelve.open(self.filename)
+            sfile['models'] = self.models
+            sfile.close()
             return
         if self.algo_combo.currentText() == 'LSQR Solver':
             cov = '-LSQR'
@@ -52,11 +53,32 @@ class InversionUI(QtGui.QFrame):
             self.models[self.model_ind].inv_res.append(inv_res_info)
             print(self.models[self.model_ind].inv_res)
 
-        save_file = open(self.filename, 'wb')
-        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+        sfile = shelve.open(self.filename)
+        sfile['models'] = self.models
+        sfile.close()
         QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
 
+    def openfile(self):
+        model_no, filename, ok = chooseModel(self.filename)
+        if ok == 1:
+            self.filename = filename
+            sfile = shelve.open(self.filename)
+            self.models = sfile['models']
+            self.mogs = sfile['mogs']
+            self.air = sfile['air']
+            sfile.close()
+            
+            self.model_ind = model_no
+            self.inv_frame.setHidden(True)
+            self.gv = Gridviewer(self.models[self.model_ind].grid, self)
+            self.global_grid.addWidget(self.gv, 1, 1, 7, 2)
+            self.update_data()
+            self.update_grid()
+            self.update_previous()
+
+        
+        
     def update_previous(self):
         self.prev_inversion_combo.clear()
         self.prev_inv.clear()
@@ -78,7 +100,7 @@ class InversionUI(QtGui.QFrame):
     def update_grid(self):
         model = self.models[self.model_ind]
         if np.all(model.grid.grx == 0) or np.all(model.grid.grx == 0):
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion"
+            QtGui.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion"
                                                 ,buttons=QtGui.QMessageBox.Ok)
 
         else:
@@ -130,11 +152,11 @@ class InversionUI(QtGui.QFrame):
     def doInv(self):
         model = self.models[self.model_ind]
         if self.model_ind == '':
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "First, load a model in order to do Inversion"
+            QtGui.QMessageBox.warning(self, 'Warning', "First, load a model in order to do Inversion"
                                                     , buttons=QtGui.QMessageBox.Ok)
 
         if len(self.mog_list.selectedIndexes()) == 0:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please select Mogs"
+            QtGui.QMessageBox.warning(self, 'Warning', "Please select Mogs"
                                                         , buttons=QtGui.QMessageBox.Ok)
 
         elif self.T_and_A_combo.currentText() == 'Traveltime':
@@ -167,30 +189,38 @@ class InversionUI(QtGui.QFrame):
 
     def plot_rays(self):
         if self.tomo == None:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+            QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
                                                     , buttons=QtGui.QMessageBox.Ok)
+            return
+            
         self.raysFig.plot_rays()
         self.update_Tx_elev()
         self.rays_manager.show()
 
     def plot_ray_density(self):
         if self.tomo == None:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+            QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
                                                     , buttons=QtGui.QMessageBox.Ok)
+            return
+
         self.raydensityFig.plot_ray_density()
         self.ray_density_manager.show()
 
     def plot_residuals(self):
         if self.tomo == None:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+            QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
                                                     , buttons=QtGui.QMessageBox.Ok)
+            return
+
         self.residualsFig.plot_residuals()
         self.residuals_manager.showMaximized()
 
     def plot_tomo(self):
         if self.tomo == None:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
+            QtGui.QMessageBox.warning(self, 'Warning', "Inversion needed to access Results"
                                                     , buttons=QtGui.QMessageBox.Ok)
+            return
+
         self.tomoFig.plot_tomo()
         self.tomo_manager.show()
 
@@ -638,9 +668,9 @@ class InversionUI(QtGui.QFrame):
         self.Max_editi.editingFinished.connect(self.plot_inv)
 
         #--- Checkboxes ---#
-        self.use_const_checkbox              = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
-        self.use_Rays_checkbox               = QtGui.QCheckBox("Use Rays")         # of it
-        self.set_color_checkbox             = QtGui.QCheckBox("Set Color Limits")
+        self.use_const_checkbox = QtGui.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
+        self.use_Rays_checkbox  = QtGui.QCheckBox("Use Rays")         # of it
+        self.set_color_checkbox = QtGui.QCheckBox("Set Color Limits")
 
         #- Checboxes Actions -#
         self.use_const_checkbox.stateChanged.connect(self.update_params)
@@ -648,9 +678,11 @@ class InversionUI(QtGui.QFrame):
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
-        openAction.triggered.connect(self.openmain.show)
+        openAction.setShortcut('Ctrl+O')
+        openAction.triggered.connect(self.openfile)
 
         saveAction = QtGui.QAction('Save', self)
+        saveAction.setShortcut('Ctrl-S')
         saveAction.triggered.connect(self.savefile)
 
         exportAction = QtGui.QAction('Export', self)
@@ -873,80 +905,80 @@ class InversionUI(QtGui.QFrame):
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
 
-class OpenMainData(QtGui.QWidget):
-    def __init__(self, inv, parent=None):
-        super(OpenMainData, self).__init__()
-        self.setWindowTitle("Choose Data")
-        self.database_list = []
-        self.inv = inv
-        self.initUI()
-
-    def openfile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
-
-        self.load_file(filename)
-
-    def load_file(self, filename):
-        self.inv.filename = filename
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
-
-        self.inv.boreholes, self.inv.mogs, self.inv.air, self.inv.models = pickle.load(file)
-
-        self.database_edit.setText(rname)
-        for model in self.inv.models:
-            self.model_combo.addItem(model.name)
-
-    def cancel(self):
-        self.close()
-
-    def ok(self):
-        self.inv.model_ind = self.model_combo.currentIndex()
-        self.inv.inv_frame.setHidden(True)
-        self.inv.gv = Gridviewer(self.inv.models[self.inv.model_ind].grid, self.inv)
-        self.inv.global_grid.addWidget(self.inv.gv, 1, 1, 7, 2)
-        self.inv.update_data()
-        self.inv.update_grid()
-        self.inv.update_previous()
-        self.close()
-
-    def initUI(self):
-
-        #-------  Widgets --------#
-        #--- Edit ---#
-        self.database_edit = QtGui.QLineEdit()
-
-        #- Edit Action -#
-        self.database_edit.setReadOnly(True)
-
-        #--- Buttons ---#
-        self.btn_database = QtGui.QPushButton('Choose Database')
-        self.btn_ok = QtGui.QPushButton('Ok')
-        self.btn_cancel = QtGui.QPushButton('Cancel')
-
-        #- Buttons' Actions -#
-        self.btn_cancel.clicked.connect(self.cancel)
-        self.btn_database.clicked.connect(self.openfile)
-        self.btn_ok.clicked.connect(self.ok)
-
-        #--- Combobox ---#
-        self.model_combo = QtGui.QComboBox()
-
-        #- Combobox's Action -#
-        master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-        master_grid.addWidget(self.model_combo, 2, 0, 1, 2)
-        master_grid.addWidget(self.btn_ok, 3, 0)
-        master_grid.addWidget(self.btn_cancel, 3 ,1)
-        self.setLayout(master_grid)
+#class OpenMainData(QtGui.QWidget):
+#    def __init__(self, inv, parent=None):
+#        super(OpenMainData, self).__init__()
+#        self.setWindowTitle("Choose Data")
+#        self.database_list = []
+#        self.inv = inv
+#        self.initUI()
+#
+#    def openfile(self):
+#        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+#
+#        self.load_file(filename)
+#
+#    def load_file(self, filename):
+#        self.inv.filename = filename
+#        rname = filename.split('/')
+#        rname = rname[-1]
+#        if '.p' in rname:
+#            rname = rname[:-2]
+#        if '.pkl' in rname:
+#            rname = rname[:-4]
+#        if '.pickle' in rname:
+#            rname = rname[:-7]
+#        file = open(filename, 'rb')
+#
+#        self.inv.boreholes, self.inv.mogs, self.inv.air, self.inv.models = pickle.load(file)
+#
+#        self.database_edit.setText(rname)
+#        for model in self.inv.models:
+#            self.model_combo.addItem(model.name)
+#
+#    def cancel(self):
+#        self.close()
+#
+#    def ok(self):
+#        self.inv.model_ind = self.model_combo.currentIndex()
+#        self.inv.inv_frame.setHidden(True)
+#        self.inv.gv = Gridviewer(self.inv.models[self.inv.model_ind].grid, self.inv)
+#        self.inv.global_grid.addWidget(self.inv.gv, 1, 1, 7, 2)
+#        self.inv.update_data()
+#        self.inv.update_grid()
+#        self.inv.update_previous()
+#        self.close()
+#
+#    def initUI(self):
+#
+#        #-------  Widgets --------#
+#        #--- Edit ---#
+#        self.database_edit = QtGui.QLineEdit()
+#
+#        #- Edit Action -#
+#        self.database_edit.setReadOnly(True)
+#
+#        #--- Buttons ---#
+#        self.btn_database = QtGui.QPushButton('Choose Database')
+#        self.btn_ok = QtGui.QPushButton('Ok')
+#        self.btn_cancel = QtGui.QPushButton('Cancel')
+#
+#        #- Buttons' Actions -#
+#        self.btn_cancel.clicked.connect(self.cancel)
+#        self.btn_database.clicked.connect(self.openfile)
+#        self.btn_ok.clicked.connect(self.ok)
+#
+#        #--- Combobox ---#
+#        self.model_combo = QtGui.QComboBox()
+#
+#        #- Combobox's Action -#
+#        master_grid = QtGui.QGridLayout()
+#        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
+#        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
+#        master_grid.addWidget(self.model_combo, 2, 0, 1, 2)
+#        master_grid.addWidget(self.btn_ok, 3, 0)
+#        master_grid.addWidget(self.btn_cancel, 3 ,1)
+#        self.setLayout(master_grid)
 
 class InvFig(FigureCanvasQTAgg):
     def __init__(self, gv, ui):
@@ -1376,9 +1408,10 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     inv_ui = InversionUI()
+    inv_ui.filename = 'test_constraints'
 #    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
-    inv_ui.openmain.load_file('test_constraints_backup.p')
-    inv_ui.openmain.ok()
+#    inv_ui.openmain.load_file('test_constraints_backup.p')
+#    inv_ui.openmain.ok()
     inv_ui.showMaximized()
     #residuals = ResidualsFig(inv_ui)
     #residuals.showMaximized()
