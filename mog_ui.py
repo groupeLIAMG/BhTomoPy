@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import sys
-import os
 import re
 import shelve
 from unicodedata import *
@@ -8,13 +7,10 @@ from unicodedata import *
 from PyQt4 import QtGui, QtCore
 
 import scipy as spy
-from scipy import signal
 from scipy import interpolate
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
-from numpy import linalg
-from numpy import matlib
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
 #from spectrum import arburg
@@ -193,17 +189,15 @@ class MOGUI(QtGui.QWidget):
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
-                found = False
-
+                
                 for n in range(len(self.air)):
                     # then we verify if we've already applied the airshots
                     if str(basename) in str(self.air[n].name):
                         # then we associate the index of the air shot to the selected mog
                         self.MOGs[i.row()].av = n
-                        found = True
                         break
 
-                if not found:
+                else:
                     n = len(self.air)
 
                     # because of the fact that Airshots files are either rd3, tlf or rad , we apply the method read
@@ -259,15 +253,13 @@ class MOGUI(QtGui.QWidget):
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
-                found = False
-
+                
                 for n in range(len(self.air)):
                     if str(basename) in str(self.air[n].name):
                         self.MOGs[i.row()].ap = n
-                        found = True
                         break
 
-                if not found:
+                else:
                     n = len(self.air)
 
                     data = MogData()
@@ -431,7 +423,7 @@ class MOGUI(QtGui.QWidget):
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
 
             if iTx == iRx:
-                dialog = QtGui.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
+                QtGui.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
                                                        buttons=QtGui.QMessageBox.Ok)
 
             if Tx != Rx:
@@ -447,7 +439,7 @@ class MOGUI(QtGui.QWidget):
                 self.rawdatamanager.showMaximized()
 
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                            buttons=QtGui.QMessageBox.Ok)
 
     def plot_spectra(self):
@@ -465,7 +457,7 @@ class MOGUI(QtGui.QWidget):
             #self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
             self.spectramanager.showMaximized()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
 
@@ -476,7 +468,7 @@ class MOGUI(QtGui.QWidget):
             #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
             self.zopmanager.showMaximized()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
     def plot_zop_rays(self):
@@ -488,7 +480,7 @@ class MOGUI(QtGui.QWidget):
             self.zopraysFig.plot_rays(mog, tol)
             self.zopraysmanager.show()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
     def plot_statstt(self):
@@ -498,7 +490,7 @@ class MOGUI(QtGui.QWidget):
             done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
 
             if len(np.nonzero(done == 1)[0]) == 0:
-                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
+                QtGui.QMessageBox.warning(self, 'Warning', "Data not processed",
                                                        buttons=QtGui.QMessageBox.Ok)
 
             else:
@@ -506,7 +498,7 @@ class MOGUI(QtGui.QWidget):
                 self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
                 self.statsttmanager.showMaximized()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
 
@@ -518,7 +510,7 @@ class MOGUI(QtGui.QWidget):
             self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(self.MOGs[ind[0].row()].name))
             self.statsampmanager.showMaximized()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
     def plot_ray_coverage(self):
@@ -534,7 +526,7 @@ class MOGUI(QtGui.QWidget):
             #self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
             self.raymanager.show()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
     def plot_prune(self):
         if len(self.MOGs) != 0:
@@ -544,10 +536,10 @@ class MOGUI(QtGui.QWidget):
                 self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(self.MOGs[ind[0].row()].name))
                 self.prunemanager.show()
             else:
-                dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please select Tx and Rx for MOG",
+                QtGui.QMessageBox.warning(self, 'Warning', "Please select Tx and Rx for MOG",
                                                    buttons=QtGui.QMessageBox.Ok)
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
     def next_trace(self):
@@ -579,15 +571,16 @@ class MOGUI(QtGui.QWidget):
 
             self.moglogSignal.emit('File exported succesfully ')
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
     def export_tau(self):
         if len(self.MOGs) != 0:
             filename = QtGui.QFileDialog.getOpenFileName(self, 'Export tau')
             self.moglogSignal.emit('Exporting tau file ...')
+            # TODO
             self.moglogSignal.emit('File exported succesfully ')
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
+            QtGui.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtGui.QMessageBox.Ok)
 
     def update_prune(self):

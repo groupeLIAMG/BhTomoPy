@@ -710,13 +710,11 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picktt.set_xdata(airshot_before.tt[self.trc_number])
 
                 if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.air[self.tt.mog.av].tt[self.trc_number] != -1.0:
-                    print('Simple')
                     self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
                                            airshot_before.et[self.trc_number])
                     self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
                                            airshot_before.et[self.trc_number])
                 elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
-                    print('std')
                     self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
                                            airshot_before.et[self.trc_number])
                     self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
@@ -823,7 +821,6 @@ class UpperFig(FigureCanvasQTAgg):
                         self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
 
                     if self.tt.t0_before_radio.isChecked():
-                        print('before tt being plotted')
                         self.picktt.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
 
                     if self.tt.t0_after_radio.isChecked():
@@ -998,7 +995,6 @@ class LowerFig(FigureCanvasQTAgg):
         t_max = float(self.tt.t_max_Edit.text())
 
         if self.tt.main_data_radio.isChecked():
-            #print('main data')
             current_trc = mog.data.Tx_z[n]
             z = np.where(mog.data.Tx_z == current_trc)[0]
 
@@ -1058,8 +1054,7 @@ class LowerFig(FigureCanvasQTAgg):
 
             unpicked_tt_ind = np.where(airshot_before.tt == -1)[0]
             picked_tt_ind = np.where(airshot_before.tt != -1)[0]
-            #print(picked_tt_ind)
-
+            
             unpicked_et_ind = np.where(airshot_before.et == -1)[0]
             picked_et_ind = np.where(airshot_before.et != -1)[0]
 
@@ -1185,12 +1180,10 @@ class LowerFig(FigureCanvasQTAgg):
                 if self.tt.tt_picking_radio.isChecked():
 
                     if self.tt.main_data_radio.isChecked():
-                        print('Traveltime being picked')
                         self.tt.mog.tt[self.trc_number] = event.ydata
                         self.tt.mog.tt_done[self.trc_number] = 1
                         self.picked_tt_circle.set_ydata(self.tt.mog.tt[self.trc_number])
                     elif self.tt.t0_before_radio.isChecked():
-                        print('t0_before being picked')
                         self.tt.air[self.tt.mog.av].tt[self.trc_number] = event.ydata
                         self.tt.air[self.tt.mog.av].tt_done[self.trc_number] = 1
                         self.picked_tt_circle.set_ydata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
@@ -1251,10 +1244,8 @@ class StatsFig1(FigureCanvasQTAgg):
 
         done = (mog.tt_done + mog.in_vect.astype(int)) - 1
         ind = np.nonzero(done == 1)[0]
-        print(ind)
-
+        
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
-        print(tt)
         et = mog.et[ind]
         tt = tt[ind]
 
@@ -1266,7 +1257,7 @@ class StatsFig1(FigureCanvasQTAgg):
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
 
-        vapp = hyp/(tt-t0[ind])
+        vapp = hyp/tt
 
         #n = np.arange(len(ind)-1)
         #n = n[ind]
