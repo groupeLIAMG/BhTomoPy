@@ -1,5 +1,23 @@
 # -*- coding: utf-8 -*-
+"""
 
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+
+This file is part of BhTomoPy.
+
+BhTomoPy is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it /will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import sys
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -9,7 +27,7 @@ from model import Model
 import scipy as spy
 from scipy.sparse import linalg
 import shelve
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.axes_grid1 import make_axes_locatable # @UnresolvedImport
 from scipy import interpolate
 from inversion import invLSQR, InvLSQRParams
 from utils import set_tick_arrangement
@@ -47,7 +65,9 @@ class InversionUI(QtGui.QFrame):
         else:
             dType = '-att'
 
-        inversion_name, ok = QtGui.QInputDialog.getText(self,'Save inversion results', 'Name of Inversion:', text= 'tomo (insert date) {} {}'.format(dType, cov))
+        inversion_name, ok = QtGui.QInputDialog.getText(self,'Save inversion results',
+                                                        'Name of Inversion:',
+                                                        text= 'tomo (insert date) {} {}'.format(dType, cov))
         if ok:
             inv_res_info = (inversion_name, self.tomo, self.lsqrParams)
             self.models[self.model_ind].inv_res.append(inv_res_info)
@@ -56,8 +76,8 @@ class InversionUI(QtGui.QFrame):
         sfile = shelve.open(self.filename)
         sfile['models'] = self.models
         sfile.close()
-        QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
-                                                ,buttons=QtGui.QMessageBox.Ok)
+        QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                      buttons=QtGui.QMessageBox.Ok)
 
     def openfile(self):
         model_no, filename, ok = chooseModel(self.filename)
@@ -100,8 +120,8 @@ class InversionUI(QtGui.QFrame):
     def update_grid(self):
         model = self.models[self.model_ind]
         if np.all(model.grid.grx == 0) or np.all(model.grid.grx == 0):
-            QtGui.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion"
-                                                ,buttons=QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion",
+                                      buttons=QtGui.QMessageBox.Ok)
 
         else:
             self.X_min_label.setText(str(np.round(model.grid.grx[0], 3)))
@@ -392,7 +412,7 @@ class InversionUI(QtGui.QFrame):
         Nug_grid.addWidget(self.traveltime_edit, 0, 5)
         Nug_groupbox.setLayout(Nug_grid)
 
-         #--- Geostatistical inversion Groupbox ---#
+        #--- Geostatistical inversion Groupbox ---#
         Geostat_groupbox = QtGui.QGroupBox("Geostatistical inversion")
         Geostat_grid = QtGui.QGridLayout()
         Geostat_grid.addWidget(simulations_checkbox, 0, 0)
@@ -615,10 +635,10 @@ class InversionUI(QtGui.QFrame):
         straight_ray_label          = MyQLabel("Straight Rays", ha= 'right')
         curv_ray_label              = MyQLabel("Curved Rays", ha= 'right')
         step_label                  = MyQLabel("Step :", ha= 'center')
-        Xi_label                    = MyQLabel("X", ha= 'center')          # The Xi, Yi and Zi  QLabels are practically the
-        Yi_label                    = MyQLabel("Y", ha= 'center')          # same as the X, Y and Z  QLabels, it's just that
-        Zi_label                    = MyQLabel("Z", ha= 'center')          # QtGui does not allow to use the same QLabel
-                                                                           # twice or more. So we had to create new Qlabels
+        Xi_label                    = MyQLabel("X", ha= 'center')           # The Xi, Yi and Zi  QLabels are practically the
+        Yi_label                    = MyQLabel("Y", ha= 'center')           # same as the X, Y and Z  QLabels, it's just that
+        Zi_label                    = MyQLabel("Z", ha= 'center')           # QtGui does not allow to use the same QLabel
+                                                                            # twice or more. So we had to create new Qlabels
 
         # These Labels are bein set as attributes of the InversionUI class because they need to be modified
         # depending on the model's informations
@@ -1392,8 +1412,8 @@ class Gridviewer(QtGui.QWidget):
         self.ui.fig_grid.addWidget(y_plane_label, 0, 6)
         self.ui.fig_grid.addWidget(self.y_plane_scroll, 0, 7)
 
-#--- Class For Alignment ---#
-class  MyQLabel(QtGui.QLabel):
+
+class  MyQLabel(QtGui.QLabel):   #--- Class For Alignment ---#
     def __init__(self, label, ha='left',  parent=None):
         super(MyQLabel, self).__init__(label,parent)
         if ha == 'center':

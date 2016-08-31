@@ -27,7 +27,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import h5py
 
-from cutils import cgrid2d
+from cutils import cgrid2d # @UnresolvedImport
 
 from utils import nargout
 import covar
@@ -390,7 +390,7 @@ class Grid2D(Grid):
                     typeG = b'tilted'
                 else:
                     typeG = b'elliptical'
-            self.cgrid = cgrid2d.Grid2Dcpp(typeG,nx,nz,dx,dz,self.grx[0],self.grz[0],
+            self.cgrid = cgrid2d.Grid2Dcpp(typeG,nx,nz,dx,dz,self.grx[0],self.grz[0], #  @UndefinedVariable
                                            self.nsnx,self.nsnz,self.nthreads)
 
         if nout==2:
@@ -429,9 +429,9 @@ class Grid2D(Grid):
             grz = np.arange(self.grz[0],self.grz[-1]+small, dz)
 
         if aniso==False:
-            return cgrid2d.Grid2Dcpp.Lsr2d(self.Tx[np.ix_(ind,[0,2])], self.Rx[np.ix_(ind,[0,2])], grx, grz)
+            return cgrid2d.Grid2Dcpp.Lsr2d(self.Tx[np.ix_(ind,[0,2])], self.Rx[np.ix_(ind,[0,2])], grx, grz) #  @UndefinedVariable
         else:
-            return cgrid2d.Grid2Dcpp.Lsr2da(self.Tx[np.ix_(ind,[0,2])], self.Rx[np.ix_(ind,[0,2])], grx, grz)
+            return cgrid2d.Grid2Dcpp.Lsr2da(self.Tx[np.ix_(ind,[0,2])], self.Rx[np.ix_(ind,[0,2])], grx, grz) #  @UndefinedVariable
 
 
     def getCellCenter(self, dx=None, dz=None):
@@ -719,15 +719,15 @@ class Grid2D(Grid):
 
 if __name__ == '__main__':
 
-    from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.mplot3d import Axes3D # @UnresolvedImport
     import matplotlib.pyplot as plt
 
     testRaytrace = False
     testRaytrace2 = False
     testStatic = False
     testDeriv = False
-    testFFTMA = False
-    testPickle = True
+    testFFTMA = True
+    testPickle = False
 
     if testRaytrace:
         grx = np.linspace(0,10,num=21)

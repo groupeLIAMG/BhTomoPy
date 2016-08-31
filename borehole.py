@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-import numpy as np
-import matplotlib as mpl
-mpl.rcParams['backend.qt4']='PyQt4'
-
 """
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
-email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -22,6 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import numpy as np
 
 class Borehole:
     """
@@ -46,9 +42,10 @@ class Borehole:
 
     @staticmethod
     def project(fdata, ldepth):
-        """Project measurement points on borehole trajectory
+        """
+        Project measurement points on borehole trajectory
 
-        Attributes:
+        INPUT:
 
         fdata: matrix(n, 3) where the 3 columns represent the x, y and z coordinates
         of the BH's trajectory for a single n value.
@@ -59,7 +56,8 @@ class Borehole:
         Note: the discrete points of the BH's trajectory are not the same as the discrete points of the ldepth
                 that's why we do this function; to determine the projection of the ldepth point on the fdata trajectory.
 
-        name: name of the borehole
+        
+        OUTPUT:
 
         x: x coordinates of all measurement points
         y: y coordinates of all measurement points
@@ -122,8 +120,8 @@ class Borehole:
         return x, y, z, c
 
 if __name__ == '__main__':
-    fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]])
-    ldepthtest = np.array([1, 2, 3, 4, 5])
+    fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]], dtype=np.float64)
+    ldepthtest = np.array([1, 2, 3, 4, 5], dtype=np.float64)
     bh1 = Borehole('BH1',0.0, 0.0, 0.0, 4.0, 4.0, 4.0)
     bh1.fdata = fdatatest
     x,y,z,c = Borehole.project(fdatatest,ldepthtest)

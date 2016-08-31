@@ -6,7 +6,6 @@ Created on Tue Jun 21 20:55:29 2016
 @author: giroux
 
 Copyright 2016 Bernard Giroux
-email: bernard.giroux@ete.inrs.ca
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

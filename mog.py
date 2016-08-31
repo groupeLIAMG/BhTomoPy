@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
-email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -20,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import re
 import numpy as np
-from PyQt4 import QtGui, QtCore
 
 class MogData:
     """
@@ -135,7 +133,7 @@ class MogData:
         self.timestp = self.timec*np.arange(self.nptsptrc)
 
         if self.synthetique == False :
-          self.antennas = self.antennas + "  - Ramac"
+            self.antennas = self.antennas + "  - Ramac"
 
         file.close()
         #print(self.nptsptrc)    # these prints will be deleted

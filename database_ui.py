@@ -1,4 +1,23 @@
 # -*- coding: utf-8 -*-
+"""
+
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+
+This file is part of BhTomoPy.
+
+BhTomoPy is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it /will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import sys
 from PyQt4 import QtGui, QtCore
 from borehole_ui import BoreholeUI
@@ -152,8 +171,8 @@ class DatabaseUI(QtGui.QWidget):
             self.model.update_model_mog_list()
 
         except:
-            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be opened"
-                                                    , buttons=QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be opened",
+                                      buttons=QtGui.QMessageBox.Ok)
             self.update_log('Error: Database file must be of shelve type')
 
     def savefile(self):
@@ -175,16 +194,17 @@ class DatabaseUI(QtGui.QWidget):
             sfile['air'] = self.mog.air
             sfile.close()
             
-            QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
-                                                    ,buttons=QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                          buttons=QtGui.QMessageBox.Ok)
             self.update_log("Database was saved successfully")
         except:
-            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved"
-                                                    , buttons=QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved",
+                                      buttons=QtGui.QMessageBox.Ok)
             self.update_log('Error: Database could not be saved')
 
     def saveasfile(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...', self.name, filter= 'shelve (*.db)', )
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...',
+                                                     self.name, filter= 'shelve (*.db)', )
         if filename is not '':
             if '.db' in filename:
                 filename = filename[:-3]
