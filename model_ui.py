@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+import copy
 import sys
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -130,7 +131,7 @@ class ModelUI(QtGui.QWidget):
         g = None
         if grid is not None:
             g = grid
-            previousGrid = grid.copy()
+            previousGrid = copy.deepcopy(grid)
         else:
             previousGrid = None
         
@@ -163,7 +164,7 @@ class ModelUI(QtGui.QWidget):
             nonlocal g
             nonlocal previousGrid
             if previousGrid is not None:
-                g = previousGrid.copy()
+                g = copy.deepcopy(previousGrid)
             d.done(0)
         
         def done():
@@ -416,8 +417,8 @@ class Grid2DUI(QtGui.QWidget):
             self.dx = 1
             self.dz = 1
         else:
-            self.dx = self.grid.grx[1] - self.grx[0]
-            self.dz = self.grid.grz[1] - self.grz[0]
+            self.dx = self.grid.grx[1] - self.grid.grx[0]
+            self.dz = self.grid.grz[1] - self.grid.grz[0]
 
         self.initUI()
         self.update_bh_origin()
@@ -554,10 +555,10 @@ class Grid2DUI(QtGui.QWidget):
         adjustment_btn.clicked.connect(self.plot_adjustment)
 
         #--- Edits ---#
-        self.pad_plus_x_edit    = QtGui.QLineEdit('1')
-        self.pad_plus_z_edit    = QtGui.QLineEdit('1')
-        self.pad_minus_x_edit   = QtGui.QLineEdit('1')
-        self.pad_minus_z_edit   = QtGui.QLineEdit('1')
+        self.pad_minus_x_edit   = QtGui.QLineEdit(str(self.grid.border[0]))
+        self.pad_plus_x_edit    = QtGui.QLineEdit(str(self.grid.border[1]))
+        self.pad_minus_z_edit   = QtGui.QLineEdit(str(self.grid.border[2]))
+        self.pad_plus_z_edit    = QtGui.QLineEdit(str(self.grid.border[3]))
 
         self.cell_size_x_edit   = QtGui.QLineEdit(str(self.dx))
         self.cell_size_z_edit   = QtGui.QLineEdit(str(self.dz))
@@ -591,12 +592,14 @@ class Grid2DUI(QtGui.QWidget):
 
         #--- CheckBox ---#
         self.flip_check              = QtGui.QCheckBox('Flip horizontally')
+        self.flip_check.setChecked(self.grid.flip)
 
         #- CheckBox Actions -#
         self.flip_check.stateChanged.connect(self.update_input)
 
         #--- ComboBoxes ---#
         self.borehole_combo     = QtGui.QComboBox()
+        self.borehole_combo.setCurrentIndex(self.grid.borehole_x0)
 
         #- ComboBoxes Actions -#
         self.borehole_combo.activated.connect(self.update_input)
@@ -628,10 +631,10 @@ class Grid2DUI(QtGui.QWidget):
         #- Grid parameters GroupBox -#
         self.grid_param_group        = QtGui.QGroupBox('Grid Parameters')
         grid_param_grid         = QtGui.QGridLayout()
-        grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 4)
-        grid_param_grid.addWidget(self.flip_check, 1, 0)
-        grid_param_grid.addWidget(adjustment_btn, 2, 0)
-        grid_param_grid.setVerticalSpacing(3)
+        grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 3)
+        grid_param_grid.addWidget(self.flip_check, 1, 1)
+        grid_param_grid.addWidget(adjustment_btn, 2, 1)
+        #grid_param_grid.setVerticalSpacing(3)
         self.grid_param_group.setLayout(grid_param_grid)
 
         #- GridView Figure GroupBox -#
