@@ -94,7 +94,7 @@ def compute_SNR(mog):
 def data_select(data, freq, dt, L= 100, treshold= 5, medfilt_len= 10):
 
     shape = np.shape(data)
-    N, M = shape[0], shape[1]
+    M = shape[1]
     std_sig = np.zeros(M).T
     ind_data_select = np.zeros(M, dtype= bool).T
     ind_max = np.zeros(M).T
@@ -104,7 +104,6 @@ def data_select(data, freq, dt, L= 100, treshold= 5, medfilt_len= 10):
         data = scipy.signal.medfilt(data)
 
     for i in range(M):
-        Amax        = np.amax(data[:, i])
         ind1        = np.argmax(data[:, i])
         ind_max[i]  = ind1
         ind         = np.arange(ind1-nb_p, ind1+2*nb_p+1)

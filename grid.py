@@ -51,8 +51,8 @@ class Grid:
         self.TxCosDir = np.array([])
         self.RxCosDir = np.array([])
         self.border = np.array([])
-        self.Tx_Z_water = 0.0
-        self.Rx_Z_water = 0.0
+        self.Tx_Z_water = np.nan
+        self.Rx_Z_water = np.nan
         self.in_vect = np.array([])
 
     def getNumberOfCells(self):

@@ -299,7 +299,7 @@ class Mog:
         :param air_after: instance of class Airshots
         """
 
-        show = False
+#        show = False  # TODO  
         fac_dt_av = 1
         fac_dt_ap = 1
         if self.useAirShots == 0:
@@ -333,15 +333,16 @@ class Mog:
         if np.all(t0av == 0) and np.all(t0ap == 0):
             t0 = np.zeros((1, ndata))
         elif t0av == 0:
-            t0 = t0ap*np.zeros((1, ndata))
+            t0 = t0ap+np.zeros((1, ndata))
         elif t0ap == 0:
-            t0 = t0av*np.zeros((1, ndata))
+            t0 = t0av+np.zeros((1, ndata))
         else:
             dt0 = t0ap - t0av
             ddt0 = dt0/(ndata-1)
             t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
 
         return t0, fac_dt_av, fac_dt_ap
+    
     @staticmethod
     def load_self(mog):
         Mog.getID(mog.ID)
