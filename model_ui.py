@@ -23,15 +23,16 @@ import sys
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from mpl_toolkits.axes_grid1 import make_axes_locatable # @UnresolvedImport
-from mpl_toolkits.mplot3d import axes3d # @UnresolvedImport
+#from mpl_toolkits.mplot3d import axes3d
 import numpy as np
 import matplotlib as mpl
 from model import Model
-from grid import *
+from grid import Grid, Grid2D
+from events_ui import GridEdited
 
 
 class ModelUI(QtGui.QWidget):
-    #------- Signals Emitted -------#
+    # ------- Signals Emitted -------#
     modelInfoSignal = QtCore.pyqtSignal(int)
     modellogSignal = QtCore.pyqtSignal(str)
 
@@ -116,7 +117,6 @@ class ModelUI(QtGui.QWidget):
         no = self.model_list.currentRow()
         if no in range(len(self.models)):
             g, ok = self.gridEditor(no)
-            print(g.TxCosDir.shape)
             if g is not None and ok == 1:
                 self.models[no].grid = g
     
@@ -193,37 +193,37 @@ class ModelUI(QtGui.QWidget):
             gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
             gridinfo.num_cell_label.setText(str(grid.getNumberOfCells()))  # TODO update field when grid is edited
 
-        #-------- Widgets Creation --------#
-        #--- Buttons ---#
+        # -------- Widgets Creation --------#
+        # --- Buttons ---#
         add_edit_btn            = QtGui.QPushButton('Add/Edit Constraints')
         cancel_btn              = QtGui.QPushButton('Cancel')
         done_btn                = QtGui.QPushButton('Done')
 
-        #- Buttons' Actions -#
+        # - Buttons' Actions -#
         add_edit_btn.clicked.connect(start_constraints)
         cancel_btn.clicked.connect(cancel)
         done_btn.clicked.connect(done)
         
 
-        #--- ComboBox ---#
+        # --- ComboBox ---#
         bhfig_combo        = QtGui.QComboBox()
 
-        #- Combobox items -#
+        # - Combobox items -#
         view_list = ['3D View', 'XY Plane', 'XZ Plane', 'YZ Plane']
         for item in view_list:
             bhfig_combo.addItem(item)
 
-        #- Comboboxes Action -#
+        # - Comboboxes Action -#
         bhfig_combo.activated.connect(plot_boreholes)
 
-        #- Grid Info GroupBox -#
+        # - Grid Info GroupBox -#
         gridinfo = GridInfoUI()
         grid_info_group         = QtGui.QGroupBox('Infos')
         grid_info_grid          = QtGui.QGridLayout()
         grid_info_grid.addWidget(gridinfo)
         grid_info_group.setLayout(grid_info_grid)
 
-        #- Boreholes Figure GroupBox -#
+        # - Boreholes Figure GroupBox -#
         bhsFig = BoreholesFig()
         bhs_group = QtGui.QGroupBox('Boreholes')
         bhs_grid = QtGui.QGridLayout()
@@ -234,7 +234,7 @@ class ModelUI(QtGui.QWidget):
         # --- Grid UI --- #
         
         if gtype is '2D':
-            gUI = Grid2DUI(data, g)
+            gUI = Grid2DUI(data, g, gridinfo) # gridinfo used as parent to propagate GridEdited events
         elif gtype is '2D+':
             # TODO 
             pass
@@ -242,7 +242,7 @@ class ModelUI(QtGui.QWidget):
             # TODO 3D
             pass
         
-        #------- Master grid's disposition -------#
+        # ------- Master grid's disposition -------#
         master_grid = QtGui.QGridLayout()
         master_grid.addWidget(grid_info_group, 0, 0)
         master_grid.addWidget(add_edit_btn, 1, 0)
@@ -294,11 +294,11 @@ class ModelUI(QtGui.QWidget):
                 data.TxCosDir = np.concatenate((data.TxCosDir, mog.TxCosDir), axis= 0)
                 data.RxCosDir = np.concatenate((data.RxCosDir, mog.RxCosDir), axis= 0)
 
-            if Tx.Z_water != None:
-                #TODO
-                pass
+            # TODO Complete
 
         return data
+
+
 
     def initUI(self):
 
@@ -410,7 +410,7 @@ class ChooseModelMOG(QtGui.QWidget):
 
 class Grid2DUI(QtGui.QWidget):
     def __init__(self, data, grid, parent=None):
-        super(Grid2DUI, self).__init__()
+        super(Grid2DUI, self).__init__(parent)
         self.data = data
         self.grid = grid
         if np.all(self.grid.grx == 0) and np.all(self.grid.grz == 0):
@@ -474,6 +474,9 @@ class Grid2DUI(QtGui.QWidget):
         self.updateProj()
 
         self.gridviewFig.plot_grid2D()
+        evt = GridEdited()
+        evt.data = self.grid
+        QtGui.QApplication.postEvent(self.parent(), evt)
         
     def updateProj(self):
         az, dip = self.get_azimuth_dip()
@@ -653,6 +656,11 @@ class GridInfoUI(QtGui.QFrame):
         super(GridInfoUI, self).__init__()
         self.initUI()
 
+    def customEvent(self, event, *args, **kwargs):
+        if event.type() == GridEdited._type:
+            self.num_cell_label.setText(str(event.data.getNumberOfCells()))
+
+    
     def initUI(self):
 
 
@@ -680,6 +688,7 @@ class GridInfoUI(QtGui.QFrame):
         master_grid.addWidget(amp_picked_label, 5, 1)
         self.setLayout(master_grid)
         self.setStyleSheet('background: white')
+
 
 
 
