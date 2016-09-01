@@ -1314,8 +1314,8 @@ class StatsFig1(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
-#--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):
+    #--- Class For Alignment ---#
     def __init__(self, label, ha='left',  parent=None):
         super(MyQLabel, self).__init__(label,parent)
         if ha == 'center':
