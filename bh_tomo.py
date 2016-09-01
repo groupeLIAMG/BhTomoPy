@@ -1,3 +1,24 @@
+# -*- coding: utf-8 -*-
+
+"""
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+email: Bernard.Giroux@ete.inrs.ca
+
+This file is part of BhTomoPy.
+
+BhTomoPy is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it /will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import sys
 from PyQt4 import QtGui, QtCore
 from database_ui import DatabaseUI
@@ -30,25 +51,20 @@ class BhTomoPy(QtGui.QWidget):
 
     def choosedb(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Choose Database')
+        if filename is not '':
+            if '.db' in filename:
+                filename = filename[:-3]
+            self.loaddb(filename)
 
-        self.laoddb(filename)
-
-    def laoddb(self, filename):
+    def loaddb(self, filename):
         # We create a load db methods to be able to load databases in the main
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
+        rname = os.path.basename(filename)
+        self.current_db.setText(rname)
 
-        self.current_db.setText(str(rname))
-        self.database.load_file(filename)
-        self.manual_tt.openmain.load_file(filename)
-        self.manual_tt.update_control_center()
-        self.manual_amp.openmain.load_file(filename)
+        self.database.filename = filename
+        self.manual_tt.filename = filename
+        self.manual_amp.filename = filename
+        self.inv.filename = filename
 
     def show(self):
         super(BhTomoPy, self).show()

@@ -1,24 +1,42 @@
 # -*- coding: utf-8 -*-
+"""
+
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+
+This file is part of BhTomoPy.
+
+BhTomoPy is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it /will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import sys
 from PyQt4 import QtGui, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
-import pickle
+import shelve
 import numpy as np
-import re
 
-
+from utils_ui import chooseMOG
 
 class ManualttUI(QtGui.QFrame):
     KeyPressed = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         super(ManualttUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
-        self.openmain = OpenMainData(self)
+#        self.openmain = OpenMainData(self)
         self.mogs = []
         self.air = []
-        self.boreholes = []
-        self.models = []
+#        self.boreholes = []
+#        self.models = []
         self.filename = ''
         self.mog = 0
         self.initUI()
@@ -50,11 +68,12 @@ class ManualttUI(QtGui.QFrame):
 
     def update_control_center(self):
         n = int(self.Tnum_Edit.text())-1
-        ind = self.openmain.mog_combo.currentIndex()
+#        ind = self.openmain.mog_combo.currentIndex()
 
-        self.mog = self.mogs[ind]
-        airshot_before = self.air[self.mog.av]
-        airshot_after = self.air[self.mog.ap]
+#        self.mog = self.mogs[ind]
+        if self.mog == 0:
+            return
+        
         if len(self.mogs) == 0:
             return
         else:
@@ -72,6 +91,7 @@ class ManualttUI(QtGui.QFrame):
                 self.incertitude_value_label.setText(str(np.round(self.mog.et[n], 4)))
 
             if self.t0_before_radio.isChecked():
+                airshot_before = self.air[self.mog.av]
                 done = np.round(len(airshot_before.tt[airshot_before.tt != -1])/len(airshot_before.tt) * 100)
                 self.xRx_label.setText(str(airshot_before.data.Rx_x[n]))
                 self.xTx_label.setText(str(airshot_before.data.Tx_x[n]))
@@ -85,6 +105,7 @@ class ManualttUI(QtGui.QFrame):
                 self.incertitude_value_label.setText(str(np.round(airshot_before.et[n], 4)))
 
             if self.t0_after_radio.isChecked():
+                airshot_after = self.air[self.mog.ap]
                 done = np.round(len(airshot_after.tt[airshot_after.tt != -1])/len(airshot_after.tt) * 100)
                 self.xRx_label.setText(str(airshot_after.data.Rx_x[n]))
                 self.xTx_label.setText(str(airshot_after.data.Tx_x[n]))
@@ -104,12 +125,12 @@ class ManualttUI(QtGui.QFrame):
 
     def update_a_and_t_edits(self):
         n = int(self.Tnum_Edit.text())
-        ind = self.openmain.mog_combo.currentIndex()
-        mog = self.mogs[ind]
+#        ind = self.openmain.mog_combo.currentIndex()
+#        mog = self.mogs[ind]
 
         if self.lim_checkbox.isChecked():
-            A_max = max(mog.data.rdata[:, n].flatten())
-            A_min = min(mog.data.rdata[:, n].flatten())
+            A_max = max(self.mog.data.rdata[:, n].flatten())
+            A_min = min(self.mog.data.rdata[:, n].flatten())
             self.A_min_Edit.setText(str(A_min))
             self.A_max_Edit.setText(str(A_max))
         else:
@@ -149,52 +170,72 @@ class ManualttUI(QtGui.QFrame):
         num_done = np.not_equal(self.mog.tt_done, 0)
         num_done = sum(num_done.astype(int))
         if num_done % 50 == 0:
-            save_file = open(self.filename, 'wb')
-            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-            print('saved')
+#            save_file = open(self.filename, 'wb')
+#            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+            sfile = shelve.open(self.filename)
+            sfile['mogs'] = self.mogs
+            if self.mog.useAirShots == 1:
+                sfile['air'] = self.air
+            sfile.close()
 
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
     def plot_stats(self):
-        ind = self.openmain.mog_combo.currentIndex()
-        mog = self.mogs[ind]
+#        ind = self.openmain.mog_combo.currentIndex()
+#        mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
-        self.statsFig1.plot_stats(mog, self.air)
+        self.statsFig1.plot_stats(self.mog, self.air)
         self.statsFig1.showMaximized()
 
     def savefile(self):
-        save_file = open(self.filename, 'wb')
-        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-        dialog = QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
+#        save_file = open(self.filename, 'wb')
+#        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+        sfile = shelve.open(self.filename)
+        sfile['mogs'] = self.mogs
+        if self.mog.useAirShots == 1:
+            sfile['air'] = self.air
+        sfile.close()
+    
+        QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtGui.QMessageBox.Ok)
+                                                
+    def openfile(self):
+        mog_no, filename, ok = chooseMOG(self.filename)
+        if ok == 1:
+            self.filename = filename
+            sfile = shelve.open(self.filename)
+            self.mogs = sfile['mogs']
+            self.mog = self.mogs[mog_no]
+            if self.mog.useAirShots == 1:
+                self.air = sfile['air']
+                self.t0_before_radio.setEnabled(True)
+                self.t0_after_radio.setEnabled(True)
+            else:
+                self.t0_before_radio.setEnabled(False)
+                self.t0_after_radio.setEnabled(False)
+
+            sfile.close()
+            self.update_control_center()
 
     def import_tt_file(self):
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Import')
         self.load_tt_file(filename)
+        
     def load_tt_file(self, filename):
         try:
-            file = open(filename, 'r')
+            info_tt = np.loadtxt(filename)
+            for row in info_tt:
+                trc_number = int(float(row[0]))
+                tt = float(row[1])
+                et = float(row[2])
+                self.mog.tt_done[trc_number - 1] = 1
+                self.mog.tt[trc_number - 1] = tt
+                self.mog.et[trc_number - 1] = et
+        
+            self.update_control_center()
         except:
-            try:
-                file = open(filename + ".dat", 'r')
-            except:
-                try:
-                    file = open(filename + ".DAT", 'r')
-                except:
-                    dialog = QtGui.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtGui.QMessageBox.Ok)
-
-        info_tt = np.loadtxt(filename)
-        for row in info_tt:
-            trc_number = int(float(row[0]))
-            tt = float(row[1])
-            et = float(row[2])
-            self.mog.tt_done[trc_number - 1] = 1
-            self.mog.tt[trc_number - 1] = tt
-            self.mog.et[trc_number - 1] = et
-
-
-        self.update_control_center()
+            QtGui.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtGui.QMessageBox.Ok)
 
 
     def initUI(self):
@@ -217,6 +258,7 @@ class ManualttUI(QtGui.QFrame):
         self.lowermanager = QtGui.QWidget()
         lowermanagergrid = QtGui.QGridLayout()
         lowermanagergrid.addWidget(self.lowerFig, 0, 0)
+        lowermanagergrid.setContentsMargins(0, 0, 0, 0)
         self.lowermanager.setLayout(lowermanagergrid)
 
         #------- Widgets Creation -------#
@@ -273,9 +315,12 @@ class ManualttUI(QtGui.QFrame):
 
         #--- Actions ---#
         openAction = QtGui.QAction('Open main data file', self)
-        openAction.triggered.connect(self.openmain.show)
+        openAction.setShortcut('Ctrl+O')
+#        openAction.triggered.connect(self.openmain.show)
+        openAction.triggered.connect(self.openfile)
 
         saveAction = QtGui.QAction('Save', self)
+        saveAction.setShortcut('Ctrl+S')
         saveAction.triggered.connect(self.savefile)
 
         importAction = QtGui.QAction('Import ...', self)
@@ -496,7 +541,7 @@ class ManualttUI(QtGui.QFrame):
         master_grid.addWidget(Control_Center_GroupBox, 2, 2)
         master_grid.setRowStretch(1, 100)
         master_grid.setColumnStretch(1, 100)
-        master_grid.setContentsMargins(0, 0, 0, 0)
+        master_grid.setContentsMargins(10, 10, 10, 10)
         master_grid.setVerticalSpacing(0)
         self.setLayout(master_grid)
 
@@ -516,76 +561,76 @@ class ManualttUI(QtGui.QFrame):
             self.sender().setFlat(True)
             self.lowerFig.isTracingOn = True
 
-class OpenMainData(QtGui.QWidget):
-    def __init__(self, tt, parent=None):
-        super(OpenMainData, self).__init__()
-        self.setWindowTitle("Choose Data")
-        self.database_list = []
-        self.tt = tt
-        self.initUI()
-
-    def openfile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
-
-        self.load_file(filename)
-
-    def load_file(self, filename):
-        self.tt.filename = filename
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
-
-        self.tt.boreholes, self.tt.mogs, self.tt.air, self.tt.models = pickle.load(file)
-
-        self.database_edit.setText(rname)
-        for mog in self.tt.mogs:
-
-            self.mog_combo.addItem(mog.name)
-
-
-    def cancel(self):
-        self.close()
-
-    def ok(self):
-        self.tt.update_control_center()
-        self.close()
-
-    def initUI(self):
-
-        #-------  Widgets --------#
-        #--- Edit ---#
-        self.database_edit = QtGui.QLineEdit()
-        #- Edit Action -#
-        self.database_edit.setReadOnly(True)
-        #--- Buttons ---#
-        self.btn_database = QtGui.QPushButton('Choose Database')
-        self.btn_ok = QtGui.QPushButton('Ok')
-        self.btn_cancel = QtGui.QPushButton('Cancel')
-
-        #- Buttons' Actions -#
-        self.btn_cancel.clicked.connect(self.cancel)
-        self.btn_database.clicked.connect(self.openfile)
-        self.btn_ok.clicked.connect(self.ok)
-
-        #--- Combobox ---#
-        self.mog_combo = QtGui.QComboBox()
-
-        #- Combobox's Action -#
-        self.mog_combo.activated.connect(self.tt.update_control_center)
-
-        master_grid = QtGui.QGridLayout()
-        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
-        master_grid.addWidget(self.btn_ok, 3, 0)
-        master_grid.addWidget(self.btn_cancel, 3 ,1)
-        self.setLayout(master_grid)
+#class OpenMainData(QtGui.QWidget):
+#    def __init__(self, tt, parent=None):
+#        super(OpenMainData, self).__init__()
+#        self.setWindowTitle("Choose Data")
+#        self.database_list = []
+#        self.tt = tt
+#        self.initUI()
+#
+#    def openfile(self):
+#        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+#
+#        self.load_file(filename)
+#
+#    def load_file(self, filename):
+#        self.tt.filename = filename
+#        rname = filename.split('/')
+#        rname = rname[-1]
+#        if '.p' in rname:
+#            rname = rname[:-2]
+#        if '.pkl' in rname:
+#            rname = rname[:-4]
+#        if '.pickle' in rname:
+#            rname = rname[:-7]
+#        file = open(filename, 'rb')
+#
+#        self.tt.boreholes, self.tt.mogs, self.tt.air, self.tt.models = pickle.load(file)
+#
+#        self.database_edit.setText(rname)
+#        for mog in self.tt.mogs:
+#
+#            self.mog_combo.addItem(mog.name)
+#
+#
+#    def cancel(self):
+#        self.close()
+#
+#    def ok(self):
+#        self.tt.update_control_center()
+#        self.close()
+#
+#    def initUI(self):
+#
+#        #-------  Widgets --------#
+#        #--- Edit ---#
+#        self.database_edit = QtGui.QLineEdit()
+#        #- Edit Action -#
+#        self.database_edit.setReadOnly(True)
+#        #--- Buttons ---#
+#        self.btn_database = QtGui.QPushButton('Choose Database')
+#        self.btn_ok = QtGui.QPushButton('Ok')
+#        self.btn_cancel = QtGui.QPushButton('Cancel')
+#
+#        #- Buttons' Actions -#
+#        self.btn_cancel.clicked.connect(self.cancel)
+#        self.btn_database.clicked.connect(self.openfile)
+#        self.btn_ok.clicked.connect(self.ok)
+#
+#        #--- Combobox ---#
+#        self.mog_combo = QtGui.QComboBox()
+#
+#        #- Combobox's Action -#
+#        self.mog_combo.activated.connect(self.tt.update_control_center)
+#
+#        master_grid = QtGui.QGridLayout()
+#        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
+#        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
+#        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
+#        master_grid.addWidget(self.btn_ok, 3, 0)
+#        master_grid.addWidget(self.btn_cancel, 3 ,1)
+#        self.setLayout(master_grid)
 
 
 class UpperFig(FigureCanvasQTAgg):
@@ -686,13 +731,11 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picktt.set_xdata(airshot_before.tt[self.trc_number])
 
                 if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.air[self.tt.mog.av].tt[self.trc_number] != -1.0:
-                    print('Simple')
                     self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
                                            airshot_before.et[self.trc_number])
                     self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
                                            airshot_before.et[self.trc_number])
                 elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
-                    print('std')
                     self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
                                            airshot_before.et[self.trc_number])
                     self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
@@ -743,7 +786,7 @@ class UpperFig(FigureCanvasQTAgg):
 
         #TODO
         if self.tt.Wave_checkbox.isChecked():
-            ind, wavelet = self.wavelet_filtering(mog.data.rdata)
+            ind, wavelet = self.wavelet_filtering(self.tt.mog.data.rdata)
 
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))
 
@@ -799,7 +842,6 @@ class UpperFig(FigureCanvasQTAgg):
                         self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
 
                     if self.tt.t0_before_radio.isChecked():
-                        print('before tt being plotted')
                         self.picktt.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
 
                     if self.tt.t0_after_radio.isChecked():
@@ -974,7 +1016,6 @@ class LowerFig(FigureCanvasQTAgg):
         t_max = float(self.tt.t_max_Edit.text())
 
         if self.tt.main_data_radio.isChecked():
-            #print('main data')
             current_trc = mog.data.Tx_z[n]
             z = np.where(mog.data.Tx_z == current_trc)[0]
 
@@ -1034,8 +1075,7 @@ class LowerFig(FigureCanvasQTAgg):
 
             unpicked_tt_ind = np.where(airshot_before.tt == -1)[0]
             picked_tt_ind = np.where(airshot_before.tt != -1)[0]
-            #print(picked_tt_ind)
-
+            
             unpicked_et_ind = np.where(airshot_before.et == -1)[0]
             picked_et_ind = np.where(airshot_before.et != -1)[0]
 
@@ -1161,12 +1201,10 @@ class LowerFig(FigureCanvasQTAgg):
                 if self.tt.tt_picking_radio.isChecked():
 
                     if self.tt.main_data_radio.isChecked():
-                        print('Traveltime being picked')
                         self.tt.mog.tt[self.trc_number] = event.ydata
                         self.tt.mog.tt_done[self.trc_number] = 1
                         self.picked_tt_circle.set_ydata(self.tt.mog.tt[self.trc_number])
                     elif self.tt.t0_before_radio.isChecked():
-                        print('t0_before being picked')
                         self.tt.air[self.tt.mog.av].tt[self.trc_number] = event.ydata
                         self.tt.air[self.tt.mog.av].tt_done[self.trc_number] = 1
                         self.picked_tt_circle.set_ydata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
@@ -1227,10 +1265,8 @@ class StatsFig1(FigureCanvasQTAgg):
 
         done = (mog.tt_done + mog.in_vect.astype(int)) - 1
         ind = np.nonzero(done == 1)[0]
-        print(ind)
-
+        
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
-        print(tt)
         et = mog.et[ind]
         tt = tt[ind]
 
@@ -1242,7 +1278,7 @@ class StatsFig1(FigureCanvasQTAgg):
 
         theta = 180/ np.pi * np.arcsin(dz/hyp)
 
-        vapp = hyp/(tt-t0[ind])
+        vapp = hyp/tt
 
         #n = np.arange(len(ind)-1)
         #n = n[ind]
@@ -1250,14 +1286,14 @@ class StatsFig1(FigureCanvasQTAgg):
         ind2 = np.nonzero(ind2)[0]
 
         self.ax4.plot(hyp, tt, marker='o', ls= 'None')
-        self.ax5.plot(theta, hyp/tt, marker='o', ls= 'None')
+        self.ax5.plot(theta, hyp/(tt+t0[ind]), marker='o', ls= 'None')  # tt are corrected, must undo t0 correction
         self.ax2.plot(theta, vapp, marker='o', ls= 'None')
         self.ax6.plot(t0)
         self.ax1.plot(hyp, et, marker='o', ls= 'None')
         self.ax3.plot(theta, et, marker='o', ls= 'None')
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
 
-        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
 
         mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
@@ -1271,15 +1307,15 @@ class StatsFig1(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
         mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
 
-        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
+        mpl.axes.Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))
         mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
         mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
 
         mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
-#--- Class For Alignment ---#
 class  MyQLabel(QtGui.QLabel):
+    #--- Class For Alignment ---#
     def __init__(self, label, ha='left',  parent=None):
         super(MyQLabel, self).__init__(label,parent)
         if ha == 'center':
@@ -1295,7 +1331,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
     manual_ui = ManualttUI()
-    manual_ui.openmain.load_file('test_constraints_backup.p')
+    manual_ui.filename = 'test_constraints'
     #manual_ui.update_control_center()
     #manual_ui.update_a_and_t_edits()
     #manual_ui.upperFig.plot_amplitude()

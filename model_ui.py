@@ -1,16 +1,38 @@
+# -*- coding: utf-8 -*-
+"""
+
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+
+This file is part of BhTomoPy.
+
+BhTomoPy is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it /will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+import copy
 import sys
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.mplot3d import axes3d
+from mpl_toolkits.axes_grid1 import make_axes_locatable # @UnresolvedImport
+#from mpl_toolkits.mplot3d import axes3d
 import numpy as np
 import matplotlib as mpl
 from model import Model
-from grid import *
+from grid import Grid, Grid2D
+from events_ui import GridEdited
 
 
 class ModelUI(QtGui.QWidget):
-    #------- Signals Emitted -------#
+    # ------- Signals Emitted -------#
     modelInfoSignal = QtCore.pyqtSignal(int)
     modellogSignal = QtCore.pyqtSignal(str)
 
@@ -53,8 +75,9 @@ class ModelUI(QtGui.QWidget):
         if len(self.models) != 0:
             self.chooseMog.show()
         else:
-            dialog = QtGui.QMessageBox.warning(self, 'Warning', "Please create a model before adding MOGs to it"
-                                                    ,buttons=QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, 'Warning',
+                                       "Please create a model before adding MOGs to it",
+                                       buttons=QtGui.QMessageBox.Ok)
 
 
     def remove_mog(self):
@@ -68,8 +91,9 @@ class ModelUI(QtGui.QWidget):
     def update_model_mog_list(self):
         self.model_mog_list.clear()
         n = self.model_list.currentIndex().row()
-        for mog in self.models[n].mogs:
-            self.model_mog_list.addItem(mog.name)
+        if n > -1:
+            for mog in self.models[n].mogs:
+                self.model_mog_list.addItem(mog.name)
 
     def update_model_list(self):
         self.model_list.clear()
@@ -88,29 +112,193 @@ class ModelUI(QtGui.QWidget):
             if mog.Rx not in self.models[n].boreholes:
                 self.models[n].boreholes.append(mog.Rx)
 
-    def update_grid_info(self):
-        ndata = 0
-        n_tt_data_picked = 0
-        n_amp_data_picked = 0
-        ind = self.model_list.currentIndex().row()
+        
+    def create_grid(self):
+        no = self.model_list.currentRow()
+        if no in range(len(self.models)):
+            g, ok = self.gridEditor(no)
+            if g is not None and ok == 1:
+                self.models[no].grid = g
+    
+    def edit_grid(self):
+        no = self.model_list.currentRow()
+        if no in range(len(self.models)):
+            g, ok = self.gridEditor(no, self.models[no].grid)
+            if g is not None and ok == 1:
+                self.models[no].grid = g
+    
+    def gridEditor(self, no, grid=None):
+        g = None
+        if grid is not None:
+            g = grid
+            previousGrid = copy.deepcopy(grid)
+        else:
+            previousGrid = None
+        
+        nBH = len(self.models[no].boreholes)
+        
+        data = self.prepare_grid_data()
+        if g is None:
+            if nBH == 2:
+                gtype = '2D'
+                g, data = Grid2DUI.build_grid(data)
+                
+            else:
+                # TODO find out if 2D+ or 3D
+                gtype = 'TODO'
+                pass
+            
+        else:
+            gtype = g.type
+            if gtype is '2D':
+                gtmp, data = Grid2DUI.build_grid(data) # @UnusedVariable
+            elif gtype is '2D+':
+                # TODO
+                pass
+        
+        d = QtGui.QDialog()
+        d.setWindowTitle('BhTomoPy/gridEditor')
+        
+        def cancel():
+            nonlocal d
+            nonlocal g
+            nonlocal previousGrid
+            if previousGrid is not None:
+                g = copy.deepcopy(previousGrid)
+            d.done(0)
+        
+        def done():
+            nonlocal d
+            d.done(1)
+            
+        def start_constraints():
+            pass
+        
+        def plot_boreholes():
+            view = bhfig_combo.currentText()
+            bhsFig.plot_boreholes(self.models[no].mogs, view)
 
-        for mog in self.models[ind].mogs:
+        def update_grid_info(mogs, grid):
+            ndata = 0
+            n_tt_data_picked = 0
+            n_amp_data_picked = 0
+    
+            for mog in mogs:
+                ndata += mog.data.ntrace
+                n_tt_data_picked += len(np.where(mog.tt != -1)[0])
+                n_amp_data_picked += (len(np.where(mog.amp_tmin != -1)[0]) + len(np.where(mog.amp_tmax != -1)[0]))/2
+    
+            gridinfo.num_data_label.setText(str(ndata))
+            gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
+            gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
+            gridinfo.num_cell_label.setText(str(grid.getNumberOfCells()))  # TODO update field when grid is edited
 
-            ndata += mog.data.ntrace
+        # -------- Widgets Creation --------#
+        # --- Buttons ---#
+        add_edit_btn            = QtGui.QPushButton('Add/Edit Constraints')
+        cancel_btn              = QtGui.QPushButton('Cancel')
+        done_btn                = QtGui.QPushButton('Done')
 
-            n_tt_data_picked += len(np.where(mog.tt != -1)[0])
-            n_amp_data_picked += (len(np.where(mog.amp_tmin != -1)[0]) + len(np.where(mog.amp_tmax != -1)[0]))/2
+        # - Buttons' Actions -#
+        add_edit_btn.clicked.connect(start_constraints)
+        cancel_btn.clicked.connect(cancel)
+        done_btn.clicked.connect(done)
+        
 
-        self.gridui.gridinfo.num_data_label.setText(str(ndata))
-        self.gridui.gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
-        self.gridui.gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
-        self.gridui.gridinfo.num_cell_label.setText(str(self.gridui.grid.getNumberOfCells()))
+        # --- ComboBox ---#
+        bhfig_combo        = QtGui.QComboBox()
 
-    def start_grid(self):
-        self.gridui = gridEditor(self)
-        self.gridui.plot_boreholes()
-        self.update_grid_info()
-        self.gridui.showMaximized()
+        # - Combobox items -#
+        view_list = ['3D View', 'XY Plane', 'XZ Plane', 'YZ Plane']
+        for item in view_list:
+            bhfig_combo.addItem(item)
+
+        # - Comboboxes Action -#
+        bhfig_combo.activated.connect(plot_boreholes)
+
+        # - Grid Info GroupBox -#
+        gridinfo = GridInfoUI()
+        grid_info_group         = QtGui.QGroupBox('Infos')
+        grid_info_grid          = QtGui.QGridLayout()
+        grid_info_grid.addWidget(gridinfo)
+        grid_info_group.setLayout(grid_info_grid)
+
+        # - Boreholes Figure GroupBox -#
+        bhsFig = BoreholesFig()
+        bhs_group = QtGui.QGroupBox('Boreholes')
+        bhs_grid = QtGui.QGridLayout()
+        bhs_grid.addWidget(bhfig_combo, 0, 0)
+        bhs_grid.addWidget(bhsFig, 1, 0, 1, 8)
+        bhs_group.setLayout(bhs_grid)
+
+        # --- Grid UI --- #
+        
+        if gtype is '2D':
+            gUI = Grid2DUI(data, g, gridinfo) # gridinfo used as parent to propagate GridEdited events
+        elif gtype is '2D+':
+            # TODO 
+            pass
+        else:
+            # TODO 3D
+            pass
+        
+        # ------- Master grid's disposition -------#
+        master_grid = QtGui.QGridLayout()
+        master_grid.addWidget(grid_info_group, 0, 0)
+        master_grid.addWidget(add_edit_btn, 1, 0)
+        master_grid.addWidget(cancel_btn, 2, 0)
+        master_grid.addWidget(done_btn, 3, 0)
+        master_grid.addWidget(gUI.grid_param_group, 0, 1, 4, 1)
+        master_grid.addWidget(bhs_group, 4, 0, 1, 2)
+        master_grid.addWidget(gUI.grid_view_group, 0, 2, 5, 1)
+        master_grid.setColumnStretch(2, 100)
+        master_grid.setRowStretch(4, 100)
+        d.setLayout(master_grid)
+        
+        plot_boreholes()
+        update_grid_info(self.models[no].mogs, g)
+        
+        d.setWindowModality(QtCore.Qt.ApplicationModal)
+        isOk = d.exec_()
+        
+        return g, isOk
+        
+    def prepare_grid_data(self):
+        no = self.model_list.currentRow()
+        if no not in range(len(self.models)):
+            return None
+        
+        mogs = self.models[no].mogs
+        mog = mogs[0]
+
+        data = GridData()
+        
+        data.in_vect = mog.in_vect.T
+        data.Tx = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
+        data.Rx = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
+        data.TxCosDir = mog.TxCosDir
+        data.RxCosDir = mog.RxCosDir
+
+        data.boreholes = self.models[no].boreholes
+
+        if len(mogs) > 1:
+            for n in range(1, len(mogs)):
+
+                mog = mogs[n]
+                tmp_Txyz = np.array([data.Tx_x, data.Tx_y, data.Tx_z]).T
+                tmp_Rxyz = np.array([data.Rx_x, data.Rx_y, data.Rx_z]).T
+
+                data.in_vect = np.concatenate((data.in_vect, mog.in_vect.T), axis= 0)
+                data.Tx = np.concatenate((data.Tx, tmp_Txyz), axis= 0)
+                data.Rx = np.concatenate((data.Rx, tmp_Rxyz), axis= 0)
+                data.TxCosDir = np.concatenate((data.TxCosDir, mog.TxCosDir), axis= 0)
+                data.RxCosDir = np.concatenate((data.RxCosDir, mog.RxCosDir), axis= 0)
+
+            # TODO Complete
+
+        return data
+
+
 
     def initUI(self):
 
@@ -128,8 +316,8 @@ class ModelUI(QtGui.QWidget):
         btn_Remove_Model.clicked.connect(self.del_model)
         btn_Remove_MOG.clicked.connect(self.remove_mog)
         btn_Add_MOG.clicked.connect(self.add_mog)
-        btn_Create_Grid.clicked.connect(self.start_grid)
-        btn_Edit_Grid.clicked.connect(self.start_grid)
+        btn_Create_Grid.clicked.connect(self.create_grid)
+        btn_Edit_Grid.clicked.connect(self.edit_grid)
 
         #--- Lists ---#
         self.model_mog_list              = QtGui.QListWidget()
@@ -158,7 +346,6 @@ class ModelUI(QtGui.QWidget):
         MOGS_Sub_Grid.addWidget(btn_Remove_MOG, 0, 2, 1, 2)
         MOGS_Sub_Grid.addWidget(self.model_mog_list, 1, 0, 1, 4)
         MOGS_Groupbox.setLayout(MOGS_Sub_Grid)
-
 
 
         #------- Grid Disposition -------#
@@ -219,144 +406,23 @@ class ChooseModelMOG(QtGui.QWidget):
         master_grid.addWidget(sub_btn_widget, 1, 0)
         self.setLayout(master_grid)
 
-class gridEditor(QtGui.QWidget):
 
-    def __init__(self, model, parent=None):
-        super(gridEditor, self).__init__()
-        self.setWindowTitle("BhTomoPy/gridEditor")
-        self.gridinfo = GridInfoUI()
-        self.constraintseditor = ConstraintsEditorUI()
-        self.model = model
-        self.type = ''
-        self.data = Data()
-        self.grid = Grid()
-        self.model_ind = self.model.model_list.currentIndex().row()
-        self.initUI()
-
-    def update_model_grid(self):
-        self.model.models[self.model_ind].grid = self.gUI.grid
-
-
-    def plot_boreholes(self):
-
-        view = self.bhfig_combo.currentText()
-        self.bhsFig.plot_boreholes(self.model.models[self.model_ind].mogs, view)
-
-    def prepare_grid_data(self):
-
-        mogs = self.model.models[self.model_ind].mogs
-        mog = mogs[0]
-
-        self.data.in_vect = mog.in_vect.T
-        self.data.Tx = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
-        self.data.Rx = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
-        self.data.TxCosDir = mog.TxCosDir.T
-        self.data.RxCosDir = mog.RxCosDir.T
-
-
-        self.data.boreholes = self.model.models[self.model_ind].boreholes
-
-
-        if len(mogs) > 1:
-            for n in range(1, len(mogs)):
-
-                mog = mogs[n]
-                tmp_Txyz = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
-                tmp_Rxyz = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
-
-                Tx = mog.Tx
-                Rx = mog.Rx
-
-                self.data.in_vect = np.concatenate((self.data.in_vect, mog.in_vect.T), axis= 0)
-
-
-                self.data.Tx = np.concatenate((self.data.Tx, tmp_Txyz), axis= 0)
-
-
-                self.data.Rx = np.concatenate((self.data.Rx, tmp_Rxyz), axis= 0)
-
-                self.data.TxCosDir = np.concatenate((self.data.TxCosDir, mog.TxCosDir.T), axis= 0)
-
-                self.data.RxCosDir = np.concatenate((self.data.RxCosDir, mog.RxCosDir.T), axis= 0)
-
-            if Tx.Z_water != None:
-                #TODO
-                pass
-
-    def start_constraints(self):
-        self.constraintseditor.constraintsFig.plot_constraints(self.model.models[self.model_ind].mogs[0])
-
-    def initUI(self):
-        nBH = len(self.model.models[self.model_ind].boreholes)
-        self.prepare_grid_data()
-        if np.all(self.grid.grx == 0) and np.all(self.grid.grz == 0):
-            if nBH == 2:
-                self.type = '2D'
-                self.grid, self.data = Grid2DUI.build_grid(self.data)
-                self.gUI = Grid2DUI(self.data, self.grid)
-                self.gUI.update_bh_origin()
-
-            #-------- Widgets Creation --------#
-            #--- Buttons ---#
-            add_edit_btn            = QtGui.QPushButton('Add/Edit Constraints')
-            cancel_btn              = QtGui.QPushButton('Cancel')
-            done_btn                = QtGui.QPushButton('Done')
-
-            #- Buttons' Actions -#
-            add_edit_btn.clicked.connect(self.start_constraints)
-
-            #--- ComboBox ---#
-            self.bhfig_combo        = QtGui.QComboBox()
-
-            #- Combobox items -#
-            view_list = ['3D View', 'XY Plane', 'XZ Plane', 'YZ Plane']
-            for item in view_list:
-                self.bhfig_combo.addItem(item)
-
-            #- Comboboxes Action -#
-            self.bhfig_combo.activated.connect(self.plot_boreholes)
-
-            #- Grid Info GroupBox -#
-            grid_info_group         = QtGui.QGroupBox('Infos')
-            grid_info_grid          = QtGui.QGridLayout()
-            grid_info_grid.addWidget(self.gridinfo)
-            grid_info_group.setLayout(grid_info_grid)
-
-            #- Boreholes Figure GroupBox -#
-            self.bhsFig = BoreholesFig()
-            bhs_group = QtGui.QGroupBox('Boreholes')
-            bhs_grid = QtGui.QGridLayout()
-            bhs_grid.addWidget(self.bhfig_combo, 0, 0)
-            bhs_grid.addWidget(self.bhsFig, 1, 0, 1, 8)
-            bhs_group.setLayout(bhs_grid)
-
-            #------- Master grid's disposition -------#
-            master_grid = QtGui.QGridLayout()
-            master_grid.addWidget(grid_info_group, 0, 0)
-            master_grid.addWidget(add_edit_btn, 1, 0)
-            master_grid.addWidget(cancel_btn, 2, 0)
-            master_grid.addWidget(done_btn, 3, 0)
-            master_grid.addWidget(self.gUI.grid_param_group, 0, 1, 4, 1)
-            master_grid.addWidget(bhs_group, 4, 0, 1, 2)
-            master_grid.addWidget(self.gUI.grid_view_group, 0, 2, 5, 1)
-            master_grid.setColumnStretch(2, 100)
-            master_grid.setRowStretch(4, 100)
-            self.setLayout(master_grid)
 
 class Grid2DUI(QtGui.QWidget):
     def __init__(self, data, grid, parent=None):
-        super(Grid2DUI, self).__init__()
+        super(Grid2DUI, self).__init__(parent)
         self.data = data
         self.grid = grid
         if np.all(self.grid.grx == 0) and np.all(self.grid.grz == 0):
             self.dx = 1
             self.dz = 1
         else:
-            self.dx = self.grid.grx[1] - self.grx[0]
-            self.dz = self.grid.grz[1] - self.grz[0]
+            self.dx = self.grid.grx[1] - self.grid.grx[0]
+            self.dz = self.grid.grz[1] - self.grid.grz[0]
 
         self.initUI()
-
+        self.update_bh_origin()
+        self.updateProj()
 
     def get_azimuth_dip(self):
         d = sum(self.data.x0*self.data.a)
@@ -370,7 +436,7 @@ class Grid2DUI(QtGui.QWidget):
 
     def project(self, xyz):
         xyz_p = Grid.proj_plane(xyz, self.data.x0, self.data.a);
-        dist = np.sqrt(nop.sum((xyz-xyz_p)**2, axis= 1));
+        dist = np.sqrt(np.sum((xyz-xyz_p)**2, axis= 1));
         az, dip = self.get_azimuth_dip();
         xyz_p = Grid.transl_rotat(xyz_p, self.grid.x0, az, dip);
         return xyz_p, dist
@@ -404,8 +470,41 @@ class Grid2DUI(QtGui.QWidget):
         self.origin_x_edit.setText(str(self.grid.x0[0]))
         self.origin_y_edit.setText(str(self.grid.x0[1]))
         self.origin_z_edit.setText(str(self.grid.x0[2]))
+        
+        self.updateProj()
 
         self.gridviewFig.plot_grid2D()
+        evt = GridEdited()
+        evt.data = self.grid
+        QtGui.QApplication.postEvent(self.parent(), evt)
+        
+    def updateProj(self):
+        az, dip = self.get_azimuth_dip()
+        self.grid.Tx = Grid.transl_rotat(self.data.Tx_p, self.grid.x0, az, dip)
+        self.grid.Rx = Grid.transl_rotat(self.data.Rx_p, self.grid.x0, az, dip)
+        self.grid.TxCosDir = Grid.transl_rotat(self.data.TxCosDir, np.zeros(3), az, dip)
+        self.grid.RxCosDir = Grid.transl_rotat(self.data.RxCosDir, np.zeros(3), az, dip)
+        
+#         if not np.isnan(self.data.Tx_Z_water):
+#             self.grid.Tx_Z_water = Grid.transl_rotat(self.data.Tx_Z_water, self.grid.x0, az, dip)
+#         if not np.isnan(self.data.Rx_Z_water):
+#             self.grid.Rx_Z_water = Grid.transl_rotat(self.data.Rx_Z_water, self.grid.x0, az, dip)
+        self.grid.in_vect = self.data.in_vect
+        
+        xmin = np.min(np.concatenate((self.grid.Tx[self.grid.in_vect,0], self.grid.Rx[self.grid.in_vect,0]))) - 0.5*self.dx
+        xmax = np.max(np.concatenate((self.grid.Tx[self.grid.in_vect,0], self.grid.Rx[self.grid.in_vect,0]))) + 0.5*self.dx
+        nx = np.ceil((xmax-xmin)/self.dx)
+
+        zmin = np.min(np.concatenate((self.grid.Tx[self.grid.in_vect,2], self.grid.Rx[self.grid.in_vect,2]))) - 0.5*self.dz
+        zmax = np.max(np.concatenate((self.grid.Tx[self.grid.in_vect,2], self.grid.Rx[self.grid.in_vect,2]))) + 0.5*self.dz
+        nz = np.ceil((zmax-zmin)/self.dz)
+        
+        nxm = self.grid.border[0]
+        nxp = self.grid.border[1]
+        self.grid.grx = xmin + self.dx*np.arange(-nxm,nx+nxp+1)
+        nzm = self.grid.border[2]
+        nzp = self.grid.border[3]
+        self.grid.grz = zmin + self.dz*np.arange(-nzm,nz+nzp+1)
 
     def plot_adjustment(self):
         self.bestfitplaneFig.plot_stats()
@@ -459,13 +558,13 @@ class Grid2DUI(QtGui.QWidget):
         adjustment_btn.clicked.connect(self.plot_adjustment)
 
         #--- Edits ---#
-        self.pad_plus_x_edit    = QtGui.QLineEdit('1')
-        self.pad_plus_z_edit    = QtGui.QLineEdit('1')
-        self.pad_minus_x_edit   = QtGui.QLineEdit('1')
-        self.pad_minus_z_edit   = QtGui.QLineEdit('1')
+        self.pad_minus_x_edit   = QtGui.QLineEdit(str(self.grid.border[0]))
+        self.pad_plus_x_edit    = QtGui.QLineEdit(str(self.grid.border[1]))
+        self.pad_minus_z_edit   = QtGui.QLineEdit(str(self.grid.border[2]))
+        self.pad_plus_z_edit    = QtGui.QLineEdit(str(self.grid.border[3]))
 
-        self.cell_size_x_edit   = QtGui.QLineEdit('0.2')
-        self.cell_size_z_edit   = QtGui.QLineEdit('0.2')
+        self.cell_size_x_edit   = QtGui.QLineEdit(str(self.dx))
+        self.cell_size_z_edit   = QtGui.QLineEdit(str(self.dz))
 
         self.origin_x_edit      = QtGui.QLineEdit()
         self.origin_y_edit      = QtGui.QLineEdit()
@@ -496,12 +595,14 @@ class Grid2DUI(QtGui.QWidget):
 
         #--- CheckBox ---#
         self.flip_check              = QtGui.QCheckBox('Flip horizontally')
+        self.flip_check.setChecked(self.grid.flip)
 
         #- CheckBox Actions -#
         self.flip_check.stateChanged.connect(self.update_input)
 
         #--- ComboBoxes ---#
         self.borehole_combo     = QtGui.QComboBox()
+        self.borehole_combo.setCurrentIndex(self.grid.borehole_x0)
 
         #- ComboBoxes Actions -#
         self.borehole_combo.activated.connect(self.update_input)
@@ -533,10 +634,10 @@ class Grid2DUI(QtGui.QWidget):
         #- Grid parameters GroupBox -#
         self.grid_param_group        = QtGui.QGroupBox('Grid Parameters')
         grid_param_grid         = QtGui.QGridLayout()
-        grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 4)
-        grid_param_grid.addWidget(self.flip_check, 1, 0)
-        grid_param_grid.addWidget(adjustment_btn, 2, 0)
-        grid_param_grid.setVerticalSpacing(3)
+        grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 3)
+        grid_param_grid.addWidget(self.flip_check, 1, 1)
+        grid_param_grid.addWidget(adjustment_btn, 2, 1)
+        #grid_param_grid.setVerticalSpacing(3)
         self.grid_param_group.setLayout(grid_param_grid)
 
         #- GridView Figure GroupBox -#
@@ -555,6 +656,11 @@ class GridInfoUI(QtGui.QFrame):
         super(GridInfoUI, self).__init__()
         self.initUI()
 
+    def customEvent(self, event, *args, **kwargs):
+        if event.type() == GridEdited._type:
+            self.num_cell_label.setText(str(event.data.getNumberOfCells()))
+
+    
     def initUI(self):
 
 
@@ -582,6 +688,7 @@ class GridInfoUI(QtGui.QFrame):
         master_grid.addWidget(amp_picked_label, 5, 1)
         self.setLayout(master_grid)
         self.setStyleSheet('background: white')
+
 
 
 
@@ -704,46 +811,11 @@ class GridViewFig(FigureCanvasQTAgg):
     def plot_grid2D(self):
         self.ax.cla()
 
-
-        az, dip = self.gUI.get_azimuth_dip()
-        self.gUI.grid.Tx = Grid.transl_rotat(self.gUI.data.Tx_p, self.gUI.grid.x0, az, dip)
-        self.gUI.grid.Rx = Grid.transl_rotat(self.gUI.data.Rx_p, self.gUI.grid.x0, az, dip)
-        self.gUI.grid.TxCosDir = Grid.transl_rotat(self.gUI.data.TxCosDir.T, np.array([0, 0, 0]), az, dip)
-        self.gUI.grid.RxCosDir = Grid.transl_rotat(self.gUI.data.RxCosDir.T, np.array([0, 0, 0]), az, dip)
-
-
-        self.gUI.grid.in_vect = self.gUI.data.in_vect
-
-        nxm = self.gUI.grid.border[0]
-        nxp = self.gUI.grid.border[1]
-        nzm = self.gUI.grid.border[2]
-        nzp = self.gUI.grid.border[3]
-
-
-        xmin = min(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 0]), axis= 0).flatten()) - 0.5 * self.gUI.dx
-        xmax = max(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 0]), axis= 0).flatten()) + 0.5 * self.gUI.dx
-        nx = np.ceil((xmax - xmin)/self.gUI.dx)
-
-        zmin = min(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 2], self.gUI.grid.Rx[self.gUI.grid.in_vect, 2]), axis= 0).flatten()) - 0.5 * self.gUI.dz
-        zmax = max(np.concatenate((self.gUI.grid.Tx[self.gUI.grid.in_vect, 2], self.gUI.grid.Rx[self.gUI.grid.in_vect, 2]), axis= 0).flatten()) + 0.5 * self.gUI.dz
-        nz = np.ceil((zmax - zmin)/self.gUI.dz)
-
-
-
-        self.gUI.grid.grx = xmin + self.gUI.dx * np.arange(-nxm, nx + nxp + 1).T
-
-        self.gUI.grid.grz = zmin + self.gUI.dz * np.arange(-nzm, nz + nzp + 1).T
-
-
-
         z1 = self.gUI.grid.grz[0] * np.ones(len(self.gUI.grid.grx) +1).T[:, None]
         z2 = self.gUI.grid.grz[-1] * np.ones(len(self.gUI.grid.grx) +1).T[:, None]
 
         x1 = self.gUI.grid.grx[0] * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
         x2 = self.gUI.grid.grx[-1] * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
-
-        #x1 = xmin - self.gUI.dx*nxm * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
-        #x2 = xmax + self.gUI.dx*nxp * np.ones(len(self.gUI.grid.grz) +1).T[:, None]
 
         zz1 = np.concatenate((z1,z2), axis= 1)
         xx1 = np.concatenate((x1, x2), axis= 1)
@@ -956,7 +1028,7 @@ class ConstraintsFig(FigureCanvasQTAgg):
         #h= self.ax.imshow(data, aspect='auto')
         #mpl.colorbar.Colorbar(self.ax2, h)
 
-class Data:
+class GridData:
     def __init__(self):
         self.boreholes  = []
         self.in_vect    = np.array([])

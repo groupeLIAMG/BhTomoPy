@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+<Xdmf xmlns:xi="http://www.w3.org/2003/XInclude" Version="2.2">
+ <Domain>
+   <Grid Name="Structured Grid" GridType="Uniform">
+     <Topology TopologyType="2DCORECTMesh" NumberOfElements="100 50"/>
+     <Geometry GeometryType="ORIGIN_DXDY">
+       <DataItem Dimensions="2 " NumberType="Float" Precision="4" Format="XML">
+          0.030303030303030304 0.030612244897959183
+       </DataItem>
+       <DataItem Dimensions="2 " NumberType="Float" Precision="4" Format="XML">
+        0.060606060606060608 0.061224489795918366
+       </DataItem>
+     </Geometry>
+     <Attribute Name="fftma" AttributeType="Scalar" Center="Cell">
+       <DataItem Dimensions="99 49" NumberType="Float" Precision="4" Format="HDF">test.xmf.h5:/fftma</DataItem>
+     </Attribute>
+   </Grid>
+ </Domain>
+</Xdmf>

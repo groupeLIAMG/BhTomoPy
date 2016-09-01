@@ -9,7 +9,7 @@ from cutils import segy
 
 filename  = '/Users/giroux/CloudStation/Projets/Frio/donnees_brutes/pre-xwell-all.sgy'
 
-d = segy.read_segy(filename, fields=['sx','sy','gx','gy','selev'])
+d = segy.read_segy(filename, fields=['sx','sy','gx','gy','selev']) # @UndefinedVariable
 
 for k in d.bh:
     print(k, d.bh[k] )

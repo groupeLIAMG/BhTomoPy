@@ -6,7 +6,6 @@
     @author: giroux
 
     Copyright 2016 Bernard Giroux
-    email: bernard.giroux@ete.inrs.ca
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +23,7 @@
 
 import inspect,dis
 import numpy as np
+import scipy.signal
 
 def nargout():
     """
@@ -69,6 +69,10 @@ def set_tick_arrangement(grid):
 
     return tick_arrangement
 
+def detrend_rad(traces):
+    # TODO fill this fct
+    return traces
+    
 def compute_SNR(mog):
     SNR = np.ones(mog.data.ntrace)
 
@@ -90,17 +94,16 @@ def compute_SNR(mog):
 def data_select(data, freq, dt, L= 100, treshold= 5, medfilt_len= 10):
 
     shape = np.shape(data)
-    N, M = shape[0], shape[1]
+    M = shape[1]
     std_sig = np.zeros(M).T
     ind_data_select = np.zeros(M, dtype= bool).T
     ind_max = np.zeros(M).T
     nb_p = np.round(1/(dt*freq))
     width = 60
     if medfilt_len>0:
-        data = spy.signal.medfilt(data)
+        data = scipy.signal.medfilt(data)
 
     for i in range(M):
-        Amax        = np.amax(data[:, i])
         ind1        = np.argmax(data[:, i])
         ind_max[i]  = ind1
         ind         = np.arange(ind1-nb_p, ind1+2*nb_p+1)

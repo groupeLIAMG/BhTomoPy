@@ -6,7 +6,6 @@ Created on Tue Jun 21 20:55:29 2016
 @author: giroux
 
 Copyright 2016 Bernard Giroux
-email: bernard.giroux@ete.inrs.ca
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -212,28 +211,28 @@ class CovarianceModels(IntEnum):
     Nugget = 10
     
     @staticmethod
-    def buildCov(type,r,a,s):
-        if type==0:
+    def buildCov(ctype,r,a,s):
+        if ctype==0:
             return CovarianceCubic(r,a,s)
-        elif type==1:
+        elif ctype==1:
             return CovarianceSpherical(r,a,s)
-        elif type==2:
+        elif ctype==2:
             return CovarianceGaussian(r,a,s)
-        elif type==3:
+        elif ctype==3:
             return CovarianceExponential(r,a,s)
-        elif type==4:
+        elif ctype==4:
             return CovarianceLinear(r,a,s)
-        elif type==5:
+        elif ctype==5:
             return CovarianceThinPlate(r,a,s)
-        elif type==6:
+        elif ctype==6:
             return CovarianceGravimetric(r,a,s)
-        elif type==7:
+        elif ctype==7:
             return CovarianceMagnetic(r,a,s)
-        elif type==8:
+        elif ctype==8:
             return CovarianceHoleEffectSine(r,a,s)
-        elif type==9:
+        elif ctype==9:
             return CovarianceHoleEffectCosine(r,a,s)
-        elif type==10:
+        elif ctype==10:
             return CovarianceNugget(s)
         else:
             raise ValueError('Undefined covariance model')

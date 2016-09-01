@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+"""
+
+Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+
+This file is part of BhTomoPy.
+
+BhTomoPy is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it /will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 import sys
 from PyQt4 import QtGui, QtCore
 from borehole import Borehole
@@ -5,12 +25,12 @@ from database import Database
 import numpy as np
 import matplotlib as mpl
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-from mpl_toolkits.mplot3d import axes3d
+#from mpl_toolkits.mplot3d import axes3d # @UnresolvedImport
 import time
 
 class BoreholeUI(QtGui.QWidget):
 
-    #------- Signals -------#
+    # ------- Signals -------#
     bhlogSignal = QtCore.pyqtSignal(str)
     bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the informaion to update the Tx and Rx comboboxes in MogUI
     bhInfoSignal = QtCore.pyqtSignal(int)     #this signal sends the information to update the number of borholes in infoUI
@@ -166,7 +186,7 @@ class BoreholeUI(QtGui.QWidget):
                 bh = self.boreholes[i.row()]
                 cont = np.loadtxt(filename)
 
-                acont.x, acont.y, acont.z, c = bh.project(bh.fdata, cont[:, 0])
+                acont.x, acont.y, acont.z, c = bh.project(bh.fdata, cont[:, 0]) # @UnusedVariable
 
                 acont.x = acont.x.flatten()
                 acont.y = acont.y.flatten()
@@ -174,7 +194,7 @@ class BoreholeUI(QtGui.QWidget):
                 acont.valeur = cont[:, 1]
 
                 if  np.size(cont, axis= 1) == 3:
-                     acont.variance = cont[:,2]
+                    acont.variance = cont[:,2]
                 else:
                     acont.variance = np.zeros(len(cont[:,1]))
 
@@ -200,7 +220,7 @@ class BoreholeUI(QtGui.QWidget):
                 bh = self.boreholes[i.row()]
                 cont = np.loadtxt(filename)
 
-                scont.x, scont.y, scont.z, c = bh.project(bh.fdata, cont[:, 0])
+                scont.x, scont.y, scont.z, c = bh.project(bh.fdata, cont[:, 0]) # @UnusedVariable
 
                 scont.x = scont.x.flatten()
                 scont.y = scont.y.flatten()
@@ -209,7 +229,7 @@ class BoreholeUI(QtGui.QWidget):
 
                 if  np.size(cont, axis= 1) == 3:
                     # inversion of a random variable http://math.stackexchange.com/questions/269216/inverse-of-random-variable
-                     scont.variance = cont[:,2]/(cont[:,1]**4)
+                    scont.variance = cont[:,2]/(cont[:,1]**4)
                 else:
                     scont.variance = np.zeros(len(cont[:,1]))
 
@@ -221,7 +241,7 @@ class BoreholeUI(QtGui.QWidget):
 
     def initUI(self):
 
-        #--- Class For Alignment ---#
+        # --- Class For Alignment ---#
         class  MyQLabel(QtGui.QLabel):
             def __init__(self, label, ha='left',  parent=None):
                 super(MyQLabel, self).__init__(label,parent)
@@ -233,8 +253,8 @@ class BoreholeUI(QtGui.QWidget):
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
 
-        #------- Widget Creation -------#
-        #--- Buttons Set---#
+        # ------- Widget Creation -------#
+        # --- Buttons Set---#
         btn_Add                  = QtGui.QPushButton("Add")
         btn_Remove               = QtGui.QPushButton("Remove")
         btn_Import               = QtGui.QPushButton("Import")
@@ -242,10 +262,10 @@ class BoreholeUI(QtGui.QWidget):
         btn_Constraints_veloc    = QtGui.QPushButton("Constraints Veloc.")
         btn_Constraints_atten    = QtGui.QPushButton("Constraints Atten.")
 
-         #--- list ---#
+        # --- list ---#
         self.bh_list             = QtGui.QListWidget()
 
-        #--- Labels ---#
+        # --- Labels ---#
         Coord_label              = MyQLabel('Coordinates:', ha='center')
         Collar_label             = MyQLabel('Collar:', ha='center')
         Bottom_label             = MyQLabel('Bottom:', ha='center')
@@ -256,7 +276,7 @@ class BoreholeUI(QtGui.QWidget):
         Elev_water_label         = MyQLabel('water elevation:', ha='right')
 
 
-        #--- Edits ---#
+        # --- Edits ---#
         self.X_edit              = QtGui.QLineEdit()
         self.Y_edit              = QtGui.QLineEdit()
         self.Z_edit              = QtGui.QLineEdit()
@@ -266,10 +286,10 @@ class BoreholeUI(QtGui.QWidget):
         self.Z_surf_edit         = QtGui.QLineEdit()
         self.Z_water_edit        = QtGui.QLineEdit()
 
-        #--- List Actions ---#
+        # --- List Actions ---#
         self.bh_list.itemSelectionChanged.connect(self.update_List_Edits)
 
-        #--- Edits Actions ---#
+        # --- Edits Actions ---#
         self.X_edit.editingFinished.connect(self.update_bhole_data)
         self.Y_edit.editingFinished.connect(self.update_bhole_data)
         self.Z_edit.editingFinished.connect(self.update_bhole_data)
@@ -279,7 +299,7 @@ class BoreholeUI(QtGui.QWidget):
         self.Z_surf_edit.editingFinished.connect(self.update_bhole_data)
         self.Z_water_edit.editingFinished.connect(self.update_bhole_data)
 
-        #--- Buttons Actions ---#
+        # --- Buttons Actions ---#
         btn_Add.clicked.connect(self.add_bhole)
         btn_Remove.clicked.connect(self.del_bhole)
         btn_Import.clicked.connect(self.import_bhole)
@@ -287,8 +307,8 @@ class BoreholeUI(QtGui.QWidget):
         btn_Constraints_atten.clicked.connect(self.attenuation_constraints)
         btn_Constraints_veloc.clicked.connect( self.slowness_constraints)
 
-        #--- SubWidgets ---#
-        #--- Edits and Labels SubWidget ---#
+        # --- SubWidgets ---#
+        # --- Edits and Labels SubWidget ---#
         sub_E_and_L_widget          = QtGui.QWidget()
         sub_E_and_L_grid            = QtGui.QGridLayout()
         sub_E_and_L_grid.addWidget(Coord_label, 0, 0)
@@ -309,7 +329,7 @@ class BoreholeUI(QtGui.QWidget):
         sub_E_and_L_grid.addWidget(self.Z_water_edit, 5, 1)
         sub_E_and_L_widget.setLayout(sub_E_and_L_grid)
 
-        #--- Upper Buttons ---#
+        # --- Upper Buttons ---#
         sub_upper_buttons_widget = QtGui.QWidget()
         sub_upper_buttons_Grid   = QtGui.QGridLayout()
         sub_upper_buttons_Grid.addWidget(btn_Add, 0, 0)
@@ -319,7 +339,7 @@ class BoreholeUI(QtGui.QWidget):
         sub_upper_buttons_Grid.setContentsMargins(0, 0, 0, 0)
         sub_upper_buttons_widget.setLayout(sub_upper_buttons_Grid)
 
-        #--- Lower Buttons ---#
+        # --- Lower Buttons ---#
         sub_lower_buttons_widget = QtGui.QWidget()
         sub_lower_buttons_Grid   = QtGui.QGridLayout()
         sub_lower_buttons_Grid.addWidget(btn_Constraints_veloc, 0, 0)
@@ -327,7 +347,7 @@ class BoreholeUI(QtGui.QWidget):
         sub_lower_buttons_Grid.setContentsMargins(0, 0, 0, 0)
         sub_lower_buttons_widget.setLayout(sub_lower_buttons_Grid)
 
-        #------- Grid Disposition -------#
+        # ------- Grid Disposition -------#
         master_grid     = QtGui.QGridLayout()
         master_grid.addWidget(sub_upper_buttons_widget, 0, 0)
         master_grid.addWidget(self.bh_list, 1, 0)
@@ -335,7 +355,7 @@ class BoreholeUI(QtGui.QWidget):
         master_grid.addWidget(sub_lower_buttons_widget, 4, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
 
-        #------- set Layout -------#
+        # ------- set Layout -------#
         self.setLayout(master_grid)
 
 class BoreholeFig(FigureCanvasQTAgg):
@@ -343,7 +363,7 @@ class BoreholeFig(FigureCanvasQTAgg):
 
     def __init__(self):
         """
-        Here we create a 3d figure in which we will plot the Borehole instances trajectory(i.e. their respective fdata)
+        Here we create a 3d figure in which we will plot the Borehole instances trajectory (i.e. their respective fdata)
         """
 
         fig_width, fig_height = 6, 8
@@ -372,7 +392,7 @@ class BoreholeFig(FigureCanvasQTAgg):
 class Cont:
     """
     This class represents either the slowness constraints(i.e. bh.scont) or the attenuation constraints(i.e. bh.acont).
-    We created a class for Cont because it as its own attributes.
+    We created a class for Cont because it has its own attributes.
     """
     def __init__(self):
         self.x = np.array([])

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
-email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -20,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import re
 import numpy as np
-from PyQt4 import QtGui, QtCore
 
 class MogData:
     """
@@ -135,7 +133,7 @@ class MogData:
         self.timestp = self.timec*np.arange(self.nptsptrc)
 
         if self.synthetique == False :
-          self.antennas = self.antennas + "  - Ramac"
+            self.antennas = self.antennas + "  - Ramac"
 
         file.close()
         #print(self.nptsptrc)    # these prints will be deleted
@@ -280,7 +278,7 @@ class Mog:
         self.App                  = np.zeros(self.data.ntrace, dtype= float)
         self.fcentroid            = np.zeros(self.data.ntrace, dtype= float)
         self.scentroid            = np.zeros(self.data.ntrace, dtype= float)
-        self.tauApp              = -1*np.ones(self.data.ntrace, dtype= float)
+        self.tauApp               = -1*np.ones(self.data.ntrace, dtype= float)
         self.tauApp_et            = -1*np.ones(self.data.ntrace, dtype= float)
         self.tauFce               = -1*np.ones(self.data.ntrace, dtype= float)
         self.tauFce_et            = -1*np.ones(self.data.ntrace, dtype= float)
@@ -301,7 +299,7 @@ class Mog:
         :param air_after: instance of class Airshots
         """
 
-        show = False
+#        show = False  # TODO  
         fac_dt_av = 1
         fac_dt_ap = 1
         if self.useAirShots == 0:
@@ -335,15 +333,16 @@ class Mog:
         if np.all(t0av == 0) and np.all(t0ap == 0):
             t0 = np.zeros((1, ndata))
         elif t0av == 0:
-            t0 = t0ap*np.zeros((1, ndata))
+            t0 = t0ap+np.zeros((1, ndata))
         elif t0ap == 0:
-            t0 = t0av*np.zeros((1, ndata))
+            t0 = t0av+np.zeros((1, ndata))
         else:
             dt0 = t0ap - t0av
             ddt0 = dt0/(ndata-1)
             t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
 
         return t0, fac_dt_av, fac_dt_ap
+    
     @staticmethod
     def load_self(mog):
         Mog.getID(mog.ID)
@@ -384,36 +383,36 @@ class Mog:
             else:
                 raise TypeError("air shot should be instance of class AirShots")
 
-            if self.data.synthetique == 1:
-                tt = self.tt
-                t0 = np.zeros(np.shape(tt))
-                return tt, t0
-            else:
-                airBefore = air[self.av]
-                airAfter = air[self.ap]
-
-                t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
-
-            if self.av != '':
-                air[self.av].fac_dt = fac_dt_av
-
-            if self.ap != '':
-                air[self.ap].fac_dt = fac_dt_ap
-
-            if self.user_fac_dt == 0:
-                if fac_dt_av != 1 and fac_dt_ap != 1:
-                    self.fac_dt = 0.5*(fac_dt_av + fac_dt_ap)
-                elif fac_dt_av != 1:
-                    self.fac_dt = fac_dt_av
-                elif fac_dt_ap != 1:
-                    self.fac_dt = fac_dt_ap
-                else:
-                    self.fac_dt = 1
-
-            t0 = self.fac_dt * t0
-            tt = self.fac_dt * self.tt - t0
-
+        if self.data.synthetique == 1:
+            tt = self.tt
+            t0 = np.zeros(np.shape(tt))
             return tt, t0
+        else:
+            airBefore = air[self.av]
+            airAfter = air[self.ap]
+
+            t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
+
+        if self.av != '':
+            air[self.av].fac_dt = fac_dt_av
+
+        if self.ap != '':
+            air[self.ap].fac_dt = fac_dt_ap
+
+        if self.user_fac_dt == 0:
+            if fac_dt_av != 1 and fac_dt_ap != 1:
+                self.fac_dt = 0.5*(fac_dt_av + fac_dt_ap)
+            elif fac_dt_av != 1:
+                self.fac_dt = fac_dt_av
+            elif fac_dt_ap != 1:
+                self.fac_dt = fac_dt_ap
+            else:
+                self.fac_dt = 1
+
+        t0 = self.fac_dt * t0
+        tt = self.fac_dt * self.tt - t0
+
+        return tt, t0
 
 
 class PruneParams:
