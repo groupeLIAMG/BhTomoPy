@@ -40,10 +40,10 @@ class Covariance:
         d = cx.ndim
         if d==2:
             d=cx.shape[1]
-            
+
         if d != self.range.size:
             raise ValueError('Dimensionality of input data inconsistent')
-        
+
         if d>1:
             if d==2:
                 cang = np.cos(self.angle[0]/180*np.pi)
@@ -59,18 +59,18 @@ class Covariance:
                 rotz = np.array([[cangz,-sangz,0],[sangz,cangz,0],[0,0,1]])
                 roty = np.array([[cangy,0,sangy],[0,1,0],[-sangy,0,cangy]])
                 rotx = np.array([[1,0,0],[0,cangx,-sangx],[0,sangx,cangx]])
-                rot = np.dot(np.dot(rotz,roty),rotx) 
-                
+                rot = np.dot(np.dot(rotz,roty),rotx)
+
             cx = np.dot(cx,rot)
             t = np.tile(self.range,(cx.shape[0],1))
         else:
 #            rot = np.array([])
             t = self.range
-            
+
         cx = cx/t
         return cx#,rot
-        
-    
+
+
     def compute(self, x, x0):
         h = self.compute_h(x, x0)
         return self._compute(h)
@@ -80,23 +80,24 @@ class Covariance:
         h = self.compute_hK(cx, m, n)
         return self._compute(h)
 
-        
+
     def compute_h(self, x, x0):
         n1,d = x.shape
         n2,d2 = x0.shape
         if d != d2:
             raise ValueError('Dimensionality of input data inconsistent')
-            
+
         t1 = self.trans(x)
         t2 = self.trans(x0)
         h = 0
         for id in np.arange(d):
+            # TODO debug this for n2>1
             tmp1 = np.tile(t1[:,id],(n2,1)).T
             tmp2 = np.tile(t2[:,id],(n1,1))
             h = h+(tmp1 - tmp2)**2
-            
+
         return np.sqrt(h)
-    
+
 
     def compute_hK(self, cx, m, n):
         t = self.trans(cx)
@@ -105,37 +106,37 @@ class Covariance:
                     np.dot(np.ones((n+m, 1)), t.diagonal().reshape(1,-1)))
         h = h[:n, :]
         return h
-        
+
 
 class CovarianceCubic(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Cubic
-        
+
     def _compute(self, h):
         return np.kron( (1.0-3.0*np.minimum(h,1)**2 + 2.0*np.minimum(h,1)**3), self.sill )
-        
+
 class CovarianceExponential(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Exponential
-        
+
     def _compute(self, h):
         return np.kron( np.exp(-h), self.sill)
-    
+
 class CovarianceGaussian(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Gaussian
-        
+
     def _compute(self, h):
         return np.kron( np.exp(-h**2), self.sill)
-        
+
 class CovarianceGravimetric(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Gravimetric
-        
+
     def _compute(self, h):
         return np.kron( (h**2 + 1)**-0.5, self.sill)
 
@@ -143,7 +144,7 @@ class CovarianceHoleEffectCosine(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Hole_Effect_Cosine
-        
+
     def _compute(self, h):
         return np.kron( np.cos(2.0*np.pi*h), self.sill)
 
@@ -151,7 +152,7 @@ class CovarianceHoleEffectSine(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Hole_Effect_Sine
-        
+
     def _compute(self, h):
         return np.kron( np.sin(np.maximum(np.finfo(float).eps,2.0*np.pi*h))/np.maximum(np.finfo(float).eps,2.0*np.pi*h), self.sill)
 
@@ -159,23 +160,23 @@ class CovarianceLinear(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Linear
-        
+
     def _compute(self, h):
         return np.kron( (1.0-h), self.sill)
-        
+
 class CovarianceMagnetic(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Magnetic
-        
+
     def _compute(self, h):
         return np.kron( (h**2 + 1)**-1.5, self.sill)
-    
+
 class CovarianceNugget(Covariance):
     def __init__(self, s):
         Covariance.__init__(self,np.array([1.0, 1.0]), np.array([0.0]), s)
         self.type = CovarianceModels.Nugget
-        
+
     def compute(self, x, x0):
         d = x.ndim
         if d==2:
@@ -185,30 +186,30 @@ class CovarianceNugget(Covariance):
             self.angle = np.zeros((3,))
         else:
             self.angle = np.array([0.0])
-            
+
         h = self.compute_h(x, x0)
         return np.kron( (h==0), self.sill)
-    
+
     def _compute(self, h):
         return np.kron( (h==0), self.sill)
-        
+
 class CovarianceSpherical(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Spherical
-        
+
     def _compute(self, h):
         return np.kron( (1-(1.5*np.minimum(h,1) - 0.5*(np.minimum(h,1))**3)), self.sill)
-                    
-        
+
+
 class CovarianceThinPlate(Covariance):
     def __init__(self,r,a,s):
         Covariance.__init__(self,r,a,s)
         self.type = CovarianceModels.Thin_Plate
-        
+
     def _compute(self, h):
         return np.kron( h**2 * np.log(np.maximum(h,np.finfo(float).eps)), self.sill)
-    
+
 
 
 class CovarianceModels(IntEnum):
@@ -223,7 +224,7 @@ class CovarianceModels(IntEnum):
     Hole_Effect_Sine = 8
     Hole_Effect_Cosine = 9
     Nugget = 10
-    
+
     @staticmethod
     def buildCov(ctype,r,a,s):
         if ctype==0:
@@ -250,7 +251,7 @@ class CovarianceModels(IntEnum):
             return CovarianceNugget(s)
         else:
             raise ValueError('Undefined covariance model')
-    
+
     @staticmethod
     def detDefault2D():
         return CovarianceSpherical(np.array([4.0,4.0]),np.array([0.0]), 1.0)
@@ -264,7 +265,7 @@ class CovarianceModels(IntEnum):
 
 
 
-def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
+def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
     """
     Translation of cokri matlab function from D. Marcotte (adapted
     for covariance classes defined in this file)
@@ -301,7 +302,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
     ntok:  Points in x0 will be kriged by groups of ntok grid points.
             When ntok>1, the search will find the nk nearest samples within
             distance rad from the current ntok grid points centroid
-    
+
     OUTPUT
 
     x0s:   m x (d+p) matrix of the m points (blocks) to estimate by the
@@ -313,6 +314,8 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
             the last cokriging system solved.
     l:     ((nk x p) + nc) x (ntok x p) matrix with lambda weights and
             Lagrange multipliers of the last cokriging system solved.
+    K:     Left covariance matrix of the cokriging system
+    K0:    Right covariance matrix of the cokriging system 
 
     """
 
@@ -326,11 +329,11 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
 
     if not isinstance(cm, list):
         cm = [cm]
-    
+
     m, d = x0.shape
 
     #  check for cross-validation
-    
+
     if ival >= 1:
         ntok = 1
         x0 = x[:,:d]
@@ -341,7 +344,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
         p = 1
     else:
         p = cm[0].sill.shape[0]
-        
+
     n, t = x.shape
     nk = min(nk, n)
     ntok = min(ntok, m)
@@ -359,14 +362,14 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
             nr = 1
         else:
             nr = np.prod(nd[i+1:])
-        
+
         t = np.arange(.5*(1./nd[i]-1), .5*(1.-1./nd[i])+100*np.finfo(float).eps, 1./nd[i])
         t = t.reshape((-1,1))
         if i==0:
             t2 = np.kron(np.ones((nl,1)), np.kron(t, np.ones((nr,1))))
         else:
             t2 = np.hstack((t2, np.kron(np.ones((nl,1)), np.kron(t, np.ones((nr,1))))))
-        
+
     grid = t2 * (np.ones((ng,1))*block)
     t = np.hstack((t2, np.zeros((ng, p))))
 
@@ -375,24 +378,26 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
 
     if ng > 1:
         grid += (np.ones((ng,1))*block)/(ng*1.e6)
-    
-    x0s, s, idl,l , K, K0 = _cokri2(t, grid, np.array([]), cm, sv, 99, avg, ng)
-    
+
+    x0s, s, idl, l, K, K0 = _cokri2(t, grid, np.array([]), cm, sv, 99, avg, ng)
+
     # sv contain the variance of points or blocks in the universe
-    
+
     i=0
     sv = means( means( K0[i:ng*p:p, i:ng*p:p]).T )
     for i in range(1,p):
         sv = np.hstack((sv, means( means( K0[i:ng*p:p, i:ng*p:p]).T )))
-        
+
     # start cokriging
-    
+
     for i in np.arange(0, m, ntok):
+        if verbose:
+            print('Cokriging - loop '+str(i/ntok+1)+'/'+str(1+m/ntok))
         nnx = min( (m-i, ntok) )
-        
+
         # sort x samples in increasing distance relatively to centroid of 'ntok'
         # points to krige
-        
+
         centx0 = np.dot( np.ones((n,1)), means(x0[i:i+nnx,:]) )
         tx = np.dot( (x[:,:d]-centx0) * (x[:,:d]-centx0), np.ones((d,1)) )
         j = np.argsort(tx,axis=0).flatten()
@@ -400,7 +405,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
         
         # keep samples inside search radius; create an identifier of each sample
         # and variable (id)
-        
+
         ii = 0
         t = x[j[ii], :]
         idl = np.hstack( (np.ones((p,1))*j[ii], idp) )
@@ -410,37 +415,37 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
             idl = np.vstack( (idl, np.hstack( (np.ones((p,1))*j[ii], idp) )) )
             ii += 1
         t2 = x0[i:i+nnx, :]
-        
+
         # if block cokriging discretize the block
 
         t2 = np.kron( t2, np.ones((ng,1)) ) - np.kron( np.ones((nnx,1)), grid )
-        
+
         # check for cross-validation
-        
+
         if ival >= 1:
             est = np.zeros((1,p))
             sest = np.zeros((1,p))
 
             # each variable is cokriged in its turn
-        
+
             if ival == 1:
                 npp = 1
             else:
                 npp = p
-                
+
             for ip in np.arange(0, npp, p):
-                
+
                 # because of the sort, the closest sample is the sample to
                 # cross-validate and its value is in row 1 of t; a temporary vector
                 # keeps the original values before performing cokriging
-        
+
                 vtemp = t[0, d+ip:d+ip+npp]
                 t[0, d+ip:d+ip+npp] = np.zeros((1, npp)) + np.nan
                 x0ss, ss, idout, l, K, K0 = _cokri2(t, t2, idl, cm, sv, itype, avg, ng)
                 est[ip:ip+npp] = x0ss[ip:ip+npp]
                 sest[ip:ip+npp] = ss[ip:ip+npp]
                 t[0, d+ip:d+ip+npp] = vtemp
-                 
+
             if x0s.size == 0:
                 x0s = np.hstack((t2, est))
             else:
@@ -449,7 +454,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok):
                 s = np.hstack((t2, sest))
             else:
                 s = np.vstack((s, np.hstack((t2, sest)) ))
-                
+
         else:
             x0ss, ss, idout, l, K, K0 = _cokri2(t, t2, idl, cm, sv, itype, avg, ng)
             if x0s.size == 0:
@@ -472,14 +477,14 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
     K = np.array([])
     K0 = np.array([])
     nc = 0
-        
+
     n, t = x.shape
     m, d = x0.shape
     if np.isscalar( cm[0].sill ):
         p = 1
     else:
         p = cm[0].sill.shape[0]
-    
+
     # if no samples found in the search radius, return NaN
     if n == 0:
         x0s = np.nan * np.ones((m/ng,p))
@@ -495,13 +500,13 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
         K = K + c.computeK(cx, m, n)
     K0 = K[:, n*p:(n+m)*p]
     K = K[:, :n*p]
-    
+
     # constraints are added according to cokriging type
 
     if itype == 99:
         # the system does not have to be solved
         return x0s, s, idl, l, K, K0
-    
+
     if itype == 2:
         # cokriging with one non-bias condition (Isaaks and Srivastava, 1990, p.410)
         K = np.vstack(( np.hstack(( K, np.ones((n*p, 1)) )), np.ones((1,1+n*p)) ))
@@ -515,11 +520,11 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
         K = np.vstack(( np.hstack((K, t.T)), np.hstack(( t, np.zeros((p, p)) )) ))
         K0 = np.vstack(( K0, np.kron(np.ones((1, m)), np.eye(p)) ))
         nc = p
-    
+
         # cokriging with one non-bias condition in the z direction
         if itype == 3.5:
             t = np.kron(cx[:n, d-1], np.eye(p))
-            K = np.vstack(( np.hstack(( K, np.vstack(( t, np.zeros((p, p)) )) )), 
+            K = np.vstack(( np.hstack(( K, np.vstack(( t, np.zeros((p, p)) )) )),
                            np.hstack(( t.T, np.zeros((p, p+p)) )) ))
             t = np.kron(cx[n:n+m, d-1].T, np.eye(p))
             K0 = np.vstack((K0, t))
@@ -533,7 +538,7 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
             t = np.kron(cx[n:n+m, :].T, np.eye(p))
             K0 = np.vstack((K0, t))
             nc = nc+nca
-            
+
         if itype == 5:
             # universal cokriging ; quadratic drift constraints
 
@@ -550,7 +555,7 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
             t = np.kron(cx2[n:n+m,:].T, np.eye(p))
             K0 = np.vstack((K0, t))
             nc = nc+nca
-            
+
     # columns of k0 are summed up (if necessary) for block cokriging
 
     m = int(m/ng)
@@ -562,7 +567,7 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
             t[:,ic] = means( K0[:,j:(i+1)*ng*p:p].T )
             ic += 1
     K0 = t
-    
+
     t = x[:, d:d+p]
     if itype < 3:
         # if simple cokriging or cokriging with one non bias condition, the means
@@ -570,13 +575,13 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
         t = (t-np.ones((n,1))*avg).T;
     else:
         t=t.T
-        
+
     # removal of lines and columns in K and K0 corresponding to missing values
     z = t.flatten(order='F')
     iz = np.logical_not(np.isnan( z ))
     iz2 = np.hstack(( iz, np.ones((nc,), dtype=bool) ))
     nz = np.sum(iz)
-    
+
     if nz == 0:
         x0s = np.nan
         s = np.nan
@@ -586,16 +591,16 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
         K = K[:, iz2]
         K0 = K0[iz2, :]
         idl = idl[iz, :]
-        
+
         # solution of the cokriging system
-        
+
         l = linalg.solve(K, K0)
-        
+
         # calculation of cokriging estimates
 
         t = np.dot( l[:nz,:].T, z[iz] )
         t = t.reshape((p, m), order='F')
-        
+
         # if simple or cokriging with one constraint, means are added back
 
         if itype < 3:
@@ -603,94 +608,96 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
         else:
             t=t.T
         x0s = t
-    
+
         # calculation of cokriging variances
 
         s = np.kron(np.ones((m,1)), sv)
         t = np.diag( np.dot(l.T, K0) )
         t = t.reshape((p, m), order='F')
         s = s - t.T
-    
-    
+
+
     return x0s, s, idl, l, K, K0
 
 def means(x):
     if x.ndim == 1:
         return x
-    
+
     m, n = x.shape
     m = np.sum(x, axis=0)/m
     return m.reshape(1,-1)
-    
+
 if __name__ == '__main__':
-    
+
     testBasic = False
     testCokri = False
-    testCokriBlock = True
+    testCokriBlock = False
+    
+    test2 = True
 
-    if testBasic:    
+    if testBasic:
         x=np.array([[0.0,0.0],
                     [0.0,1.0],
                     [0.0,10.0],
                     [0.0,20.0],
                     [0.0,25.0]])
-                    
+
         cm = Covariance(np.array([10.0,3.0]), np.array([30]), 2.5)
-        
+
         cm = CovarianceCubic(np.array([10.0,3.0]), np.array([30]), 2.5)
-        
+
         h = cm.compute_h(x,x)
         k = cm.compute(x,x)
-    
+
         cm = CovarianceExponential(np.array([10.0,3.0]), np.array([30]), 2.5)
         k2 = cm.compute(x,x)
-    
+
         cm = CovarianceGaussian(np.array([10.0,3.0]), np.array([30]), 2.5)
         k3 = cm.compute(x,x)
-    
+
         cm = CovarianceGravimetric(np.array([10.0,3.0]), np.array([30]), 2.5)
         k4 = cm.compute(x,x)
-    
+
         cm = CovarianceHoleEffectCosine(np.array([10.0,3.0]), np.array([30]), 2.5)
         k5 = cm.compute(x,x)
-        
+
         cm = CovarianceHoleEffectSine(np.array([10.0,3.0]), np.array([30]), 2.5)
         k6 = cm.compute(x,x)
-        
+
         cm = CovarianceLinear(np.array([10.0,3.0]), np.array([30]), 2.5)
         k7 = cm.compute(x,x)
-    
+
         cm = CovarianceMagnetic(np.array([10.0,3.0]), np.array([30]), 2.5)
         k8 = cm.compute(x,x)
-        
+
         cm = CovarianceNugget(np.array([2.5]))
         k9 = cm.compute(x,x)
-        
+
         cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), 2.5)
         k10 = cm.compute(x,x)
-    
+
         cm = CovarianceModels.buildCov(5, np.array([10.0,3.0]), np.array([30]), 2.5)
         k11 = cm.compute(x,x)
-        
+
         c = np.array([[2.5, 1.4],[1.8, 1.0]])
-    
+
         cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), c)
         k10b = cm.compute(x,x)
-        
+
         cm = Covariance(np.array([10.0,3.0,5.0]), np.array([30,15,10.0]), 2.5)
-        
+
         x=np.array([[0.0,0.0,0.0],
                     [0.0,1.0,5.0],
                     [0.0,10.0,4.0],
                     [0.0,20.0,8.0],
                     [0.0,25.0,3.0]])
-                    
+
         h2 = cm.compute_h(x,np.zeros((1,3)))
-        
+
         t = cm.trans(x)
 
     if testCokri:
-        
+
         import matplotlib.pyplot as plt
 
         x = np.array([[0.1, 0.1, 1.2],
@@ -698,18 +705,18 @@ if __name__ == '__main__':
                       [1.2, 7.8, 1.3],
                       [8.8, 5.5, 0.3],
                       [9.9, 1.9, 1.5]])
-    
+
         xx = np.arange(0.0, 10.1, 0.25).reshape((-1,1))
         yy = np.arange(0.0,  8.1, 0.25).reshape((-1,1))
-        
+
         nx = xx.size
         ny = yy.size
         x0 = np.hstack( (np.kron(xx, np.ones((ny,1)) ),
                          np.kron(np.ones((nx,1)), yy) ) )
-        
+
         cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), 0.6)
-        
-        
+
+
         itype = 1
         avg = 1.0
         block = np.array([1, 1])
@@ -718,7 +725,7 @@ if __name__ == '__main__':
         nk = 10000
         rad = 100.0
         ntok = 10000
-        
+
         x0s, s, sv, idout, l, K, K0 = cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok)
         plt.imshow( x0s[:,2].reshape((41,33)).T)
         plt.colorbar()
@@ -729,8 +736,8 @@ if __name__ == '__main__':
         plt.imshow( x0s[:,2].reshape((41,33)).T)
         plt.colorbar()
         plt.show()
-        
-        
+
+
         c = np.array([[2.5, 1.4],[1.8, 1.0]])
         cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), c)
 
@@ -760,7 +767,7 @@ if __name__ == '__main__':
         plt.show()
 
     if testCokriBlock:
-        
+
         c = np.array([[2.5, 1.4],[1.8, 1.0]])
         cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), c)
 
@@ -795,5 +802,26 @@ if __name__ == '__main__':
         plt.imshow( x0s[:,3].reshape((41,33)).T)
         plt.colorbar()
         plt.show()
-
         
+    if test2:
+        
+        x=np.array([[0.0,0.0],
+                    [0.0,1.0],
+                    [0.0,10.0]])
+        x2=np.array([[0.0,20.0],
+                     [0.0,25.0]])
+
+        cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), 0.6)
+
+        k1 = cm.compute(x, x2)
+        
+        x=np.array([[0.0,0.0],
+                    [0.0,1.0],
+                    [0.0,10.0],
+                    [0.0,20.0],
+                    [0.0,25.0]])
+
+        k2 = cm.computeK(x, 2, 3)
+        
+        print(k1)
+        print(k2)
