@@ -666,7 +666,7 @@ class Grid2D(Grid):
             Z: simulated field of size nx x nz
         """
         Nx,Nz = G.shape
-        U = np.random.randn(G.shape[0], G.shape[1])
+        U = np.fft.fft2(np.random.randn(G.shape[0], G.shape[1]))
         Z = np.real(np.fft.ifft2(G*U))
         
         return Z[int(round((Nx+2)/2)):(int(round((Nx+2)/2))+self.grx.size-1),
