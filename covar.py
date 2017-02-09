@@ -389,11 +389,12 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
         sv = np.hstack((sv, means( means( K0[i:ng*p:p, i:ng*p:p]).T )))
 
     # start cokriging
-
     for i in np.arange(0, m, ntok):
-        if verbose:
-            print('Cokriging - loop '+str(i/ntok+1)+'/'+str(1+m/ntok))
         nnx = min( (m-i, ntok) )
+        if verbose:
+            print('Cokriging - loop '+str(int(i/ntok)+1)+'/'+str(1+int(m/ntok)))
+            print('  Processing '+str(int(nnx))+' points')
+        
 
         # sort x samples in increasing distance relatively to centroid of 'ntok'
         # points to krige
