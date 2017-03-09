@@ -20,10 +20,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-
+from collections import namedtuple
 from enum import IntEnum
 
 import numpy as np
+from scipy.special import erfcinv
 from scipy import linalg
 
 class Covariance:
@@ -31,6 +32,12 @@ class Covariance:
     Base class for Covariance models
     """
     def __init__(self, r, a, s):
+        """
+        Parameters
+            r : ranges
+            a : angles
+            s : coefficient matrix of the coregionalization model
+        """
         self.range = r
         self.angle = a
         self.sill = s
@@ -173,8 +180,17 @@ class CovarianceMagnetic(Covariance):
         return np.kron( (h**2 + 1)**-1.5, self.sill)
 
 class CovarianceNugget(Covariance):
-    def __init__(self, s):
-        Covariance.__init__(self,np.array([1.0, 1.0]), np.array([0.0]), s)
+    def __init__(self, s, d=2):
+        if d == 1:
+            a = []
+        elif d == 2:
+            a = np.array([0.0])
+        elif d == 3:
+            a = np.array([0.0, 0.0, 0.0])
+        else:
+            raise ValueError('Covariance should be 1D, 2D or 3D')
+        
+        Covariance.__init__(self,np.ones((d,)), a, s)
         self.type = CovarianceModels.Nugget
 
     def compute(self, x, x0):
@@ -315,7 +331,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
     l:     ((nk x p) + nc) x (ntok x p) matrix with lambda weights and
             Lagrange multipliers of the last cokriging system solved.
     K:     Left covariance matrix of the cokriging system
-    K0:    Right covariance matrix of the cokriging system 
+    K0:    Right covariance matrix of the cokriging system
 
     """
 
@@ -371,7 +387,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
             t2 = np.hstack((t2, np.kron(np.ones((nl,1)), np.kron(t, np.ones((nr,1))))))
 
     grid = t2 * (np.ones((ng,1))*block)
-    t = np.hstack((t2, np.zeros((ng, p))))
+    t = np.hstack((grid, np.zeros((ng, p))))
 
     # for block cokriging, a double grid is created by shifting slightly the
     # original grid to avoid the zero distance effect (Journel and Huijbregts, p.96)
@@ -394,7 +410,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
         if verbose:
             print('Cokriging - loop '+str(int(i/ntok)+1)+'/'+str(1+int(m/ntok)))
             print('  Processing '+str(int(nnx))+' points')
-        
+
 
         # sort x samples in increasing distance relatively to centroid of 'ntok'
         # points to krige
@@ -403,7 +419,7 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
         tx = np.dot( (x[:,:d]-centx0) * (x[:,:d]-centx0), np.ones((d,1)) )
         j = np.argsort(tx,axis=0).flatten()
         tx = tx[j,:]
-        
+
         # keep samples inside search radius; create an identifier of each sample
         # and variable (id)
 
@@ -628,13 +644,155 @@ def means(x):
     m = np.sum(x, axis=0)/m
     return m.reshape(1,-1)
 
+def norminv(p, mu=0.0, sigma=1.0):
+    """
+    quick and dirty translation of matlab function
+    """
+    x0 = -np.sqrt(2.0) * erfcinv(2.0*p)
+    return sigma * x0 + mu
+
+def nscore(data, w1=0, w2=0, dmin=np.nan, dmax=np.nan, doPlot=False):
+    """
+    Normal score transform
+
+    INPUT
+        data : array of data to transform into normal scores
+        w1,dmin : Extrapolation options for lower tail
+           w1=0 -> no extrapolation
+           w1=1 -> linear interpolation
+           w1>1 -> gradual power interpolation
+        w2,dmax : Extrapolation options for upper tail
+           w2=0 -> no extrapolation
+           w2=1 -> linear interpolation
+           w2>1 -> gradual power interpolation
+        doPlot : show the CCPDF
+
+    OUTPUT
+        data_ns : data after transformation
+
+    """
+    d = data.copy()
+
+    n = d.size
+
+    _id = np.arange(n)
+
+    pk = _id/n + 0.5/n
+    normscore = norminv(pk)
+
+    tmp = np.vstack((d, _id)).T
+    s_sort = tmp[tmp[:,0].argsort(),]
+    data_ns = np.zeros(normscore.shape)
+    data_ns[np.int64(s_sort[:,1])] = normscore
+
+    if doPlot:
+        import matplotlib.pyplot as plt
+        sd_org = np.sort(d)
+        pk_org = pk.copy()
+
+        fig, ax = plt.subplots(ncols=2)
+        ax[0].hist(data)
+        ax[0].set_title('Original data')
+        ax[0].set_xlabel('X')
+        ax[0].set_ylabel('PDF')
+
+        ax[1].hist(normscore)
+        ax[1].set_xlabel('X, normal score transformed');
+        ax[1].set_ylabel('PDF')
+        ax[1].set_title('Normal Score Data')
+
+        plt.show()
+
+    if w1 >= 1.0:
+        if np.isnan(dmin):
+            dmin = np.min(d) - 1.e-9
+
+        if dmin > np.min(d):
+            dmin = np.min(d) - 1.e-9
+
+        d1 = np.min(d)
+
+        nbin = 10
+        pk1 = np.min(pk)
+
+        dlow = np.linspace(dmin, d1, nbin+1)
+        dlow = dlow[:10]
+        pklow = pk1 * ((dlow-dmin)/(d1-dmin))**w1
+
+        d = np.hstack((dlow, d))
+        pk = np.hstack((pklow, pk))
+
+
+    if w2 >= 1.0:
+        if np.isnan(dmax):
+            dmax = np.max(d) + 1.e-9
+
+        if dmax < np.max(d):
+            dmax = np.max(d) + 1.e-9
+
+        dk = np.max(d)
+        nbin = 10
+        pkk = np.max(pk)
+        dhigh = np.linspace(dk, dmax, nbin+1)
+        dhigh = dhigh[1:]
+
+        pkhigh = pkk + (1-pkk) * ((dhigh-dk)/(dmax-dk))**w2
+
+        d = np.hstack((d, dhigh))
+        pk = np.hstack((pk, pkhigh))
+
+    if w1 >= 1.0 or w2 >= 1.0:
+        n = d.size
+        _id = np.arange(n)
+        normscore = norminv(pk)
+
+    #    tmp = np.vstack((d, _id)).T
+    #    s_sort = tmp[tmp[:,0].argsort(),]
+    #    d_nscore = np.zeros(d.shape)
+    #    d_nscore[np.int64(s_sort[:,1])] = normscore
+
+    if doPlot:
+        sd = np.sort(d)
+        plt.figure(1)
+        l1, = plt.plot(sd, pk, 'r-*', markersize=8)
+        l2, = plt.plot(sd_org, pk_org, 'kd', markersize=10, fillstyle='none')
+        plt.xlabel('X')
+        plt.ylabel('CPDF')
+        plt.title('ORIG CDF')
+        plt.legend((l1, l2),('ORG+Head+Tail','ORIGINAL'))
+        plt.show()
+
+    O_nscore = namedtuple('O_nscore',['pk', 'd', 'normscore'])
+    o_nscore = O_nscore(pk, d, normscore)
+
+    return data_ns, o_nscore
+
+
+def inscore(data, o_nscore, doPlot=False):
+
+    ind = np.nonzero( np.isfinite(o_nscore.normscore) )
+
+    d_orig = np.sort(o_nscore.d)
+
+    d_out = np.interp(data, o_nscore.normscore[ind], d_orig[ind])
+
+    if doPlot:
+        import matplotlib.pyplot as plt
+        plt.plot(o_nscore.normscore[ind], d_orig[ind], 'k-*')
+        plt.plot(data, d_out, 'go', fillstyle='none')
+        plt.show()
+
+    return d_out
+
 if __name__ == '__main__':
 
     testBasic = False
     testCokri = False
     testCokriBlock = False
-    
-    test2 = True
+
+    test2 = False
+    testNormScore = False
+    testExample2 = True
 
     if testBasic:
         x=np.array([[0.0,0.0],
@@ -803,9 +961,9 @@ if __name__ == '__main__':
         plt.imshow( x0s[:,3].reshape((41,33)).T)
         plt.colorbar()
         plt.show()
-        
+
     if test2:
-        
+
         x=np.array([[0.0,0.0],
                     [0.0,1.0],
                     [0.0,10.0]])
@@ -815,7 +973,7 @@ if __name__ == '__main__':
         cm = CovarianceSpherical(np.array([10.0,3.0]), np.array([30]), 0.6)
 
         k1 = cm.compute(x, x2)
-        
+
         x=np.array([[0.0,0.0],
                     [0.0,1.0],
                     [0.0,10.0],
@@ -823,6 +981,43 @@ if __name__ == '__main__':
                     [0.0,25.0]])
 
         k2 = cm.computeK(x, 2, 3)
-        
+
         print(k1)
         print(k2)
+
+    if testNormScore:
+        data = np.array([1.2, 3.2, 3.3, 9.4, 2.9, 4.4, 3.5, 6.5, 8.7, 6.6, 5.5, 3.9, 1.1, 0.4])
+
+        data_ns1, o_ns1= nscore(data, w1=1.0, dmin=-1.0, w2=1.0, dmax=12.0, doPlot=True)
+
+        data_ns2, o_ns2 = nscore(data, doPlot=True)
+
+        d_out = inscore(data_ns2, o_ns2, doPlot=True)
+
+
+    if testExample2:
+        x = np.array([[-3.0,  6.0, 1.0,  5.0,  0.0, 4.0],
+                      [-8.0, -5.0, 0.0, 52.0, 38.0, np.nan],
+                      [ 3.0, -3.0, 3.0, 67.0,  6.0, 58.0]])
+        x0 = np.array([[ 0.0,  0.0,  0.0],
+                       [10.0, 20.0, 33.0]])
+        block = np.array([5.0, 10.0, 5.0])
+        nd = np.array([3, 3, 2])
+        
+        c1 = np.array([[20.0, 10.0,  5.0],
+                       [10.0, 25.0,  3.0],
+                       [ 5.0,  3.0, 12.0]])
+        c2 = np.array([[ 50.0, -20.0, 15.0],
+                       [-20.0,  25.0, -7.0],
+                       [ 15.0,  -7.0, 15.0]])
+        cm = [CovarianceNugget(c1, 3), CovarianceSpherical(np.array([50.0, 30.0, 10.0]), np.array([0.0, 0.0, 30.0]), c2)]
+        itype = 3
+        avg = np.array([0.0, 0.0, 0.0])
+        ival = 0
+        nk = 3
+        rad = 100
+        ntok = 2
+        
+        x0s, s, sv, idout, l, K, K0 = cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok)
+        
+        
