@@ -26,6 +26,7 @@ from enum import IntEnum
 import numpy as np
 from scipy.special import erfcinv
 from scipy import linalg
+import pyfftw.interfaces.numpy_fft as np_fft
 
 class Covariance:
     """
@@ -189,7 +190,7 @@ class CovarianceNugget(Covariance):
             a = np.array([0.0, 0.0, 0.0])
         else:
             raise ValueError('Covariance should be 1D, 2D or 3D')
-        
+
         Covariance.__init__(self,np.ones((d,)), a, s)
         self.type = CovarianceModels.Nugget
 
@@ -285,6 +286,18 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
     """
     Translation of cokri matlab function from D. Marcotte (adapted
     for covariance classes defined in this file)
+
+    Ref paper:
+    @Article{marcotte91,
+      Title                    = {Cokriging with matlab},
+      Author                   = {Marcotte, Denis},
+      Journal                  = {Computers and Geosciences},
+      Year                     = {1991},
+      Number                   = {9},
+      Pages                    = {1265--1280},
+      Volume                   = {17},
+      DOI                      = {10.1016/0098-3004(91)90028-C}
+    }
 
     INPUT
 
@@ -784,6 +797,81 @@ def inscore(data, o_nscore, doPlot=False):
 
     return d_out
 
+
+def variof1(x, icode=1, nt=1):
+    """
+
+    @Article{marcotte96,
+      Title                    = {Fast variogram computation with FFT},
+      Author                   = {Marcotte, Denis},
+      Journal                  = {Conputers and Geosciences},
+      Year                     = {1996},
+      Month                    = dec,
+      Number                   = {10},
+      Pages                    = {1175--1186},
+      Volume                   = {22},
+      DOI                      = {10.1016/S0098-3004(96)00026-X}
+    }
+    """
+    x1 = x.copy()
+    n, p = x1.shape
+    nrows = 2*n-1
+    ncols = 2*p-1
+
+    # find the closest multiple of 8 to obtain a good compromise between
+    # speed (a power of 2) and memory required
+
+    nr2 = int(np.ceil(nrows/8)*8)
+    nc2 = int(np.ceil(ncols/8)*8)
+
+    # form an indicator  matrix:                         1's for all data values
+    #                                                     0's for missing values
+    # in data matrix, replace missing values by 0
+
+    x1id = np.logical_not(np.isnan(x1))         # 1 for a data value; 0 for missing
+    x1[np.logical_not(x1id)] = 0.0              # missing replaced by 0
+
+    fx1 = np_fft.fft2(x1, [nr2, nc2], threads=nt)           # fourier transform of x1
+
+    if icode == 1:
+        fx1_x1 = np_fft.fft2(x1*x1, [nr2, nc2], threads=nt) # fourier transform of x1*x1
+
+    fx1id = np_fft.fft2(x1id, [nr2, nc2], threads=nt)       # fourier transform of the indicator matrix
+
+    # compute number of pairs at all lags
+
+    nh11 = np.round(np.real(np_fft.ifft2(np.conj(fx1id)*fx1id, threads=nt)))
+
+    # compute the different structural functions according to icode
+
+    if icode == 1:                                       # variogram is computed
+        gh11 = np.real(np_fft.ifft2(np.conj(fx1id)*fx1_x1 + np.conj(fx1_x1)*fx1id - 2*np.conj(fx1)*fx1, threads=nt))
+        gh11 = gh11 / np.maximum(nh11, 1)/2
+
+    else:                                                # covariogram is computed
+
+        m1 = np.real(np_fft.ifft2(np.conj(fx1)*fx1id), threads=nt) / np.maximum(nh11, 1)   # compute tail mean
+        m2 = np.real(np_fft.ifft2(np.conj(fx1id)*fx1), threads=nt) / np.maximum(nh11, 1)   # compute head mean
+
+        gh11 = np.real(np_fft.ifft2(np.conj(fx1)*fx1, threads=nt))
+        gh11 = gh11 / np.maximum(nh11, 1) - m1*m2
+
+
+    # reduce matrix to required size and shift so that the 0 lag appears at the center of each matrix
+
+    nh11 = np.vstack(( np.hstack((nh11[:n,:p], nh11[:n,nc2-p+1:nc2])),
+                       np.hstack((nh11[nr2-n+1:nr2,:p], nh11[nr2-n+1:nr2,nc2-p+1:nc2])) ))
+    gh11 = np.vstack(( np.hstack((gh11[:n,:p], gh11[:n,nc2-p+1:nc2])),
+                       np.hstack((gh11[nr2-n+1:nr2,:p], gh11[nr2-n+1:nr2,nc2-p+1:nc2])) ))
+
+    gh11 = np_fft.fftshift(gh11)
+    nh11 = np_fft.fftshift(nh11)
+
+    return gh11, nh11
+
+
+
+
 if __name__ == '__main__':
 
     testBasic = False
@@ -792,7 +880,8 @@ if __name__ == '__main__':
 
     test2 = False
     testNormScore = False
-    testExample2 = True
+    testExample2 = False
+    testVariof = True
 
     if testBasic:
         x=np.array([[0.0,0.0],
@@ -1003,7 +1092,7 @@ if __name__ == '__main__':
                        [10.0, 20.0, 33.0]])
         block = np.array([5.0, 10.0, 5.0])
         nd = np.array([3, 3, 2])
-        
+
         c1 = np.array([[20.0, 10.0,  5.0],
                        [10.0, 25.0,  3.0],
                        [ 5.0,  3.0, 12.0]])
@@ -1017,7 +1106,9 @@ if __name__ == '__main__':
         nk = 3
         rad = 100
         ntok = 2
-        
+
         x0s, s, sv, idout, l, K, K0 = cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok)
-        
-        
+
+    if testVariof:
+        m1 = np.array([[3.0, 6.0, 5.0],[7.0, 2.0, 2.0],[4.0, np.NaN, 0.0]])
+        gh11, nh11 = variof1(m1)
