@@ -798,7 +798,7 @@ def inscore(data, o_nscore, doPlot=False):
     return d_out
 
 
-def variof1(x, icode=1, nt=1):
+def variof1(x, icode=1, nt=None):
     """
 
     @Article{marcotte96,
@@ -813,6 +813,13 @@ def variof1(x, icode=1, nt=1):
       DOI                      = {10.1016/S0098-3004(96)00026-X}
     }
     """
+    if nt == None:
+        import multiprocessing
+        try:
+            nt = int(multiprocessing.cpu_count()/2)
+        except NotImplementedError:
+            nt = 1
+    
     x1 = x.copy()
     n, p = x1.shape
     nrows = 2*n-1
@@ -1112,3 +1119,10 @@ if __name__ == '__main__':
     if testVariof:
         m1 = np.array([[3.0, 6.0, 5.0],[7.0, 2.0, 2.0],[4.0, np.NaN, 0.0]])
         gh11, nh11 = variof1(m1)
+        
+        m2 = np.array([[3.0, 6.0, 5.0, 1.0],[7.0, 2.0, 2.0, np.NaN],[2.0, 4.0, np.NaN, 0.0],[1.0, 3.0, 2.0, 0.0]])
+        gh22, nh22 = variof1(m2)
+        
+        m3 = np.array([[3.0, 6.0, 5.0, 1.0],[7.0, 2.0, 2.0, np.NaN],[2.0, 4.0, np.NaN, 0.0]])
+        gh33, nh33 = variof1(m3)
+        
