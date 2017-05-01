@@ -10,24 +10,25 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 """
 
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 import matplotlib as mpl
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+import pickle
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
 
-class SemiAutottUI(QtGui.QWidget):
+class SemiAutottUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Semi Automatic Traveltime Picking")
@@ -41,8 +42,8 @@ class SemiAutottUI(QtGui.QWidget):
         #------ Creation of the Manager for the Upper figure -------#
         self.Fig = Fig()
         self.tool = NavigationToolbar2QT(self.Fig, self)
-        self.manager = QtGui.QWidget()
-        managergrid = QtGui.QGridLayout()
+        self.manager = QtWidgets.QWidget()
+        managergrid = QtWidgets.QGridLayout()
         managergrid.addWidget(self.tool, 0, 0)
         managergrid.addWidget(self.Fig, 1, 0)
         managergrid.setContentsMargins(0, 0, 0, 0)
@@ -75,22 +76,22 @@ class SemiAutottUI(QtGui.QWidget):
         self.time_units_label           = MyQLabel(('[]'), ha= 'center')
 
         #--- Edits ---#
-        self.Tx_Zmin_edit               = QtGui.QLineEdit()
-        self.Tx_Zmax_edit               = QtGui.QLineEdit()
-        self.Rx_Zmin_edit               = QtGui.QLineEdit()
-        self.Rx_Zmax_edit               = QtGui.QLineEdit()
-        self.bin_width_edit             = QtGui.QLineEdit()
-        self.sn_treshold_process_edit   = QtGui.QLineEdit()
-        self.treshold_edit              = QtGui.QLineEdit()
-        self.weight_edit                = QtGui.QLineEdit()
-        self.sn_treshold_freq_edit      = QtGui.QLineEdit()
-        self.Dom_freq_min_edit          = QtGui.QLineEdit()
-        self.Dom_freq_max_edit          = QtGui.QLineEdit()
-        self.t_min_edit                 = QtGui.QLineEdit()
-        self.t_max_edit                 = QtGui.QLineEdit()
-        self.A_min_edit                 = QtGui.QLineEdit()
-        self.A_max_edit                 = QtGui.QLineEdit()
-        self.time_step_edit             = QtGui.QLineEdit()
+        self.Tx_Zmin_edit               = QtWidgets.QLineEdit()
+        self.Tx_Zmax_edit               = QtWidgets.QLineEdit()
+        self.Rx_Zmin_edit               = QtWidgets.QLineEdit()
+        self.Rx_Zmax_edit               = QtWidgets.QLineEdit()
+        self.bin_width_edit             = QtWidgets.QLineEdit()
+        self.sn_treshold_process_edit   = QtWidgets.QLineEdit()
+        self.treshold_edit              = QtWidgets.QLineEdit()
+        self.weight_edit                = QtWidgets.QLineEdit()
+        self.sn_treshold_freq_edit      = QtWidgets.QLineEdit()
+        self.Dom_freq_min_edit          = QtWidgets.QLineEdit()
+        self.Dom_freq_max_edit          = QtWidgets.QLineEdit()
+        self.t_min_edit                 = QtWidgets.QLineEdit()
+        self.t_max_edit                 = QtWidgets.QLineEdit()
+        self.A_min_edit                 = QtWidgets.QLineEdit()
+        self.A_max_edit                 = QtWidgets.QLineEdit()
+        self.time_step_edit             = QtWidgets.QLineEdit()
 
         #- Edits Dispotion -#
         self.Tx_Zmin_edit.setFixedWidth(80)
@@ -111,45 +112,45 @@ class SemiAutottUI(QtGui.QWidget):
         self.Dom_freq_max_edit.setFixedWidth(50)
 
         #--- Buttons ---#
-        self.btn_prev_bin               = QtGui.QPushButton('Previous')
-        self.btn_next_bin               = QtGui.QPushButton('Next')
-        self.btn_prep                   = QtGui.QPushButton('Prepare')
-        self.btn_show                   = QtGui.QPushButton('Show')
-        self.btn_remove                 = QtGui.QPushButton('Remove')
-        self.btn_reinit                 = QtGui.QPushButton('Reinit')
-        self.btn_align                  = QtGui.QPushButton('Align Traces')
-        self.btn_pick                   = QtGui.QPushButton('Pick mean Trace')
-        self.btn_corr                   = QtGui.QPushButton('Pick Traces using Cross correlation')
+        self.btn_prev_bin               = QtWidgets.QPushButton('Previous')
+        self.btn_next_bin               = QtWidgets.QPushButton('Next')
+        self.btn_prep                   = QtWidgets.QPushButton('Prepare')
+        self.btn_show                   = QtWidgets.QPushButton('Show')
+        self.btn_remove                 = QtWidgets.QPushButton('Remove')
+        self.btn_reinit                 = QtWidgets.QPushButton('Reinit')
+        self.btn_align                  = QtWidgets.QPushButton('Align Traces')
+        self.btn_pick                   = QtWidgets.QPushButton('Pick mean Trace')
+        self.btn_corr                   = QtWidgets.QPushButton('Pick Traces using Cross correlation')
         #--- Action for Menubar ---#
-        saveAction = QtGui.QAction('Save', self)
+        saveAction = QtWidgets.QAction('Save', self)
         saveAction.setShortcut('Ctrl+S')
 
-        chooseAction = QtGui.QAction('Choose MOG', self)
+        chooseAction = QtWidgets.QAction('Choose MOG', self)
         chooseAction.setShortcut('Ctrl+O')
         chooseAction.triggered.connect(self.openmain.show)
 
-        reiniAction = QtGui.QAction('Reinitialize', self)
+        reiniAction = QtWidgets.QAction('Reinitialize', self)
 
-        usedetrendAction = QtGui.QAction('Use Detrend', self)
+        usedetrendAction = QtWidgets.QAction('Use Detrend', self)
         usedetrendAction.setCheckable(True)
         usedetrendAction.setChecked(True)
 
-        alignAction = QtGui.QAction('Align Traces', self)
+        alignAction = QtWidgets.QAction('Align Traces', self)
         alignAction.setShortcut('Ctrl+A')
 
-        pointAction = QtGui.QAction('Point the average Trace', self)
+        pointAction = QtWidgets.QAction('Point the average Trace', self)
         pointAction.setShortcut('Ctrl+P')
 
-        prevAction  = QtGui.QAction(' Previous Group', self)
+        prevAction  = QtWidgets.QAction(' Previous Group', self)
         prevAction.setShortcut('Ctrl+P')
 
-        nextAction  = QtGui.QAction('Next Group', self)
+        nextAction  = QtWidgets.QAction('Next Group', self)
         nextAction.setShortcut('Ctrl+F')
 
-        averAction  = QtGui.QAction('Show average Traces', self)
+        averAction  = QtWidgets.QAction('Show average Traces', self)
 
         #--- Menubar ---#
-        self.menu  = QtGui.QMenuBar()
+        self.menu  = QtWidgets.QMenuBar()
 
         #- Menus -#
         filemenu    = self.menu.addMenu('&File')
@@ -171,16 +172,16 @@ class SemiAutottUI(QtGui.QWidget):
         actionmenu.addAction(averAction)
 
         #--- Checkboxes ---#
-        self.work_check             = QtGui.QCheckBox('Work with 1st Cycle')
-        self.dom_freq_check         = QtGui.QCheckBox('Dominant frequency scaling')
-        self.orig_check             = QtGui.QCheckBox('Display original Traces')
-        self.show_check             = QtGui.QCheckBox('Show Picks')
+        self.work_check             = QtWidgets.QCheckBox('Work with 1st Cycle')
+        self.dom_freq_check         = QtWidgets.QCheckBox('Dominant frequency scaling')
+        self.orig_check             = QtWidgets.QCheckBox('Display original Traces')
+        self.show_check             = QtWidgets.QCheckBox('Show Picks')
 
 
         #------- SubWidgets -------#
         #--- Edits and Labels SubWidget ---#
-        Sub_E_and_L_widget = QtGui.QWidget()
-        Sub_E_and_L_grid = QtGui.QGridLayout()
+        Sub_E_and_L_widget = QtWidgets.QWidget()
+        Sub_E_and_L_grid = QtWidgets.QGridLayout()
         Sub_E_and_L_grid.addWidget(sn_treshold_process_label, 0, 1)
         Sub_E_and_L_grid.addWidget(self.sn_treshold_process_edit, 0, 2)
         Sub_E_and_L_grid.addWidget(treshold_label, 1, 1)
@@ -200,8 +201,8 @@ class SemiAutottUI(QtGui.QWidget):
         Sub_E_and_L_widget.setLayout(Sub_E_and_L_grid)
 
         #--- Lower Buttons SubWidget ---#
-        Sub_lower_widget = QtGui.QWidget()
-        Sub_lower_grid = QtGui.QGridLayout()
+        Sub_lower_widget = QtWidgets.QWidget()
+        Sub_lower_grid = QtWidgets.QGridLayout()
         Sub_lower_grid.addWidget(self.btn_show, 0, 0)
         Sub_lower_grid.addWidget(self.btn_remove, 0, 1)
         Sub_lower_grid.addWidget(self.btn_reinit, 0, 2)
@@ -210,8 +211,8 @@ class SemiAutottUI(QtGui.QWidget):
         Sub_lower_widget.setLayout(Sub_lower_grid)
 
         #--- trace SubWidget ---#
-        Sub_trace_widget = QtGui.QWidget()
-        Sub_trace_grid = QtGui.QGridLayout()
+        Sub_trace_widget = QtWidgets.QWidget()
+        Sub_trace_grid = QtWidgets.QGridLayout()
         Sub_trace_grid.addWidget(self.btn_align, 0, 0)
         Sub_trace_grid.addWidget(iteration_label, 0, 1)
         Sub_trace_grid.addWidget(self.iteration_num_label, 0, 2)
@@ -220,8 +221,8 @@ class SemiAutottUI(QtGui.QWidget):
         Sub_trace_widget.setLayout(Sub_trace_grid)
 
         #--- Time and Amplitude Subwidget ---#
-        Sub_T_and_A_widget = QtGui.QWidget()
-        Sub_T_and_A_grid = QtGui.QGridLayout()
+        Sub_T_and_A_widget = QtWidgets.QWidget()
+        Sub_T_and_A_grid = QtWidgets.QGridLayout()
         Sub_T_and_A_grid.addWidget(t_min_label, 0, 1)
         Sub_T_and_A_grid.addWidget(t_max_label, 0, 2)
         Sub_T_and_A_grid.addWidget(A_min_label, 0, 4)
@@ -242,8 +243,8 @@ class SemiAutottUI(QtGui.QWidget):
 
         #------- GroupBoxes --------#
         #--- Station GroupBox ---#
-        station_group = QtGui.QGroupBox('Stations Tx-Rx')
-        station_grid = QtGui.QGridLayout()
+        station_group = QtWidgets.QGroupBox('Stations Tx-Rx')
+        station_grid = QtWidgets.QGridLayout()
         station_grid.addWidget(Tx_label, 0, 1)
         station_grid.addWidget(Rx_label, 0, 2)
         station_grid.addWidget(Z_min_label, 1, 0)
@@ -257,8 +258,8 @@ class SemiAutottUI(QtGui.QWidget):
         station_group.setFixedWidth(300)
 
         #--- Bin GroupBox ---#
-        bin_group = QtGui.QGroupBox('Bin')
-        bin_grid = QtGui.QGridLayout()
+        bin_group = QtWidgets.QGroupBox('Bin')
+        bin_grid = QtWidgets.QGridLayout()
         bin_grid.addWidget(Bin_label, 0, 0)
         bin_grid.addWidget(self.bin_width_edit, 0, 1)
         bin_grid.addWidget(self.btn_prev_bin, 1, 0)
@@ -268,8 +269,8 @@ class SemiAutottUI(QtGui.QWidget):
         bin_group.setFixedWidth(300)
 
         #--- No Name GroupBox ---#
-        no_group = QtGui.QGroupBox()
-        no_grid = QtGui.QGridLayout()
+        no_group = QtWidgets.QGroupBox()
+        no_grid = QtWidgets.QGridLayout()
         no_grid.addWidget(self.work_check, 0, 0)
         no_grid.addWidget(self.dom_freq_check, 1, 0)
         no_grid.addWidget(self.orig_check, 2, 0)
@@ -279,8 +280,8 @@ class SemiAutottUI(QtGui.QWidget):
         no_group.setLayout(no_grid)
 
         #--- Traces GroupBox ---#
-        traces_group = QtGui.QGroupBox('Traces')
-        traces_grid = QtGui.QGridLayout()
+        traces_group = QtWidgets.QGroupBox('Traces')
+        traces_grid = QtWidgets.QGridLayout()
         traces_grid.addWidget(no_group, 0, 0)
         traces_grid.addWidget(Sub_trace_widget, 1, 0)
         traces_grid.addWidget(Sub_T_and_A_widget, 2, 0)
@@ -288,8 +289,8 @@ class SemiAutottUI(QtGui.QWidget):
         traces_group.setFixedWidth(300)
 
         #--- Automatic Picking GroupBox ---#
-        auto_group = QtGui.QGroupBox('Automatic Picking')
-        auto_grid = QtGui.QGridLayout()
+        auto_group = QtWidgets.QGroupBox('Automatic Picking')
+        auto_grid = QtWidgets.QGridLayout()
         auto_grid.addWidget(self.show_check, 0, 0)
         auto_grid.addWidget(self.btn_pick, 1, 0, 1, 2)
         auto_group.setLayout(auto_grid)
@@ -298,7 +299,7 @@ class SemiAutottUI(QtGui.QWidget):
 
 
         #------- Master Grid -------#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 5)
         master_grid.addWidget(self.manager, 1, 0, 5, 4)
         master_grid.addWidget(station_group, 2, 4)
@@ -322,7 +323,7 @@ class Fig(FigureCanvasQTAgg):
         ax1.yaxis.set_ticks_position('left')
         ax1.set_axisbelow(True)
 
-class OpenMainData(QtGui.QWidget):
+class OpenMainData(QtWidgets.QWidget):
     def __init__(self, tt, parent=None):
         super(OpenMainData, self).__init__()
         self.setWindowTitle("Choose Data")
@@ -331,7 +332,7 @@ class OpenMainData(QtGui.QWidget):
         self.initUI()
 
     def openfile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
 
         self.load_file(filename)
 
@@ -365,13 +366,13 @@ class OpenMainData(QtGui.QWidget):
 
         #-------  Widgets --------#
         #--- Edit ---#
-        self.database_edit = QtGui.QLineEdit()
+        self.database_edit = QtWidgets.QLineEdit()
         #- Edit Action -#
         self.database_edit.setReadOnly(True)
         #--- Buttons ---#
-        self.btn_database = QtGui.QPushButton('Choose Database')
-        self.btn_ok = QtGui.QPushButton('Ok')
-        self.btn_cancel = QtGui.QPushButton('Cancel')
+        self.btn_database = QtWidgets.QPushButton('Choose Database')
+        self.btn_ok = QtWidgets.QPushButton('Ok')
+        self.btn_cancel = QtWidgets.QPushButton('Cancel')
 
         #- Buttons' Actions -#
         self.btn_cancel.clicked.connect(self.cancel)
@@ -379,9 +380,9 @@ class OpenMainData(QtGui.QWidget):
         self.btn_ok.clicked.connect(self.ok)
 
         #--- Combobox ---#
-        self.mog_combo = QtGui.QComboBox()
+        self.mog_combo = QtWidgets.QComboBox()
 
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
         master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
         master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
@@ -390,7 +391,7 @@ class OpenMainData(QtGui.QWidget):
         self.setLayout(master_grid)
 
 #--- Class for alignment ---#
-class  MyQLabel(QtGui.QLabel):
+class  MyQLabel(QtWidgets.QLabel):
     def __init__(self, label, ha='left',  parent=None):
         super(MyQLabel, self).__init__(label,parent)
         if ha == 'center':
@@ -402,7 +403,7 @@ class  MyQLabel(QtGui.QLabel):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     Semi_ui = SemiAutottUI()
     Semi_ui.showMaximized()

@@ -10,16 +10,16 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets, QtCore
 from borehole_ui import BoreholeUI
 from model_ui import ModelUI
 from mog_ui import MOGUI, MergeMog
@@ -28,7 +28,7 @@ import time
 import os
 import shelve
 
-class DatabaseUI(QtGui.QWidget):
+class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Database")
@@ -113,7 +113,7 @@ class DatabaseUI(QtGui.QWidget):
         qr = self.frameGeometry()
 
         # Show it at the center of the screen
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
 
         # Move the window's center at the center of the screen
         qr.moveCenter(cp)
@@ -127,7 +127,7 @@ class DatabaseUI(QtGui.QWidget):
             self.load_file(self.filename)
 
     def openfile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
         if filename is not '':
             if '.db' in filename:
                 filename = filename[:-3]
@@ -171,8 +171,8 @@ class DatabaseUI(QtGui.QWidget):
             self.model.update_model_mog_list()
 
         except:
-            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be opened",
-                                      buttons=QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened",
+                                      buttons=QtWidgets.QMessageBox.Ok)
             self.update_log('Error: Database file must be of shelve type')
 
     def savefile(self):
@@ -194,16 +194,16 @@ class DatabaseUI(QtGui.QWidget):
             sfile['air'] = self.mog.air
             sfile.close()
             
-            QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                          buttons=QtWidgets.QMessageBox.Ok)
             self.update_log("Database was saved successfully")
         except:
-            QtGui.QMessageBox.warning(self, 'Warning', "Database could not be saved",
-                                      buttons=QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved",
+                                      buttons=QtWidgets.QMessageBox.Ok)
             self.update_log('Error: Database could not be saved')
 
     def saveasfile(self):
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save Database as ...',
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
                                                      self.name, filter= 'shelve (*.db)', )
         if filename is not '':
             if '.db' in filename:
@@ -212,7 +212,7 @@ class DatabaseUI(QtGui.QWidget):
             self.savefile()
 
     def editname(self):
-        new_name, ok = QtGui.QInputDialog.getText(self, "Change Name", 'Enter new name for database')
+        new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name for database')
 
         self.name = new_name
 
@@ -225,29 +225,29 @@ class DatabaseUI(QtGui.QWidget):
     def initUI(self):
 
         #--- Log Widget ---#
-        self.log = QtGui.QTextEdit()
+        self.log = QtWidgets.QTextEdit()
         self.log.setReadOnly(True)
         self.log.setLineWrapMode(0)
 
         #--- Actions ---#
-        openAction = QtGui.QAction('Open', self)
+        openAction = QtWidgets.QAction('Open', self)
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.openfile)
 
-        saveAction = QtGui.QAction('Save', self)
+        saveAction = QtWidgets.QAction('Save', self)
         saveAction.setShortcut('Ctrl+S')
         saveAction.triggered.connect(self.savefile)
 
-        saveasAction = QtGui.QAction('Save as', self)
+        saveasAction = QtWidgets.QAction('Save as', self)
         saveasAction.setShortcut('Ctrl+A')
         saveasAction.triggered.connect(self.saveasfile)
 
-        editnameAction = QtGui.QAction('Edit database name', self)
+        editnameAction = QtWidgets.QAction('Edit database name', self)
         editnameAction.triggered.connect(self.editname)
 
 
         #--- Menubar ---#
-        self.menu = QtGui.QMenuBar()
+        self.menu = QtWidgets.QMenuBar()
         filemenu = self.menu.addMenu('&File')
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
@@ -259,32 +259,32 @@ class DatabaseUI(QtGui.QWidget):
 
         #--- GroupBoxes ---#
         #- Boreholes GroupBox -#
-        bh_GroupBox =  QtGui.QGroupBox("Boreholes")
-        bh_Sub_Grid   = QtGui.QGridLayout()
+        bh_GroupBox =  QtWidgets.QGroupBox("Boreholes")
+        bh_Sub_Grid   = QtWidgets.QGridLayout()
         bh_Sub_Grid.addWidget(self.bh)
         bh_GroupBox.setLayout(bh_Sub_Grid)
 
         #- MOGs GroupBox -#
-        MOGs_GroupBox =  QtGui.QGroupBox("MOGs")
-        MOGs_Sub_Grid   = QtGui.QGridLayout()
+        MOGs_GroupBox =  QtWidgets.QGroupBox("MOGs")
+        MOGs_Sub_Grid   = QtWidgets.QGridLayout()
         MOGs_Sub_Grid.addWidget(self.mog)
         MOGs_GroupBox.setLayout(MOGs_Sub_Grid)
 
         #- Models GroupBox -#
-        Models_GroupBox =  QtGui.QGroupBox("Models")
-        Models_Sub_Grid   = QtGui.QGridLayout()
+        Models_GroupBox =  QtWidgets.QGroupBox("Models")
+        Models_Sub_Grid   = QtWidgets.QGridLayout()
         Models_Sub_Grid.addWidget(self.model)
         Models_GroupBox.setLayout(Models_Sub_Grid)
 
         #- Info GroupBox -#
-        Info_GroupBox =  QtGui.QGroupBox("Infos")
-        Info_Sub_Grid   = QtGui.QGridLayout()
+        Info_GroupBox =  QtWidgets.QGroupBox("Infos")
+        Info_Sub_Grid   = QtWidgets.QGridLayout()
         Info_Sub_Grid.addWidget(self.info)
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
         #- Big SubWidget -#
-        sub_big_widget = QtGui.QWidget()
-        sub_big_grid = QtGui.QGridLayout()
+        sub_big_widget = QtWidgets.QWidget()
+        sub_big_grid = QtWidgets.QGridLayout()
         sub_big_grid.addWidget(bh_GroupBox, 1, 0)
         sub_big_grid.addWidget(MOGs_GroupBox, 1, 1, 1, 2)
         sub_big_grid.addWidget(Models_GroupBox, 2, 0, 1, 2)
@@ -292,7 +292,7 @@ class DatabaseUI(QtGui.QWidget):
         sub_big_widget.setLayout(sub_big_grid)
 
         #--- Grid ---#
-        master_grid     = QtGui.QGridLayout()
+        master_grid     = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
         master_grid.addWidget(sub_big_widget, 1, 0, 1, 3)
         master_grid.addWidget(self.log, 2, 0, 2, 3)
@@ -301,7 +301,7 @@ class DatabaseUI(QtGui.QWidget):
 
         self.setLayout(master_grid)
 
-class MyLogWidget(QtGui.QTextEdit):
+class MyLogWidget(QtWidgets.QTextEdit):
     def __init__(self, parent =None):
         super(MyLogWidget, self).__init__(parent)
 
@@ -313,7 +313,7 @@ class MyLogWidget(QtGui.QTextEdit):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")

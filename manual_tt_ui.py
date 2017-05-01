@@ -10,24 +10,24 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import shelve
 import numpy as np
 
 from utils_ui import chooseMOG
 
-class ManualttUI(QtGui.QFrame):
+class ManualttUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         super(ManualttUI, self).__init__()
@@ -197,8 +197,8 @@ class ManualttUI(QtGui.QFrame):
             sfile['air'] = self.air
         sfile.close()
     
-        QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
-                                                ,buttons=QtGui.QMessageBox.Ok)
+        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully"
+                                                ,buttons=QtWidgets.QMessageBox.Ok)
                                                 
     def openfile(self):
         mog_no, filename, ok = chooseMOG(self.filename)
@@ -219,7 +219,7 @@ class ManualttUI(QtGui.QFrame):
             self.update_control_center()
 
     def import_tt_file(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Import')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')
         self.load_tt_file(filename)
         
     def load_tt_file(self, filename):
@@ -235,7 +235,7 @@ class ManualttUI(QtGui.QFrame):
         
             self.update_control_center()
         except:
-            QtGui.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtWidgets.QMessageBox.Ok)
 
 
     def initUI(self):
@@ -245,8 +245,8 @@ class ManualttUI(QtGui.QFrame):
         #------ Creation of the Manager for the Upper figure -------#
         self.upperFig = UpperFig(self)
         self.uppertool = NavigationToolbar2QT(self.upperFig, self)
-        self.uppermanager = QtGui.QWidget()
-        uppermanagergrid = QtGui.QGridLayout()
+        self.uppermanager = QtWidgets.QWidget()
+        uppermanagergrid = QtWidgets.QGridLayout()
         uppermanagergrid.addWidget(self.uppertool, 0, 0)
         uppermanagergrid.addWidget(self.upperFig, 1, 0)
         uppermanagergrid.setContentsMargins(0, 0, 0, 0)
@@ -255,21 +255,21 @@ class ManualttUI(QtGui.QFrame):
 
         #------ Creation of the Manager for the Lower figure -------#
         self.lowerFig = LowerFig(self)
-        self.lowermanager = QtGui.QWidget()
-        lowermanagergrid = QtGui.QGridLayout()
+        self.lowermanager = QtWidgets.QWidget()
+        lowermanagergrid = QtWidgets.QGridLayout()
         lowermanagergrid.addWidget(self.lowerFig, 0, 0)
         lowermanagergrid.setContentsMargins(0, 0, 0, 0)
         self.lowermanager.setLayout(lowermanagergrid)
 
         #------- Widgets Creation -------#
         #--- Buttons ---#
-        btn_Prev = QtGui.QPushButton("Previous Trace")
-        btn_Next = QtGui.QPushButton("Next Trace")
-        btn_Next_Pick = QtGui.QPushButton("Next Trace to Pick")
-        btn_Reini = QtGui.QPushButton("Reinitialize Trace")
-        btn_Upper = QtGui.QPushButton("Activate Picking - Upper Trace")
-        btn_Conti = QtGui.QPushButton("Activate Picking - Shot Gather")
-        btn_Stats = QtGui.QPushButton("Statistics")
+        btn_Prev = QtWidgets.QPushButton("Previous Trace")
+        btn_Next = QtWidgets.QPushButton("Next Trace")
+        btn_Next_Pick = QtWidgets.QPushButton("Next Trace to Pick")
+        btn_Reini = QtWidgets.QPushButton("Reinitialize Trace")
+        btn_Upper = QtWidgets.QPushButton("Activate Picking - Upper Trace")
+        btn_Conti = QtWidgets.QPushButton("Activate Picking - Shot Gather")
+        btn_Stats = QtWidgets.QPushButton("Statistics")
 
         #- Buttons' Actions -#
         btn_Next.clicked.connect(self.next_trace)
@@ -303,9 +303,9 @@ class ManualttUI(QtGui.QFrame):
         self.percent_done_label = MyQLabel('', ha= 'right')
         trace_label = MyQLabel("traces", ha= 'left')
         picked_label = MyQLabel("Picked Time:", ha= 'right')
-        self.time = QtGui.QLabel("")
-        incertitude_label = QtGui.QLabel("±")
-        self.incertitude_value_label = QtGui.QLabel("")
+        self.time = QtWidgets.QLabel("")
+        incertitude_label = QtWidgets.QLabel("±")
+        self.incertitude_value_label = QtWidgets.QLabel("")
 
         #-- Setting Labels color ---#
         picked_label.setPalette(blue_palette)
@@ -314,30 +314,30 @@ class ManualttUI(QtGui.QFrame):
         self.incertitude_value_label.setPalette(blue_palette)
 
         #--- Actions ---#
-        openAction = QtGui.QAction('Open main data file', self)
+        openAction = QtWidgets.QAction('Open main data file', self)
         openAction.setShortcut('Ctrl+O')
 #        openAction.triggered.connect(self.openmain.show)
         openAction.triggered.connect(self.openfile)
 
-        saveAction = QtGui.QAction('Save', self)
+        saveAction = QtWidgets.QAction('Save', self)
         saveAction.setShortcut('Ctrl+S')
         saveAction.triggered.connect(self.savefile)
 
-        importAction = QtGui.QAction('Import ...', self)
+        importAction = QtWidgets.QAction('Import ...', self)
         importAction.triggered.connect(self.import_tt_file)
         #--- ToolBar ---#
-        self.tool = QtGui.QMenuBar()
+        self.tool = QtWidgets.QMenuBar()
         filemenu = self.tool.addMenu('&File')
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
         filemenu.addAction(importAction)
 
         #--- Edits ---#
-        self.Tnum_Edit = QtGui.QLineEdit('1')
-        self.t_min_Edit = QtGui.QLineEdit('0')
-        self.t_max_Edit = QtGui.QLineEdit('300')
-        self.A_min_Edit = QtGui.QLineEdit('-1000')
-        self.A_max_Edit = QtGui.QLineEdit('1000')
+        self.Tnum_Edit = QtWidgets.QLineEdit('1')
+        self.t_min_Edit = QtWidgets.QLineEdit('0')
+        self.t_max_Edit = QtWidgets.QLineEdit('300')
+        self.A_min_Edit = QtWidgets.QLineEdit('-1000')
+        self.A_max_Edit = QtWidgets.QLineEdit('1000')
 
         #- Edits' Disposition -#
         self.Tnum_Edit.setFixedWidth(100)
@@ -359,12 +359,12 @@ class ManualttUI(QtGui.QFrame):
         self.A_max_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
 
         #--- Checkboxes ---#
-        self.Wave_checkbox = QtGui.QCheckBox("Wavelet tranf. denoising")
-        self.veloc_checkbox = QtGui.QCheckBox("Show apparent velocity")
-        self.lim_checkbox = QtGui.QCheckBox("Dynamic amplitude limits")
-        self.save_checkbox = QtGui.QCheckBox("Intermediate saves")
-        self.jump_checkbox = QtGui.QCheckBox("Jump to next unpicked Trace")
-        self.pick_checkbox = QtGui.QCheckBox("Pick Tx Data")
+        self.Wave_checkbox = QtWidgets.QCheckBox("Wavelet tranf. denoising")
+        self.veloc_checkbox = QtWidgets.QCheckBox("Show apparent velocity")
+        self.lim_checkbox = QtWidgets.QCheckBox("Dynamic amplitude limits")
+        self.save_checkbox = QtWidgets.QCheckBox("Intermediate saves")
+        self.jump_checkbox = QtWidgets.QCheckBox("Jump to next unpicked Trace")
+        self.pick_checkbox = QtWidgets.QCheckBox("Pick Tx Data")
         self.pick_checkbox.setDisabled(True)
 
         #- CheckBoxes' Actions -#
@@ -373,11 +373,11 @@ class ManualttUI(QtGui.QFrame):
         self.veloc_checkbox.stateChanged.connect(self.update_control_center)
 
         #--- Radio Buttons ---#
-        self.main_data_radio = QtGui.QRadioButton("Main Data file")
-        self.t0_before_radio = QtGui.QRadioButton("t0 Before")
-        self.t0_after_radio = QtGui.QRadioButton("t0 After")
-        self.tt_picking_radio = QtGui.QRadioButton("Traveltime picking")
-        self.trace_selec_radio = QtGui.QRadioButton("Trace selection")
+        self.main_data_radio = QtWidgets.QRadioButton("Main Data file")
+        self.t0_before_radio = QtWidgets.QRadioButton("t0 Before")
+        self.t0_after_radio = QtWidgets.QRadioButton("t0 After")
+        self.tt_picking_radio = QtWidgets.QRadioButton("Traveltime picking")
+        self.trace_selec_radio = QtWidgets.QRadioButton("Trace selection")
 
         #- Radio Buttons' Disposition -#
         self.main_data_radio.setChecked(True)
@@ -394,20 +394,20 @@ class ManualttUI(QtGui.QFrame):
         self.t0_before_radio.toggled.connect(self.update_control_center)
         self.t0_after_radio.toggled.connect(self.update_control_center)
         #--- Text Edits ---#
-        info_Tedit = QtGui.QTextEdit()
+        info_Tedit = QtWidgets.QTextEdit()
         info_Tedit.setReadOnly(True)
-        PTime_Tedit = QtGui.QTextEdit()
+        PTime_Tedit = QtWidgets.QTextEdit()
         PTime_Tedit.setReadOnly(True)
 
         #--- combobox ---#
-        self.pick_combo = QtGui.QComboBox()
+        self.pick_combo = QtWidgets.QComboBox()
         self.pick_combo.addItem("Pick with std deviation")
         self.pick_combo.addItem("Simple Picking")
 
         #------- subWidgets -------#
         #--- Info Subwidget ---#
-        Sub_Info_widget = QtGui.QWidget()
-        Sub_Info_grid = QtGui.QGridLayout()
+        Sub_Info_widget = QtWidgets.QWidget()
+        Sub_Info_grid = QtWidgets.QGridLayout()
         Sub_Info_grid.addWidget(position_label, 0, 1, 1, 3)
         Sub_Info_grid.addWidget(x_label, 2, 1)
         Sub_Info_grid.addWidget(y_label, 2, 2)
@@ -428,8 +428,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_Info_widget.setStyleSheet("background: white")
 
         #--- Picked Time SubWidget ---#
-        Sub_picked_widget = QtGui.QWidget()
-        Sub_picked_grid = QtGui.QGridLayout()
+        Sub_picked_widget = QtWidgets.QWidget()
+        Sub_picked_grid = QtWidgets.QGridLayout()
         Sub_picked_grid.addWidget(picked_label, 0, 0)
         Sub_picked_grid.addWidget(self.time, 0, 1)
         Sub_picked_grid.addWidget(incertitude_label, 0, 2)
@@ -438,24 +438,24 @@ class ManualttUI(QtGui.QFrame):
         Sub_picked_widget.setStyleSheet(" Background: white ")
 
         #--- Trace Subwidget ---#
-        Sub_Trace_Widget = QtGui.QWidget()
-        Sub_Trace_Grid = QtGui.QGridLayout()
+        Sub_Trace_Widget = QtWidgets.QWidget()
+        Sub_Trace_Grid = QtWidgets.QGridLayout()
         Sub_Trace_Grid.addWidget(trc_Label, 0, 0)
         Sub_Trace_Grid.addWidget(self.Tnum_Edit, 0, 1)
         Sub_Trace_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_Trace_Widget.setLayout(Sub_Trace_Grid)
 
         #--- Prev Next SubWidget ---#
-        sub_prev_next_widget = QtGui.QWidget()
-        sub_prev_next_grid = QtGui.QGridLayout()
+        sub_prev_next_widget = QtWidgets.QWidget()
+        sub_prev_next_grid = QtWidgets.QGridLayout()
         sub_prev_next_grid.addWidget(btn_Prev, 0, 0)
         sub_prev_next_grid.addWidget(btn_Next, 0, 1)
         sub_prev_next_grid.setContentsMargins(0, 0, 0, 0)
         sub_prev_next_widget.setLayout(sub_prev_next_grid)
 
         #--- Left Part SubWidget ---#
-        Sub_left_Part_Widget = QtGui.QWidget()
-        Sub_left_Part_Grid = QtGui.QGridLayout()
+        Sub_left_Part_Widget = QtWidgets.QWidget()
+        Sub_left_Part_Grid = QtWidgets.QGridLayout()
         Sub_left_Part_Grid.addWidget(Sub_Info_widget, 0, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(Sub_picked_widget, 1, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(Sub_Trace_Widget, 2, 0)
@@ -469,8 +469,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_left_Part_Widget.setLayout(Sub_left_Part_Grid)
 
         #--- upper right subWidget ---#
-        Sub_upper_right_Widget = QtGui.QWidget()
-        Sub_upper_right_Grid = QtGui.QGridLayout()
+        Sub_upper_right_Widget = QtWidgets.QWidget()
+        Sub_upper_right_Grid = QtWidgets.QGridLayout()
         Sub_upper_right_Grid.addWidget(self.pick_checkbox, 0, 0)
         Sub_upper_right_Grid.addWidget(self.main_data_radio, 1, 0)
         Sub_upper_right_Grid.addWidget(self.t0_before_radio, 2, 0)
@@ -482,8 +482,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_upper_right_Widget.setLayout(Sub_upper_right_Grid)
 
         #--- Contiguous Trace Groupbox ---#
-        Conti_Groupbox = QtGui.QGroupBox("Shot Gather")
-        Conti_Grid = QtGui.QGridLayout()
+        Conti_Groupbox = QtWidgets.QGroupBox("Shot Gather")
+        Conti_Grid = QtWidgets.QGridLayout()
         Conti_Grid.addWidget(self.tt_picking_radio, 0, 0)
         Conti_Grid.addWidget(self.trace_selec_radio, 1, 0)
         Conti_Grid.setColumnStretch(1, 100)
@@ -491,8 +491,8 @@ class ManualttUI(QtGui.QFrame):
         Conti_Groupbox.setLayout(Conti_Grid)
 
         #--- Time and Amplitude Labels SubWidget ---#
-        Sub_T_and_A_Labels_Widget = QtGui.QWidget()
-        Sub_T_and_A_Labels_Grid = QtGui.QGridLayout()
+        Sub_T_and_A_Labels_Widget = QtWidgets.QWidget()
+        Sub_T_and_A_Labels_Grid = QtWidgets.QGridLayout()
         Sub_T_and_A_Labels_Grid.addWidget(t_min_label, 0, 0)
         Sub_T_and_A_Labels_Grid.addWidget(t_max_label, 0, 1)
         Sub_T_and_A_Labels_Grid.addWidget(A_min_label, 0, 2)
@@ -501,8 +501,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_T_and_A_Labels_Widget.setLayout(Sub_T_and_A_Labels_Grid)
 
         #--- Time and Amplitude Edits SubWidget ---#
-        Sub_T_and_A_Edits_Widget = QtGui.QWidget()
-        Sub_T_and_A_Edits_Grid = QtGui.QGridLayout()
+        Sub_T_and_A_Edits_Widget = QtWidgets.QWidget()
+        Sub_T_and_A_Edits_Grid = QtWidgets.QGridLayout()
         Sub_T_and_A_Edits_Grid.addWidget(self.t_min_Edit, 0, 0)
         Sub_T_and_A_Edits_Grid.addWidget(self.t_max_Edit, 0, 1)
         Sub_T_and_A_Edits_Grid.addWidget(self.A_min_Edit, 0, 2)
@@ -515,8 +515,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_T_and_A_Edits_Widget.setLayout(Sub_T_and_A_Edits_Grid)
 
         #--- Time and Ampitude Labels and Edits SubWidget ---#
-        Sub_T_and_A_Widget = QtGui.QWidget()
-        Sub_T_and_A_Grid   = QtGui.QGridLayout()
+        Sub_T_and_A_Widget = QtWidgets.QWidget()
+        Sub_T_and_A_Grid   = QtWidgets.QGridLayout()
         Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Labels_Widget, 0, 0)
         Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Edits_Widget, 1, 0)
         Sub_T_and_A_Grid.setRowStretch(3, 100)
@@ -524,8 +524,8 @@ class ManualttUI(QtGui.QFrame):
         Sub_T_and_A_Widget.setLayout(Sub_T_and_A_Grid)
 
         #--- Control Center SubWidget ---#
-        Control_Center_GroupBox = QtGui.QGroupBox("Control Center")
-        Control_Center_Grid = QtGui.QGridLayout()
+        Control_Center_GroupBox = QtWidgets.QGroupBox("Control Center")
+        Control_Center_Grid = QtWidgets.QGridLayout()
         Control_Center_Grid.addWidget(Sub_left_Part_Widget, 0, 0, 4, 1)
         Control_Center_Grid.addWidget(Sub_upper_right_Widget, 0, 1)
         Control_Center_Grid.addWidget(Conti_Groupbox, 1, 1)
@@ -534,7 +534,7 @@ class ManualttUI(QtGui.QFrame):
 
 
         #--- Master Grid Disposition ---#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.tool, 0, 0, 1, 3)
         master_grid.addWidget(self.uppermanager, 1, 0, 1, 3)
         master_grid.addWidget(self.lowermanager, 2, 0, 1, 2)
@@ -561,7 +561,7 @@ class ManualttUI(QtGui.QFrame):
             self.sender().setFlat(True)
             self.lowerFig.isTracingOn = True
 
-#class OpenMainData(QtGui.QWidget):
+#class OpenMainData(QtWidgets.QWidget):
 #    def __init__(self, tt, parent=None):
 #        super(OpenMainData, self).__init__()
 #        self.setWindowTitle("Choose Data")
@@ -570,7 +570,7 @@ class ManualttUI(QtGui.QFrame):
 #        self.initUI()
 #
 #    def openfile(self):
-#        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+#        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
 #
 #        self.load_file(filename)
 #
@@ -605,13 +605,13 @@ class ManualttUI(QtGui.QFrame):
 #
 #        #-------  Widgets --------#
 #        #--- Edit ---#
-#        self.database_edit = QtGui.QLineEdit()
+#        self.database_edit = QtWidgets.QLineEdit()
 #        #- Edit Action -#
 #        self.database_edit.setReadOnly(True)
 #        #--- Buttons ---#
-#        self.btn_database = QtGui.QPushButton('Choose Database')
-#        self.btn_ok = QtGui.QPushButton('Ok')
-#        self.btn_cancel = QtGui.QPushButton('Cancel')
+#        self.btn_database = QtWidgets.QPushButton('Choose Database')
+#        self.btn_ok = QtWidgets.QPushButton('Ok')
+#        self.btn_cancel = QtWidgets.QPushButton('Cancel')
 #
 #        #- Buttons' Actions -#
 #        self.btn_cancel.clicked.connect(self.cancel)
@@ -619,12 +619,12 @@ class ManualttUI(QtGui.QFrame):
 #        self.btn_ok.clicked.connect(self.ok)
 #
 #        #--- Combobox ---#
-#        self.mog_combo = QtGui.QComboBox()
+#        self.mog_combo = QtWidgets.QComboBox()
 #
 #        #- Combobox's Action -#
 #        self.mog_combo.activated.connect(self.tt.update_control_center)
 #
-#        master_grid = QtGui.QGridLayout()
+#        master_grid = QtWidgets.QGridLayout()
 #        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
 #        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
 #        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
@@ -1314,7 +1314,7 @@ class StatsFig1(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
-class  MyQLabel(QtGui.QLabel):
+class  MyQLabel(QtWidgets.QLabel):
     #--- Class For Alignment ---#
     def __init__(self, label, ha='left',  parent=None):
         super(MyQLabel, self).__init__(label,parent)
@@ -1328,7 +1328,7 @@ class  MyQLabel(QtGui.QLabel):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     manual_ui = ManualttUI()
     manual_ui.filename = 'test_constraints'

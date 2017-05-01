@@ -10,20 +10,20 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from unicodedata import *
 
-class InterpretationUI(QtGui.QFrame):
+class InterpretationUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(InterpretationUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Inversion")
@@ -45,7 +45,7 @@ class InterpretationUI(QtGui.QFrame):
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
 
         #--- Class For Alignment ---#
-        class  MyQLabel(QtGui.QLabel):
+        class  MyQLabel(QtWidgets.QLabel):
             def __init__(self, label, ha='left',  parent=None):
                 super(MyQLabel, self).__init__(label,parent)
                 if ha == 'center':
@@ -61,30 +61,30 @@ class InterpretationUI(QtGui.QFrame):
         #--- Label ---#
         Min_labeli             = MyQLabel("Min :", ha= 'right')
         Max_labeli             = MyQLabel("Max :", ha='right')
-        slow_label             = QtGui.QLabel("Slowness")
-        atten_label            = QtGui.QLabel("Attentuation")
-        type_label             = QtGui.QLabel("Type")
+        slow_label             = QtWidgets.QLabel("Slowness")
+        atten_label            = QtWidgets.QLabel("Attentuation")
+        type_label             = QtWidgets.QLabel("Type")
         freq_label             = MyQLabel("Frequency[MHz]", ha= 'right')
 
         #--- Edits ---#
-        Min_editi              = QtGui.QLineEdit()
-        Max_editi              = QtGui.QLineEdit()
-        freq_edit              = QtGui.QLineEdit("100")
+        Min_editi              = QtWidgets.QLineEdit()
+        Max_editi              = QtWidgets.QLineEdit()
+        freq_edit              = QtWidgets.QLineEdit("100")
 
         #--- Checkbox ---#
-        set_color_checkbox     = QtGui.QCheckBox("Set Color Limits")
+        set_color_checkbox     = QtWidgets.QCheckBox("Set Color Limits")
 
         #--- Text Edits ---#
-        futur_Graph1           = QtGui.QTextEdit()
+        futur_Graph1           = QtWidgets.QTextEdit()
         futur_Graph1.setReadOnly(True)
 
         #--- combobox ---#
-        slow_combo             = QtGui.QComboBox()
-        atten_combo            = QtGui.QComboBox()
-        type_combo             = QtGui.QComboBox()
-        phys_combo             = QtGui.QComboBox()
-        petro_combo            = QtGui.QComboBox()
-        fig_combo              = QtGui.QComboBox()
+        slow_combo             = QtWidgets.QComboBox()
+        atten_combo            = QtWidgets.QComboBox()
+        type_combo             = QtWidgets.QComboBox()
+        phys_combo             = QtWidgets.QComboBox()
+        petro_combo            = QtWidgets.QComboBox()
+        fig_combo              = QtWidgets.QComboBox()
 
 
         #--- Items in the comboboxes ---#
@@ -132,8 +132,8 @@ class InterpretationUI(QtGui.QFrame):
 
         #------- Groupboxes -------#
         #--- Tomograms Groupbox ---#
-        Tomo_groupbox  = QtGui.QGroupBox("Tomograms")
-        Tomo_grid      = QtGui.QGridLayout()
+        Tomo_groupbox  = QtWidgets.QGroupBox("Tomograms")
+        Tomo_grid      = QtWidgets.QGridLayout()
         Tomo_grid.addWidget(slow_label, 0, 0)
         Tomo_grid.addWidget(slow_combo, 1, 0, 1, 2)
         Tomo_grid.addWidget(atten_label, 2, 0)
@@ -143,22 +143,22 @@ class InterpretationUI(QtGui.QFrame):
         Tomo_groupbox.setLayout(Tomo_grid)
 
         #--- Physical Property Groupbox ---#
-        Phys_groupbox  = QtGui.QGroupBox("Physical Property")
-        Phys_grid      = QtGui.QGridLayout()
+        Phys_groupbox  = QtWidgets.QGroupBox("Physical Property")
+        Phys_grid      = QtWidgets.QGridLayout()
         Phys_grid.addWidget(phys_combo, 0, 0, 1, 2)
         Phys_grid.addWidget(freq_label, 1, 0)
         Phys_grid.addWidget(freq_edit, 1, 1)
         Phys_groupbox.setLayout(Phys_grid)
 
         #--- Petrophysical Model Groupbox ---#
-        Petro_groupbox = QtGui.QGroupBox("Parameters")
-        Petro_grid     = QtGui.QGridLayout()
+        Petro_groupbox = QtWidgets.QGroupBox("Parameters")
+        Petro_grid     = QtWidgets.QGridLayout()
         Petro_grid.addWidget(petro_combo, 0, 0)
         Petro_groupbox.setLayout(Petro_grid)
 
         #--- Figures Groupbox ---#
-        fig_groupbox  = QtGui.QGroupBox("Figures")
-        fig_grid      = QtGui.QGridLayout()
+        fig_groupbox  = QtWidgets.QGroupBox("Figures")
+        fig_grid      = QtWidgets.QGridLayout()
         fig_grid.addWidget(set_color_checkbox, 0, 0)
         fig_grid.addWidget(Min_labeli, 0, 1)
         fig_grid.addWidget(Min_editi, 0, 2)
@@ -172,14 +172,14 @@ class InterpretationUI(QtGui.QFrame):
         #------- Sub Widgets -------#
         #--- Right Part SubWidget ---#
         # The Right part SubWidget is created in order to have a more uniform disposition of the Figure Groupbox
-        Sub_right_Widget = QtGui.QWidget()
-        Sub_right_Grid = QtGui.QGridLayout()
+        Sub_right_Widget = QtWidgets.QWidget()
+        Sub_right_Grid = QtWidgets.QGridLayout()
         Sub_right_Grid.addWidget(fig_groupbox, 0, 0)
         Sub_right_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_right_Widget.setLayout(Sub_right_Grid)
 
         #------- Master Grid Disposition -------#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(Tomo_groupbox, 0, 0, 3, 1)
         master_grid.addWidget(Phys_groupbox, 3, 0, 3, 1)
         master_grid.addWidget(Petro_groupbox, 6, 0)
@@ -191,7 +191,7 @@ class InterpretationUI(QtGui.QFrame):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     Model_ui = InterpretationUI()
     Model_ui.show()

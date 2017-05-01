@@ -4,7 +4,7 @@ Created on 31 août 2016
 @author: giroux
 '''
 
-from PyQt4.QtCore import QEvent
+from PyQt5.QtCore import QEvent
 
 class BoreholeAdded(QEvent):
     _type = QEvent.registerEventType()
