@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from collections import namedtuple
 from enum import IntEnum
+import sys
 
 import numpy as np
 from scipy.special import erfcinv
@@ -98,10 +99,10 @@ class Covariance:
         t1 = self.trans(x)
         t2 = self.trans(x0)
         h = 0
-        for id in np.arange(d):
+        for ii in np.arange(d):
             # TODO debug this for n2>1
-            tmp1 = np.tile(t1[:,id],(n2,1)).T
-            tmp2 = np.tile(t2[:,id],(n1,1))
+            tmp1 = np.tile(t1[:,ii],(n2,1)).T
+            tmp2 = np.tile(t2[:,ii],(n1,1))
             h = h+(tmp1 - tmp2)**2
 
         return np.sqrt(h)
@@ -417,12 +418,17 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
     for i in range(1,p):
         sv = np.hstack((sv, means( means( K0[i:ng*p:p, i:ng*p:p]).T )))
 
+    if verbose:
+        nskip = int(np.log10(m/ntok))
+        nskip = int(10**(nskip-2))
+        if nskip < 1:
+            nskip = 1
+
     # start cokriging
     for i in np.arange(0, m, ntok):
         nnx = min( (m-i, ntok) )
-        if verbose:
+        if verbose and ((i+1)%nskip == 0):
             print('Cokriging - loop '+str(int(i/ntok)+1)+'/'+str(1+int(m/ntok)))
-            print('  Processing '+str(int(nnx))+' points')
 
 
         # sort x samples in increasing distance relatively to centroid of 'ntok'
@@ -444,6 +450,11 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
             t = np.vstack( (t, x[j[ii], :]) )
             idl = np.vstack( (idl, np.hstack( (np.ones((p,1))*j[ii], idp) )) )
             ii += 1
+
+        if verbose and ((i+1)%nskip == 0):
+            print('  Processing '+str(int(nnx))+' points with '+str(t.shape[0])+' data points')
+            sys.stdout.flush()
+
         t2 = x0[i:i+nnx, :]
 
         # if block cokriging discretize the block
@@ -468,7 +479,6 @@ def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
                 # because of the sort, the closest sample is the sample to
                 # cross-validate and its value is in row 1 of t; a temporary vector
                 # keeps the original values before performing cokriging
-
                 vtemp = t[0, d+ip:d+ip+npp]
                 t[0, d+ip:d+ip+npp] = np.zeros((1, npp)) + np.nan
                 x0ss, ss, idout, l, K, K0 = _cokri2(t, t2, idl, cm, sv, itype, avg, ng)
@@ -682,6 +692,7 @@ def nscore(data, w1=0, w2=0, dmin=np.nan, dmax=np.nan, doPlot=False):
 
     OUTPUT
         data_ns : data after transformation
+        o_nscore: data needed to do inverse transform
 
     """
     d = data.copy()
@@ -819,7 +830,7 @@ def variof1(x, icode=1, nt=None):
             nt = int(multiprocessing.cpu_count()/2)
         except NotImplementedError:
             nt = 1
-    
+
     x1 = x.copy()
     n, p = x1.shape
     nrows = 2*n-1
@@ -876,8 +887,88 @@ def variof1(x, icode=1, nt=None):
 
     return gh11, nh11
 
+def varioexp2d(x, y, v, nbclas, lclas, vdir, vtol, bandwidth):
+    """
+    Experimental variogram in 2D
 
+    INPUT
+        x : X coordinates   (nv,)
+        y : Y coordinates   (nv,)
+        v : values          (nv,)
+        nbclas : nb of classes
+        lclas  : length of classes. Scalar or n x 2 array with lag limits
+                    on each line (min, max)
+        vdir   : directions (azimuth)  (deg)
+        vtol   : tolerance angle (90° for omni-directional variogram) (deg)
+        bandwidth : ignored if vtol >= 90°
 
+    OUTPUT
+        gexp : 3d array of size nclas x 3 x ndir
+                1st "column" : average distance
+                2nd "column" : nb of pairs
+                3rd "column" : variogram
+    """
+    if len(lclas) == 1:
+        lclas = lclas*np.vstack((np.arange(0,nbclas),
+                                 np.arange(1,(1+nbclas)))).T
+    ncl = lclas.shape[0]
+
+    if vdir.shape[0] != vtol.size:
+        raise ValueError('Number of directions inconsistent with nb of regularization')
+    ndir = vdir.shape[0]
+
+    n = x.size
+    gexp = np.zeros((ncl, 3, ndir))
+    u = _poletocart(np.vstack((vdir, np.zeros((ndir,)))).T)
+    tol = np.cos(vtol * np.pi/180)
+
+    for i in range(n-1):
+        yt = np.vstack((i+np.zeros((n-i-1,),dtype=int), np.arange(i+1,n,dtype=int))).T
+
+        dx = x[yt[:,1]]-x[yt[:,0]]
+        dy = y[yt[:,1]]-y[yt[:,0]]
+        ht = np.sqrt( dx*dx + dy*dy )
+
+        uobs = np.zeros((dx.shape[0],3))
+        uobs[:,0] = dx/ht
+        uobs[:,1] = dy/ht
+
+        for idir in range(ndir):
+            
+            da = np.dot(uobs, u[idir,:].T)
+            if vtol[idir] < 90.0:
+                # compute distance between pts and azimuth line
+                c = -(u[idir,0]*x[i] + u[idir,1]*y[i])
+                dist = np.abs(u[idir,0]*x[yt[:,1]] + u[idir,1]*y[yt[:,1]] + c) / np.sqrt(u[idir,0]*u[idir,0] + u[idir,1]*u[idir,1])
+                ind = np.logical_and(np.abs(da) >= tol[idir], dist < bandwidth[idir])
+            else:
+                ind = np.abs(da) >= tol[idir]
+
+            h = ht[ind]
+            yy = yt[ind,:]
+
+            var = 0.5 * (v[yy[:,0]] - v[yy[:,1]])**2
+
+            for ic in range(ncl):
+                ind = np.logical_and(h>lclas[ic,0], h<=lclas[ic,1])
+                gexp[ic,1,idir] += np.sum(ind)
+                gexp[ic,0,idir] += np.sum(h[ind])
+                gexp[ic,2,idir] += np.sum(var[ind])
+
+    for idir in range(ndir):
+        ind = gexp[:,1,idir] > 0
+        gexp[ind,0,idir] /= gexp[ind,1,idir]
+        gexp[ind,2,idir] /= gexp[ind,1,idir]
+
+    return gexp
+
+def _poletocart(pole):
+    pole *= np.pi/180.0
+    x = np.zeros((pole.shape[0], 3))
+    x[:,0] = np.cos(pole[:,1]) * np.sin(pole[:,0])
+    x[:,1] = np.cos(pole[:,1]) * np.cos(pole[:,0])
+    x[:,2] = -np.sin(pole[:,1])
+    return x
 
 if __name__ == '__main__':
 
@@ -888,7 +979,8 @@ if __name__ == '__main__':
     test2 = False
     testNormScore = False
     testExample2 = False
-    testVariof = True
+    testVariof = False
+    testVarioExp = True
 
     if testBasic:
         x=np.array([[0.0,0.0],
@@ -1119,10 +1211,30 @@ if __name__ == '__main__':
     if testVariof:
         m1 = np.array([[3.0, 6.0, 5.0],[7.0, 2.0, 2.0],[4.0, np.NaN, 0.0]])
         gh11, nh11 = variof1(m1)
-        
+
         m2 = np.array([[3.0, 6.0, 5.0, 1.0],[7.0, 2.0, 2.0, np.NaN],[2.0, 4.0, np.NaN, 0.0],[1.0, 3.0, 2.0, 0.0]])
         gh22, nh22 = variof1(m2)
-        
+
         m3 = np.array([[3.0, 6.0, 5.0, 1.0],[7.0, 2.0, 2.0, np.NaN],[2.0, 4.0, np.NaN, 0.0]])
         gh33, nh33 = variof1(m3)
+
+    if testVarioExp:
+        x = np.array([[0.1, 0.1, 1.2],
+              [5.1, 3.3, 0.7],
+              [1.2, 7.8, 1.3],
+              [8.8, 5.5, 0.3],
+              [9.9, 1.9, 1.5]])
+
+        y = x[:,1].flatten()
+        v = x[:,2].flatten()
+        x = x[:,0].flatten()
+    
+        nbclas = 3
+        lclas = np.array([5.0])
+        vdir = np.array([0.0, 45.0])
+        vreg = np.array([45.0, 45.0])
+        bw = np.array([2.0, 2.0])
+        
+        
+        g = varioexp2d(x, y, v, nbclas, lclas, vdir, vreg, bw)
         
