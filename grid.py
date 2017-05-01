@@ -717,6 +717,33 @@ class Grid2D(Grid):
         h5f.create_dataset(fieldname, data=field.reshape((nx,nz)).T.astype(np.float32))
         h5f.close()
 
+
+class Grid3D(Grid):
+    """
+    Class for 3D grids -> TO COMPLETE!!!
+    """
+    def __init__(self, grx=None, gry=None, grz=None, nthreads=1):
+        Grid.__init__(self)
+        if grx is not None:
+            self.grx = grx
+        if gry is not None:
+            self.gry = gry
+        if grz is not None:
+            self.grz = grz
+        self.nthreads = nthreads
+        self.nsnx = 10
+        self.nsny = 10
+        self.nsnz = 10
+        self.cgrid = None
+        self.border = np.array([1, 1, 1, 1])
+        self.flip = 0
+        self.borehole_x0 = 1
+        self.x0 = np.array([])
+        self.type = None
+
+
+
+
 if __name__ == '__main__':
 
     from mpl_toolkits.mplot3d import Axes3D # @UnresolvedImport
