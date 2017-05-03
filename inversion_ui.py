@@ -934,7 +934,7 @@ class InversionUI(QtWidgets.QFrame):
 #        self.initUI()
 #
 #    def openfile(self):
-#        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
+#        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
 #
 #        self.load_file(filename)
 #
@@ -1188,11 +1188,11 @@ class ResidualsFig(FigureCanvasQTAgg):
         self.ax5 = self.figure.axes[4]
 
         #                      Layout
-        # ---------------------------------------
+        #---------------------------------------
         # |       ax1       |        ax2        |
-        # ---------------------------------------
+        #---------------------------------------
         # |       ax3       |      ax4/ax5      |
-        # ---------------------------------------
+        #---------------------------------------
 
         self.ax1.set_ylabel('||res||')
         self.ax1.set_xlabel('Iteration')

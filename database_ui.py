@@ -28,6 +28,11 @@ import time
 import os
 import shelve
 
+try:
+    from dbm import ndbm
+except ImportError:
+    ndbm = None
+
 class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
@@ -127,8 +132,8 @@ class DatabaseUI(QtWidgets.QWidget):
             self.load_file(self.filename)
 
     def openfile(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
-        if filename is not '':
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+        if filename:
             if '.db' in filename:
                 filename = filename[:-3]
             self.load_file(filename)
@@ -203,6 +208,7 @@ class DatabaseUI(QtWidgets.QWidget):
             self.update_log('Error: Database could not be saved')
 
     def saveasfile(self):
+        #TODO: verify type of output of getSaveFileName
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
                                                      self.name, filter= 'shelve (*.db)', )
         if filename is not '':
@@ -328,7 +334,6 @@ if __name__ == '__main__':
 
 
     Database_ui.show()
-
 
 
     sys.exit(app.exec_())

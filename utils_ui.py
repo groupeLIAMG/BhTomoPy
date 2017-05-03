@@ -66,8 +66,8 @@ def chooseMOG(filename=None):
     def choose_db():
         nonlocal d
         nonlocal l0
-        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')
-        if filename is not '':
+        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
+        if filename:
             if '.db' in filename:
                 filename = filename[:-3]
             l0.setText( os.path.basename(filename) )
@@ -97,7 +97,7 @@ def chooseMOG(filename=None):
             l0.setText( '' )
 
 
-    if filename is not None and filename is not '':
+    if filename:
         l0.setText( os.path.basename(filename) )
         load_mogs(filename)
     else:
@@ -159,8 +159,8 @@ def chooseModel(filename=None):
     def choose_db():
         nonlocal d
         nonlocal l0
-        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')
-        if filename is not '':
+        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
+        if filename:
             if '.db' in filename:
                 filename = filename[:-3]
             l0.setText( os.path.basename(filename) )
@@ -190,7 +190,7 @@ def chooseModel(filename=None):
             l0.setText( '' )
 
 
-    if filename is not None and filename is not '':
+    if filename:
         l0.setText( os.path.basename(filename) )
         load_models(filename)
     else:

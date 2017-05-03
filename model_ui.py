@@ -32,7 +32,7 @@ from events_ui import GridEdited
 
 
 class ModelUI(QtWidgets.QWidget):
-    # ------- Signals Emitted -------#
+    #------- Signals Emitted -------#
     modelInfoSignal = QtCore.pyqtSignal(int)
     modellogSignal = QtCore.pyqtSignal(str)
 
@@ -81,12 +81,13 @@ class ModelUI(QtWidgets.QWidget):
 
 
     def remove_mog(self):
-        n = self.model_list.selectedIndexes()[0].row()
-        ind = self.model_mog_list.currentIndex().row()
-
-        del self.models[n].mogs[ind]
-        self.update_model_mog_list()
-        self.update_models_boreholes()
+        if len(self.model_mog_list) != 0:
+            n = self.model_list.selectedIndexes()[0].row()
+            ind = self.model_mog_list.currentIndex().row()
+    
+            del self.models[n].mogs[ind]
+            self.update_model_mog_list()
+            self.update_models_boreholes()
 
     def update_model_mog_list(self):
         self.model_mog_list.clear()
@@ -193,8 +194,8 @@ class ModelUI(QtWidgets.QWidget):
             gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
             gridinfo.num_cell_label.setText(str(grid.getNumberOfCells()))  # TODO update field when grid is edited
 
-        # -------- Widgets Creation --------#
-        # --- Buttons ---#
+        #-------- Widgets Creation --------#
+        #--- Buttons ---#
         add_edit_btn            = QtWidgets.QPushButton('Add/Edit Constraints')
         cancel_btn              = QtWidgets.QPushButton('Cancel')
         done_btn                = QtWidgets.QPushButton('Done')
@@ -205,7 +206,7 @@ class ModelUI(QtWidgets.QWidget):
         done_btn.clicked.connect(done)
         
 
-        # --- ComboBox ---#
+        #--- ComboBox ---#
         bhfig_combo        = QtWidgets.QComboBox()
 
         # - Combobox items -#
@@ -231,7 +232,7 @@ class ModelUI(QtWidgets.QWidget):
         bhs_grid.addWidget(bhsFig, 1, 0, 1, 8)
         bhs_group.setLayout(bhs_grid)
 
-        # --- Grid UI --- #
+        #--- Grid UI --- #
         
         if gtype is '2D':
             gUI = Grid2DUI(data, g, gridinfo) # gridinfo used as parent to propagate GridEdited events
@@ -242,7 +243,7 @@ class ModelUI(QtWidgets.QWidget):
             # TODO 3D
             pass
         
-        # ------- Master grid's disposition -------#
+        #------- Master grid's disposition -------#
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(grid_info_group, 0, 0)
         master_grid.addWidget(add_edit_btn, 1, 0)
