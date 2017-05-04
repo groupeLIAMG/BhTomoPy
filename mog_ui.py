@@ -71,11 +71,7 @@ class MOGUI(QtWidgets.QWidget):
             self.load_file_MOG(filename)
 
     def load_file_MOG(self, filename):
-        
         # Conditions to get the path of the file itself in order to execute it
-        print(".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower())
-        print(filename)
-        print(filename.lower())
         if ".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower():
             basename = filename[:-4]
 
@@ -772,6 +768,11 @@ class MOGUI(QtWidgets.QWidget):
 
     def start_delta_t(self):
         self.deltat = DeltaTMOG(self)
+        
+        if len(self.MOG_list) == 0:
+            QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
+                                          buttons= QtWidgets.QMessageBox.Ok )
+            return
         for mog in self.MOGs:
             self.deltat.min_combo.addItem(str(mog.name))
         self.deltat.getcompat()
@@ -952,8 +953,8 @@ class MOGUI(QtWidgets.QWidget):
         prunemanagergrid.addWidget(self.prunetool, 0, 0, 1, 3)
         prunemanagergrid.addWidget(self.pruneFig, 1, 0, 2, 2)
         prunemanagergrid.addWidget(Sub_prune_widget, 1, 2)
-        prunemanagergrid.setColumnStretch(0, 100)
-        prunemanagergrid.setRowStretch(0, 100)
+#         prunemanagergrid.setColumnStretch(0, 100)
+#         prunemanagergrid.setRowStretch(0, 100)
         self.prunemanager.setLayout(prunemanagergrid)
 
         #------- Widgets in Raycoverage -------#
@@ -1039,7 +1040,7 @@ class MOGUI(QtWidgets.QWidget):
         sub_coverage_grid.addWidget(sub_coverage_elev_widget, 2, 0)
         sub_coverage_grid.addWidget(self.entire_coverage_check, 3, 0)
         sub_coverage_grid.addWidget(self.show_type_combo, 4, 0)
-        sub_coverage_grid.setRowStretch(5, 100)
+#         sub_coverage_grid.setRowStretch(5, 100)
         sub_coverage_widget.setLayout(sub_coverage_grid)
 
 
@@ -1174,8 +1175,8 @@ class MOGUI(QtWidgets.QWidget):
         zopmanagergrid = QtWidgets.QGridLayout()
         zopmanagergrid.addWidget(self.zopFig, 0, 0, 2, 5)
         zopmanagergrid.addWidget(control_group, 0, 5)
-        zopmanagergrid.setColumnStretch(1, 100)
-        zopmanagergrid.setRowStretch(1, 100)
+#         zopmanagergrid.setColumnStretch(1, 100)
+#         zopmanagergrid.setRowStretch(1, 100)
         self.zopmanager.setLayout(zopmanagergrid)
 
 
@@ -1303,7 +1304,7 @@ class MOGUI(QtWidgets.QWidget):
         sub_total_grid = QtWidgets.QGridLayout()
         sub_total_grid.addWidget(sub_first_widget, 0, 0)
         sub_total_grid.addWidget(dominant_frequency_GroupBox, 2, 0)
-        sub_total_grid.setRowStretch(1, 100)
+#         sub_total_grid.setRowStretch(1, 100)
         sub_total_widget.setLayout(sub_total_grid)
 
         #------ Creation of the Manager for the Spectra figure -------#
@@ -1316,7 +1317,7 @@ class MOGUI(QtWidgets.QWidget):
         spectramanagergrid.addWidget(self.search_info_label, 0, 6)
         spectramanagergrid.addWidget(self.spectraFig, 1, 0, 1, 6)
         spectramanagergrid.addWidget(sub_total_widget, 1, 6)
-        spectramanagergrid.setColumnStretch(1, 100)
+#         spectramanagergrid.setColumnStretch(1, 100)
         self.spectramanager.setLayout(spectramanagergrid)
 
         #------- Widgets Creation -------#
@@ -1397,7 +1398,7 @@ class MOGUI(QtWidgets.QWidget):
 
         # - Edits Disposition -#
         self.Date_edit.setAlignment(QtCore.Qt.AlignHCenter)
-
+        
         #--- Buttons actions ---#
         btn_Add_MOG.clicked.connect(self.add_MOG)
         btn_Rename.clicked.connect(self.rename)
@@ -1424,30 +1425,31 @@ class MOGUI(QtWidgets.QWidget):
         Sub_AirShots_Grid.addWidget(Type_label, 0, 1)
         Sub_AirShots_Grid.addWidget(Tx_label, 1, 1)
         Sub_AirShots_Grid.addWidget(Rx_label, 2, 1)
-        Sub_AirShots_Grid.addWidget(self.Type_combo, 0, 2, 1, 2)
-        Sub_AirShots_Grid.addWidget(self.Tx_combo, 1, 2, 1, 2)
-        Sub_AirShots_Grid.addWidget(self.Rx_combo, 2, 2, 1, 2)
+        Sub_AirShots_Grid.addWidget(self.Type_combo, 0, 2)
+        Sub_AirShots_Grid.addWidget(self.Tx_combo, 1, 2)
+        Sub_AirShots_Grid.addWidget(self.Rx_combo, 2, 2)
         Sub_AirShots_Grid.addWidget(self.Air_shots_checkbox, 3, 0)
+        Sub_AirShots_Grid.addWidget(self.Air_Shot_Before_edit, 4, 2)
+        Sub_AirShots_Grid.addWidget(self.Air_Shot_After_edit, 5, 2)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_Before, 4, 0, 1, 2)
         Sub_AirShots_Grid.addWidget(btn_Air_Shot_After, 5, 0, 1, 2)
-        Sub_AirShots_Grid.addWidget(self.Air_Shot_Before_edit, 4, 2, 1, 2)
-        Sub_AirShots_Grid.addWidget(self.Air_Shot_After_edit, 5, 2, 1, 2)
+        Sub_AirShots_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_AirShots_Widget.setLayout(Sub_AirShots_Grid)
 
         # - Sub Labels, Checkbox and Edits Widget -#
         Sub_Labels_Checkbox_and_Edits_Widget = QtWidgets.QWidget()
         Sub_Labels_Checkbox_and_Edits_Grid   = QtWidgets.QGridLayout()
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Nominal_Frequency_label,0, 1)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Rx_Offset_label,1, 1)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Nominal_Frequency_label, 0, 1)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Rx_Offset_label, 1, 1)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Correction_Factor_checkbox, 3, 1)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Tx_Offset_label,2, 1)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Multiplication_Factor_label,4, 1)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Date_label,7, 0)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Nominal_Frequency_edit,0, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Rx_Offset_edit,1, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Tx_Offset_edit,2, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Correction_Factor_edit,3, 2)
-        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Multiplication_Factor_edit,4, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Tx_Offset_label, 2, 1)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Multiplication_Factor_label, 4, 1)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(Date_label, 7, 0)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Nominal_Frequency_edit, 0, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Rx_Offset_edit, 1, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Tx_Offset_edit, 2, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Correction_Factor_edit, 3, 2)
+        Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Multiplication_Factor_edit, 4, 2)
         Sub_Labels_Checkbox_and_Edits_Grid.addWidget(self.Date_edit, 7, 1, 1, 2)
         Sub_Labels_Checkbox_and_Edits_Widget.setLayout(Sub_Labels_Checkbox_and_Edits_Grid)
 
@@ -1467,22 +1469,23 @@ class MOGUI(QtWidgets.QWidget):
         sub_right_buttons_Grid.addWidget(btn_export_tau, 4, 2)
         sub_right_buttons_Grid.addWidget(btn_Prune, 4, 3)
         sub_right_buttons_Grid.addWidget(btn_delta_t_mog, 5, 2)
-        sub_right_buttons_Grid.setVerticalSpacing(0)
-        sub_right_buttons_Grid.setHorizontalSpacing(0)
-        sub_right_buttons_Grid.setRowStretch(0, 100)
-        sub_right_buttons_Grid.setRowStretch(5, 100)
-        sub_right_buttons_Grid.setColumnStretch(0, 100)
-        sub_right_buttons_Grid.setColumnStretch(5, 100)
+#         sub_right_buttons_Grid.setVerticalSpacing(0)
+#         sub_right_buttons_Grid.setHorizontalSpacing(0)
+#         sub_right_buttons_Grid.setRowStretch(0, 100)
+#         sub_right_buttons_Grid.setRowStretch(5, 100)
+#         sub_right_buttons_Grid.setColumnStretch(0, 100)
+#         sub_right_buttons_Grid.setColumnStretch(5, 100)
         sub_right_buttons_widget.setLayout(sub_right_buttons_Grid)
 
         # - MOG and list Sub Widget -#
         sub_MOG_and_List_widget            = QtWidgets.QWidget()
         sub_MOG_and_List_Grid              = QtWidgets.QGridLayout()
-        sub_MOG_and_List_Grid.addWidget(btn_Add_MOG, 0, 0, 1, 2)
-        sub_MOG_and_List_Grid.addWidget(btn_Remove_MOG, 0, 2, 1, 2)
-        sub_MOG_and_List_Grid.addWidget(self.MOG_list, 1, 0, 1, 4)
+        sub_MOG_and_List_Grid.addWidget(btn_Add_MOG, 0, 0)
+        sub_MOG_and_List_Grid.addWidget(btn_Remove_MOG, 0, 1)
+        sub_MOG_and_List_Grid.addWidget(self.MOG_list, 1, 0, 1, 2)
+        sub_MOG_and_List_Grid.setContentsMargins(0, 0, 0, 0)
         sub_MOG_and_List_widget.setLayout(sub_MOG_and_List_Grid)
-
+        
         #------- Grid Disposition -------#
         master_grid                        = QtWidgets.QGridLayout()
         #--- Sub Widgets Disposition ---#
@@ -1490,8 +1493,9 @@ class MOGUI(QtWidgets.QWidget):
         master_grid.addWidget(sub_right_buttons_widget, 0, 1)
         master_grid.addWidget(Sub_Labels_Checkbox_and_Edits_Widget, 1, 1)
         master_grid.addWidget(Sub_AirShots_Widget, 1, 0)
-        master_grid.setColumnStretch(1, 300)
         master_grid.setContentsMargins(0, 0, 0, 0)
+        
+        # ------- set Layout -------#
         self.setLayout(master_grid)
 
 
@@ -2526,8 +2530,7 @@ class DeltaTMOG(QtWidgets.QWidget):
                 self.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
-
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def done(self):
         if len(self.sub_combo) == 0:

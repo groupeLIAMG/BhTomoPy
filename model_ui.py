@@ -667,10 +667,10 @@ class GridInfoUI(QtWidgets.QFrame):
 
         #-------- Widgets --------#
         #--- Labels ---#
-        cell_label = MyQLabel('Number of Cells', ha= 'center')
-        data_label = MyQLabel('Number of Data', ha= 'center')
-        tt_picked_label = MyQLabel('Traveltimes Picked', ha= 'left')
-        amp_picked_label = MyQLabel('Amplitudes Picked', ha= 'left')
+        cell_label = MyQLabel('Number of cells', ha= 'center')
+        data_label = MyQLabel('Number of data', ha= 'center')
+        tt_picked_label = MyQLabel('Traveltimes picked', ha= 'left')
+        amp_picked_label = MyQLabel('Amplitudes picked', ha= 'left')
 
         self.num_cell_label = MyQLabel('0', ha= 'center')
         self.num_data_label = MyQLabel('0', ha= 'center')

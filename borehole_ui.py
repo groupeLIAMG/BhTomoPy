@@ -159,14 +159,14 @@ class BoreholeUI(QtWidgets.QWidget):
 
     def plot(self):
         """
-        Plots the all the Borehole instance in boreholes
+        Plots all the Borehole instances in boreholes
         """
         if len(self.boreholes) != 0:
             self.bholeFig = BoreholeFig()
             self.bholeFig.plot_bholes(self.boreholes)
     
             for bh in self.boreholes:
-                self.bhlogSignal.emit("{}'s trajectory have been plotted".format(bh.name))
+                self.bhlogSignal.emit("{}'s trajectory has been plotted".format(bh.name))
             self.bholeFig.show()
 
 
@@ -274,7 +274,7 @@ class BoreholeUI(QtWidgets.QWidget):
         Y_label                  = MyQLabel('Y:', ha='right')
         Elev_label               = MyQLabel('Elevation:', ha='right')
         Elev_surf_label          = QtWidgets.QLabel("Elevation at surface:")
-        Elev_water_label         = MyQLabel('water elevation:', ha='right')
+        Elev_water_label         = MyQLabel('Water elevation:', ha='right')
 
 
         #--- Edits ---#
@@ -306,7 +306,7 @@ class BoreholeUI(QtWidgets.QWidget):
         btn_Import.clicked.connect(self.import_bhole)
         btn_Plot.clicked.connect(self.plot)
         btn_Constraints_atten.clicked.connect(self.attenuation_constraints)
-        btn_Constraints_veloc.clicked.connect( self.slowness_constraints)
+        btn_Constraints_veloc.clicked.connect(self.slowness_constraints)
 
         #--- SubWidgets ---#
         #--- Edits and Labels SubWidget ---#
@@ -364,7 +364,7 @@ class BoreholeFig(FigureCanvasQTAgg):
 
     def __init__(self):
         """
-        Here we create a 3d figure in which we will plot the Borehole instances trajectory (i.e. their respective fdata)
+        Here we create a 3d figure in which we will plot the Borehole instances' trajectory (i.e. their respective fdata)
         """
 
         fig_width, fig_height = 6, 8
