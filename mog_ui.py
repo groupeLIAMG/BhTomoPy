@@ -40,11 +40,11 @@ from utils import compute_SNR, data_select
 from utils_ui import chooseMOG
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Multi Offset Gather User Interface (MOGUI) Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class MOGUI(QtWidgets.QWidget):
 
     mogInfoSignal = QtCore.pyqtSignal(int)
@@ -64,19 +64,13 @@ class MOGUI(QtWidgets.QWidget):
 
 
     def add_MOG(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
 
+        print(filename)
         if filename:
             self.load_file_MOG(filename)
 
     def load_file_MOG(self, filename):
-        rname = filename.split('/')  # the split method gives back a list which contains all the caracters that were
-        rname = rname[-1]            # separated by /, and the name of file (i.e. rname) is the last item of this list
-
-        # Conditions to get the name of the file itself in order to put it in our MOG_list
-        if ".rad" in rname.lower() or ".rd3" in rname.lower() or ".tlf" in rname.lower():
-            rname = rname[:-4]
-
         # Conditions to get the path of the file itself in order to execute it
         if ".rad" in filename.lower() or ".rd3" in filename.lower() or ".tlf" in filename.lower():
             basename = filename[:-4]
@@ -84,24 +78,31 @@ class MOGUI(QtWidgets.QWidget):
         else:
             self.moglogSignal.emit("Error: MOG file must have either *.rad, *.rd3 or *.tlf extension")
             return
-
-        for rep in basename.split('/')[:-1]:
-            self.data_rep = self.data_rep + rep + '/'
-        self.data_rep = self.data_rep[:-1]
-
-        mogdata = MogData(rname)
-        mogdata.readRAMAC(basename)
-        mog = Mog(rname, mogdata)
-        self.MOGs.append(mog)
-        self.update_List_Widget()
-        self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
-        self.update_spectra_and_coverage_Tx_num_list()
-        self.update_spectra_and_coverage_Tx_elev_value_label()
-        self.update_edits()
-        self.update_prune_edits_info()
-        self.update_prune_info()
-        self.moglogSignal.emit("{} Multi Offset-Gather as been loaded succesfully".format(rname))
-
+        
+        try:
+            rname = basename.split('/')  # the split method gives us back a list which contains al the caracter that were
+            rname = rname[-1]            # separated by / and the name of file (i.e. rname) is the last item of this list
+    
+            for rep in basename.split('/')[:-1]:
+                self.data_rep = self.data_rep + rep + '/'
+            self.data_rep = self.data_rep[:-1]
+    
+            mogdata = MogData(rname)
+            mogdata.readRAMAC(basename)
+            mog = Mog(rname, mogdata)
+            self.MOGs.append(mog)
+            self.update_List_Widget()
+            self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
+            self.update_spectra_and_coverage_Tx_num_list()
+            self.update_spectra_and_coverage_Tx_elev_value_label()
+            self.update_edits()
+            self.update_prune_edits_info()
+            self.update_prune_info()
+            self.moglogSignal.emit("{} Multi Offset-Gather as been loaded succesfully".format(rname))
+            
+        except:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened",
+                                      buttons=QtWidgets.QMessageBox.Ok)
 
     def update_edits(self):
         """
@@ -169,7 +170,6 @@ class MOGUI(QtWidgets.QWidget):
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
 
-
     def rename(self):
         ind = self.MOG_list.selectedIndexes()
         new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'new MOG name')
@@ -203,7 +203,7 @@ class MOGUI(QtWidgets.QWidget):
 
             # the object ind contains all the selected indexes
             for i in ind:
-                #then we get only the real name of the file(i.e. not the path behind it)
+                #then we get only the real name of the file (i.e. not the path behind it)
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
@@ -218,8 +218,8 @@ class MOGUI(QtWidgets.QWidget):
                 else:
                     n = len(self.air)
 
-                    # because of the fact that Airshots files are either rd3, tlf or rad , we apply the method read
-                    # ramac to get the informations frome these files
+                    # because of the fact that Airshots files are either rd3, tlf or rad, we apply the method read
+                    # ramac to get the informations from these files
                     try:
                         data = MogData()
                         data.readRAMAC(basename)
@@ -227,8 +227,8 @@ class MOGUI(QtWidgets.QWidget):
                         self.moglogSignal.emit('Error: AirShot File must have *.rad, *.tlf or *.rd3 extension')
                         return
 
-                    # Then we ask if the airshots were done in a sucession of positions or at a fixed posisitons
-                    distance, ok = QtWidgets.QInputDialog.getText(self, 'Aishots Before', 'Distance between Tx and Rx :')
+                    # Then we ask if the airshots were done in a succession of positions or at a fixed position
+                    distance, ok = QtWidgets.QInputDialog.getText(self, 'Airshots Before', 'Distance between Tx and Rx :')
 
                     # The getText method returns a tuple containing the entered data and a boolean factor
                     # (i.e. if the ok button is clicked, it returns True)
@@ -259,7 +259,7 @@ class MOGUI(QtWidgets.QWidget):
 
 
     def airAfter(self):
-        # As you can see, the air After method is almost the same as airBefore (refer to airBefore for any questions)
+        # As you can see, the airAfter method is almost the same as airBefore (refer to airBefore for any questions)
 
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
 
@@ -807,7 +807,7 @@ class MOGUI(QtWidgets.QWidget):
         char1 = unicodedata.lookup("GREEK SMALL LETTER TAU")
         char2 = unicodedata.lookup("GREEK CAPITAL LETTER DELTA")
 
-        # -------- Creation of the manager for the ZOPRay figure -------#
+        #-------- Creation of the manager for the ZOPRay figure -------#
         self.zopraysFig = ZOPRaysFig()
         self.zopraysmanager = QtWidgets.QWidget()
         self.zopraystool = NavigationToolbar2QT(self.zopraysFig, self)
@@ -816,7 +816,7 @@ class MOGUI(QtWidgets.QWidget):
         zopraysmanagergrid.addWidget(self.zopraysFig, 1, 0)
         self.zopraysmanager.setLayout(zopraysmanagergrid)
 
-        # -------- Creation of the manager for the Stats Amp figure -------#
+        #-------- Creation of the manager for the Stats Amp figure -------#
         self.statsampFig = StatsAmpFig()
         self.statsampmanager = QtWidgets.QWidget()
         self.statsamptool = NavigationToolbar2QT(self.statsampFig, self)
@@ -825,7 +825,7 @@ class MOGUI(QtWidgets.QWidget):
         statsampmanagergrid.addWidget(self.statsampFig, 1, 0)
         self.statsampmanager.setLayout(statsampmanagergrid)
 
-        # ------- Creation of the manager for the Stats tt figure -------#
+        #------- Creation of the manager for the Stats tt figure -------#
         self.statsttFig = StatsttFig()
         self.statsttmanager = QtWidgets.QWidget()
         self.statstttool = NavigationToolbar2QT(self.statsttFig, self)
@@ -834,8 +834,8 @@ class MOGUI(QtWidgets.QWidget):
         statsttmanagergrid.addWidget(self.statsttFig, 1, 0)
         self.statsttmanager.setLayout(statsttmanagergrid)
 
-        # ------- Widgets in Prune -------#
-        # --- Labels ---#
+        #------- Widgets in Prune -------#
+        #--- Labels ---#
         skip_Tx_label = MyQLabel('Number of stations to Skip - Tx', ha='center')
         skip_Rx_label = MyQLabel('Number of stations to Skip - Rx', ha='center')
         round_fac_label = MyQLabel('Rouding Factor', ha='center')
@@ -859,7 +859,7 @@ class MOGUI(QtWidgets.QWidget):
         self.value_ray_angle_removed_label = MyQLabel('0', ha='right')
         self.value_traces_kept_label = MyQLabel('100', ha='right')
 
-        # --- Edits ---#
+        #--- Edits ---#
         self.skip_Tx_edit = QtWidgets.QLineEdit('0')
         self.skip_Rx_edit = QtWidgets.QLineEdit('0')
         self.round_fac_edit = QtWidgets.QLineEdit('0')
@@ -888,16 +888,16 @@ class MOGUI(QtWidgets.QWidget):
         self.max_elev_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.tresh_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        # --- CheckBox ---#
+        #--- CheckBox ---#
         self.tresh_check = QtWidgets.QCheckBox('Treshold - SNR')
 
         # - CheckBox Action -#
         self.tresh_check.stateChanged.connect(self.update_prune)
 
-        # --- Button ---#
+        #--- Button ---#
         btn_done = QtWidgets.QPushButton('Done')
 
-        # --- Info Frame ---#
+        #--- Info Frame ---#
         info_frame = QtWidgets.QFrame()
         info_frame_grid =QtWidgets.QGridLayout()
         info_frame_grid.addWidget(self.value_Tx_info_label, 1, 0)
@@ -916,13 +916,13 @@ class MOGUI(QtWidgets.QWidget):
         info_frame.setLayout(info_frame_grid)
         info_frame.setStyleSheet('background: white')
 
-        # --- Info GroupBox ---#
+        #--- Info GroupBox ---#
         info_group = QtWidgets.QGroupBox('Informations')
         info_grid = QtWidgets.QGridLayout()
         info_grid.addWidget(info_frame, 0, 0)
         info_group.setLayout(info_grid)
 
-        # --- Prune SubWidget ---#
+        #--- Prune SubWidget ---#
         Sub_prune_widget = QtWidgets.QWidget()
         Sub_prune_grid = QtWidgets.QGridLayout()
         Sub_prune_grid.addWidget(skip_Tx_label, 0, 0)
@@ -945,7 +945,7 @@ class MOGUI(QtWidgets.QWidget):
         Sub_prune_grid.addWidget(btn_done, 17, 0)
         Sub_prune_widget.setLayout(Sub_prune_grid)
 
-        # -------- Creation of the manager for Prune Figure --------#
+        #-------- Creation of the manager for Prune Figure --------#
         self.pruneFig = PruneFig()
         self.prunetool = NavigationToolbar2QT(self.pruneFig, self)
         self.prunemanager = QtWidgets.QWidget()
@@ -957,8 +957,8 @@ class MOGUI(QtWidgets.QWidget):
 #         prunemanagergrid.setRowStretch(0, 100)
         self.prunemanager.setLayout(prunemanagergrid)
 
-        # ------- Widgets in Raycoverage -------#
-        # --- Edit ---#
+        #------- Widgets in Raycoverage -------#
+        #--- Edit ---#
         self.trace_num_edit = QtWidgets.QLineEdit('1')
 
         # - Edit's Actions -#
@@ -968,7 +968,7 @@ class MOGUI(QtWidgets.QWidget):
         # - Edit's Disposition -#
         self.trace_num_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        # --- Buttons ---#
+        #--- Buttons ---#
         next_trace_btn = QtWidgets.QPushButton('Next Tx')
         prev_trace_btn = QtWidgets.QPushButton('Prev Tx')
 
@@ -976,36 +976,36 @@ class MOGUI(QtWidgets.QWidget):
         next_trace_btn.clicked.connect(self.next_trace)
         prev_trace_btn.clicked.connect(self.prev_trace)
 
-        # --- List ---#
+        #--- List ---#
         self.trace_num_combo = QtWidgets.QComboBox()
 
         # - List Actions -#
         self.trace_num_combo.activated.connect(self.update_spectra_and_coverage_Tx_elev_value_label)
         self.trace_num_combo.activated.connect(self.plot_ray_coverage)
 
-        # --- Labels ---#
+        #--- Labels ---#
         coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
         self.value_elev_label = MyQLabel('', ha= 'left')
         trace_label = MyQLabel('Tx Number: ', ha= 'right')
 
-        # --- CheckBox ---#
+        #--- CheckBox ---#
         self.entire_coverage_check = QtWidgets.QCheckBox('Show entire coverage')
         self.entire_coverage_check.stateChanged.connect(self.plot_ray_coverage)
 
-        # --- Combobox ---#
+        #--- Combobox ---#
         self.show_type_combo = QtWidgets.QComboBox()
         show_list = ['Show picked and unpicked', 'Show picked only', 'Show unpicked only']
         self.show_type_combo.addItems(show_list)
         self.show_type_combo.activated.connect(self.plot_ray_coverage)
 
-        # --- Elevation SubWidget ---#
+        #--- Elevation SubWidget ---#
         sub_coverage_elev_widget = QtWidgets.QWidget()
         sub_coverage_elev_grid = QtWidgets.QGridLayout()
         sub_coverage_elev_grid.addWidget(coverage_elev_label, 0, 0)
         sub_coverage_elev_grid.addWidget(self.value_elev_label, 0, 1)
         sub_coverage_elev_widget.setLayout(sub_coverage_elev_grid)
 
-        # --- Trace SubWidget ---#
+        #--- Trace SubWidget ---#
         sub_trace_widget = QtWidgets.QWidget()
         sub_trace_grid = QtWidgets.QGridLayout()
         sub_trace_grid.addWidget(trace_label, 0, 0)
@@ -1013,7 +1013,7 @@ class MOGUI(QtWidgets.QWidget):
         sub_trace_grid.setContentsMargins(0, 0, 0, 0)
         sub_trace_widget.setLayout(sub_trace_grid)
 
-        # --- Buttons SubWidget ---#
+        #--- Buttons SubWidget ---#
         sub_buttons_widget = QtWidgets.QWidget()
         sub_buttons_grid = QtWidgets.QGridLayout()
         sub_buttons_grid.addWidget(next_trace_btn, 0, 1)
@@ -1021,7 +1021,7 @@ class MOGUI(QtWidgets.QWidget):
         sub_buttons_grid.setContentsMargins(0, 0, 0, 0)
         sub_buttons_widget.setLayout(sub_buttons_grid)
 
-        # --- Global SubWidget ---#
+        #--- Global SubWidget ---#
         #First Option
         #sub_coverage_widget = QtWidgets.QWidget()
         #sub_coverage_grid = QtWidgets.QGridLayout()
@@ -1044,7 +1044,7 @@ class MOGUI(QtWidgets.QWidget):
         sub_coverage_widget.setLayout(sub_coverage_grid)
 
 
-        # -------- Creation of the manager for the Ray Coverage figure -------#
+        #-------- Creation of the manager for the Ray Coverage figure -------#
         self.raycoverageFig = RayCoverageFig()
         self.raymanager = QtWidgets.QWidget()
         self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
@@ -1054,15 +1054,15 @@ class MOGUI(QtWidgets.QWidget):
         raymanagergrid.addWidget(sub_coverage_widget, 1, 1)
         self.raymanager.setLayout(raymanagergrid)
 
-        # -------- Widgets in ZOP -------#
-        # --- Labels ---#
+        #-------- Widgets in ZOP -------#
+        #--- Labels ---#
         tmin_label = MyQLabel('t min', ha= 'right')
         tmax_label = MyQLabel('t max', ha= 'right')
         zmin_label = MyQLabel('z min', ha= 'right')
         zmax_label = MyQLabel('z max', ha= 'right')
         tol_label = MyQLabel('Vertical Tx-Rx Offset Tolerance')
 
-        # --- Edits ---#
+        #--- Edits ---#
         self.tmin_edit = QtWidgets.QLineEdit()
         self.tmax_edit = QtWidgets.QLineEdit()
         self.zmin_edit = QtWidgets.QLineEdit()
@@ -1070,7 +1070,7 @@ class MOGUI(QtWidgets.QWidget):
         self.tol_edit = QtWidgets.QLineEdit('0.05')
         self.color_scale_edit = QtWidgets.QLineEdit('7000')
 
-        # --- Edits Disposition ---#
+        #--- Edits Disposition ---#
         self.tmin_edit.setFixedWidth(80)
         self.tmax_edit.setFixedWidth(80)
         self.zmin_edit.setFixedWidth(80)
@@ -1095,7 +1095,7 @@ class MOGUI(QtWidgets.QWidget):
         self.tol_edit.editingFinished.connect(self.plot_zop)
         self.color_scale_edit.editingFinished.connect(self.plot_zop)
 
-        # --- Combobox ---#
+        #--- Combobox ---#
         self.color_scale_combo = QtWidgets.QComboBox()
 
         # - ComboBox Actions -#
@@ -1107,7 +1107,7 @@ class MOGUI(QtWidgets.QWidget):
         self.color_scale_combo.addItem('Medium')
         self.color_scale_combo.addItem('High')
 
-        # --- Checkboxes ---#
+        #--- Checkboxes ---#
         self.veloc_check = QtWidgets.QCheckBox('Show Apparent Velocity')
         self.const_check = QtWidgets.QCheckBox("Show BH's Velocity Constaints")
         self.amp_check = QtWidgets.QCheckBox('Show Amplitude Data')
@@ -1117,15 +1117,15 @@ class MOGUI(QtWidgets.QWidget):
         self.const_check.stateChanged.connect(self.plot_zop)
         self.amp_check.stateChanged.connect(self.plot_zop)
 
-        # --- Buttons ---#
+        #--- Buttons ---#
         btn_show = QtWidgets.QPushButton('Show Rays')
         btn_print = QtWidgets.QPushButton('Print')
 
-        # --- Buttons' Actions ---#
+        #--- Buttons' Actions ---#
         btn_show.clicked.connect(self.plot_zop_rays)
 
-        # ------- SubWidgets in ZOP -------#
-        # --- Time and Elevation SubWidget ---#
+        #------- SubWidgets in ZOP -------#
+        #--- Time and Elevation SubWidget ---#
         Sub_t_and_z_widget = QtWidgets.QWidget()
         Sub_t_and_z_grid = QtWidgets.QGridLayout()
         Sub_t_and_z_grid.addWidget(tmin_label, 0, 0)
@@ -1138,7 +1138,7 @@ class MOGUI(QtWidgets.QWidget):
         Sub_t_and_z_grid.addWidget(self.zmax_edit, 3, 1)
         Sub_t_and_z_widget.setLayout(Sub_t_and_z_grid)
 
-        # --- tolerance SubWidget ---#
+        #--- tolerance SubWidget ---#
         Sub_tol_widget = QtWidgets.QWidget()
         Sub_tol_grid = QtWidgets.QGridLayout()
         Sub_tol_grid.addWidget(tol_label, 0, 0)
@@ -1146,8 +1146,8 @@ class MOGUI(QtWidgets.QWidget):
         Sub_tol_grid.setAlignment(QtCore.Qt.AlignCenter)
         Sub_tol_widget.setLayout(Sub_tol_grid)
 
-        # ------- Groupboxes in ZOP -------#
-        # --- Color Scale GroupBox ---#
+        #------- Groupboxes in ZOP -------#
+        #--- Color Scale GroupBox ---#
         color_group = QtWidgets.QGroupBox('Color Scale')
         color_grid = QtWidgets.QGridLayout()
         color_grid.addWidget(self.color_scale_edit, 0, 0)
@@ -1155,7 +1155,7 @@ class MOGUI(QtWidgets.QWidget):
         color_grid.setAlignment(QtCore.Qt.AlignCenter)
         color_group.setLayout(color_grid)
 
-        # --- Control GroupBox ---#
+        #--- Control GroupBox ---#
         control_group = QtWidgets.QGroupBox('Control')
         control_grid = QtWidgets.QGridLayout()
         control_grid.addWidget(Sub_t_and_z_widget, 0, 0)
@@ -1169,7 +1169,7 @@ class MOGUI(QtWidgets.QWidget):
         control_group.setLayout(control_grid)
 
 
-        # ------- Creation of the manager for the ZOP figure -------#
+        #------- Creation of the manager for the ZOP figure -------#
         self.zopFig = ZOPFig(self)
         self.zopmanager = QtWidgets.QWidget()
         zopmanagergrid = QtWidgets.QGridLayout()
@@ -1180,7 +1180,7 @@ class MOGUI(QtWidgets.QWidget):
         self.zopmanager.setLayout(zopmanagergrid)
 
 
-        # ------- Creation of the Manager for the raw Data figure -------#
+        #------- Creation of the Manager for the raw Data figure -------#
         self.rawdataFig = RawDataFig()
         self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
         self.rawdatamanager = QtWidgets.QWidget()
@@ -1190,7 +1190,7 @@ class MOGUI(QtWidgets.QWidget):
         self.rawdatamanager.setLayout(rawdatamanagergrid)
 
 
-        # --- Widgets in Spectra ---#
+        #--- Widgets in Spectra ---#
         # - Labels -#
         Tx_num_label = MyQLabel(('Tx Number'), ha='center')
         Tx_elev_label = QtWidgets.QLabel('Tx elevation: ')
@@ -1307,7 +1307,7 @@ class MOGUI(QtWidgets.QWidget):
 #         sub_total_grid.setRowStretch(1, 100)
         sub_total_widget.setLayout(sub_total_grid)
 
-        # ------ Creation of the Manager for the Spectra figure -------#
+        #------ Creation of the Manager for the Spectra figure -------#
         self.spectraFig = SpectraFig()
         self.spectratool = NavigationToolbar2QT(self.spectraFig, self)
         self.spectramanager = QtWidgets.QWidget()
@@ -1320,8 +1320,8 @@ class MOGUI(QtWidgets.QWidget):
 #         spectramanagergrid.setColumnStretch(1, 100)
         self.spectramanager.setLayout(spectramanagergrid)
 
-        # ------- Widgets Creation -------#
-        # --- Buttons Set ---#
+        #------- Widgets Creation -------#
+        #--- Buttons Set ---#
         btn_Add_MOG                 = QtWidgets.QPushButton("Add MOG")
         btn_Remove_MOG              = QtWidgets.QPushButton("Remove MOG")
         btn_Air_Shot_Before         = QtWidgets.QPushButton("Air Shot Before")
@@ -1340,13 +1340,13 @@ class MOGUI(QtWidgets.QWidget):
         btn_Prune                   = QtWidgets.QPushButton("Prune")
         btn_delta_t_mog             = QtWidgets.QPushButton(" Create {}t MOG".format(char2))
 
-        # --- List ---#
+        #--- List ---#
         self.MOG_list = QtWidgets.QListWidget()
 
-        # --- List Actions ---#
+        #--- List Actions ---#
         self.MOG_list.itemSelectionChanged.connect(self.update_edits)
 
-        # --- ComboBoxes ---#
+        #--- ComboBoxes ---#
         self.Type_combo = QtWidgets.QComboBox()
         self.Tx_combo = QtWidgets.QComboBox()
         self.Rx_combo = QtWidgets.QComboBox()
@@ -1359,14 +1359,14 @@ class MOGUI(QtWidgets.QWidget):
         self.Tx_combo.activated.connect(self.updateCoords)
         self.Rx_combo.activated.connect(self.updateCoords)
 
-        # --- CheckBox ---#
+        #--- CheckBox ---#
         self.Air_shots_checkbox                  = QtWidgets.QCheckBox("Use Air Shots")
         Correction_Factor_checkbox          = QtWidgets.QCheckBox("Fixed Time Step Correction Factor")
 
         # - CheckBoxes' Actions -#
         self.Air_shots_checkbox.stateChanged.connect(self.use_air)
 
-        # --- Labels ---#
+        #--- Labels ---#
         Type_label                          = MyQLabel('Type:', ha='right')
         Tx_label                            = MyQLabel('Tx:', ha='right')
         Rx_label                            = MyQLabel('Rx:', ha='right')
@@ -1376,7 +1376,7 @@ class MOGUI(QtWidgets.QWidget):
         Multiplication_Factor_label         = MyQLabel('Std Dev. Multiplication Factor:', ha='right')
         Date_label                          = MyQLabel('Date:', ha='right')
 
-        # --- Edits ---#
+        #--- Edits ---#
         self.Air_Shot_Before_edit                = QtWidgets.QLineEdit()
         self.Air_Shot_After_edit                 = QtWidgets.QLineEdit()
         self.Nominal_Frequency_edit              = QtWidgets.QLineEdit()
@@ -1398,7 +1398,8 @@ class MOGUI(QtWidgets.QWidget):
 
         # - Edits Disposition -#
         self.Date_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        # --- Buttons actions ---#
+        
+        #--- Buttons actions ---#
         btn_Add_MOG.clicked.connect(self.add_MOG)
         btn_Rename.clicked.connect(self.rename)
         btn_Remove_MOG.clicked.connect(self.del_MOG)
@@ -1417,7 +1418,7 @@ class MOGUI(QtWidgets.QWidget):
         btn_delta_t_mog.clicked.connect(self.start_delta_t)
         btn_Import.clicked.connect(self.import_mog)
 
-        # --- Sub Widgets ---#
+        #--- Sub Widgets ---#
         # - Sub AirShots Widget-#
         Sub_AirShots_Widget                 = QtWidgets.QWidget()
         Sub_AirShots_Grid                   = QtWidgets.QGridLayout()
@@ -1485,8 +1486,9 @@ class MOGUI(QtWidgets.QWidget):
         sub_MOG_and_List_Grid.setContentsMargins(0, 0, 0, 0)
         sub_MOG_and_List_widget.setLayout(sub_MOG_and_List_Grid)
         
-        # ------- Grid Disposition -------#
+        #------- Grid Disposition -------#
         master_grid                        = QtWidgets.QGridLayout()
+        #--- Sub Widgets Disposition ---#
         master_grid.addWidget(sub_MOG_and_List_widget, 0, 0)
         master_grid.addWidget(sub_right_buttons_widget, 0, 1)
         master_grid.addWidget(Sub_Labels_Checkbox_and_Edits_Widget, 1, 1)
@@ -1497,11 +1499,11 @@ class MOGUI(QtWidgets.QWidget):
         self.setLayout(master_grid)
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       MyQLabel Class for easy Label Alignment
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class  MyQLabel(QtWidgets.QLabel):
     def __init__(self, label, ha='left',  parent= None):
         super(MyQLabel, self).__init__(label,parent)
@@ -1513,11 +1515,11 @@ class  MyQLabel(QtWidgets.QLabel):
             self.setAlignment(QtCore.Qt.AlignLeft)
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Raw Data Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class RawDataFig(FigureCanvasQTAgg):
 
     def __init__(self):
@@ -1545,11 +1547,11 @@ class RawDataFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Spectra Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class SpectraFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor= 'white')
@@ -1702,11 +1704,11 @@ class SpectraFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Zero Offset Profile (ZOP) Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class ZOPFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig = mpl.figure.Figure(facecolor= 'white')
@@ -1820,11 +1822,11 @@ class ZOPFig(FigureCanvasQTAgg):
         return tt, in_plus, in_minus, vapp
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       ZOP Rays Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class ZOPRaysFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(figsize=(6,8), facecolor='white')
@@ -1891,11 +1893,11 @@ class ZOPRaysFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Traveltime Statistics Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class StatsttFig(FigureCanvasQTAgg):
     def __init__(self, parent = None):
 
@@ -1975,11 +1977,11 @@ class StatsttFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Apparent Velocity Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class VAppFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
@@ -2048,11 +2050,11 @@ class VAppFig(FigureCanvasQTAgg):
         return x0, a
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Amplitude Statistics Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class StatsAmpFig(FigureCanvasQTAgg):
     def __init__(self, parent = None):
 
@@ -2103,11 +2105,11 @@ class StatsAmpFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Ray Coverage Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class RayCoverageFig(FigureCanvasQTAgg):
     def __init__(self, parent= None):
         fig = mpl.figure.Figure(figsize= (6, 8), facecolor='white')
@@ -2231,11 +2233,11 @@ class RayCoverageFig(FigureCanvasQTAgg):
 
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Prune Figure Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class PruneFig(FigureCanvasQTAgg):
     def __init__(self, parent= None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
@@ -2288,11 +2290,11 @@ class PruneFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 #
 #                       Merge MOG Class
 #
-# -----------------------------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------------------------------
 class MergeMog(QtWidgets.QWidget):
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
@@ -2427,28 +2429,28 @@ class MergeMog(QtWidgets.QWidget):
 
     def initUI(self):
 
-        # ------- Widgets -------#
-        # --- Labels ---#
+        #------- Widgets -------#
+        #--- Labels ---#
         ref_label = MyQLabel('Reference MOG', ha= 'center')
         comp_label = MyQLabel('Compatible MOGs', ha= 'center')
         new_label = MyQLabel('New MOG Name', ha ='center')
 
-        # --- Edit ---#
+        #--- Edit ---#
         self.new_edit = QtWidgets.QLineEdit()
 
-        # --- List ---#
+        #--- List ---#
         self.comp_list = QtWidgets.QListWidget()
 
-        # --- ComboBox ---#
+        #--- ComboBox ---#
         self.ref_combo = QtWidgets.QComboBox()
 
-        # --- ComboBoxes Actions ---#
+        #--- ComboBoxes Actions ---#
         self.ref_combo.activated.connect(self.getcompat)
 
-        # --- Checkbox ---#
+        #--- Checkbox ---#
         self.erase_check = QtWidgets.QCheckBox('Erase MOGs after merge')
 
-        # --- Buttons ---#
+        #--- Buttons ---#
         self.btn_cancel = QtWidgets.QPushButton('Cancel')
         self.btn_merge = QtWidgets.QPushButton('Merge')
 
@@ -2456,10 +2458,10 @@ class MergeMog(QtWidgets.QWidget):
         self.btn_merge.clicked.connect(self.doMerge)
         self.btn_cancel.clicked.connect(self.close)
 
-        # --- MessageBox ---#
+        #--- MessageBox ---#
         self.dialog = QtWidgets.QMessageBox()
 
-        # ------- Master Grid -------#
+        #------- Master Grid -------#
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(ref_label, 0, 0)
         master_grid.addWidget(self.ref_combo, 1, 0)
@@ -2474,11 +2476,11 @@ class MergeMog(QtWidgets.QWidget):
         self.setLayout(master_grid)
 
 
-    # -----------------------------------------------------------------------------------------------------------------------
+    #-----------------------------------------------------------------------------------------------------------------------
     #
     #                       Delta T MOG Class
     #
-    # -----------------------------------------------------------------------------------------------------------------------
+    #-----------------------------------------------------------------------------------------------------------------------
 class DeltaTMOG(QtWidgets.QWidget):
     def __init__(self, mog, parent=None):
         super(DeltaTMOG, self).__init__()
@@ -2545,26 +2547,26 @@ class DeltaTMOG(QtWidgets.QWidget):
                                                    ,buttons= QtWidgets.QMessageBox.Ok)
 
     def initUI(self):
-        # ------- Widgets -------#
-        # --- Buttons ---#
+        #------- Widgets -------#
+        #--- Buttons ---#
         cancel_btn = QtWidgets.QPushButton('Cancel')
         done_btn = QtWidgets.QPushButton('Done')
-        # --- Labels ---#
+        #--- Labels ---#
         min_label = MyQLabel('Minuend MOG', ha= 'center')
         sub_label = MyQLabel('Subtrahend MOG', ha= 'center')
         offset_label = MyQLabel('Offset Tolerance', ha= 'right')
         name_label = MyQLabel('Name of Difference MOG', ha= 'right')
-        # --- Edits ---#
+        #--- Edits ---#
         self.offset_edit = QtWidgets.QLineEdit('0.5')
         self.name_edit = QtWidgets.QLineEdit()
-        # --- ComboBoxes ---#
+        #--- ComboBoxes ---#
         self.min_combo = QtWidgets.QComboBox()
         self.sub_combo = QtWidgets.QComboBox()
 
-        # --- ComboBoxes' Actions ---#
+        #--- ComboBoxes' Actions ---#
         self.min_combo.activated.connect(self.getcompat)
 
-        # ------- Master grid's disposition -------#
+        #------- Master grid's disposition -------#
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(min_label, 0, 0)
         master_grid.addWidget(sub_label, 0, 1)

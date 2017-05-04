@@ -50,14 +50,14 @@ class BhTomoPy(QtWidgets.QWidget):
                            QtWidgets.QSizePolicy.Minimum)
 
     def choosedb(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose Database')
-        if filename is not '':
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose Database')[0]
+        if filename:
             if '.db' in filename:
                 filename = filename[:-3]
             self.loaddb(filename)
 
     def loaddb(self, filename):
-        # We create a load db methods to be able to load databases in the main
+        # We create a load db method to be able to load databases from the main
         rname = os.path.basename(filename)
         self.current_db.setText(rname)
 
@@ -69,16 +69,16 @@ class BhTomoPy(QtWidgets.QWidget):
     def show(self):
         super(BhTomoPy, self).show()
 
-        # Get initial geometry of the widget:
+        # Gets initial geometry of the widget
         qr = self.frameGeometry()
 
-        # Show it at the center of the screen
+        # Shows it at the center of the screen
         cp = QtWidgets.QDesktopWidget().availableGeometry().center()
 
-        # Move the window's center at the center of the screen
+        # Moves the window's center at the center of the screen
         qr.moveCenter(cp)
 
-        # Then move it at the top left
+        # Then moves it at the top left
         translation = qr.topLeft()
 
         self.move(translation)
@@ -90,7 +90,7 @@ class BhTomoPy(QtWidgets.QWidget):
     def initUI(self):
 
         #------- Widgets -------#
-        # --- Actions ---#
+        #--- Actions ---#
         ChooseDbAction = QtWidgets.QAction('Choose Database', self)
         ChooseDbAction.setShortcut('Ctrl+O')
         ChooseDbAction.triggered.connect(self.choosedb)
@@ -142,7 +142,7 @@ class BhTomoPy(QtWidgets.QWidget):
                                          QtCore.Qt.FastTransformation))
         image_label.setAlignment(QtCore.Qt.AlignCenter)
 
-        #--- Title(if logo isnt ok) ---#
+        #--- Title (if logo isnt ok) ---#
         Title = QtWidgets.QLabel(
             'BH TOMO \n Borehole Radar/Seismic Data Processing Center')
         Title.setAlignment(QtCore.Qt.AlignHCenter)
@@ -165,6 +165,7 @@ class BhTomoPy(QtWidgets.QWidget):
         sub_image_grid.addWidget(image_label, 0, 0)
         sub_image_grid.setContentsMargins(50, 0, 50, 0)
         sub_image_widget.setLayout(sub_image_grid)
+        
         #--- Traveltime ToolBox ---#
         travel_time_tool = QtWidgets.QWidget()
         travel_time_grid = QtWidgets.QGridLayout()
@@ -311,6 +312,7 @@ class MyQToolBox(QtWidgets.QWidget):
                     self.__currentIndex = row
 
             else:
+                # TODO: Transfer to the form
                 # close all the other tools so that only one tool can be
                 # expanded at a time.
                 head.setIcon(self.__iclosed)

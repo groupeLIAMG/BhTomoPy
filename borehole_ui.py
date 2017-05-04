@@ -30,7 +30,7 @@ import time
 
 class BoreholeUI(QtWidgets.QWidget):
 
-    # ------- Signals -------#
+    #------- Signals -------#
     bhlogSignal = QtCore.pyqtSignal(str)
     bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the informaion to update the Tx and Rx comboboxes in MogUI
     bhInfoSignal = QtCore.pyqtSignal(int)     #this signal sends the information to update the number of borholes in infoUI
@@ -51,7 +51,7 @@ class BoreholeUI(QtWidgets.QWidget):
         and then shows its name in the bh_list
 
         """
-        filename              = QtWidgets.QFileDialog.getOpenFileName(self, 'Import Borehole')
+        filename              = QtWidgets.QFileDialog.getOpenFileName(self, 'Import Borehole')[0]
         try:
             if filename:
                 self.load_bh(filename)
@@ -161,12 +161,13 @@ class BoreholeUI(QtWidgets.QWidget):
         """
         Plots all the Borehole instances in boreholes
         """
-        self.bholeFig = BoreholeFig()
-        self.bholeFig.plot_bholes(self.boreholes)
-
-        for bh in self.boreholes:
-            self.bhlogSignal.emit("{}'s trajectory has been plotted".format(bh.name))
-        self.bholeFig.show()
+        if len(self.boreholes) != 0:
+            self.bholeFig = BoreholeFig()
+            self.bholeFig.plot_bholes(self.boreholes)
+    
+            for bh in self.boreholes:
+                self.bhlogSignal.emit("{}'s trajectory has been plotted".format(bh.name))
+            self.bholeFig.show()
 
 
     def attenuation_constraints(self):
@@ -178,7 +179,7 @@ class BoreholeUI(QtWidgets.QWidget):
         ind = self.bh_list.selectedIndexes()
         acont = Cont()
         for i in ind:
-            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
             rname = filename.split('/')
             rname = rname[-1]
             rname = rname[:-4]
@@ -220,7 +221,7 @@ class BoreholeUI(QtWidgets.QWidget):
                 bh = self.boreholes[i.row()]
                 cont = np.loadtxt(filename)
 
-                scont.x, scont.y, scont.z, c = bh.project(bh.fdata, cont[:, 0]) # @UnusedVariable
+                scont.x, scont.y, scont.z, c = bh.project(bh.fdata, cont[:, 0])
 
                 scont.x = scont.x.flatten()
                 scont.y = scont.y.flatten()
@@ -241,7 +242,7 @@ class BoreholeUI(QtWidgets.QWidget):
 
     def initUI(self):
 
-        # --- Class For Alignment ---#
+        #--- Class For Alignment ---#
         class  MyQLabel(QtWidgets.QLabel):
             def __init__(self, label, ha='left',  parent=None):
                 super(MyQLabel, self).__init__(label,parent)
@@ -253,8 +254,8 @@ class BoreholeUI(QtWidgets.QWidget):
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
 
-        # ------- Widget Creation -------#
-        # --- Buttons Set---#
+        #------- Widget Creation -------#
+        #--- Buttons Set---#
         btn_Add                  = QtWidgets.QPushButton("Add")
         btn_Remove               = QtWidgets.QPushButton("Remove")
         btn_Import               = QtWidgets.QPushButton("Import")
@@ -262,10 +263,10 @@ class BoreholeUI(QtWidgets.QWidget):
         btn_Constraints_veloc    = QtWidgets.QPushButton("Constraints Veloc.")
         btn_Constraints_atten    = QtWidgets.QPushButton("Constraints Atten.")
 
-        # --- list ---#
+        #--- list ---#
         self.bh_list             = QtWidgets.QListWidget()
 
-        # --- Labels ---#
+        #--- Labels ---#
         Coord_label              = MyQLabel('Coordinates:', ha='center')
         Collar_label             = MyQLabel('Collar:', ha='center')
         Bottom_label             = MyQLabel('Bottom:', ha='center')
@@ -276,7 +277,7 @@ class BoreholeUI(QtWidgets.QWidget):
         Elev_water_label         = MyQLabel('Water elevation:', ha='right')
 
 
-        # --- Edits ---#
+        #--- Edits ---#
         self.X_edit              = QtWidgets.QLineEdit()
         self.Y_edit              = QtWidgets.QLineEdit()
         self.Z_edit              = QtWidgets.QLineEdit()
@@ -286,10 +287,10 @@ class BoreholeUI(QtWidgets.QWidget):
         self.Z_surf_edit         = QtWidgets.QLineEdit()
         self.Z_water_edit        = QtWidgets.QLineEdit()
 
-        # --- List Actions ---#
+        #--- List Actions ---#
         self.bh_list.itemSelectionChanged.connect(self.update_List_Edits)
 
-        # --- Edits Actions ---#
+        #--- Edits Actions ---#
         self.X_edit.editingFinished.connect(self.update_bhole_data)
         self.Y_edit.editingFinished.connect(self.update_bhole_data)
         self.Z_edit.editingFinished.connect(self.update_bhole_data)
@@ -299,7 +300,7 @@ class BoreholeUI(QtWidgets.QWidget):
         self.Z_surf_edit.editingFinished.connect(self.update_bhole_data)
         self.Z_water_edit.editingFinished.connect(self.update_bhole_data)
 
-        # --- Buttons Actions ---#
+        #--- Buttons Actions ---#
         btn_Add.clicked.connect(self.add_bhole)
         btn_Remove.clicked.connect(self.del_bhole)
         btn_Import.clicked.connect(self.import_bhole)
@@ -307,8 +308,8 @@ class BoreholeUI(QtWidgets.QWidget):
         btn_Constraints_atten.clicked.connect(self.attenuation_constraints)
         btn_Constraints_veloc.clicked.connect(self.slowness_constraints)
 
-        # --- SubWidgets ---#
-        # --- Edits and Labels SubWidget ---#
+        #--- SubWidgets ---#
+        #--- Edits and Labels SubWidget ---#
         sub_E_and_L_widget          = QtWidgets.QWidget()
         sub_E_and_L_grid            = QtWidgets.QGridLayout()
         sub_E_and_L_grid.addWidget(Coord_label, 0, 0)
@@ -329,7 +330,7 @@ class BoreholeUI(QtWidgets.QWidget):
         sub_E_and_L_grid.addWidget(self.Z_water_edit, 5, 1)
         sub_E_and_L_widget.setLayout(sub_E_and_L_grid)
 
-        # --- Upper Buttons ---#
+        #--- Upper Buttons ---#
         sub_upper_buttons_widget = QtWidgets.QWidget()
         sub_upper_buttons_Grid   = QtWidgets.QGridLayout()
         sub_upper_buttons_Grid.addWidget(btn_Add, 0, 0)
@@ -339,7 +340,7 @@ class BoreholeUI(QtWidgets.QWidget):
         sub_upper_buttons_Grid.setContentsMargins(0, 0, 0, 0)
         sub_upper_buttons_widget.setLayout(sub_upper_buttons_Grid)
 
-        # --- Lower Buttons ---#
+        #--- Lower Buttons ---#
         sub_lower_buttons_widget = QtWidgets.QWidget()
         sub_lower_buttons_Grid   = QtWidgets.QGridLayout()
         sub_lower_buttons_Grid.addWidget(btn_Constraints_veloc, 0, 0)
@@ -347,7 +348,7 @@ class BoreholeUI(QtWidgets.QWidget):
         sub_lower_buttons_Grid.setContentsMargins(0, 0, 0, 0)
         sub_lower_buttons_widget.setLayout(sub_lower_buttons_Grid)
 
-        # ------- Grid Disposition -------#
+        #------- Grid Disposition -------#
         master_grid     = QtWidgets.QGridLayout()
         master_grid.addWidget(sub_upper_buttons_widget, 0, 0)
         master_grid.addWidget(self.bh_list, 1, 0)
@@ -355,7 +356,7 @@ class BoreholeUI(QtWidgets.QWidget):
         master_grid.addWidget(sub_lower_buttons_widget, 4, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
 
-        # ------- set Layout -------#
+        #------- set Layout -------#
         self.setLayout(master_grid)
 
 class BoreholeFig(FigureCanvasQTAgg):
