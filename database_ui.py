@@ -109,16 +109,16 @@ class DatabaseUI(QtWidgets.QWidget):
     def show(self):
         super(DatabaseUI, self).show()
 
-        # Gets initial geometry of the widget:
+        # Get initial geometry of the widget:
         qr = self.frameGeometry()
 
-        # Shows it at the center of the screen
+        # Show it at the center of the screen
         cp = QtWidgets.QDesktopWidget().availableGeometry().center()
 
-        # Moves the window's center at the center of the screen
+        # Move the window's center at the center of the screen
         qr.moveCenter(cp)
 
-        # Then moves it at the top left
+        # Then move it at the top left
         translation = qr.topLeft()
 
         self.move(translation)
@@ -127,9 +127,10 @@ class DatabaseUI(QtWidgets.QWidget):
             self.load_file(self.filename)
 
     def openfile(self):
-        filename, ftype = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
-        print(filename, ftype)
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
         if filename is not '':
+            if '.db' in filename:
+                filename = filename[:-3]
             self.load_file(filename)
 
     def load_file(self, filename):
@@ -141,23 +142,22 @@ class DatabaseUI(QtWidgets.QWidget):
             rname = rname[:-3]
 
         try:
-            
-            sfile = shelve.open(rname, 'r')
-     
+            sfile = shelve.open(filename, 'r')
+    
             self.bh.boreholes = sfile['boreholes']
             self.mog.MOGs = sfile['mogs']
             self.model.models = sfile['models']
             self.mog.air = sfile['air']
-             
-            sfile.close()
             
+            sfile.close()
+           
             self.update_database_info(rname)
             self.update_log("Database '{}' was loaded successfully".format(rname))
-     
+    
             self.bh.update_List_Widget()
             self.bh.bh_list.setCurrentRow(0)
             self.bh.update_List_Edits()
-     
+    
             self.mog.update_List_Widget()
             self.mog.update_edits()
             self.mog.MOG_list.setCurrentRow(0)
@@ -166,14 +166,14 @@ class DatabaseUI(QtWidgets.QWidget):
             self.mog.update_edits()
             self.mog.update_prune_edits_info()
             self.mog.update_prune_info()
-     
+    
             self.model.update_model_list()
             self.model.update_model_mog_list()
- 
-        except Exception as e:
-            self.update_log("Error: Database's file type was not recognised")
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened "+str(e),
+
+        except:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened",
                                       buttons=QtWidgets.QMessageBox.Ok)
+            self.update_log('Error: Database file must be of shelve type')
 
     def savefile(self):
 
@@ -285,15 +285,12 @@ class DatabaseUI(QtWidgets.QWidget):
         #- Big SubWidget -#
         sub_big_widget = QtWidgets.QWidget()
         sub_big_grid = QtWidgets.QGridLayout()
-        sub_big_grid.addWidget(bh_GroupBox, 0, 0, 1, 1)
-        sub_big_grid.addWidget(MOGs_GroupBox, 0, 1, 1, 3)
-        sub_big_grid.addWidget(Models_GroupBox, 1, 0, 2, 2)
-        sub_big_grid.addWidget(Info_GroupBox, 1, 2, 2, 3)
-        sub_big_grid.setColumnStretch(0, 1)
-        sub_big_grid.setColumnStretch(1, 1)
-        sub_big_grid.setColumnStretch(2, 1)
+        sub_big_grid.addWidget(bh_GroupBox, 1, 0)
+        sub_big_grid.addWidget(MOGs_GroupBox, 1, 1, 1, 2)
+        sub_big_grid.addWidget(Models_GroupBox, 2, 0, 1, 2)
+        sub_big_grid.addWidget(Info_GroupBox, 2, 2)
         sub_big_widget.setLayout(sub_big_grid)
-  
+
         #--- Grid ---#
         master_grid     = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
@@ -320,14 +317,14 @@ if __name__ == '__main__':
 
     Database_ui = DatabaseUI()
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-#     Database_ui.filename = 'test_constraints'
-#     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
-#     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
-#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
-#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
-#     Database_ui.model.load_model("t0302's model")
-#     Database_ui.mog.plot_spectra()
-#     Database_ui.mog.plot_zop()
+    Database_ui.filename = 'test_constraints'
+    #Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
+    #Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+    #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+    #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
+    #Database_ui.model.load_model("t0302's model")
+    #Database_ui.mog.plot_spectra()
+    #Database_ui.mog.plot_zop()
 
 
     Database_ui.show()
