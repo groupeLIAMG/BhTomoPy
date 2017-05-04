@@ -51,13 +51,13 @@ class InfoUI(QtWidgets.QFrame):
         self.database_label = QtWidgets.QLabel("Database : ")
         self.live_database_label = MyQLabel('',ha='left')
         self.boreholes_label = QtWidgets.QLabel(" Borehole(s)")
-        self.num_boreholes_label = MyQLabel('',ha='right')
+        self.num_boreholes_label = MyQLabel('0',ha='right')
         self.mogs_label = QtWidgets.QLabel(" MOG(s)")
-        self.num_mogs_label = MyQLabel('',ha='right')
+        self.num_mogs_label = MyQLabel('0',ha='right')
         self.models_label = QtWidgets.QLabel(" Model(s)")
-        self.num_models_label = MyQLabel('',ha='right')
+        self.num_models_label = MyQLabel('0',ha='right')
         self.traces_label = QtWidgets.QLabel(" Traces")
-        self.num_traces_label = MyQLabel('',ha='right')
+        self.num_traces_label = MyQLabel('0',ha='right')
 
         #--- Grid ---#
         master_grid = QtWidgets.QGridLayout()
@@ -85,10 +85,6 @@ class MyQLabel(QtWidgets.QLabel):
             self.setAlignment(QtCore.Qt.AlignRight)
         else:
             self.setAlignment(QtCore.Qt.AlignLeft)
-
-
-
-
 
 
 if __name__ == '__main__':
