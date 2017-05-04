@@ -32,8 +32,8 @@ class BoreholeUI(QtWidgets.QWidget):
 
     #------- Signals -------#
     bhlogSignal = QtCore.pyqtSignal(str)
-    bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the informaion to update the Tx and Rx comboboxes in MogUI
-    bhInfoSignal = QtCore.pyqtSignal(int)     #this signal sends the information to update the number of borholes in infoUI
+    bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the information to update the Tx and Rx comboboxes in MogUI
+    bhInfoSignal = QtCore.pyqtSignal(int)     # this signal sends the information to update the number of borholes in infoUI
 
 
     def __init__(self, parent=None):

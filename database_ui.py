@@ -211,8 +211,8 @@ class DatabaseUI(QtWidgets.QWidget):
     def saveasfile(self):
         #TODO: verify type of output of getSaveFileName
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
-                                                     self.name, filter= 'shelve (*.db)', )
-        if filename is not '':
+                                                     self.name, filter= 'shelve (*.db)', )[0]
+        if filename:
             if '.db' in filename:
                 filename = filename[:-3]
             self.filename = filename
