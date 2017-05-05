@@ -68,8 +68,6 @@ def chooseMOG(filename=None):
         nonlocal l0
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
-            if '.db' in filename:
-                filename = filename[:-3]
             l0.setText( os.path.basename(filename) )
             load_mogs(filename)
         
@@ -161,8 +159,6 @@ def chooseModel(filename=None):
         nonlocal l0
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
-            if '.db' in filename:
-                filename = filename[:-3]
             l0.setText( os.path.basename(filename) )
             load_models(filename)
         

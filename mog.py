@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import re
 import numpy as np
+from sqlalchemy.types import UserDefinedType
 
 class MogData:
     """
@@ -214,7 +215,7 @@ class MogData:
         """
 
 
-class AirShots:
+class AirShots(UserDefinedType):
     def __init__(self, name='', data= MogData()):
         self.mog = Mog()
         self.name = name
@@ -226,9 +227,12 @@ class AirShots:
         self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
         self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
+        
+    def get_col_spec(self, **kw): # required by sqlalchemy
+        return "AirShots"
 
 
-class Mog:
+class Mog(UserDefinedType):
     def __init__(self, name= '', data= MogData()):
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
@@ -290,6 +294,9 @@ class Mog:
 
         self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+
+    def get_col_spec(self, **kw): # required by sqlalchemy
+        return "Mog"
 
 
     def correction_t0(self, ndata, air_before, air_after):

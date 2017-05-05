@@ -18,8 +18,9 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
+from sqlalchemy.types import UserDefinedType
 
-class Borehole:
+class Borehole(UserDefinedType):
     """
     Class to hold borehole data
     """
@@ -39,6 +40,9 @@ class Borehole:
         self.scont     = np.array([])   # Matrix containing the slowness for each point of the BH's trajectory
         self.acont     = np.array([])   # Matrix containing the attenuation for each point of the BH's trajectory
         self.fdata     = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])    # Matrix containing the BH's trajectory in space
+        
+    def get_col_spec(self, **kw): # required by sqlalchemy
+        return "Borehole"
 
     @staticmethod
     def project(fdata, ldepth):
@@ -119,13 +123,13 @@ class Borehole:
             # the closest upper point's coordinates
         return x, y, z, c
 
-if __name__ == '__main__':
-    fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]], dtype=np.float64)
-    ldepthtest = np.array([1, 2, 3, 4, 5], dtype=np.float64)
-    bh1 = Borehole('BH1',0.0, 0.0, 0.0, 4.0, 4.0, 4.0)
-    bh1.fdata = fdatatest
-    x,y,z,c = Borehole.project(fdatatest,ldepthtest)
-    print(x)
-    print(y)
-    print(z)
-    print(c)
+# if __name__ == '__main__':
+#     fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]], dtype=np.float64)
+#     ldepthtest = np.array([1, 2, 3, 4, 5], dtype=np.float64)
+#     bh1 = Borehole('BH1',0.0, 0.0, 0.0, 4.0, 4.0, 4.0)
+#     bh1.fdata = fdatatest
+#     x,y,z,c = Borehole.project(fdatatest,ldepthtest)
+#     print(x)
+#     print(y)
+#     print(z)
+#     print(c)

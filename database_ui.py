@@ -27,11 +27,7 @@ from info_ui import InfoUI
 import time
 import os
 import shelve
-
-try:
-    from dbm import ndbm
-except ImportError:
-    ndbm = None
+import data_manager
 
 class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -133,32 +129,24 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def openfile(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-        if filename:
-            if '.db' in filename:
-                filename = filename[:-3]
+        
+        if filename[-3:] == '.db':
             self.load_file(filename)
+        else:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
 
     def load_file(self, filename):
         self.filename = filename
-
-        rname = os.path.basename(filename)
-
-        if '.db' in rname:
-            rname = rname[:-3]
-
+        
         try:
-            
-            sfile = shelve.open(rname, 'r')
      
-            self.bh.boreholes = sfile['boreholes']
-            self.mog.MOGs = sfile['mogs']
-            self.model.models = sfile['models']
-            self.mog.air = sfile['air']
-             
-            sfile.close()
+            self.bh.boreholes = data_manager.get('boreholes', filename)
+            self.mog.MOGs = data_manager.get('boreholes', filename)
+            self.model.models = data_manager.get('models', filename)
+            self.mog.air = data_manager.get('air', filename)
             
-            self.update_database_info(rname)
-            self.update_log("Database '{}' was loaded successfully".format(rname))
+            self.update_database_info(os.path.basename(filename))
+            self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
      
             self.bh.update_List_Widget()
             self.bh.bh_list.setCurrentRow(0)
@@ -172,54 +160,47 @@ class DatabaseUI(QtWidgets.QWidget):
             self.mog.update_edits()
             self.mog.update_prune_edits_info()
             self.mog.update_prune_info()
-     
+      
             self.model.update_model_list()
             self.model.update_model_mog_list()
  
         except Exception as e:
             self.update_log("Error: Database's file type was not recognised")
             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened "+str(e),
-                                      buttons=QtWidgets.QMessageBox.Ok)
+                                       buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
-        if self.filename == '':
+        if not self.filename:
             self.saveasfile()
             return
 
+#         try:
+        data_manager.save([self.model.models, self.bh.boreholes, self.mog.MOGs, self.mog.air], self.filename)
+        
         try:
-            sfile = shelve.open(self.filename, flag='c')
-            try:
-                self.model.gridui.update_model_grid()
-            except:
-                pass
-
-            sfile['models'] = self.model.models
-            sfile['boreholes'] = self.bh.boreholes
-            sfile['mogs'] = self.mog.MOGs
-            sfile['air'] = self.mog.air
-            sfile.close()
-            
-            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtWidgets.QMessageBox.Ok)
-            self.update_log("Database was saved successfully")
+            self.model.gridui.update_model_grid()
         except:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved",
+            pass
+         
+        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                       buttons=QtWidgets.QMessageBox.Ok)
-            self.update_log('Error: Database could not be saved')
+        self.update_log("Database was saved successfully")
+#         except Exception as e:
+#             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved" + str(e),
+#                                       buttons=QtWidgets.QMessageBox.Ok)
+#             self.update_log('Error: Database could not be saved')
 
     def saveasfile(self):
-        #TODO: verify type of output of getSaveFileName
+        #TODO: verify getSaveFileName's type of output
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
-                                                     self.name, filter= 'shelve (*.db)', )[0]
+                                                     self.name, filter= 'Database (*.db)', )[0]
         if filename:
-            if '.db' in filename:
-                filename = filename[:-3]
             self.filename = filename
             self.savefile()
 
     def editname(self):
-        new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name for database')
+        new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name')
 
         self.name = new_name
 
@@ -327,7 +308,7 @@ if __name__ == '__main__':
 
     Database_ui = DatabaseUI()
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-#     Database_ui.filename = 'test_constraints'
+    Database_ui.filename = 'Borehole.db'
 #     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
 #     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
 #     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')

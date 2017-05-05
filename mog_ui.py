@@ -309,29 +309,33 @@ class MOGUI(QtWidgets.QWidget):
 
     def update_spectra_and_coverage_Tx_num_list(self):
         ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
         self.Tx_num_list.clear()
-        unique_Tx_z = np.unique(mog.data.Tx_z)
-
-        for Tx in range(len(unique_Tx_z)):
-            self.Tx_num_list.addItem(str(Tx))
-            self.trace_num_combo.addItem(str(Tx))
-
-        self.Tx_num_list.setCurrentRow(0)
-        self.trace_num_combo.setCurrentIndex(0)
+        
+        if ind:
+            mog = self.MOGs[ind[0].row()]
+            unique_Tx_z = np.unique(mog.data.Tx_z)
+    
+            for Tx in range(len(unique_Tx_z)):
+                self.Tx_num_list.addItem(str(Tx))
+                self.trace_num_combo.addItem(str(Tx))
+    
+            self.Tx_num_list.setCurrentRow(0)
+            self.trace_num_combo.setCurrentIndex(0)
 
 
     def update_spectra_and_coverage_Tx_elev_value_label(self):
         ind1 = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind1[0].row()]
-        self.Tx_elev_value_label.clear()
-        ind2 = self.Tx_num_list.selectedIndexes()
-        ind3 = int(self.trace_num_edit.text())
-        unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
-        for j in ind2:
-            self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[-j.row()]))
-
-        self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3]))
+        
+        if ind1:
+            mog = self.MOGs[ind1[0].row()]
+            self.Tx_elev_value_label.clear()
+            ind2 = self.Tx_num_list.selectedIndexes()
+            ind3 = int(self.trace_num_edit.text())
+            unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
+            for j in ind2:
+                self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[-j.row()]))
+    
+            self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3]))
 
 
     def search_Tx_elev(self):
@@ -731,22 +735,24 @@ class MOGUI(QtWidgets.QWidget):
 
     def update_prune_info(self):
         ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
-        selected_angle = float(self.max_ang_edit.text()) - float(self.min_ang_edit.text())
-        removed_Tx = mog.data.ntrace - sum(mog.in_Tx_vect)
-        removed_Rx = mog.data.ntrace - sum(mog.in_Rx_vect)
-        removed_Tx_and_Rx = (removed_Tx + removed_Rx)/mog.data.ntrace * 100
-        tot_traces = mog.data.ntrace
-        selec_traces = sum(mog.in_vect)
-        kept_traces = (selec_traces/tot_traces)*100
-
-        self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
-        self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
-        self.value_Tx_Rx_removed_label.setText(str(np.round(removed_Tx_and_Rx)))
-        self.value_ray_angle_removed_label.setText(str(np.round(((180-selected_angle)/180)*100)))
-        self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
-
-        # TODO updater le label qui contient la valeur du S/M ration lorsque la fonction computeSNR sera finie
+        
+        if ind:
+            mog = self.MOGs[ind[0].row()]
+            selected_angle = float(self.max_ang_edit.text()) - float(self.min_ang_edit.text())
+            removed_Tx = mog.data.ntrace - sum(mog.in_Tx_vect)
+            removed_Rx = mog.data.ntrace - sum(mog.in_Rx_vect)
+            removed_Tx_and_Rx = (removed_Tx + removed_Rx)/mog.data.ntrace * 100
+            tot_traces = mog.data.ntrace
+            selec_traces = sum(mog.in_vect)
+            kept_traces = (selec_traces/tot_traces)*100
+    
+            self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
+            self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
+            self.value_Tx_Rx_removed_label.setText(str(np.round(removed_Tx_and_Rx)))
+            self.value_ray_angle_removed_label.setText(str(np.round(((180-selected_angle)/180)*100)))
+            self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
+    
+            # TODO updater le label qui contient la valeur du S/M ration lorsque la fonction computeSNR sera finie
 
     def start_merge(self):
         self.mergemog = MergeMog(self)

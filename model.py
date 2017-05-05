@@ -20,8 +20,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
 import numpy as np
+from sqlalchemy.types import UserDefinedType
 
-class Model:
+class Model(UserDefinedType):
     def __init__(self, name= ''):
         self.name       = name  # Model's name
         self.mogs       = []    # List of mogs contained in the model
@@ -31,6 +32,9 @@ class Model:
         self.amp_covar  = None  # Model's Amplitude covariance model
         self.inv_res    = []  # Results of inversion
         self.tlinv_res  = None  # Time-lapse inversion results
+        
+    def get_col_spec(self, **kw): # required by sqlalchemy
+        return "Model"
 
     @staticmethod
     def getModelData(model, air, selected_mogs, type1, type2= ''):

@@ -29,7 +29,7 @@ from interp_ui import InterpretationUI
 from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
 import os
-
+import data_manager
 
 class BhTomoPy(QtWidgets.QWidget):
 
@@ -52,15 +52,12 @@ class BhTomoPy(QtWidgets.QWidget):
     def choosedb(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose Database')[0]
         if filename:
-            if '.db' in filename:
-                filename = filename[:-3]
             self.loaddb(filename)
 
     def loaddb(self, filename):
-        # We create a load db method to be able to load databases from the main
-        rname = os.path.basename(filename)
-        self.current_db.setText(rname)
-
+        # Allows loading databases from the main
+        self.current_db.setText(filename)
+        
         self.database.filename = filename
         self.manual_tt.filename = filename
         self.manual_amp.filename = filename
@@ -312,7 +309,7 @@ class MyQToolBox(QtWidgets.QWidget):
                     self.__currentIndex = row
 
             else:
-                # TODO: Transfer to the form
+                # TODO: Transfer to form
                 # close all the other tools so that only one tool can be
                 # expanded at a time.
                 head.setIcon(self.__iclosed)
