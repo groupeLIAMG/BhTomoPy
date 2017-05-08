@@ -20,9 +20,21 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
 import numpy as np
-from sqlalchemy.types import UserDefinedType
+from sqlalchemy import Column, String, PickleType
+from data_manager import Base
 
-class Model(UserDefinedType):
+class Model(Base):
+    
+    __tablename__ = "Model"
+    name       = Column(String, primary_key=True)  # Model's name
+    mogs       = Column(PickleType)    # List of mogs contained in the model
+    boreholes  = Column(PickleType)    # List of boreholes contained in the model
+    grid       = Column(PickleType)  # Model's grid
+    tt_covar   = Column(PickleType)  # Model's Traveltime covariance model
+    amp_covar  = Column(PickleType)  # Model's Amplitude covariance model
+    inv_res    = Column(PickleType)  # Results of inversion
+    tlinv_res  = Column(PickleType)  # Time-lapse inversion results
+    
     def __init__(self, name= ''):
         self.name       = name  # Model's name
         self.mogs       = []    # List of mogs contained in the model
@@ -32,9 +44,6 @@ class Model(UserDefinedType):
         self.amp_covar  = None  # Model's Amplitude covariance model
         self.inv_res    = []  # Results of inversion
         self.tlinv_res  = None  # Time-lapse inversion results
-        
-    def get_col_spec(self, **kw): # required by sqlalchemy
-        return "Model"
 
     @staticmethod
     def getModelData(model, air, selected_mogs, type1, type2= ''):

@@ -19,9 +19,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import re
 import numpy as np
-from sqlalchemy.types import UserDefinedType
+from sqlalchemy import Column, Integer, String, Float, PickleType, Boolean, SmallInteger
+from data_manager import Base
+from sqlalchemy.types import TypeDecorator # allows the use of custom classes as SQL types
+from sqlalchemy import orm
 
-class MogData:
+class MogData(TypeDecorator):
     """
     Class to hold multi-offset gather (mog) data
     """
@@ -137,12 +140,12 @@ class MogData:
             self.antennas = self.antennas + "  - Ramac"
 
         file.close()
-        #print(self.nptsptrc)    # these prints will be deleted
-        #print(self.timec)
-        #print(self.synthetique)
-        #print(self.rnomfreq)
-        #print(self.antennas)
-        #print(self.ntrace)
+#         print(self.nptsptrc)    # these prints will be deleted
+#         print(self.timec)
+#         print(self.synthetique)
+#         print(self.rnomfreq)
+#         print(self.antennas)
+#         print(self.ntrace)
 
 
     def readRD3(self, basename):
@@ -185,7 +188,7 @@ class MogData:
         lines = file.readlines()[1:]
         for line in lines:
             line_content = re.findall(r"[-+]?\d*\.\d+|\d+", line )
-            tnd          = int(line_content[0])     # frist trace
+            tnd          = int(line_content[0])     # first trace
             tnf          = int(line_content[1])     # last trace
             Rxd          = float(line_content[2])   # first coordinate of the Rx
             Rxf          = float(line_content[3])   # last coordinate of the Rx
@@ -215,24 +218,27 @@ class MogData:
         """
 
 
-class AirShots(UserDefinedType):
-    def __init__(self, name='', data= MogData()):
-        self.mog = Mog()
-        self.name = name
-        self.data = data           # MogData instance
-        self.d_TxRx = 0            # Distance between Tx and Rx
-        self.fac_dt = 1
-        self.ing = 0
-        self.method = 0
-        self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
-        self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
-        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
-        
-    def get_col_spec(self, **kw): # required by sqlalchemy
-        return "AirShots"
-
-
-class Mog(UserDefinedType):
+class Mog(Base):
+    
+    __tablename__ = "Mog"
+    name                     = Column(String, primary_key=True)          # Name of the multi offset-gather
+    pruneParams              = Column(PickleType)
+    data                     = Column(MogData)          # Instance of MogData
+    av                       = Column(String)
+    ap                       = Column(String)
+    Tx                       = Column(Integer)
+    Rx                       = Column(Integer)
+    tau_params               = Column(PickleType)
+    fw                       = Column(PickleType)
+    f_et                     = Column(Float)
+    amp_name_Ldc             = Column(PickleType)
+    type                     = Column(SmallInteger)     # X-hole (1) ou VRP (2)
+    fac_dt                   = Column(Float)            #TODO: Verify type
+    user_fac_dt              = Column(Float)
+    useAirShots              = Column(Boolean)
+    TxCosDir                 = Column(PickleType)
+    RxCosDir                 = Column(PickleType)
+    
     def __init__(self, name= '', data= MogData()):
         self.pruneParams              = PruneParams()
         self.name                     = name          # Name of the multi offset-gather
@@ -257,13 +263,19 @@ class Mog(UserDefinedType):
         self.pruneParams.zmax         = 1e99
         self.pruneParams.thetaMin     = -90
         self.pruneParams.thetaMax     = 90
-        self.useAirShots              = 0
+        self.useAirShots              = False
         self.TxCosDir                 = np.array([])
         self.RxCosDir                 = np.array([])
+        
+        self.init_on_load()
+    
+    @orm.reconstructor
+    def init_on_load(self): # reconstructs the objects from the stored one
+        
         self.ID                       = Mog.getID()
-        self.in_Rx_vect           = np.ones(self.data.ntrace, dtype= bool)
-        self.in_Tx_vect           = np.ones(self.data.ntrace, dtype= bool)
-        self.in_vect              = np.ones(self.data.ntrace, dtype= bool)
+        self.in_Rx_vect               = np.ones(self.data.ntrace, dtype= bool)
+        self.in_Tx_vect               = np.ones(self.data.ntrace, dtype= bool)
+        self.in_vect                  = np.ones(self.data.ntrace, dtype= bool)
         self.date                     = self.data.date
         self.tt                       = -1*np.ones(self.data.ntrace, dtype= float)
         self.et                       = -1*np.ones(self.data.ntrace, dtype= float)
@@ -295,9 +307,6 @@ class Mog(UserDefinedType):
         self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
 
-    def get_col_spec(self, **kw): # required by sqlalchemy
-        return "Mog"
-
 
     def correction_t0(self, ndata, air_before, air_after):
         """
@@ -309,10 +318,10 @@ class Mog(UserDefinedType):
 #        show = False  # TODO  
         fac_dt_av = 1
         fac_dt_ap = 1
-        if self.useAirShots == 0:
+        if not self.useAirShots:
             t0 = np.zeros(ndata)
             return t0, fac_dt_av, fac_dt_ap
-        elif air_before.name == '' and air_after.name == ''  and self.useAirShots == 1 :
+        elif air_before.name == '' and air_after.name == ''  and self.useAirShots :
             t0 = np.zeros(ndata)
             raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
 
@@ -422,6 +431,36 @@ class Mog(UserDefinedType):
         return tt, t0
 
 
+class AirShots(Base):
+    
+    __tablename__ = "Airshots"
+    name    = Column(String, primary_key=True)
+    mog     = Column(PickleType)
+    data    = Column(MogData)            # MogData instance
+    d_TxRx  = Column()            # Distance between Tx and Rx
+    fac_dt  = Column()
+    ing     = Column()
+    method  = Column()
+    
+    def __init__(self, name='', data= MogData()):
+        self.mog = Mog()
+        self.name = name
+        self.data = data           # MogData instance
+        self.d_TxRx = 0            # Distance between Tx and Rx
+        self.fac_dt = 1
+        self.ing = 0
+        self.method = 0
+        
+        self.init_on_load()
+
+    @orm.reconstructor
+    def init_on_load(self): # reconstructs the objects from the stored one
+        
+        self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
+        self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
+        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
+
+
 class PruneParams:
     def __init__(self):
         self.stepTx = 0
@@ -440,4 +479,3 @@ if __name__ == '__main__':
     md = MogData()
     md.readRAMAC('testData/formats/ramac/t0102')
     m.data = md
-    m.initialize()

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 
 This file is part of BhTomoPy.
@@ -25,7 +24,7 @@ from database import Database
 import numpy as np
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-#from mpl_toolkits.mplot3d import axes3d # @UnresolvedImport
+from mpl_toolkits.mplot3d import axes3d
 import time
 
 class BoreholeUI(QtWidgets.QWidget):
@@ -74,7 +73,7 @@ class BoreholeUI(QtWidgets.QWidget):
         self.update_List_Widget()
         self.bh_list.setCurrentRow(len(self.boreholes) - 1)
         self.update_List_Edits()
-        self.bhlogSignal.emit("{}.xyz as been loaded successfully".format(rname))
+        self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
 
 
 
@@ -89,13 +88,13 @@ class BoreholeUI(QtWidgets.QWidget):
             self.update_List_Widget()
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
-            self.bhlogSignal.emit("{} borehole as been added sucesfully".format(name))
+            self.bhlogSignal.emit("{} borehole as been added successfully".format(name))
 
 
     def update_List_Widget(self):
         """
         Updates the information in the bh_list, then emits the instances contained in boreholes and the
-        lenght of bh_list to DatabaseUI
+        length of bh_list to DatabaseUI
         """
         self.bh_list.clear()
         for bh in self.boreholes:
@@ -126,6 +125,7 @@ class BoreholeUI(QtWidgets.QWidget):
         Deletes a borehole instance from boreholes
         """
         ind = self.bh_list.selectedIndexes()
+        
         for i in ind:
             self.bhlogSignal.emit("{} as been deleted".format(self.boreholes[i].name))
             del self.boreholes[int(i.row())]

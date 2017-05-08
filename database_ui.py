@@ -21,12 +21,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 from borehole_ui import BoreholeUI
+from borehole import Borehole
 from model_ui import ModelUI
+from model import Model
 from mog_ui import MOGUI, MergeMog
+from mog import Mog, AirShots
 from info_ui import InfoUI
 import time
 import os
-import shelve
 import data_manager
 
 class DatabaseUI(QtWidgets.QWidget):
@@ -67,11 +69,8 @@ class DatabaseUI(QtWidgets.QWidget):
         self.mog.update_spectra_Tx_num_combo(Tx_list)
         self.mog.update_spectra_Tx_elev_value_label(Tx_list)
 
-
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
-
-
 
     def update_database_info(self, name):
         self.info.update_database(name)
@@ -89,16 +88,16 @@ class DatabaseUI(QtWidgets.QWidget):
         self.info.update_trace(num)
 
     def update_log(self, action):
-        # Clear the log to make sure any action is not written more than once
+        # Clears the log to make sure any action is not written more than once
         self.log.clear()
 
-        # Append the time and the action that was done
+        # Appends the time and the action that was done
         self.action_list.append("[{}] {} " .format(self.actual_time, action))
 
-        # Put the Error messages in red and the others in black
+        # Shows the Error messages in red and the others in black
         for item in self.action_list:
 
-            if "Error: " in item:
+            if "Error:" in item:
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.red))
                 self.log.append(item)
 
@@ -138,36 +137,40 @@ class DatabaseUI(QtWidgets.QWidget):
     def load_file(self, filename):
         self.filename = filename
         
-        try:
+#         try:
      
-            self.bh.boreholes = data_manager.get('boreholes', filename)
-            self.mog.MOGs = data_manager.get('boreholes', filename)
-            self.model.models = data_manager.get('models', filename)
-            self.mog.air = data_manager.get('air', filename)
-            
-            self.update_database_info(os.path.basename(filename))
-            self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
-     
-            self.bh.update_List_Widget()
-            self.bh.bh_list.setCurrentRow(0)
-            self.bh.update_List_Edits()
-     
-            self.mog.update_List_Widget()
-            self.mog.update_edits()
-            self.mog.MOG_list.setCurrentRow(0)
-            self.mog.update_spectra_and_coverage_Tx_num_list()
-            self.mog.update_spectra_and_coverage_Tx_elev_value_label()
-            self.mog.update_edits()
-            self.mog.update_prune_edits_info()
-            self.mog.update_prune_info()
-      
-            self.model.update_model_list()
-            self.model.update_model_mog_list()
+        self.bh.boreholes = data_manager.get(Borehole)
+        self.mog.MOGs = data_manager.get(Mog)
+        self.model.models = data_manager.get(Model)
+        self.mog.air = data_manager.get(AirShots)
+#         print(self.bh.boreholes)
+#         print(self.mog.MOGs)
+#         print(self.model.models)
+#         print(self.mog.air)
+        
+        self.update_database_info(os.path.basename(filename))
+        self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
  
-        except Exception as e:
-            self.update_log("Error: Database's file type was not recognised")
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened "+str(e),
-                                       buttons=QtWidgets.QMessageBox.Ok)
+        self.bh.update_List_Widget()
+        self.bh.bh_list.setCurrentRow(0)
+        self.bh.update_List_Edits()
+ 
+        self.mog.update_List_Widget()
+        self.mog.update_edits()
+        self.mog.MOG_list.setCurrentRow(0)
+        self.mog.update_spectra_and_coverage_Tx_num_list()
+        self.mog.update_spectra_and_coverage_Tx_elev_value_label()
+        self.mog.update_edits()
+        self.mog.update_prune_edits_info()
+        self.mog.update_prune_info()
+  
+        self.model.update_model_list()
+        self.model.update_model_mog_list()
+ 
+#         except Exception as e:
+#             self.update_log("Error: Database's file type was not recognised")
+#             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened "+str(e),
+#                                        buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
@@ -176,16 +179,17 @@ class DatabaseUI(QtWidgets.QWidget):
             return
 
 #         try:
-        data_manager.save([self.model.models, self.bh.boreholes, self.mog.MOGs, self.mog.air], self.filename)
-        
+        data_manager.save([self.model.models, self.bh.boreholes, self.mog.MOGs, self.mog.air])
+
         try:
             self.model.gridui.update_model_grid()
         except:
             pass
-         
+
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                       buttons=QtWidgets.QMessageBox.Ok)
         self.update_log("Database was saved successfully")
+
 #         except Exception as e:
 #             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved" + str(e),
 #                                       buttons=QtWidgets.QMessageBox.Ok)
@@ -303,22 +307,25 @@ class MyLogWidget(QtWidgets.QTextEdit):
         self.verticalScrollBar().setValue(bottom)
 
 if __name__ == '__main__':
+    
+    from data_manager import Base, engine
+    Base.metadata.create_all(engine) # not complete
 
     app = QtWidgets.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
+    Database_ui.show()
+
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.filename = 'Borehole.db'
-#     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
-#     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+    Database_ui.filename = 'Database.db'
+    Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
+    Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
 #     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
 #     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
 #     Database_ui.model.load_model("t0302's model")
 #     Database_ui.mog.plot_spectra()
 #     Database_ui.mog.plot_zop()
 
-
-    Database_ui.show()
-
+    Database_ui.saveasfile()
 
     sys.exit(app.exec_())

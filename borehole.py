@@ -18,12 +18,28 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
-from sqlalchemy.types import UserDefinedType
+from sqlalchemy import Column, Float, String, PickleType
+from data_manager import Base
 
-class Borehole(UserDefinedType):
+class Borehole(Base):
     """
-    Class to hold borehole data
+    Class holding borehole data
     """
+    
+    __tablename__ = "Borehole"
+    name      = Column(String, primary_key=True)           # name of the borehole(BH)
+    X         = Column(Float)            # X, Y and Z: the BH's top cartesian coordinates
+    Y         = Column(Float)
+    Z         = Column(Float)
+    Xmax      = Column(Float)            # Xmax, Ymax and Zmax : the BH's bottom cartesian coordinates
+    Ymax      = Column(Float)
+    Zmax      = Column(Float)
+    Z_surf    = Column(Float)            # BH's surface height
+    Z_water   = Column(Float)            # Elevation of the water table
+    diam      = Column(Float)            # BH's diameter
+    scont     = Column(PickleType)     # Matrix containing the slowness for each point of the BH's trajectory
+    acont     = Column(PickleType)     # Matrix containing the attenuation for each point of the BH's trajectory
+    fdata     = Column(PickleType)     # Matrix containing the BH's trajectory in space
 
     def __init__(self, name=''):
 
@@ -35,14 +51,11 @@ class Borehole(UserDefinedType):
         self.Ymax      = 0.0
         self.Zmax      = 0.0
         self.Z_surf    = 0.0            # BH's surface height
-        self.Z_water   = np.nan         # Elevation of the water table
+#         self.Z_water   = np.nan         # Elevation of the water table
         self.diam      = 0.0            # BH's diameter
         self.scont     = np.array([])   # Matrix containing the slowness for each point of the BH's trajectory
         self.acont     = np.array([])   # Matrix containing the attenuation for each point of the BH's trajectory
         self.fdata     = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])    # Matrix containing the BH's trajectory in space
-        
-    def get_col_spec(self, **kw): # required by sqlalchemy
-        return "Borehole"
 
     @staticmethod
     def project(fdata, ldepth):
@@ -80,7 +93,7 @@ class Borehole(UserDefinedType):
         depthBH = np.append(np.array([[0]]),np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1))))
 
 
-        #Knowing that de BH's depth is a matrix which contains the distance between every points of fdata, and that ldepth
+        # Knowing that de BH's depth is a matrix which contains the distance between every points of fdata, and that ldepth
         # contains the points where the data was taken,we need to first make sure that every points taken in charge by ldepth is in the range of the BH's depth.
         # As a matter of fact, we verify if each points of ldepth is contained in between the volume(i.e. between X and Xmax and the same for Y and Z)
         # If so, we take the closest point under our point of interest(i.e. i2[0]) and the closest point above our point of interest (i.e. i1[-1])
@@ -107,7 +120,7 @@ class Borehole(UserDefinedType):
             i2 = i2[0]
 
 
-            #Here we calculate the distance between the points which have the same index than the closest points above and under
+            # Here we calculate the distance between the points which have the same index than the closest points above and under
             d = np.sqrt(np.sum(fdata[i2, :] - fdata[i1, :]) ** 2)
             l = (fdata[i2, :] - fdata[i1, :]) / d
             # the l value represents the direction cosine for every dimension
@@ -119,7 +132,7 @@ class Borehole(UserDefinedType):
             z[n] = fdata[i1, 2] + d2 * l[2]
             c[n, :] = 1
 
-            #We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
+            # We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
             # the closest upper point's coordinates
         return x, y, z, c
 

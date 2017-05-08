@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 email: Bernard.Giroux@ete.inrs.ca
@@ -29,7 +28,13 @@ from interp_ui import InterpretationUI
 from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
 import os
-import data_manager
+
+from data_manager import engine, Base
+
+from borehole import Borehole # imports required by create_all
+from model import Model
+from mog import Mog, AirShots
+Base.metadata.create_all(engine) # no error should occur
 
 class BhTomoPy(QtWidgets.QWidget):
 
@@ -310,7 +315,7 @@ class MyQToolBox(QtWidgets.QWidget):
 
             else:
                 # TODO: Transfer to form
-                # close all the other tools so that only one tool can be
+                # closes all the other tools so that only one tool can be
                 # expanded at a time.
                 head.setIcon(self.__iclosed)
                 tool.hide()
