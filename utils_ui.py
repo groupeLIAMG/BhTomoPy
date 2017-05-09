@@ -24,10 +24,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 from PyQt5 import QtWidgets, QtCore
-import dbm
 import os
-import shelve
 import sys
+import data_manager
+from mog import Mog
+from model import Model
 
 def chooseMOG(filename=None):
     d = QtWidgets.QDialog()
@@ -66,28 +67,31 @@ def chooseMOG(filename=None):
     def choose_db():
         nonlocal d
         nonlocal l0
+        nonlocal b3
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
-            l0.setText( os.path.basename(filename) )
-            load_mogs(filename)
+            if filename.find('.db') != -1:
+                
+                l0.setText( os.path.basename(filename) )
+                data_manager.engine.url = ("sqlite:///{}".format(filename))
+                load_mogs(filename)
+             
+            else:
+                QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
+                        QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
+                        QtWidgets.QMessageBox.NoButton)
+                l0.setText( '' )
         
 
     def load_mogs(fname):
         nonlocal b3
         nonlocal l0
         nonlocal filename
-        try:
-            sfile = shelve.open(fname, flag='r')            
-            mogs = sfile['mogs']
+        try:          
+            mogs = data_manager.get(Mog) 
             for mog in mogs:
                 b3.addItem(mog.name)
-            sfile.close()
             filename = fname
-        except dbm.error:
-            QtWidgets.QMessageBox.warning(b3, '', 'Database not in shelve format',
-                        QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                        QtWidgets.QMessageBox.NoButton)
-            l0.setText( '' )
         except KeyError:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS',
                 QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
@@ -157,28 +161,31 @@ def chooseModel(filename=None):
     def choose_db():
         nonlocal d
         nonlocal l0
+        nonlocal b3
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
-            l0.setText( os.path.basename(filename) )
-            load_models(filename)
+            if filename.find('.db') != -1:
+                
+                l0.setText( os.path.basename(filename) )
+                data_manager.engine.url = ("sqlite:///{}".format(filename))
+                load_models(filename)
+             
+            else:
+                QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
+                        QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
+                        QtWidgets.QMessageBox.NoButton)
+                l0.setText( '' )
         
 
     def load_models(fname):
         nonlocal b3
         nonlocal l0
         nonlocal filename
-        try:
-            sfile = shelve.open(fname, flag='r')            
-            models = sfile['models']
+        try:           
+            models = data_manager.get(Model)
             for model in models:
                 b3.addItem(model.name)
-            sfile.close()
             filename = fname
-        except dbm.error:
-            QtWidgets.QMessageBox.warning(b3, '', 'Database not in shelve format',
-                        QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                        QtWidgets.QMessageBox.NoButton)
-            l0.setText( '' )
         except KeyError:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain models',
                 QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,

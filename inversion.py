@@ -42,7 +42,7 @@ class InvLSQRParams:
 def invLSQR(params, data, idata, grid, L, app= None, ui= None):
     """
     Input:
-    params:  Instance of lsqrParams class whose parameters as been
+    params:  Instance of lsqrParams class whose parameters have been
              edited in InversionUI or manually
 
     data:   (m, 15) array :

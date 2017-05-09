@@ -26,6 +26,7 @@ import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
 import time
+import data_manager
 
 class BoreholeUI(QtWidgets.QWidget):
 
@@ -88,7 +89,7 @@ class BoreholeUI(QtWidgets.QWidget):
             self.update_List_Widget()
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
-            self.bhlogSignal.emit("{} borehole as been added successfully".format(name))
+            self.bhlogSignal.emit("{} borehole has been added successfully".format(name))
 
 
     def update_List_Widget(self):
@@ -127,7 +128,8 @@ class BoreholeUI(QtWidgets.QWidget):
         ind = self.bh_list.selectedIndexes()
         
         for i in ind:
-            self.bhlogSignal.emit("{} as been deleted".format(self.boreholes[i].name))
+            self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
+            data_manager.delete(self.boreholes[int(i.row())])
             del self.boreholes[int(i.row())]
 
         self.update_List_Widget()

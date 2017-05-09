@@ -942,12 +942,12 @@ class InversionUI(QtWidgets.QFrame):
 #        self.inv.filename = filename
 #        rname = filename.split('/')
 #        rname = rname[-1]
-#        if '.p' in rname:
-#            rname = rname[:-2]
-#        if '.pkl' in rname:
-#            rname = rname[:-4]
 #        if '.pickle' in rname:
 #            rname = rname[:-7]
+#        if '.pkl' in rname:
+#            rname = rname[:-4]
+#        if '.p' in rname:
+#            rname = rname[:-2]
 #        file = open(filename, 'rb')
 #
 #        self.inv.boreholes, self.inv.mogs, self.inv.air, self.inv.models = pickle.load(file)

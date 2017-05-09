@@ -21,10 +21,10 @@ import re
 import numpy as np
 from sqlalchemy import Column, Integer, String, Float, PickleType, Boolean, SmallInteger
 from data_manager import Base
-from sqlalchemy.types import TypeDecorator # allows the use of custom classes as SQL types
+from sqlalchemy.types import UserDefinedType # allows the use of custom classes as SQL types
 from sqlalchemy import orm
 
-class MogData(TypeDecorator):
+class MogData(UserDefinedType):
     """
     Class to hold multi-offset gather (mog) data
     """
@@ -54,6 +54,9 @@ class MogData(TypeDecorator):
         self.comment      = ''      # is defined by the presence of any comment in the file
         self.date         = ''      # the date of the data sample
         self.name         = name
+        
+    def get_col_spec(self, **kw): # required by SQLAlchemy
+        return "MogData"
 
     def readRAMAC(self, basename):
         """
@@ -221,7 +224,7 @@ class MogData(TypeDecorator):
 class Mog(Base):
     
     __tablename__ = "Mog"
-    name                     = Column(String, primary_key=True)          # Name of the multi offset-gather
+    name                     = Column(String, primary_key=True)
     pruneParams              = Column(PickleType)
     data                     = Column(MogData)          # Instance of MogData
     av                       = Column(String)
@@ -241,7 +244,7 @@ class Mog(Base):
     
     def __init__(self, name= '', data= MogData()):
         self.pruneParams              = PruneParams()
-        self.name                     = name          # Name of the multi offset-gather
+        self.name                     = name
         self.data                     = data          # Instance of MogData
         self.av                       = ''
         self.ap                       = ''
@@ -273,34 +276,34 @@ class Mog(Base):
     def init_on_load(self): # reconstructs the objects from the stored one
         
         self.ID                       = Mog.getID()
-        self.in_Rx_vect               = np.ones(self.data.ntrace, dtype= bool)
-        self.in_Tx_vect               = np.ones(self.data.ntrace, dtype= bool)
-        self.in_vect                  = np.ones(self.data.ntrace, dtype= bool)
+        self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=bool)
+        self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=bool)
+        self.in_vect                  = np.ones(self.data.ntrace, dtype=bool)
         self.date                     = self.data.date
-        self.tt                       = -1*np.ones(self.data.ntrace, dtype= float)
-        self.et                       = -1*np.ones(self.data.ntrace, dtype= float)
-        self.tt_done                  = np.zeros(self.data.ntrace, dtype = bool)
+        self.tt                       = -1*np.ones(self.data.ntrace, dtype=float)
+        self.et                       = -1*np.ones(self.data.ntrace, dtype=float)
+        self.tt_done                  = np.zeros(self.data.ntrace, dtype =bool)
 
         if self.data.tdata == None:
             self.ttTx                 = np.array([])
             self.ttTx_done            = np.array([])
         else:
             self.ttTx                 = np.zeros(self.data.ntrace)
-            self.ttTx_done            = np.zeros(self.data.ntrace, dtype= bool)
+            self.ttTx_done            = np.zeros(self.data.ntrace, dtype=bool)
 
-        self.amp_tmin             = -1*np.ones(self.data.ntrace, dtype= float)   # à Définir avec Bernard
-        self.amp_tmax             = -1*np.ones(self.data.ntrace, dtype= float)
-        self.amp_done             = np.zeros(self.data.ntrace, dtype= bool)
-        self.App                  = np.zeros(self.data.ntrace, dtype= float)
-        self.fcentroid            = np.zeros(self.data.ntrace, dtype= float)
-        self.scentroid            = np.zeros(self.data.ntrace, dtype= float)
-        self.tauApp               = -1*np.ones(self.data.ntrace, dtype= float)
-        self.tauApp_et            = -1*np.ones(self.data.ntrace, dtype= float)
-        self.tauFce               = -1*np.ones(self.data.ntrace, dtype= float)
-        self.tauFce_et            = -1*np.ones(self.data.ntrace, dtype= float)
-        self.tauHyb               = -1*np.ones(self.data.ntrace, dtype= float)
-        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype= float)
-        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype= float)
+        self.amp_tmin             = -1*np.ones(self.data.ntrace, dtype=float)   # à Définir avec Bernard
+        self.amp_tmax             = -1*np.ones(self.data.ntrace, dtype=float)
+        self.amp_done             = np.zeros(self.data.ntrace, dtype=bool)
+        self.App                  = np.zeros(self.data.ntrace, dtype=float)
+        self.fcentroid            = np.zeros(self.data.ntrace, dtype=float)
+        self.scentroid            = np.zeros(self.data.ntrace, dtype=float)
+        self.tauApp               = -1*np.ones(self.data.ntrace, dtype=float)
+        self.tauApp_et            = -1*np.ones(self.data.ntrace, dtype=float)
+        self.tauFce               = -1*np.ones(self.data.ntrace, dtype=float)
+        self.tauFce_et            = -1*np.ones(self.data.ntrace, dtype=float)
+        self.tauHyb               = -1*np.ones(self.data.ntrace, dtype=float)
+        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype=float)
+        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype=float)
         self.Tx_z_orig            = self.data.Tx_z
         self.Rx_z_orig            = self.data.Rx_z
 
@@ -315,7 +318,7 @@ class Mog(Base):
         :param air_after: instance of class Airshots
         """
 
-#        show = False  # TODO  
+#        show = False  #TODO:
         fac_dt_av = 1
         fac_dt_ap = 1
         if not self.useAirShots:
@@ -437,10 +440,10 @@ class AirShots(Base):
     name    = Column(String, primary_key=True)
     mog     = Column(PickleType)
     data    = Column(MogData)            # MogData instance
-    d_TxRx  = Column()            # Distance between Tx and Rx
-    fac_dt  = Column()
-    ing     = Column()
-    method  = Column()
+    d_TxRx  = Column(Float)            # Distance between Tx and Rx
+    fac_dt  = Column(Float)      #TODO: Verify type
+    ing     = Column(Float)      #TODO: Verify type
+    method  = Column(Float)      #TODO: Verify type
     
     def __init__(self, name='', data= MogData()):
         self.mog = Mog()

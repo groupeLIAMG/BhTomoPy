@@ -129,48 +129,46 @@ class DatabaseUI(QtWidgets.QWidget):
     def openfile(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
         
-        if filename[-3:] == '.db':
-            self.load_file(filename)
-        else:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
+        if filename:
+            if filename[-3:] == '.db':
+                self.load_file(filename)
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
 
     def load_file(self, filename):
         self.filename = filename
+        engine.url = ("sqlite:///{}".format(filename))
         
-#         try:
+        try:
      
-        self.bh.boreholes = data_manager.get(Borehole)
-        self.mog.MOGs = data_manager.get(Mog)
-        self.model.models = data_manager.get(Model)
-        self.mog.air = data_manager.get(AirShots)
-#         print(self.bh.boreholes)
-#         print(self.mog.MOGs)
-#         print(self.model.models)
-#         print(self.mog.air)
-        
-        self.update_database_info(os.path.basename(filename))
-        self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
+            self.bh.boreholes = data_manager.get(Borehole)
+            self.mog.MOGs = data_manager.get(Mog)
+            self.model.models = data_manager.get(Model)
+            self.mog.air = data_manager.get(AirShots)
+            
+            self.update_database_info(os.path.basename(filename))
+            self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
+     
+            self.bh.update_List_Widget()
+            self.bh.bh_list.setCurrentRow(0)
+            self.bh.update_List_Edits()
+     
+            self.mog.update_List_Widget()
+            self.mog.update_edits()
+            self.mog.MOG_list.setCurrentRow(0)
+            self.mog.update_spectra_and_coverage_Tx_num_list()
+            self.mog.update_spectra_and_coverage_Tx_elev_value_label()
+            self.mog.update_edits()
+            self.mog.update_prune_edits_info()
+            self.mog.update_prune_info()
+      
+            self.model.update_model_list()
+            self.model.update_model_mog_list()
  
-        self.bh.update_List_Widget()
-        self.bh.bh_list.setCurrentRow(0)
-        self.bh.update_List_Edits()
- 
-        self.mog.update_List_Widget()
-        self.mog.update_edits()
-        self.mog.MOG_list.setCurrentRow(0)
-        self.mog.update_spectra_and_coverage_Tx_num_list()
-        self.mog.update_spectra_and_coverage_Tx_elev_value_label()
-        self.mog.update_edits()
-        self.mog.update_prune_edits_info()
-        self.mog.update_prune_info()
-  
-        self.model.update_model_list()
-        self.model.update_model_mog_list()
- 
-#         except Exception as e:
-#             self.update_log("Error: Database's file type was not recognised")
-#             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened "+str(e),
-#                                        buttons=QtWidgets.QMessageBox.Ok)
+        except Exception as e:
+            self.update_log("Error: Database was not recognised")
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : " + str(e),
+                                       buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
@@ -178,22 +176,21 @@ class DatabaseUI(QtWidgets.QWidget):
             self.saveasfile()
             return
 
-#         try:
-        data_manager.save([self.model.models, self.bh.boreholes, self.mog.MOGs, self.mog.air])
-
         try:
-            self.model.gridui.update_model_grid()
-        except:
-            pass
+            data_manager.save([self.model.models, self.bh.boreholes, self.mog.MOGs, self.mog.air])
+        
+            try:
+                self.model.gridui.update_model_grid()
+            except:
+                pass
+        
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                          buttons=QtWidgets.QMessageBox.Ok)
+            self.update_log("Database was saved successfully")
 
-        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved : " + str(e),
                                       buttons=QtWidgets.QMessageBox.Ok)
-        self.update_log("Database was saved successfully")
-
-#         except Exception as e:
-#             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved" + str(e),
-#                                       buttons=QtWidgets.QMessageBox.Ok)
-#             self.update_log('Error: Database could not be saved')
 
     def saveasfile(self):
         #TODO: verify getSaveFileName's type of output
@@ -201,6 +198,7 @@ class DatabaseUI(QtWidgets.QWidget):
                                                      self.name, filter= 'Database (*.db)', )[0]
         if filename:
             self.filename = filename
+            engine.url = ("sqlite:///{}".format(filename))
             self.savefile()
 
     def editname(self):
@@ -309,7 +307,7 @@ class MyLogWidget(QtWidgets.QTextEdit):
 if __name__ == '__main__':
     
     from data_manager import Base, engine
-    Base.metadata.create_all(engine) # not complete
+    Base.metadata.create_all(engine)
 
     app = QtWidgets.QApplication(sys.argv)
 
@@ -326,6 +324,6 @@ if __name__ == '__main__':
 #     Database_ui.mog.plot_spectra()
 #     Database_ui.mog.plot_zop()
 
-    Database_ui.saveasfile()
+#     Database_ui.saveasfile()
 
     sys.exit(app.exec_())

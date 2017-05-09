@@ -34,7 +34,7 @@ from data_manager import engine, Base
 from borehole import Borehole # imports required by create_all
 from model import Model
 from mog import Mog, AirShots
-Base.metadata.create_all(engine) # no error should occur
+Base.metadata.create_all(engine) # no error should occur, even though 'metadata' is not recognized
 
 class BhTomoPy(QtWidgets.QWidget):
 
@@ -61,12 +61,14 @@ class BhTomoPy(QtWidgets.QWidget):
 
     def loaddb(self, filename):
         # Allows loading databases from the main
-        self.current_db.setText(filename)
+        self.current_db.setText(os.path.basename(filename))
         
         self.database.filename = filename
         self.manual_tt.filename = filename
         self.manual_amp.filename = filename
         self.inv.filename = filename
+        
+        engine.url = ("sqlite:///{}".format(filename))
 
     def show(self):
         super(BhTomoPy, self).show()

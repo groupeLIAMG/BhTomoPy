@@ -22,8 +22,8 @@ import copy
 import sys
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
-from mpl_toolkits.axes_grid1 import make_axes_locatable # @UnresolvedImport
-#from mpl_toolkits.mplot3d import axes3d
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.mplot3d import axes3d
 import numpy as np
 import matplotlib as mpl
 from model import Model
@@ -53,13 +53,13 @@ class ModelUI(QtWidgets.QWidget):
     def load_model(self, name):
         self.models.append(Model(name))
         self.model_list.setCurrentRow(0)
-        self.modellogSignal.emit("Model {} as been added succesfully".format(name))
+        self.modellogSignal.emit("Model {} has been added succesfully".format(name))
         self.update_model_list()
 
     def del_model(self):
         ind = self.model_list.selectedIndexes()
         for i in ind:
-            self.modellogSignal.emit("Model {} as been deleted succesfully".format(self.models[int(i.row())].name))
+            self.modellogSignal.emit("Model {} has been deleted succesfully".format(self.models[int(i.row())].name))
             del self.models[int(i.row())]
         self.update_model_list()
         self.model_mog_list.clear()
@@ -376,7 +376,7 @@ class ChooseModelMOG(QtWidgets.QWidget):
         self.model.model_mog_list.addItem(self.model.mog.MOGs[ind].name)
         self.model.models[n].mogs.append(self.model.mog.MOGs[ind])
         self.model.update_models_boreholes()
-        self.model.modellogSignal.emit("{} as been added to {}'s MOGs".format(self.model.mog.MOGs[ind].name, self.model.models[n].name))
+        self.model.modellogSignal.emit("{} has been added to {}'s MOGs".format(self.model.mog.MOGs[ind].name, self.model.models[n].name))
 
 
     def initUI(self):

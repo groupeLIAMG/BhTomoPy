@@ -31,8 +31,8 @@ from scipy import interpolate
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
-from mpl_toolkits.axes_grid1 import make_axes_locatable # @UnresolvedImport
-from mpl_toolkits.mplot3d import axes3d # @UnresolvedImport
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.mplot3d import axes3d
 # from spectrum import arburg
 
 from mog import MogData, Mog, AirShots
@@ -98,7 +98,7 @@ class MOGUI(QtWidgets.QWidget):
             self.update_edits()
             self.update_prune_edits_info()
             self.update_prune_info()
-            self.moglogSignal.emit("{} Multi Offset-Gather as been loaded succesfully".format(rname))
+            self.moglogSignal.emit("{} Multi Offset-Gather has been loaded succesfully".format(rname))
             
         except:
             QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened",
@@ -166,7 +166,7 @@ class MOGUI(QtWidgets.QWidget):
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            self.moglogSignal.emit("MOG {} as been deleted".format(self.MOGs[int(i.row())].name))
+            self.moglogSignal.emit("MOG {} has been deleted".format(self.MOGs[int(i.row())].name))
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
 
@@ -457,7 +457,7 @@ class MOGUI(QtWidgets.QWidget):
             ind = self.MOG_list.selectedIndexes()
             for i in ind:
                 self.rawdataFig.plot_raw_data(self.MOGs[i.row()].data)
-                self.moglogSignal.emit(" MOG {}'s Raw Data as been plotted ". format(self.MOGs[i.row()].name))
+                self.moglogSignal.emit(" MOG {}'s Raw Data has been plotted ". format(self.MOGs[i.row()].name))
                 self.rawdatamanager.showMaximized()
 
         else:
@@ -476,7 +476,7 @@ class MOGUI(QtWidgets.QWidget):
 
 
             self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
-            #self.moglogSignal.emit(" MOG {}'s Spectra as been plotted ". format(mog.name))
+            #self.moglogSignal.emit(" MOG {}'s Spectra has been plotted ". format(mog.name))
             self.spectramanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
@@ -487,7 +487,7 @@ class MOGUI(QtWidgets.QWidget):
         if len(self.MOGs) != 0:
             ind = self.MOG_list.selectedIndexes()
             self.zopFig.plot_zop()
-            #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile as been plotted ". format(self.MOGs[ind[0].row()].name))
+            #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ". format(self.MOGs[ind[0].row()].name))
             self.zopmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
