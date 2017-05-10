@@ -29,12 +29,12 @@ from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
 import os
 
-from data_manager import engine, Base
+from data_manager import engine, Base, Session, session
 
 from borehole import Borehole # imports required by create_all
 from model import Model
 from mog import Mog, AirShots
-Base.metadata.create_all(engine) # no error should occur, even though 'metadata' is not recognized
+Base.metadata.create_all(engine)
 
 class BhTomoPy(QtWidgets.QWidget):
 
@@ -57,7 +57,10 @@ class BhTomoPy(QtWidgets.QWidget):
     def choosedb(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose Database')[0]
         if filename:
-            self.loaddb(filename)
+            if filename[-3:] == '.db':
+                self.loaddb(filename)
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
 
     def loaddb(self, filename):
         # Allows loading databases from the main
@@ -68,7 +71,9 @@ class BhTomoPy(QtWidgets.QWidget):
         self.manual_amp.filename = filename
         self.inv.filename = filename
         
+        Session.close_all()
         engine.url = ("sqlite:///{}".format(filename))
+        session = Session()
 
     def show(self):
         super(BhTomoPy, self).show()
@@ -146,14 +151,14 @@ class BhTomoPy(QtWidgets.QWidget):
                                          QtCore.Qt.FastTransformation))
         image_label.setAlignment(QtCore.Qt.AlignCenter)
 
-        #--- Title (if logo isnt ok) ---#
-        Title = QtWidgets.QLabel(
-            'BH TOMO \n Borehole Radar/Seismic Data Processing Center')
-        Title.setAlignment(QtCore.Qt.AlignHCenter)
-        Title.setContentsMargins(10, 10, 10, 30)
-        Title.setStyleSheet('color: Darkcyan')
-        serifFont = QtGui.QFont("Times", 10, QtGui.QFont.Bold)
-        Title.setFont(serifFont)
+#         #--- Title ---#
+#         Title = QtWidgets.QLabel(
+#             'BH TOMO \n Borehole Radar/Seismic Data Processing Center')
+#         Title.setAlignment(QtCore.Qt.AlignHCenter)
+#         Title.setContentsMargins(10, 10, 10, 30)
+#         Title.setStyleSheet('color: Darkcyan')
+#         serifFont = QtGui.QFont("Times", 10, QtGui.QFont.Bold)
+#         Title.setFont(serifFont)
 
         #--- Edit ---#
         # Edit to hold the chosen database's name
@@ -181,8 +186,8 @@ class BhTomoPy(QtWidgets.QWidget):
         #--- Time Lapse Tool ---#
         time_lapse_tool = QtWidgets.QWidget()
         time_lapse_grid = QtWidgets.QGridLayout()
-        time_lapse_grid.addWidget(btn_Time_Lapse_Inversion)
-        time_lapse_grid.addWidget(btn_Time_Lapse_Visualisation)
+        time_lapse_grid.addWidget(btn_Time_Lapse_Inversion, 0, 0)
+        time_lapse_grid.addWidget(btn_Time_Lapse_Visualisation, 1, 0)
         time_lapse_tool.setLayout(time_lapse_grid)
 
         #--- Traveltime ToolBox ---#
@@ -200,6 +205,11 @@ class BhTomoPy(QtWidgets.QWidget):
         tl_tool.addItem(time_lapse_tool, 'Time Lapse')
         tl_tool.sizeChanged.connect(self.fitHeight)
         self.tl_tool = tl_tool
+        
+        #--- Connecting mutual closing ---#
+        
+        tl_tool.toolboxOpened.connect(tt_tool.closeAll)
+        tt_tool.toolboxOpened.connect(tl_tool.closeAll)
 
         #--- Buttons SubWidget ---#
         Sub_button_widget = QtWidgets.QGroupBox()
@@ -218,9 +228,11 @@ class BhTomoPy(QtWidgets.QWidget):
         #--- Main Widget---#
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 4)
-        master_grid.addWidget(sub_image_widget, 2, 0, 1, 4)
-        master_grid.addWidget(self.current_db, 3, 1, 1, 2)
-        master_grid.addWidget(Sub_button_widget, 4, 0, 1, 4)
+        master_grid.addWidget(sub_image_widget, 1, 0, 1, 4)
+        master_grid.addWidget(self.current_db, 2, 1, 1, 2)
+        master_grid.addWidget(Sub_button_widget, 3, 0, 1, 4)
+        sub_button_grid.setRowStretch(0, 0)
+        sub_button_grid.setRowStretch(1, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
         master_grid.setVerticalSpacing(3)
 
@@ -242,13 +254,14 @@ class MyQToolBox(QtWidgets.QWidget):
     2. Unlike the stock QToolBox widget, it is possible to hide all the tools.
     3. It is also possible to hide the current displayed tool by clicking on
        its header.
-    4. The tools that are hidden are marked by a right-arrow icon, while the
+    4. Closed and Expanded arrows can be set from custom icons.
+    5. The tools that are hidden are marked by a right-arrow icon, while the
        tool that is currently displayed is marked with a down-arrow icon.
-    5. Closed and Expanded arrows can be set from custom icons.
     """
 # =============================================================================
 
     sizeChanged = QtCore.pyqtSignal(float)
+    toolboxOpened = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
         super(MyQToolBox, self).__init__(parent)
@@ -277,6 +290,7 @@ class MyQToolBox(QtWidgets.QWidget):
         head.setIcon(self.__iclosed)
         head.clicked.connect(self.__isClicked__)
         head.setStyleSheet("QPushButton {text-align:left;}")
+        head.sizeHint().height()
 
         self.layout().addWidget(head, N-1, 0)
 
@@ -293,37 +307,46 @@ class MyQToolBox(QtWidgets.QWidget):
         scrollarea.setWidget(tool)
 
         self.layout().addWidget(scrollarea, N, 0)
-        self.layout().setRowStretch(N+1, 100)
 
     def __isClicked__(self):  # ===============================================
 
         for row in range(0, self.layout().rowCount()-1, 2):
-
-            head = self.layout().itemAtPosition(row, 0).widget()
+ 
+            head = self.layout().itemAtPosition(0, 0).widget()
             tool = self.layout().itemAtPosition(row+1, 0).widget()
-
+ 
             if head == self.sender():
                 if self.__currentIndex == row:
                     # if clicked tool is open, close it
                     head.setIcon(self.__iclosed)
                     tool.hide()
                     self.__currentIndex = -1
-
+                    self.sizeChanged.emit(self.sizeHint().height()+head.sizeHint().height())
+ 
                 else:
                     # if clicked tool is closed, expand it
                     head.setIcon(self.__iexpand)
                     tool.show()
                     self.__currentIndex = row
+                    self.toolboxOpened.emit()
+                    self.sizeChanged.emit(self.sizeHint().height()+head.sizeHint().height())
 
-            else:
-                # TODO: Transfer to form
-                # closes all the other tools so that only one tool can be
-                # expanded at a time.
-                head.setIcon(self.__iclosed)
-                tool.hide()
 
-        self.sizeChanged.emit(self.sizeHint().height())
+    def closeAll(self):  # ====================================================
+        
+        # allows opening only one toolbox at a time using the 'toolboxOpened' signal
 
+        for row in range(0, self.layout().rowCount()-1, 2):
+ 
+            head = self.layout().itemAtPosition(0, 0).widget()
+            tool = self.layout().itemAtPosition(row+1, 0).widget()
+
+            if self.__currentIndex == row:
+ 
+                    head.setIcon(self.__iclosed)
+                    tool.hide()
+                    self.__currentIndex = -1
+                    self.sizeChanged.emit(self.sizeHint().height()+head.sizeHint().height())
 
 if __name__ == '__main__':
 

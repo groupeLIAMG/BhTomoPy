@@ -219,7 +219,7 @@ class ManualttUI(QtWidgets.QFrame):
             self.update_control_center()
 
     def import_tt_file(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')#[0]
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')[0]
         self.load_tt_file(filename)
         
     def load_tt_file(self, filename):

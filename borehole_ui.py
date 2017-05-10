@@ -129,7 +129,7 @@ class BoreholeUI(QtWidgets.QWidget):
         
         for i in ind:
             self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
-            data_manager.delete(self.boreholes[int(i.row())])
+            data_manager.session.delete(self.boreholes[int(i.row())])
             del self.boreholes[int(i.row())]
 
         self.update_List_Widget()

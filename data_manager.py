@@ -5,12 +5,11 @@ from sqlalchemy.orm import sessionmaker
 engine = create_engine("sqlite:///Database.db")
 Base = declarative_base(bind=engine)
 Session = sessionmaker(bind=engine)
+session = Session()
 
 def get(item, Id=None):
 
     # item as class
-    
-    session = Session()
     
     if Id == None:    
         return session.query(item).all()
@@ -28,8 +27,6 @@ def save(items):
     
     # receives a single list of objects or a list of lists and saves it
     
-    session = Session()
-    
     if type(items[0]) is list:
     
         for item in items:
@@ -41,10 +38,3 @@ def save(items):
         session.bulk_save_objects(items)
             
     session.commit()
-
-def delete(item):
-    
-    session = Session()
-    
-    Item = type(item)
-    session.delete(session.query(Item).filter(Item.name==item.name).one())

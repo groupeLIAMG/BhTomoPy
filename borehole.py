@@ -72,7 +72,6 @@ class Borehole(Base):
 
         Note: the discrete points of the BH's trajectory are not the same as the discrete points of the ldepth
                 that's why we do this function; to determine the projection of the ldepth point on the fdata trajectory.
-
         
         OUTPUT:
 
