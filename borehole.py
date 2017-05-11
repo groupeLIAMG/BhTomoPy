@@ -37,9 +37,9 @@ class Borehole(Base):
     Z_surf    = Column(Float)            # BH's surface height
     Z_water   = Column(Float)            # Elevation of the water table
     diam      = Column(Float)            # BH's diameter
-    scont     = Column(PickleType)     # Matrix containing the slowness for each point of the BH's trajectory
-    acont     = Column(PickleType)     # Matrix containing the attenuation for each point of the BH's trajectory
-    fdata     = Column(PickleType)     # Matrix containing the BH's trajectory in space
+    scont     = Column(PickleType)       # Matrix containing the slowness for each point of the BH's trajectory
+    acont     = Column(PickleType)       # Matrix containing the attenuation for each point of the BH's trajectory
+    fdata     = Column(PickleType)       # Matrix containing the BH's trajectory in space
 
     def __init__(self, name=''):
 

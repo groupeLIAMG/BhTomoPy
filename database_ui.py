@@ -136,8 +136,10 @@ class DatabaseUI(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
 
     def load_file(self, filename):
-        self.filename = filename
-        engine.url = ("sqlite:///{}".format(filename))
+        self.filename = os.path.basename(filename)
+        data_manager.engine = data_manager.create_engine("sqlite:///" + self.filename)
+        data_manager.session = data_manager.Session()
+        print([i.name for i in data_manager.session.query(Borehole).all()])
         
         try:
      
@@ -172,17 +174,19 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def savefile(self):
 
+        print([i.name for i in data_manager.session.query(Borehole).all()])
+
         if not self.filename:
             self.saveasfile()
             return
 
         try:
-            data_manager.save([self.model.models, self.bh.boreholes, self.mog.MOGs, self.mog.air])
+            data_manager.session.commit()
         
             try:
                 self.model.gridui.update_model_grid()
             except:
-                pass
+                print("Warning : 'update_model_grid' skipped (database_ui, line 185)")
         
             QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
@@ -193,12 +197,12 @@ class DatabaseUI(QtWidgets.QWidget):
                                       buttons=QtWidgets.QMessageBox.Ok)
 
     def saveasfile(self):
-        #TODO: verify getSaveFileName's type of output
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
                                                      self.name, filter= 'Database (*.db)', )[0]
         if filename:
-            self.filename = filename
-            engine.url = ("sqlite:///{}".format(filename))
+            self.filename = os.path.basename(filename)
+            data_manager.engine= data_manager.create_engine("sqlite:///" + self.filename)
+            data_manager.session = data_manager.Session()
             self.savefile()
 
     def editname(self):
@@ -306,8 +310,7 @@ class MyLogWidget(QtWidgets.QTextEdit):
 
 if __name__ == '__main__':
     
-    from data_manager import Base, engine
-    Base.metadata.create_all(engine)
+    data_manager.Base.metadata.create_all(data_manager.engine)
 
     app = QtWidgets.QApplication(sys.argv)
 

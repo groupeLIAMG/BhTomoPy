@@ -73,7 +73,7 @@ def chooseMOG(filename=None):
             if filename.find('.db') != -1:
                 
                 l0.setText( os.path.basename(filename) )
-                data_manager.engine.url = ("sqlite:///{}".format(filename))
+                data_manager.engine.url = ("sqlite:///" + filename)
                 load_mogs(filename)
              
             else:
@@ -167,7 +167,7 @@ def chooseModel(filename=None):
             if filename.find('.db') != -1:
                 
                 l0.setText( os.path.basename(filename) )
-                data_manager.engine.url = ("sqlite:///{}".format(filename))
+                data_manager.engine.url = ("sqlite:///" + filename)
                 load_models(filename)
              
             else:

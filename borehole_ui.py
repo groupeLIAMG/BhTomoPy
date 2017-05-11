@@ -27,6 +27,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
 import time
 import data_manager
+# from logging import exception
 
 class BoreholeUI(QtWidgets.QWidget):
 
@@ -49,9 +50,8 @@ class BoreholeUI(QtWidgets.QWidget):
         """
         This method opens a QFileDialog, takes the name that the user as selected, updates the borehole's informations
         and then shows its name in the bh_list
-
         """
-        filename              = QtWidgets.QFileDialog.getOpenFileName(self, 'Import Borehole')[0]
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import Borehole')[0]
         try:
             if filename:
                 self.load_bh(filename)
@@ -74,9 +74,11 @@ class BoreholeUI(QtWidgets.QWidget):
         self.update_List_Widget()
         self.bh_list.setCurrentRow(len(self.boreholes) - 1)
         self.update_List_Edits()
+        try:
+            data_manager.session.add(bh)
+        except Exception as e:
+            print(str(e))
         self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
-
-
 
     def add_bhole(self):
         """
@@ -85,7 +87,9 @@ class BoreholeUI(QtWidgets.QWidget):
         """
         name, ok = QtWidgets.QInputDialog.getText(self, "Borehole creation", "Borehole name")
         if ok :
-            self.boreholes.append(Borehole(str(name)))
+            bh = Borehole(str(name))
+            self.boreholes.append(bh)
+            data_manager.session.add(bh)
             self.update_List_Widget()
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
@@ -125,15 +129,17 @@ class BoreholeUI(QtWidgets.QWidget):
         """
         Deletes a borehole instance from boreholes
         """
-        ind = self.bh_list.selectedIndexes()
-        
-        for i in ind:
-            self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
-            data_manager.session.delete(self.boreholes[int(i.row())])
-            del self.boreholes[int(i.row())]
-
-        self.update_List_Widget()
-
+        try:
+            ind = self.bh_list.selectedIndexes()
+            
+            for i in ind:
+                self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
+                data_manager.session.delete(self.boreholes[int(i.row())])
+                del self.boreholes[int(i.row())]
+    
+            self.update_List_Widget()
+        except Exception as e:
+            print(str(e))
 
     def update_bhole_data(self):
         """
@@ -149,7 +155,10 @@ class BoreholeUI(QtWidgets.QWidget):
             bh.Ymax           = float(self.Ymax_edit.text())
             bh.Zmax           = float(self.Zmax_edit.text())
             bh.Z_surf         = float(self.Z_surf_edit.text())
-            bh.Z_water        = float(self.Z_water_edit.text())
+            if self.Z_water_edit.text() == 'None':
+                bh.Z_water    = None
+            else:
+                bh.Z_water    = float(self.Z_water_edit.text())
             bh.fdata[0,0]     = bh.X
             bh.fdata[0,1]     = bh.Y
             bh.fdata[0,2]     = bh.Z
@@ -311,7 +320,7 @@ class BoreholeUI(QtWidgets.QWidget):
         btn_Constraints_veloc.clicked.connect(self.slowness_constraints)
 
         #--- SubWidgets ---#
-        #--- Edits and Labels SubWidget ---#
+        #--- Edits and Labels SubWidgets ---#
         sub_E_and_L_widget          = QtWidgets.QWidget()
         sub_E_and_L_grid            = QtWidgets.QGridLayout()
         sub_E_and_L_grid.addWidget(Coord_label, 0, 0)
@@ -326,11 +335,24 @@ class BoreholeUI(QtWidgets.QWidget):
         sub_E_and_L_grid.addWidget(Elev_label, 3, 0)
         sub_E_and_L_grid.addWidget(self.Z_edit, 3, 1)
         sub_E_and_L_grid.addWidget(self.Zmax_edit, 3, 2)
-        sub_E_and_L_grid.addWidget(Elev_surf_label, 4, 0)
-        sub_E_and_L_grid.addWidget(self.Z_surf_edit, 4, 1)
-        sub_E_and_L_grid.addWidget(Elev_water_label, 5, 0)
-        sub_E_and_L_grid.addWidget(self.Z_water_edit, 5, 1)
         sub_E_and_L_widget.setLayout(sub_E_and_L_grid)
+
+        sub_E_and_L_widget2         = QtWidgets.QWidget()
+        sub_E_and_L_grid2           = QtWidgets.QGridLayout()
+        sub_E_and_L_grid2.addWidget(Elev_surf_label, 0, 0)
+        sub_E_and_L_grid2.addWidget(self.Z_surf_edit, 0, 1)
+        sub_E_and_L_grid2.addWidget(Elev_water_label, 1, 0)
+        sub_E_and_L_grid2.addWidget(self.Z_water_edit, 1, 1)
+        sub_E_and_L_widget2.setLayout(sub_E_and_L_grid2)
+
+        #--- Edits and Labels join ---#
+
+        sub_joined_E_and_L_widget   = QtWidgets.QWidget()
+        sub_joined_E_and_L_grid     = QtWidgets.QGridLayout()
+        sub_joined_E_and_L_grid.addWidget(sub_E_and_L_widget, 0, 0)
+        sub_joined_E_and_L_grid.addWidget(sub_E_and_L_widget2, 1, 0)
+        sub_joined_E_and_L_grid.setContentsMargins(0, 0, 0, 0)
+        sub_joined_E_and_L_widget.setLayout(sub_joined_E_and_L_grid)
 
         #--- Upper Buttons ---#
         sub_upper_buttons_widget = QtWidgets.QWidget()
@@ -354,7 +376,7 @@ class BoreholeUI(QtWidgets.QWidget):
         master_grid     = QtWidgets.QGridLayout()
         master_grid.addWidget(sub_upper_buttons_widget, 0, 0)
         master_grid.addWidget(self.bh_list, 1, 0)
-        master_grid.addWidget(sub_E_and_L_widget, 2, 0)
+        master_grid.addWidget(sub_joined_E_and_L_widget, 2, 0)
         master_grid.addWidget(sub_lower_buttons_widget, 4, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
 

@@ -29,12 +29,12 @@ from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
 import os
 
-from data_manager import engine, Base, Session, session
+import data_manager
 
 from borehole import Borehole # imports required by create_all
 from model import Model
 from mog import Mog, AirShots
-Base.metadata.create_all(engine)
+data_manager.Base.metadata.create_all(data_manager.engine)
 
 class BhTomoPy(QtWidgets.QWidget):
 
@@ -71,9 +71,9 @@ class BhTomoPy(QtWidgets.QWidget):
         self.manual_amp.filename = filename
         self.inv.filename = filename
         
-        Session.close_all()
-        engine.url = ("sqlite:///{}".format(filename))
-        session = Session()
+        data_manager.Session.close_all()
+        data_manager.engine.url = ("sqlite:///" + filename)
+        data_manager.session = data_manager.Session()
 
     def show(self):
         super(BhTomoPy, self).show()
