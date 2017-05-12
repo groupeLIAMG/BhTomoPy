@@ -133,17 +133,21 @@ class BoreholeUI(QtWidgets.QWidget):
             ind = self.bh_list.selectedIndexes()
             
             for i in ind:
+                from sqlalchemy import inspect
+                if inspect(self.boreholes[int(i.row())]).persistent:
+                    data_manager.session.delete(self.boreholes[int(i.row())])
+                else:
+                    data_manager.session.expunge(self.boreholes[int(i.row())])
                 self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
-                data_manager.session.delete(self.boreholes[int(i.row())])
                 del self.boreholes[int(i.row())]
     
             self.update_List_Widget()
         except Exception as e:
-            print(str(e))
+            print(str(e) + ' [borehole_ui 1]')
 
     def update_bhole_data(self):
         """
-        Updates the borehole's attributes by getting the text in the coordinates edits
+        Updates the borehole's attributes from the coordinates edits
         """
         ind = self.bh_list.selectedIndexes()
         for i in ind:

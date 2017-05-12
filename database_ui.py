@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 
 This file is part of BhTomoPy.
@@ -127,6 +126,7 @@ class DatabaseUI(QtWidgets.QWidget):
             self.load_file(self.filename)
 
     def openfile(self):
+
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
         
         if filename:
@@ -136,10 +136,13 @@ class DatabaseUI(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
 
     def load_file(self, filename):
-        self.filename = os.path.basename(filename)
-        data_manager.engine = data_manager.create_engine("sqlite:///" + self.filename)
+        self.filename = filename
+        data_manager.Session.close_all()
+        data_manager.engine.dispose()
+        data_manager.engine  = data_manager.create_engine("sqlite:///" + self.filename)
+        data_manager.Session = data_manager.sessionmaker(bind=data_manager.engine)
         data_manager.session = data_manager.Session()
-        print([i.name for i in data_manager.session.query(Borehole).all()])
+        data_manager.Base.metadata.create_all(data_manager.engine)
         
         try:
      
@@ -169,28 +172,27 @@ class DatabaseUI(QtWidgets.QWidget):
  
         except Exception as e:
             self.update_log("Error: Database was not recognised")
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : " + str(e),
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
                                        buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
-        print([i.name for i in data_manager.session.query(Borehole).all()])
-
-        if not self.filename:
-            self.saveasfile()
-            return
-
         try:
+    
+            if not self.filename:
+                self.saveasfile()
+                return
+
             data_manager.session.commit()
         
             try:
                 self.model.gridui.update_model_grid()
             except:
-                print("Warning : 'update_model_grid' skipped (database_ui, line 185)")
+                print("Warning : 'update_model_grid' skipped (database_ui, line 196'ish)")
         
+            self.update_log("Database was saved successfully")
             QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
-            self.update_log("Database was saved successfully")
 
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved : " + str(e),
@@ -199,12 +201,35 @@ class DatabaseUI(QtWidgets.QWidget):
     def saveasfile(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
                                                      self.name, filter= 'Database (*.db)', )[0]
+        
         if filename:
-            self.filename = os.path.basename(filename)
-            data_manager.engine= data_manager.create_engine("sqlite:///" + self.filename)
-            data_manager.session = data_manager.Session()
-            self.savefile()
-
+            if filename != self.filename:
+                self.filename = filename
+                items = data_manager.get_many(Borehole, Mog, AirShots, Model)
+                 
+                data_manager.Session.close_all()
+                data_manager.engine.dispose()
+                 
+                data_manager.engine = data_manager.create_engine("sqlite:///" + filename)
+                data_manager.Base.metadata.create_all(data_manager.engine)
+                data_manager.Session.configure(bind=data_manager.engine)
+                data_manager.session = data_manager.Session()
+                
+                for item in data_manager.get_many(Borehole, Mog, AirShots, Model):
+                    data_manager.session.delete(item)
+                
+                items = [data_manager.session.merge(item) for item in items]
+                data_manager.session.add_all(items)
+                
+                data_manager.session.flush()
+                self.bh.boreholes = data_manager.get(Borehole)
+                self.mog.MOGs = data_manager.get(Mog)
+                self.model.models = data_manager.get(Model)
+                self.mog.air = data_manager.get(AirShots)
+                
+                self.update_database_info(os.path.basename(filename))
+                self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
+                    
     def editname(self):
         new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name')
 
@@ -214,7 +239,6 @@ class DatabaseUI(QtWidgets.QWidget):
             return
 
         self.info.live_database_label.setText(str(new_name))
-
 
     def initUI(self):
 
@@ -318,7 +342,7 @@ if __name__ == '__main__':
     Database_ui.show()
 
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.filename = 'Database.db'
+#     Database_ui.filename = 'Database.db'
     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
 #     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')

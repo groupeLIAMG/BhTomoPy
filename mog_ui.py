@@ -38,6 +38,7 @@ from mpl_toolkits.mplot3d import axes3d
 from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
 from utils_ui import chooseMOG
+import data_manager
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -167,6 +168,7 @@ class MOGUI(QtWidgets.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             self.moglogSignal.emit("MOG {} has been deleted".format(self.MOGs[int(i.row())].name))
+            data_manager.session.expunge(self.MOGs[int(i.row())])
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
 
