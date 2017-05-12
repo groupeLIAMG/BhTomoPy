@@ -101,8 +101,8 @@ class MOGUI(QtWidgets.QWidget):
             self.update_prune_info()
             self.moglogSignal.emit("{} Multi Offset-Gather has been loaded succesfully".format(rname))
             
-        except:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened",
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : " + str(e)[:42],
                                       buttons=QtWidgets.QMessageBox.Ok)
 
     def update_edits(self):

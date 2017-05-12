@@ -82,7 +82,7 @@ class BoreholeUI(QtWidgets.QWidget):
 
     def add_bhole(self):
         """
-        This method will create an instance of the Borehole class and initialize it, while showing the value of all its
+        This method will create an instance of Borehole and initialize it, while showing the value of all its
         attributes in the coordinates edits
         """
         name, ok = QtWidgets.QInputDialog.getText(self, "Borehole creation", "Borehole name")
