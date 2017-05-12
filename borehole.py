@@ -41,8 +41,10 @@ class Borehole(Base):
     acont     = Column(PickleType)       # Matrix containing the attenuation for each point of the BH's trajectory
     fdata     = Column(PickleType)       # Matrix containing the BH's trajectory in space
 
-    def __init__(self, name=''):
-
+    def __init__(self, name:str=''):
+        """
+        :param name:
+        """
         self.name      = name           # name of the borehole(BH)
         self.X         = 0.0            # X, Y and Z: the BH's top cartesian coordinates
         self.Y         = 0.0
