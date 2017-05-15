@@ -5,3 +5,4 @@ build/
 .pydevproject
 .settings/
 .DS_Store
+cutils/*.so

@@ -46,15 +46,15 @@ void ibm2float(int32_t from[], int32_t to[], size_t n, int endian) {
      *************************************************************************/
     register int32_t fconv, fmant, t;
     register size_t i;
-    
+
     for (i = 0;i < n; ++i) {
-        
+
         fconv = from[i];
-        
+
         /* if little endian, i.e. endian=0 do this */
         if (endian == 0) fconv = (fconv << 24) | ((fconv >> 24) & 0xff) |
                 ((fconv & 0xff00) << 8) | ((fconv & 0xff0000) >> 8);
-        
+
         if (fconv) {
             fmant = 0x00ffffff & fconv;
             /* The next two lines were added by Toralf Foerster */
@@ -79,7 +79,7 @@ Author:	J.W. de Bruijn, May 1995
 ****************************************************************************/
 {
 	register size_t i;
-    
+
     if (endian == 0) {
         for (i = 0; i < n; ++i) {
             Swap4Bytes(&from[i]);
@@ -128,7 +128,7 @@ Author: John Stockwell,  2005
 }
 
 int read_segy_b_header(const char* filename, PyObject* bh) {
-    
+
     const char *fnames[] = {  // follows CWP/SU naming convention for bytes 3201-3260
     "jobid",  // int
     "lino",   // int
@@ -140,7 +140,7 @@ int read_segy_b_header(const char* filename, PyObject* bh) {
     "hns",    // unsigned short
     "nso",    // unsigned short
     "format", // short
-    
+
     "fold",   // short
     "tsort",  // short
     "vscode", // short
@@ -151,7 +151,7 @@ int read_segy_b_header(const char* filename, PyObject* bh) {
     "schn",   // short
     "hstas",  // short
     "hstae",  // short
-    
+
     "htatyp", // short
     "hcorr",  // short
     "bgrcv",  // short
@@ -159,7 +159,7 @@ int read_segy_b_header(const char* filename, PyObject* bh) {
     "mfeet",  // short
     "polyt",  // short
     "vpol",   // short
-    
+
     // bytes after 3500
     "rev",    // unsigned short
     "fixl",   // short
@@ -171,13 +171,13 @@ int read_segy_b_header(const char* filename, PyObject* bh) {
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
         2, 2, 2, 2, 2, 2, 2
     };
-    
+
     const short signed_word[] = {
         1, 1, 1, 1, 1, 0, 0, 0, 0, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 0, 1, 1
     };
-    
+
     FILE *fid;
 
     //  open file
@@ -246,7 +246,7 @@ int read_segy_b_header(const char* filename, PyObject* bh) {
     }
 
     // get SEG Y Format revision number
-    
+
     if ( fseek(fid, 3500L, SEEK_SET) == -1 ) {
         fclose(fid);
         return 2;
@@ -262,7 +262,7 @@ int read_segy_b_header(const char* filename, PyObject* bh) {
         return 2;
 
     // get Fixed length trace flag
-    
+
     if ( fseek(fid, 3502L, SEEK_SET) == -1 ) {
         fclose(fid);
         return 2;
@@ -319,7 +319,7 @@ int read_segy_tr_headers(const char* filename,
         "trid",
         "nvs",
         "nhs",
-        
+
         "duse",  // 11
         "offset",
         "gelev",
@@ -330,7 +330,7 @@ int read_segy_tr_headers(const char* filename,
         "swdep",
         "gwdep",
         "scalel",
-        
+
         "scalco",  // 21
         "sx",
         "sy",
@@ -341,7 +341,7 @@ int read_segy_tr_headers(const char* filename,
         "swevel",
         "sut",
         "gut",
-        
+
         "sstat", // 31
         "gstat",
         "tstat",
@@ -352,7 +352,7 @@ int read_segy_tr_headers(const char* filename,
         "mute",
         "ns",
         "dt",
-        
+
         "gain",  // 41
         "igc",
         "igi",
@@ -363,7 +363,7 @@ int read_segy_tr_headers(const char* filename,
         "styp",
         "stas",
         "stae",
-        
+
         "tatyp",  // 51
         "afilf",
         "afils",
@@ -374,7 +374,7 @@ int read_segy_tr_headers(const char* filename,
         "lcs",
         "hcs",
         "year",
-        
+
         "day",  // 61
         "hour",
         "minute",
@@ -385,9 +385,9 @@ int read_segy_tr_headers(const char* filename,
         "grnofr",
         "grnlof",
         "gaps",
-        
+
         "otrav",  // 71
-        
+
         //  names below arbitrarily given
         "xcdp",   // 72 - X coord of ensemble (CDP) position of this trace
         "ycdp",   // 73 - Y coord of ensemble (CDP) position of this trace
@@ -398,7 +398,7 @@ int read_segy_tr_headers(const char* filename,
         "tvmunit",   // 78 - trace value measurement units
         "tdcst",
         "tdunit",
-        
+
         "trid",   // 81 - device/trace identifier
         "scalt",
         "styp",   // 83 - source type/orientation
@@ -408,7 +408,7 @@ int read_segy_tr_headers(const char* filename,
     };
     const short NFIELDS_SEG = 86;
     char **fnames;
-    
+
     const short word_length_seg[] = {
         4, 4, 4, 4, 4, 4, 4, 2, 2, 2,
         2, 4, 4, 4, 4, 4, 4, 4, 4, 2,
@@ -535,11 +535,11 @@ int read_segy_tr_headers(const char* filename,
         }
     } else {
         // we must read for all traces
-        
+
         fseek(fid, 0L, SEEK_END);
         long filesize = ftell(fid);
         fseek(fid, 0L, SEEK_SET);
-        
+
         filesize -= 3600L + nextended*3200L;
         ntraces = filesize / ( 240 + bytesPerSample*nsamples );
         traces_no = (int32_t*)malloc(ntraces*sizeof(int32_t));
@@ -570,7 +570,7 @@ int read_segy_tr_headers(const char* filename,
 
         fnames = (char **)malloc(sizeof(char*)*NFIELDS);
         word_length = (short *)malloc(sizeof(short)*NFIELDS);
-        
+
         for ( Py_ssize_t n=0; n<NFIELDS; ++n) {
             PyObject* tn = PyList_GetItem(thDict, n);
             if ( PyUnicode_Check(tn)==0 ) {
@@ -632,7 +632,7 @@ int read_segy_tr_headers(const char* filename,
                 nfields = NFIELDS;
                 fields_no = (int16_t*)malloc(nfields*sizeof(int16_t));
                 for ( int16_t n=0; n<nfields; ++n )
-                    fields_no[n] = n;                
+                    fields_no[n] = n;
 
             } else {
                 fields_no = (int16_t*)malloc(sizeof(int16_t));
@@ -652,7 +652,7 @@ int read_segy_tr_headers(const char* filename,
                     free(ftmp);
                     return 2;
                 }
-            } 
+            }
         } else if ( PyLong_Check(tn)!=0 ) {
             if ( PyLong_AsLong(tn)<NFIELDS && PyLong_AsLong(tn)>=0 ) {
                 nfields = 1;
@@ -702,7 +702,7 @@ int read_segy_tr_headers(const char* filename,
     }
 
     // create arrays to hold the data
-    
+
     import_array();  // to use PyArray_SimpleNewFromData
 
     void** thData = (void**)malloc(nfields*sizeof(void*));
@@ -713,18 +713,22 @@ int read_segy_tr_headers(const char* filename,
             case 2:
                 thData[nf] = (int16_t*)malloc(ntraces*sizeof(int16_t));
                 thPyData[nf] = PyArray_SimpleNewFromData(1, dims, NPY_INT16, thData[nf]);
+                PyArray_ENABLEFLAGS((PyArrayObject*)thPyData[nf], NPY_ARRAY_OWNDATA);
                 break;
             case 4:
                 thData[nf] = (int32_t*)malloc(ntraces*sizeof(int32_t));
                 thPyData[nf] = PyArray_SimpleNewFromData(1, dims, NPY_INT32, thData[nf]);
+                PyArray_ENABLEFLAGS((PyArrayObject*)thPyData[nf], NPY_ARRAY_OWNDATA);
                 break;
             case 5:
                 thData[nf] = (float*)malloc(ntraces*sizeof(float));
                 thPyData[nf] = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, thData[nf]);
+                PyArray_ENABLEFLAGS((PyArrayObject*)thPyData[nf], NPY_ARRAY_OWNDATA);
                 break;
             case 6:
                 thData[nf] = (double*)malloc(ntraces*sizeof(double));
                 thPyData[nf] = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT64, thData[nf]);
+                PyArray_ENABLEFLAGS((PyArrayObject*)thPyData[nf], NPY_ARRAY_OWNDATA);
                 break;
             default:
                 return 2;
@@ -733,19 +737,19 @@ int read_segy_tr_headers(const char* filename,
             return 2;
     }
 
-    long offset, offset2, ioff;    
+    long offset, offset2, ioff;
     for ( size_t n=0; n<ntraces; ++n ) {
-        
+
         offset = 3600L + nextended*3200 + (traces_no[n]*(240+(bytesPerSample*nsamples)));
-        
+
         for ( size_t nf=0; nf<nfields; ++nf ) {
-            
+
             offset2 = offset;
             for (size_t m=0; m<fields_no[nf]; ++m) {
                 ioff = word_length[m]==5 ? 4 : word_length[m];  // we use 5 for 4-byte ibm float
                 offset2 += ioff;
             }
-            
+
             if ( fseek(fid, offset2, SEEK_SET) == -1 ) {
                 fclose(fid);
                 free(fields_no);
@@ -755,48 +759,48 @@ int read_segy_tr_headers(const char* filename,
                 free(ftmp);
                 return 2;
             }
-            
+
             switch ( word_length[ fields_no[nf] ] ) {
                 case 2:
                     fread(stmp, 2, 1, fid);
-                    
+
                     if ( bt == 0 ) {
                         Swap2Bytes( stmp );
                     }
-                    
+
                     memcpy(((int16_t*)thData[nf])+n, stmp, 2);
-                    
+
                     break;
                 case 4:
                     fread(itmp, 4, 1, fid);
-                    
+
                     if ( bt == 0 ) {
                         Swap4Bytes( itmp );
                     }
-                    
+
                     memcpy(((int32_t *)thData[nf])+n, itmp, 4);
-                    
+
                     break;
                 case 5:
                     fread(itmp, 4, 1, fid);
                     ibm2float(itmp, (int32_t *)ftmp, 1, bt);
-                    
+
                     memcpy(((float *)thData[nf])+n, ftmp, sizeof(float));
-                    
+
                     break;
                 case 6:
                     fread(itmp, 4, 1, fid);
                     fread(stmp, 2, 1, fid);
-                    
+
                     if ( bt == 0 ) {
                         Swap4Bytes( itmp );
                         Swap2Bytes( stmp );
                     }
-                    
+
                     *dtmp = *itmp * pow( 10.0, *stmp );
-                    
+
                     memcpy(((double *)thData[nf])+n, dtmp, sizeof(double));
-                    
+
                     break;
                 default:
                     fclose(fid);
@@ -919,11 +923,11 @@ PyObject* read_segy_data(const char* filename, PyObject* traceNo) {
         }
     } else {
         // we must read for all traces
-        
+
         fseek(fid, 0L, SEEK_END);
         long filesize = ftell(fid);
         fseek(fid, 0L, SEEK_SET);
-        
+
         filesize -= 3600L + nextended*3200L;
         ntraces = filesize / ( 240 + bytesPerSample*nsamples );
         traces_no = (int32_t*)malloc(ntraces*sizeof(int32_t));
@@ -934,6 +938,7 @@ PyObject* read_segy_data(const char* filename, PyObject* traceNo) {
     float* pdata = (float*)malloc(nsamples*ntraces*sizeof(float));
     npy_intp dims[] = {(npy_intp)ntraces,(npy_intp)nsamples};  // ntraces x nsamples due to memory layout
     PyObject* data = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, pdata);
+    PyArray_ENABLEFLAGS((PyArrayObject*)data, NPY_ARRAY_OWNDATA);
 
 
     void *ptr;
@@ -957,17 +962,17 @@ PyObject* read_segy_data(const char* filename, PyObject* traceNo) {
             free(itmp);
             return PyLong_FromLong(2);
     }
-    
+
     float *fltptr;
     if ( format == 5 )
         fltptr = ptr;
     else
         fltptr = malloc(nsamples*sizeof(float));
-    
+
     long offset;
 
     for ( size_t n=0; n<ntraces; ++n ) {
-        
+
         offset = 3600L + nextended*3200 +
                 (traces_no[n]*(240+(bytesPerSample*nsamples))) + 240L;
 
@@ -979,7 +984,7 @@ PyObject* read_segy_data(const char* filename, PyObject* traceNo) {
         }
 
         fread(ptr, bytesPerSample, nsamples, fid);
-        
+
         switch ( format ) {
             case 1:
                 ibm2float(ptr, (int32_t *)fltptr, nsamples, bt);
