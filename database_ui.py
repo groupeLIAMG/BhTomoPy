@@ -337,11 +337,11 @@ class MyLogWidget(QtWidgets.QTextEdit):
 
 if __name__ == '__main__':
     
-    def Hook(typee, value, traceback):
+    def Hook(Type, value, traceback):
         initial_ctx = traceback.tb_next
         while initial_ctx.tb_next is not None:
             initial_ctx = initial_ctx.tb_next
-        sys.__excepthook__(typee, value, traceback)
+        sys.__excepthook__(Type, value, traceback)
     sys.excepthook = Hook # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
     
     data_manager.Base.metadata.create_all(data_manager.engine)

@@ -91,7 +91,7 @@ def compute_SNR(mog):
 
     return SNR
 
-def data_select(data, freq, dt, L= 100, treshold= 5, medfilt_len= 10):
+def data_select(data, freq, dt, L= 100, threshold= 5, medfilt_len= 10):
 
     shape = np.shape(data)
     M = shape[1]
@@ -117,6 +117,6 @@ def data_select(data, freq, dt, L= 100, treshold= 5, medfilt_len= 10):
 
     std_noise = np.std(data[-1-L: -1, :])
     SNR = std_sig/std_noise
-    ind_data_select[SNR > treshold] = True
+    ind_data_select[SNR > threshold] = True
 
     return SNR

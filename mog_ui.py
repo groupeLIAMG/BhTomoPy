@@ -556,7 +556,7 @@ class MOGUI(QtWidgets.QWidget):
     def plot_prune(self):
         if len(self.MOGs) != 0:
             ind = self.MOG_list.selectedIndexes()
-            if self.MOGs[i.row()].Tx != 1 and self.MOGs[i.row()].Tx != 1:
+            if self.MOGs[ind[0].row()].Tx != 1 and self.MOGs[ind[0].row()].Tx != 1:
                 self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0 )
                 self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(self.MOGs[ind[0].row()].name))
                 self.prunemanager.show()
@@ -631,8 +631,8 @@ class MOGUI(QtWidgets.QWidget):
         skip_len_Rx = int(self.skip_Rx_edit.text())
         skip_len_Tx = int(self.skip_Tx_edit.text())
         round_factor = float(self.round_fac_edit.text())
-        use_snr = self.tresh_check.isChecked()
-        treshold_snr = float(self.tresh_edit.text())
+        use_snr = self.thresh_check.isChecked()
+        threshold_snr = float(self.thresh_edit.text())
         ang_min = float(self.min_ang_edit.text())
         ang_max = float(self.max_ang_edit.text())
 
@@ -645,7 +645,7 @@ class MOGUI(QtWidgets.QWidget):
         min_Rx = np.greater_equal(-np.unique(np.sort(mog.data.Rx_z)), new_min)
 
         # Then we create another boolean vector which will have a True value if the elevation is less or equals the new max
-        # and will be false the other way
+        # and will be false otherwise
         max_Tx = np.less_equal(-np.unique(mog.data.Tx_z),new_max)
         max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max + 0.0000000001) #À voir avec bernard
 
@@ -881,7 +881,7 @@ class MOGUI(QtWidgets.QWidget):
         self.max_ang_edit = QtWidgets.QLineEdit()
         self.min_elev_edit = QtWidgets.QLineEdit()
         self.max_elev_edit = QtWidgets.QLineEdit()
-        self.tresh_edit = QtWidgets.QLineEdit('0')
+        self.thresh_edit = QtWidgets.QLineEdit('0')
 
         # - Edits Actions -#
         self.skip_Tx_edit.editingFinished.connect(self.update_prune)
@@ -900,13 +900,13 @@ class MOGUI(QtWidgets.QWidget):
         self.max_ang_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.min_elev_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.max_elev_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.tresh_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.thresh_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- CheckBox ---#
-        self.tresh_check = QtWidgets.QCheckBox('Treshold - SNR')
+        self.thresh_check = QtWidgets.QCheckBox('Threshold - SNR')
 
         # - CheckBox Action -#
-        self.tresh_check.stateChanged.connect(self.update_prune)
+        self.thresh_check.stateChanged.connect(self.update_prune)
 
         #--- Button ---#
         btn_done = QtWidgets.QPushButton('Done')
@@ -945,8 +945,8 @@ class MOGUI(QtWidgets.QWidget):
         Sub_prune_grid.addWidget(self.skip_Rx_edit, 3, 0)
         Sub_prune_grid.addWidget(round_fac_label, 4, 0)
         Sub_prune_grid.addWidget(self.round_fac_edit, 5, 0)
-        Sub_prune_grid.addWidget(self.tresh_check, 6, 0)
-        Sub_prune_grid.addWidget(self.tresh_edit, 7, 0)
+        Sub_prune_grid.addWidget(self.thresh_check, 6, 0)
+        Sub_prune_grid.addWidget(self.thresh_edit, 7, 0)
         Sub_prune_grid.addWidget(min_ang_label, 8, 0)
         Sub_prune_grid.addWidget(self.min_ang_edit, 9, 0)
         Sub_prune_grid.addWidget(max_ang_label, 10, 0)

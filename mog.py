@@ -221,7 +221,7 @@ class PruneParams(object):
         self.stepRx = 0
         self.round_factor = 0
         self.use_SNR = 0
-        self.treshold_SNR = 0
+        self.threshold_SNR = 0
         self.zmin = -1e99
         self.zmax = 1e99
         self.thetaMin = -90
@@ -268,7 +268,7 @@ class Mog(Base):
         self.pruneParams.stepRx       = 0
         self.pruneParams.round_factor = 0
         self.pruneParams.use_SNR      = 0
-        self.pruneParams.treshold_SNR = 0
+        self.pruneParams.threshold_SNR = 0
         self.pruneParams.zmin         = -1e99
         self.pruneParams.zmax         = 1e99
         self.pruneParams.thetaMin     = -90
@@ -458,7 +458,7 @@ class AirShots(Base):
         self.data = data           # MogData instance
         self.d_TxRx = 0            # Distance between Tx and Rx
         self.fac_dt = 1
-        self.ing = 0
+        #self.ing = 0
         self.method = 0
         
         self.init_on_load()
