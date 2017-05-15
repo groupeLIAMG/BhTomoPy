@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 
 This file is part of BhTomoPy.
@@ -17,7 +16,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 """
 import numpy as np
 from sqlalchemy import Column, String, PickleType
@@ -29,11 +27,11 @@ class Model(Base):
     name       = Column(String, primary_key=True)  # Model's name
     mogs       = Column(PickleType)    # List of mogs contained in the model
     boreholes  = Column(PickleType)    # List of boreholes contained in the model
-    grid       = Column(PickleType)  # Model's grid
-    tt_covar   = Column(PickleType)  # Model's Traveltime covariance model
-    amp_covar  = Column(PickleType)  # Model's Amplitude covariance model
-    inv_res    = Column(PickleType)  # Results of inversion
-    tlinv_res  = Column(PickleType)  # Time-lapse inversion results
+    grid       = Column(PickleType)    # Model's grid
+    tt_covar   = Column(PickleType)    # Model's Traveltime covariance model
+    amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
+    inv_res    = Column(PickleType)    # Results of inversion
+    tlinv_res  = Column(PickleType)    # Time-lapse inversion results
     
     def __init__(self, name= ''):
         self.name       = name  # Model's name

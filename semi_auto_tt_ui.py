@@ -332,7 +332,7 @@ class OpenMainData(QtWidgets.QWidget):
         self.initUI()
 
     def openfile(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
 
         self.load_file(filename)
 

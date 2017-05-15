@@ -32,7 +32,7 @@ from cutils import cgrid2d # @UnresolvedImport
 from utils import nargout
 import covar
 
-class Grid:
+class Grid(object):
     """
     Superclass for 2D and 3D grids
 
@@ -858,7 +858,7 @@ if __name__ == '__main__':
         
     if testStatic:
 
-        class Borehole:
+        class Borehole(object):
             X = 0
             Y = 0
 
@@ -903,7 +903,7 @@ if __name__ == '__main__':
 
         plt.show()
 
-        class Plane:
+        class Plane(object):
             x0 = 0
             a = 0
 

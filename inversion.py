@@ -22,7 +22,7 @@ import numpy as np
 import scipy as spy
 from scipy.sparse import linalg
 
-class InvLSQRParams:
+class InvLSQRParams(object):
     def __init__(self):
         self.tomoAtt        = 0
         self.selectedMogs   = []
@@ -85,7 +85,7 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
     ui: the InversionUI QWidget
     """
 
-    # Frst we call a Tomo class instance. It will hold the data we will process along the way.
+    # First we call a Tomo class instance. It will hold the data we will process along the way.
     tomo = Tomo()
 
 
@@ -204,7 +204,7 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
     return tomo
 
 
-class Tomo:
+class Tomo(object):
     def __init__(self):
         self.rays   = np.array([])
         self.L      = np.array([])
@@ -217,7 +217,7 @@ class Tomo:
         self.res = np.array([0])
         self.var_res = np.array([])
 
-class invData:
+class invData(object):
     def __init__(self):
         self.res = np.array([0])
         self.s = np.array([0])

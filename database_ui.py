@@ -137,8 +137,10 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def load_file(self, filename):
         self.filename = filename
+        
         data_manager.Session.close_all()
         data_manager.engine.dispose()
+        
         data_manager.engine  = data_manager.create_engine("sqlite:///" + self.filename)
         data_manager.Session = data_manager.sessionmaker(bind=data_manager.engine)
         data_manager.session = data_manager.Session()
@@ -188,7 +190,7 @@ class DatabaseUI(QtWidgets.QWidget):
             try:
                 self.model.gridui.update_model_grid()
             except:
-                print("Warning : 'update_model_grid' skipped (database_ui, line 196'ish)")
+                print("Warning : 'update_model_grid' skipped [database_ui 1]")
         
             self.update_log("Database was saved successfully")
             QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
@@ -201,12 +203,12 @@ class DatabaseUI(QtWidgets.QWidget):
     def saveasfile(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
                                                      self.name, filter= 'Database (*.db)', )[0]
-        
+                                                     
         if filename:
             if filename != self.filename:
                 self.filename = filename
                 items = data_manager.get_many(Borehole, Mog, AirShots, Model)
-                 
+
                 data_manager.Session.close_all()
                 data_manager.engine.dispose()
                  
@@ -214,14 +216,15 @@ class DatabaseUI(QtWidgets.QWidget):
                 data_manager.Base.metadata.create_all(data_manager.engine)
                 data_manager.Session.configure(bind=data_manager.engine)
                 data_manager.session = data_manager.Session()
-                
+
                 for item in data_manager.get_many(Borehole, Mog, AirShots, Model):
                     data_manager.session.delete(item)
                 
                 items = [data_manager.session.merge(item) for item in items]
                 data_manager.session.add_all(items)
                 
-                data_manager.session.flush()
+                data_manager.session.commit()
+                    
                 self.bh.boreholes = data_manager.get(Borehole)
                 self.mog.MOGs = data_manager.get(Mog)
                 self.model.models = data_manager.get(Model)
@@ -334,6 +337,13 @@ class MyLogWidget(QtWidgets.QTextEdit):
 
 if __name__ == '__main__':
     
+    def Hook(typee, value, traceback):
+        initial_ctx = traceback.tb_next
+        while initial_ctx.tb_next is not None:
+            initial_ctx = initial_ctx.tb_next
+        sys.__excepthook__(typee, value, traceback)
+    sys.excepthook = Hook # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
+    
     data_manager.Base.metadata.create_all(data_manager.engine)
 
     app = QtWidgets.QApplication(sys.argv)
@@ -345,9 +355,9 @@ if __name__ == '__main__':
 #     Database_ui.filename = 'Database.db'
     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
-#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
-#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
-#     Database_ui.model.load_model("t0302's model")
+    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
+    Database_ui.model.load_model("t0302's model")
 #     Database_ui.mog.plot_spectra()
 #     Database_ui.mog.plot_zop()
 

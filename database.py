@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-class Database:
+class Database(object):
     def __init__(self, name = ''):
         self.name = name
         self.db_Mog_list = []

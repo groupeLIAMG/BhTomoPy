@@ -24,7 +24,7 @@ from data_manager import Base
 from sqlalchemy.types import UserDefinedType # allows the use of custom classes as SQL types
 from sqlalchemy import orm
 
-class MogData(UserDefinedType):
+class MogData(object):
     """
     Class to hold multi-offset gather (mog) data
     """
@@ -39,12 +39,12 @@ class MogData(UserDefinedType):
         self.rdata        = 0       # raw data
         self.tdata        = None    # time data
         self.timestp      = 0       # matrix of range self.nptstrc containing all the time referencies
-        self.Tx_x         = 0       # x position of the transmitor
-        self.Tx_y         = 0       # y position of the transmitor
-        self.Tx_z         = 0       # z position of the transmitor
-        self.Rx_x         = 0       # x position of the receptor
-        self.Rx_y         = 0       # y position of the receptor
-        self.Rx_z         = 0       # z position of the receptor
+        self.Tx_x         = [0]     # x position of the transmitter
+        self.Tx_y         = [0]     # y position of the transmitter
+        self.Tx_z         = [0]     # z position of the transmitter
+        self.Rx_x         = [0]     # x position of the receptor
+        self.Rx_y         = [0]     # y position of the receptor
+        self.Rx_z         = [0]     # z position of the receptor
         self.antennas     = ''      # name of the antenna
         self.synthetique  = 0       # if 1 results from numerical modelling and 0 for field data
         self.tunits       = 0       # time units
@@ -54,15 +54,12 @@ class MogData(UserDefinedType):
         self.comment      = ''      # is defined by the presence of any comment in the file
         self.date         = ''      # the date of the data sample
         self.name         = name
-        
-    def get_col_spec(self, **kw): # required by SQLAlchemy
-        return "MogData"
 
     def readRAMAC(self, basename):
         """
-        load data in Malå RAMAC format
+        loads data in Malå RAMAC format
         """
-        rname = basename.split('/')  # the split method gives us back a list which contains al the caracter that were
+        rname = basename.split('/')
         rname = rname[-1]
 
         self.name = rname
@@ -94,11 +91,9 @@ class MogData(UserDefinedType):
         self.Rx_x = np.zeros(self.ntrace)
 
 
-
-
     def readRAD(self, basename):
         """
-        load content of Malå header file (*.rad extension)
+        loads contents of Malå header file (*.rad extension)
         """
         try:
             file = open(basename, 'r')
@@ -108,14 +103,14 @@ class MogData(UserDefinedType):
             except:
                 try:
                     file = open(basename + ".RAD", 'r')
-                except:
-                    raise IOError (" Cannot open Rad file: {}".format(basename))
+                except Exception as e:
+                    raise IOError("Cannot open RAD file '" + str(e)[:42] + "...' [mog 2]")
 
-        # knowing he file's content, we make sure to read every line while looking for keywords. When we've found on of
+        # knowing the file's contents, we make sure to read every line while looking for keywords. When we've found one of
         # these keyword, we either search the int('\d+'), the float(r"[-+]?\d*\.\d+|\d+") or a str by getting the
         # needed information on the line
 
-        # the search function returns 3 things, the type, the span(i.e. the index(es) of the element that was found )
+        # the search function returns 3 things, the type, the span (i.e. the index(es) of the element(s) that was(were) found)
         # and the group(i.e. the found element)
 
         lines = file.readlines()
@@ -153,8 +148,8 @@ class MogData(UserDefinedType):
 
     def readRD3(self, basename):
         """
-        load content of *.rd3 extension
-        fact: RD3 stands for Ray Dream Designer 3 graphics
+        loads contents of *.rd3 extension
+        RD3 stands for Ray Dream Designer 3 graphics
         """
         try:
             file = open(basename, 'rb')
@@ -164,8 +159,8 @@ class MogData(UserDefinedType):
             except:
                 try:
                     file = open(basename + ".RD3", 'rb')
-                except:
-                    raise IOError(" Cannot open RD3 file: {}".format(basename))
+                except Exception as e:
+                    raise IOError("Cannot open RD3 file '" + str(e)[:42] + "...' [mog 3]")
 
         self.rdata = np.fromfile(file, dtype= 'int16', count= self.nptsptrc*self.ntrace)
         self.rdata.resize((self.ntrace, self.nptsptrc))
@@ -174,7 +169,7 @@ class MogData(UserDefinedType):
 
     def readTLF(self, basename):
         """
-        load content of *.TLF extension
+        loads contents of *.TLF extension
         """
         try:
             file = open(basename, 'r')
@@ -184,18 +179,18 @@ class MogData(UserDefinedType):
             except:
                 try:
                     file = open(basename + ".TLF", 'r')
-                except:
-                    raise IOError(" Cannot open TLF file: {}".format(basename))
+                except Exception as e:
+                    raise IOError("Cannot open TLF file '" + str(e)[:42] + "...' [mog 4]")
         self.Tx_z = np.array([])
         self.Rx_z = np.array([])
         lines = file.readlines()[1:]
         for line in lines:
-            line_content = re.findall(r"[-+]?\d*\.\d+|\d+", line )
-            tnd          = int(line_content[0])     # first trace
-            tnf          = int(line_content[1])     # last trace
-            Rxd          = float(line_content[2])   # first coordinate of the Rx
-            Rxf          = float(line_content[3])   # last coordinate of the Rx
-            Tx           = float(line_content[4])   # Tx's fixed position
+            line_contents = re.findall(r"[-+]?\d*\.\d+|\d+", line )
+            tnd          = int(line_contents[0])     # first trace
+            tnf          = int(line_contents[1])     # last trace
+            Rxd          = float(line_contents[2])   # first coordinate of the Rx
+            Rxf          = float(line_contents[3])   # last coordinate of the Rx
+            Tx           = float(line_contents[4])   # Tx's fixed position
             nt           = tnf - tnd + 1
             if nt == 1:
                 dRx = 1
@@ -220,13 +215,25 @@ class MogData(UserDefinedType):
         :return:
         """
 
+class PruneParams(object):
+    def __init__(self):
+        self.stepTx = 0
+        self.stepRx = 0
+        self.round_factor = 0
+        self.use_SNR = 0
+        self.treshold_SNR = 0
+        self.zmin = -1e99
+        self.zmax = 1e99
+        self.thetaMin = -90
+        self.thetaMax = 90
+
 
 class Mog(Base):
     
     __tablename__ = "Mog"
     name                     = Column(String, primary_key=True)
     pruneParams              = Column(PickleType)
-    data                     = Column(MogData)          # Instance of MogData
+    data                     = Column(PickleType)          # Instance of MogData
     av                       = Column(String)
     ap                       = Column(String)
     Tx                       = Column(Integer)
@@ -439,7 +446,7 @@ class AirShots(Base):
     __tablename__ = "Airshots"
     name    = Column(String, primary_key=True)
     mog     = Column(PickleType)
-    data    = Column(MogData)            # MogData instance
+    data    = Column(PickleType)            # MogData instance
     d_TxRx  = Column(Float)            # Distance between Tx and Rx
     fac_dt  = Column(Float)      #TODO: Verify type
     ing     = Column(Float)      #TODO: Verify type
@@ -463,18 +470,6 @@ class AirShots(Base):
         self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
 
-
-class PruneParams:
-    def __init__(self):
-        self.stepTx = 0
-        self.stepRx = 0
-        self.round_factor = 0
-        self.use_SNR = 0
-        self.treshold_SNR = 0
-        self.zmin = -1e99
-        self.zmax = 1e99
-        self.thetaMin = -90
-        self.thetaMax = 90
 
 if __name__ == '__main__':
 

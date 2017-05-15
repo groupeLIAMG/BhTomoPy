@@ -34,6 +34,7 @@ import data_manager
 from borehole import Borehole # imports required by create_all
 from model import Model
 from mog import Mog, AirShots
+import database_ui
 data_manager.Base.metadata.create_all(data_manager.engine)
 
 class BhTomoPy(QtWidgets.QWidget):
@@ -71,9 +72,7 @@ class BhTomoPy(QtWidgets.QWidget):
         self.manual_amp.filename = filename
         self.inv.filename = filename
         
-        data_manager.Session.close_all()
-        data_manager.engine.url = ("sqlite:///" + filename)
-        data_manager.session = data_manager.Session()
+        database_ui.DatabaseUI.load_file(filename)
 
     def show(self):
         super(BhTomoPy, self).show()

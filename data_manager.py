@@ -35,7 +35,6 @@ def get_many(*classes):
     
     return items
 
-
 # def save(items):
 #     
 #     # receives a single list of objects or a list of lists and saves it
@@ -71,7 +70,3 @@ def get_many(*classes):
 #                     print([inspect(my_object).persistent for my_object in items])
 #                     print([i.__tablename__ for i in data_manager.session])
 #                     print(data_manager.session.query(Borehole).all())
-# try:
-# 
-# except Exception as e:
-#     print(str(e) + ' [1]')

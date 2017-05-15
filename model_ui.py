@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 
 This file is part of BhTomoPy.
@@ -29,6 +28,7 @@ import matplotlib as mpl
 from model import Model
 from grid import Grid, Grid2D
 from events_ui import GridEdited
+import data_manager
 
 
 class ModelUI(QtWidgets.QWidget):
@@ -51,15 +51,22 @@ class ModelUI(QtWidgets.QWidget):
             self.load_model(name)
 
     def load_model(self, name):
-        self.models.append(Model(name))
+        model = Model(name)
+        self.models.append(model)
         self.model_list.setCurrentRow(0)
-        self.modellogSignal.emit("Model {} has been added succesfully".format(name))
+        data_manager.session.add(model)
+        self.modellogSignal.emit("Model {} has been added successfully".format(name))
         self.update_model_list()
 
     def del_model(self):
         ind = self.model_list.selectedIndexes()
         for i in ind:
-            self.modellogSignal.emit("Model {} has been deleted succesfully".format(self.models[int(i.row())].name))
+            from sqlalchemy import inspect
+            if inspect(self.models[int(i.row())]).persistent:
+                data_manager.session.delete(self.models[int(i.row())])
+            else:
+                data_manager.session.expunge(self.models[int(i.row())])
+            self.modellogSignal.emit("Model {} has been deleted successfully".format(self.models[int(i.row())].name))
             del self.models[int(i.row())]
         self.update_model_list()
         self.model_mog_list.clear()
@@ -81,13 +88,13 @@ class ModelUI(QtWidgets.QWidget):
 
 
     def remove_mog(self):
-        if len(self.model_mog_list) != 0:
-            n = self.model_list.selectedIndexes()[0].row()
-            ind = self.model_mog_list.currentIndex().row()
-    
-            del self.models[n].mogs[ind]
-            self.update_model_mog_list()
-            self.update_models_boreholes()
+        ind1 = self.model_list.selectedIndexes()
+        ind2 = self.model_mog_list.selectedIndexes()
+        for i in ind1:
+            for j in ind2:
+                del self.models[int(j.row())].mogs[int(i.row())]
+                self.update_model_mog_list()
+                self.update_models_boreholes()
 
     def update_model_mog_list(self):
         self.model_mog_list.clear()
@@ -152,7 +159,7 @@ class ModelUI(QtWidgets.QWidget):
         else:
             gtype = g.type
             if gtype is '2D':
-                gtmp, data = Grid2DUI.build_grid(data) # @UnusedVariable
+                gtmp, data = Grid2DUI.build_grid(data)
             elif gtype is '2D+':
                 # TODO
                 pass
@@ -192,7 +199,7 @@ class ModelUI(QtWidgets.QWidget):
             gridinfo.num_data_label.setText(str(ndata))
             gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
             gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
-            gridinfo.num_cell_label.setText(str(grid.getNumberOfCells()))  # TODO update field when grid is edited
+            gridinfo.num_cell_label.setText(str(grid.getNumberOfCells()))  #TODO: update field when grid is edited
 
         #-------- Widgets Creation --------#
         #--- Buttons ---#
@@ -237,10 +244,10 @@ class ModelUI(QtWidgets.QWidget):
         if gtype is '2D':
             gUI = Grid2DUI(data, g, gridinfo) # gridinfo used as parent to propagate GridEdited events
         elif gtype is '2D+':
-            # TODO 
+            #TODO:
             pass
         else:
-            # TODO 3D
+            #TODO: 3D
             pass
         
         #------- Master grid's disposition -------#
@@ -270,6 +277,8 @@ class ModelUI(QtWidgets.QWidget):
             return None
         
         mogs = self.models[no].mogs
+        print(mogs)
+        print(self.models[no].name)
         mog = mogs[0]
 
         data = GridData()
@@ -1029,7 +1038,7 @@ class ConstraintsFig(FigureCanvasQTAgg):
         #h= self.ax.imshow(data, aspect='auto')
         #mpl.colorbar.Colorbar(self.ax2, h)
 
-class GridData:
+class GridData(object):
     def __init__(self):
         self.boreholes  = []
         self.in_vect    = np.array([])

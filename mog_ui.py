@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
 Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
 
 This file is part of BhTomoPy.
@@ -17,12 +16,11 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 """
 import sys
 import re
 import shelve
-import unicodedata # @UnresolvedImport
+import unicodedata
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
@@ -67,7 +65,6 @@ class MOGUI(QtWidgets.QWidget):
     def add_MOG(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
 
-        print(filename)
         if filename:
             self.load_file_MOG(filename)
 
@@ -81,15 +78,14 @@ class MOGUI(QtWidgets.QWidget):
             return
         
         try:
-            rname = basename.split('/')  # the split method gives us back a list which contains al the caracter that were
+            
+            rname = basename.split('/')  # the split method gives back a list which contains all the strings that were
             rname = rname[-1]            # separated by / and the name of file (i.e. rname) is the last item of this list
-    
-            for rep in basename.split('/')[:-1]:
-                self.data_rep = self.data_rep + rep + '/'
-            self.data_rep = self.data_rep[:-1]
-    
+            self.data_rep = basename[:-1-len(rname)]
+            
             mogdata = MogData(rname)
             mogdata.readRAMAC(basename)
+            
             mog = Mog(rname, mogdata)
             self.MOGs.append(mog)
             self.update_List_Widget()
@@ -99,16 +95,17 @@ class MOGUI(QtWidgets.QWidget):
             self.update_edits()
             self.update_prune_edits_info()
             self.update_prune_info()
-            self.moglogSignal.emit("{} Multi Offset-Gather has been loaded succesfully".format(rname))
-            
+            data_manager.session.add(mog)
+            self.moglogSignal.emit("{} Multi Offset-Gather has been loaded successfully".format(rname))
+        
         except Exception as e:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : " + str(e)[:42],
+            QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : '" + str(e)[:42] + "...' [mog_ui 1]",
                                       buttons=QtWidgets.QMessageBox.Ok)
+        
 
     def update_edits(self):
         """
-        this function updates the info either in the  MOG's edits or in the info's labels
-
+        this function updates the info either in the MOG's edits or in the info's labels
         """
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
@@ -167,8 +164,12 @@ class MOGUI(QtWidgets.QWidget):
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
+            from sqlalchemy import inspect
+            if inspect(self.MOGs[int(i.row())]).persistent:
+                data_manager.session.delete(self.MOGs[int(i.row())])
+            else:
+                data_manager.session.expunge(self.MOGs[int(i.row())])
             self.moglogSignal.emit("MOG {} has been deleted".format(self.MOGs[int(i.row())].name))
-            data_manager.session.expunge(self.MOGs[int(i.row())])
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
 
@@ -194,7 +195,7 @@ class MOGUI(QtWidgets.QWidget):
     def airBefore(self):
 
         # then we get the filename to process
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')[0]
 
         if not filename:
             # security for an empty filename
@@ -263,7 +264,7 @@ class MOGUI(QtWidgets.QWidget):
     def airAfter(self):
         # As you can see, the airAfter method is almost the same as airBefore (refer to airBefore for any questions)
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')[0]
 
         if not filename:
             return
@@ -593,16 +594,16 @@ class MOGUI(QtWidgets.QWidget):
             np.savetxt(filename, data)
             export_file.close()
 
-            self.moglogSignal.emit('File exported succesfully ')
+            self.moglogSignal.emit('File exported successfully ')
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtWidgets.QMessageBox.Ok)
     def export_tau(self):
         if len(self.MOGs) != 0:
-            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Export tau')
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Export tau')[0]
             self.moglogSignal.emit('Exporting tau file ...')
             # TODO
-            self.moglogSignal.emit('File exported succesfully ')
+            self.moglogSignal.emit('File exported successfully ')
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtWidgets.QMessageBox.Ok)
@@ -723,17 +724,22 @@ class MOGUI(QtWidgets.QWidget):
     def update_prune_edits_info(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            mog = self.MOGs[i.row()]
-            self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
-            self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
-
-            if min(mog.data.Tx_z) < min(mog.data.Rx_z):
-                self.min_elev_edit.setText(str(-mog.data.Tx_z[-1]))
-                self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
-
-            elif min(mog.data.Rx_z) < min(mog.data.Tx_z):
-                self.min_elev_edit.setText(str(-max(mog.data.Rx_z)))
-                self.max_elev_edit.setText(str(-min(mog.data.Rx_z)))
+            try:
+                mog = self.MOGs[i.row()]
+                self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
+                self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
+    
+                if min(mog.data.Tx_z) < min(mog.data.Rx_z):
+                    self.min_elev_edit.setText(str(-mog.data.Tx_z[-1]))
+                    self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
+      
+                elif min(mog.data.Rx_z) < min(mog.data.Tx_z):
+                    self.min_elev_edit.setText(str(-max(mog.data.Rx_z)))
+                    self.max_elev_edit.setText(str(-min(mog.data.Rx_z)))
+            except Exception as e:
+                QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : '" + str(e)[:42] + "...' [mog_ui 2]",
+                                    buttons=QtWidgets.QMessageBox.Ok)
+        
 
     def update_prune_info(self):
         ind = self.MOG_list.selectedIndexes()

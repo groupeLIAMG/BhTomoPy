@@ -48,7 +48,7 @@ class BoreholeUI(QtWidgets.QWidget):
 
     def import_bhole(self):
         """
-        This method opens a QFileDialog, takes the name that the user as selected, updates the borehole's informations
+        This method opens a QFileDialog, takes the name that the user has selected, updates the borehole's informations
         and then shows its name in the bh_list
         """
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import Borehole')[0]
@@ -59,6 +59,7 @@ class BoreholeUI(QtWidgets.QWidget):
             self.bhlogSignal.emit('Error: Borehole file must have *.xyz extension')
 
     def load_bh(self, filename):
+            
         rname             = filename.split('/')
         rname             = rname[-1]
         rname             = rname.strip('.xyz')
@@ -74,10 +75,7 @@ class BoreholeUI(QtWidgets.QWidget):
         self.update_List_Widget()
         self.bh_list.setCurrentRow(len(self.boreholes) - 1)
         self.update_List_Edits()
-        try:
-            data_manager.session.add(bh)
-        except Exception as e:
-            print(str(e))
+        data_manager.session.add(bh)
         self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
 
     def add_bhole(self):
@@ -113,37 +111,45 @@ class BoreholeUI(QtWidgets.QWidget):
         Updates the coordinates edits information with the attributes of the Borehole class instance
         """
         ind = self.bh_list.selectedIndexes()
-        for i in ind:
-            bh = self.boreholes[i.row()]
-            self.X_edit.setText(str(bh.X))
-            self.Y_edit.setText(str(bh.Y))
-            self.Z_edit.setText(str(bh.Z))
-            self.Xmax_edit.setText(str(bh.Xmax))
-            self.Ymax_edit.setText(str(bh.Ymax))
-            self.Zmax_edit.setText(str(bh.Zmax))
-            self.Z_surf_edit.setText(str(bh.Z_surf))
-            self.Z_water_edit.setText(str(bh.Z_water))
+        if ind:
+            for i in ind:
+                bh = self.boreholes[i.row()]
+                self.X_edit.setText(str(bh.X))
+                self.Y_edit.setText(str(bh.Y))
+                self.Z_edit.setText(str(bh.Z))
+                self.Xmax_edit.setText(str(bh.Xmax))
+                self.Ymax_edit.setText(str(bh.Ymax))
+                self.Zmax_edit.setText(str(bh.Zmax))
+                self.Z_surf_edit.setText(str(bh.Z_surf))
+                self.Z_water_edit.setText(str(bh.Z_water))
+        else:
+            self.X_edit.setText('0.0')
+            self.Y_edit.setText('0.0')
+            self.Z_edit.setText('0.0')
+            self.Xmax_edit.setText('0.0')
+            self.Ymax_edit.setText('0.0')
+            self.Zmax_edit.setText('0.0')
+            self.Z_surf_edit.setText('0.0')
+            self.Z_water_edit.setText('None')
 
 
     def del_bhole(self):
         """
         Deletes a borehole instance from boreholes
         """
-        try:
-            ind = self.bh_list.selectedIndexes()
-            
-            for i in ind:
-                from sqlalchemy import inspect
-                if inspect(self.boreholes[int(i.row())]).persistent:
-                    data_manager.session.delete(self.boreholes[int(i.row())])
-                else:
-                    data_manager.session.expunge(self.boreholes[int(i.row())])
-                self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
-                del self.boreholes[int(i.row())]
-    
-            self.update_List_Widget()
-        except Exception as e:
-            print(str(e) + ' [borehole_ui 1]')
+        ind = self.bh_list.selectedIndexes()
+        
+        for i in ind:
+            from sqlalchemy import inspect
+            if inspect(self.boreholes[int(i.row())]).persistent:
+                data_manager.session.delete(self.boreholes[int(i.row())])
+            else:
+                data_manager.session.expunge(self.boreholes[int(i.row())])
+            self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
+            del self.boreholes[int(i.row())]
+
+        self.update_List_Widget()
+        self.update_List_Edits()
 
     def update_bhole_data(self):
         """
@@ -228,7 +234,7 @@ class BoreholeUI(QtWidgets.QWidget):
         ind = self.bh_list.selectedIndexes()
         scont = Cont()
         for i in ind:
-            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
             rname = filename.split('/')
             rname = rname[-1]
             rname = rname[:-4]
@@ -327,36 +333,23 @@ class BoreholeUI(QtWidgets.QWidget):
         #--- Edits and Labels SubWidgets ---#
         sub_E_and_L_widget          = QtWidgets.QWidget()
         sub_E_and_L_grid            = QtWidgets.QGridLayout()
-        sub_E_and_L_grid.addWidget(Coord_label, 0, 0)
-        sub_E_and_L_grid.addWidget(Collar_label, 0, 1)
-        sub_E_and_L_grid.addWidget(Bottom_label, 0, 2)
-        sub_E_and_L_grid.addWidget(X_label, 1, 0)
-        sub_E_and_L_grid.addWidget(self.X_edit, 1, 1)
-        sub_E_and_L_grid.addWidget(self.Xmax_edit, 1, 2)
-        sub_E_and_L_grid.addWidget(Y_label, 2, 0)
-        sub_E_and_L_grid.addWidget(self.Y_edit, 2, 1)
-        sub_E_and_L_grid.addWidget(self.Ymax_edit, 2, 2)
-        sub_E_and_L_grid.addWidget(Elev_label, 3, 0)
-        sub_E_and_L_grid.addWidget(self.Z_edit, 3, 1)
-        sub_E_and_L_grid.addWidget(self.Zmax_edit, 3, 2)
+        sub_E_and_L_grid.addWidget(Coord_label, 0, 0, 1, 2)
+        sub_E_and_L_grid.addWidget(Collar_label, 0, 2, 1, 2)
+        sub_E_and_L_grid.addWidget(Bottom_label, 0, 4, 1, 2)
+        sub_E_and_L_grid.addWidget(X_label, 1, 0, 1, 2)
+        sub_E_and_L_grid.addWidget(self.X_edit, 1, 2, 1, 2)
+        sub_E_and_L_grid.addWidget(self.Xmax_edit, 1, 4, 1, 2)
+        sub_E_and_L_grid.addWidget(Y_label, 2, 0, 1, 2)
+        sub_E_and_L_grid.addWidget(self.Y_edit, 2, 2, 1, 2)
+        sub_E_and_L_grid.addWidget(self.Ymax_edit, 2, 4, 1, 2)
+        sub_E_and_L_grid.addWidget(Elev_label, 3, 0, 1, 2)
+        sub_E_and_L_grid.addWidget(self.Z_edit, 3, 2, 1, 2)
+        sub_E_and_L_grid.addWidget(self.Zmax_edit, 3, 4, 1, 2)
+        sub_E_and_L_grid.addWidget(Elev_surf_label, 4, 1, 1, 2)
+        sub_E_and_L_grid.addWidget(self.Z_surf_edit, 4, 3, 1, 2)
+        sub_E_and_L_grid.addWidget(Elev_water_label, 5, 1, 1, 2)
+        sub_E_and_L_grid.addWidget(self.Z_water_edit, 5, 3, 1, 2)
         sub_E_and_L_widget.setLayout(sub_E_and_L_grid)
-
-        sub_E_and_L_widget2         = QtWidgets.QWidget()
-        sub_E_and_L_grid2           = QtWidgets.QGridLayout()
-        sub_E_and_L_grid2.addWidget(Elev_surf_label, 0, 0)
-        sub_E_and_L_grid2.addWidget(self.Z_surf_edit, 0, 1)
-        sub_E_and_L_grid2.addWidget(Elev_water_label, 1, 0)
-        sub_E_and_L_grid2.addWidget(self.Z_water_edit, 1, 1)
-        sub_E_and_L_widget2.setLayout(sub_E_and_L_grid2)
-
-        #--- Edits and Labels join ---#
-
-        sub_joined_E_and_L_widget   = QtWidgets.QWidget()
-        sub_joined_E_and_L_grid     = QtWidgets.QGridLayout()
-        sub_joined_E_and_L_grid.addWidget(sub_E_and_L_widget, 0, 0)
-        sub_joined_E_and_L_grid.addWidget(sub_E_and_L_widget2, 1, 0)
-        sub_joined_E_and_L_grid.setContentsMargins(0, 0, 0, 0)
-        sub_joined_E_and_L_widget.setLayout(sub_joined_E_and_L_grid)
 
         #--- Upper Buttons ---#
         sub_upper_buttons_widget = QtWidgets.QWidget()
@@ -380,7 +373,7 @@ class BoreholeUI(QtWidgets.QWidget):
         master_grid     = QtWidgets.QGridLayout()
         master_grid.addWidget(sub_upper_buttons_widget, 0, 0)
         master_grid.addWidget(self.bh_list, 1, 0)
-        master_grid.addWidget(sub_joined_E_and_L_widget, 2, 0)
+        master_grid.addWidget(sub_E_and_L_widget, 2, 0)
         master_grid.addWidget(sub_lower_buttons_widget, 4, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
 
@@ -418,7 +411,7 @@ class BoreholeFig(FigureCanvasQTAgg):
 
         self.draw()
 
-class Cont:
+class Cont(object):
     """
     This class represents either the slowness constraints(i.e. bh.scont) or the attenuation constraints(i.e. bh.acont).
     We created a class for Cont because it has its own attributes.
