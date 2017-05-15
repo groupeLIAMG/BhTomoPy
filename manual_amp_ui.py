@@ -10,18 +10,18 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import shelve
 import numpy as np
 from utils_ui import chooseMOG
@@ -31,7 +31,7 @@ from scipy import signal
 
 
 
-class ManualAmpUI(QtGui.QFrame):
+class ManualAmpUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
     def __init__(self, parent=None):
         super(ManualAmpUI, self).__init__()
@@ -132,8 +132,8 @@ class ManualAmpUI(QtGui.QFrame):
         sfile.close()
 #        save_file = open(self.filename, 'wb')
 #        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-        QtGui.QMessageBox.information(self, 'Success', "Database was saved successfully"
-                                                ,buttons=QtGui.QMessageBox.Ok)
+        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully"
+                                                ,buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
         mog_no, filename, ok = chooseMOG(self.filename)
@@ -147,7 +147,7 @@ class ManualAmpUI(QtGui.QFrame):
             self.update_control_center()
 
     def import_tt_file(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Import')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')
         self.load_tt_file(filename)
     def load_tt_file(self, filename):
         try:
@@ -162,7 +162,7 @@ class ManualAmpUI(QtGui.QFrame):
     
             self.update_control_center()
         except:
-            QtGui.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtGui.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtWidgets.QMessageBox.Ok)
 
 
     def initUI(self):
@@ -172,8 +172,8 @@ class ManualAmpUI(QtGui.QFrame):
         #------ Creation of the Manager for the Upper figure -------#
         self.upperFig = UpperFig(self)
         self.uppertool = NavigationToolbar2QT(self.upperFig, self)
-        self.uppermanager = QtGui.QWidget()
-        uppermanagergrid = QtGui.QGridLayout()
+        self.uppermanager = QtWidgets.QWidget()
+        uppermanagergrid = QtWidgets.QGridLayout()
         uppermanagergrid.addWidget(self.uppertool, 0, 0)
         uppermanagergrid.addWidget(self.upperFig, 1, 0)
         uppermanagergrid.setContentsMargins(0, 0, 0, 0)
@@ -182,22 +182,22 @@ class ManualAmpUI(QtGui.QFrame):
 
         #------ Creation of the Manager for the Lower figure -------#
         self.lowerFig = LowerFig(self)
-        self.lowermanager = QtGui.QWidget()
-        lowermanagergrid = QtGui.QGridLayout()
+        self.lowermanager = QtWidgets.QWidget()
+        lowermanagergrid = QtWidgets.QGridLayout()
         lowermanagergrid.addWidget(self.lowerFig, 0, 0)
         lowermanagergrid.setContentsMargins(0, 0, 0, 0)
         self.lowermanager.setLayout(lowermanagergrid)
 
         #------- Widgets Creation -------#
         #--- Buttons ---#
-        btn_load = QtGui.QPushButton("Load Curved Rays")
-        btn_Prev = QtGui.QPushButton("Previous Trace")
-        btn_Next = QtGui.QPushButton("Next Trace")
-        btn_Next_Pick = QtGui.QPushButton("Next Trace to Pick")
-        btn_Reini = QtGui.QPushButton("Reinitialize Trace")
-        btn_Upper = QtGui.QPushButton("Activate Picking")
-        btn_Stats = QtGui.QPushButton("Statistics")
-        btn_fit = QtGui.QPushButton("Fit Spectra")
+        btn_load = QtWidgets.QPushButton("Load Curved Rays")
+        btn_Prev = QtWidgets.QPushButton("Previous Trace")
+        btn_Next = QtWidgets.QPushButton("Next Trace")
+        btn_Next_Pick = QtWidgets.QPushButton("Next Trace to Pick")
+        btn_Reini = QtWidgets.QPushButton("Reinitialize Trace")
+        btn_Upper = QtWidgets.QPushButton("Activate Picking")
+        btn_Stats = QtWidgets.QPushButton("Statistics")
+        btn_fit = QtWidgets.QPushButton("Fit Spectra")
 
         #- Buttons' Actions -#
         btn_Next.clicked.connect(self.next_trace)
@@ -244,15 +244,15 @@ class ManualAmpUI(QtGui.QFrame):
 
 
         #--- Edits ---#
-        self.Tnum_Edit = QtGui.QLineEdit('1')
-        self.num_tx_freq_edit = QtGui.QLineEdit()
-        self.value_f_min_edit = QtGui.QLineEdit('1')
-        self.value_f_max_edit = QtGui.QLineEdit('175')
-        self.value_window_edit = QtGui.QLineEdit('30')
-        self.value_tmin_edit = QtGui.QLineEdit()
-        self.value_tmax_edit = QtGui.QLineEdit()
-        self.value_ang_min_edit = QtGui.QLineEdit('45')
-        self.value_z_surf_edit = QtGui.QLineEdit()
+        self.Tnum_Edit = QtWidgets.QLineEdit('1')
+        self.num_tx_freq_edit = QtWidgets.QLineEdit()
+        self.value_f_min_edit = QtWidgets.QLineEdit('1')
+        self.value_f_max_edit = QtWidgets.QLineEdit('175')
+        self.value_window_edit = QtWidgets.QLineEdit('30')
+        self.value_tmin_edit = QtWidgets.QLineEdit()
+        self.value_tmax_edit = QtWidgets.QLineEdit()
+        self.value_ang_min_edit = QtWidgets.QLineEdit('45')
+        self.value_z_surf_edit = QtWidgets.QLineEdit()
 
         #- Edits' Disposition -#
         self.Tnum_Edit.setAlignment(QtCore.Qt.AlignCenter)
@@ -274,20 +274,20 @@ class ManualAmpUI(QtGui.QFrame):
 
 
         #--- Actions ---#
-        openAction = QtGui.QAction('Open main data file', self)
+        openAction = QtWidgets.QAction('Open main data file', self)
 #        openAction.triggered.connect(self.openmain.show)
         openAction.triggered.connect(self.openfile)
 
-        saveAction = QtGui.QAction('Save', self)
+        saveAction = QtWidgets.QAction('Save', self)
         saveAction.triggered.connect(self.savefile)
 
-        importAction = QtGui.QAction('Import ...', self)
+        importAction = QtWidgets.QAction('Import ...', self)
         importAction.triggered.connect(self.import_tt_file)
 
 
 
         #--- ToolBar ---#
-        self.tool = QtGui.QMenuBar()
+        self.tool = QtWidgets.QMenuBar()
 
         fileMenu = self.tool.addMenu('&File')
         fileMenu.addAction(openAction)
@@ -302,16 +302,16 @@ class ManualAmpUI(QtGui.QFrame):
         spectrumMenu = optionMenu.addMenu('&Spectrum fitting')
         unitsMenu = optionMenu.addMenu('&Units of frequency')
 
-        sinAction = QtGui.QAction('&Sin (theta)', self)
-        sin2Action = QtGui.QAction('&Sin2 (theta)', self)
+        sinAction = QtWidgets.QAction('&Sin (theta)', self)
+        sin2Action = QtWidgets.QAction('&Sin2 (theta)', self)
 
-        showspectrumAction = QtGui.QAction('&Show frequency spectrum', self)
-        showspectrumtimeAction = QtGui.QAction('&Show time - frequency spectrum', self)
+        showspectrumAction = QtWidgets.QAction('&Show frequency spectrum', self)
+        showspectrumtimeAction = QtWidgets.QAction('&Show time - frequency spectrum', self)
 
-        firstcycleAction = QtGui.QAction('&Evaluate at start of 1st cycle', self)
-        firsthalfcycleAction = QtGui.QAction('&Evaluate at 1st half-cycle peak', self)
-        maxenergyAction = QtGui.QAction('&Evaluate at maximum of energy', self)
-        maxenergyAction = QtGui.QAction('&Evaluate at maximum of amplitude', self)
+        firstcycleAction = QtWidgets.QAction('&Evaluate at start of 1st cycle', self)
+        firsthalfcycleAction = QtWidgets.QAction('&Evaluate at 1st half-cycle peak', self)
+        maxenergyAction = QtWidgets.QAction('&Evaluate at maximum of energy', self)
+        maxenergyAction = QtWidgets.QAction('&Evaluate at maximum of amplitude', self)
 
         #sinAction.setCheckable(True)
         #sin2Action.setCheckable(True)
@@ -321,7 +321,7 @@ class ManualAmpUI(QtGui.QFrame):
         #radiationMenu.addAction(sinAction)
         #radiationMenu.addAction(sin2Action)
 
-        radiationActionGroup = QtGui.QActionGroup(self)
+        radiationActionGroup = QtWidgets.QActionGroup(self)
         radiationActionGroup.addAction(sinAction)
         radiationActionGroup.addAction(sin2Action)
 
@@ -330,19 +330,19 @@ class ManualAmpUI(QtGui.QFrame):
 
 
         #--- Checkboxes ---#
-        self.weight_check = QtGui.QCheckBox('Weighting 1/(S/N)')
-        self.process_check = QtGui.QCheckBox("Process picked tt traces")
-        self.Wave_check = QtGui.QCheckBox("Wavelet tranf. denoising")
-        self.ap_win_check = QtGui.QCheckBox("Use AP Window")
-        self.hybrid_check = QtGui.QCheckBox("Genrerate hybrid Data")
+        self.weight_check = QtWidgets.QCheckBox('Weighting 1/(S/N)')
+        self.process_check = QtWidgets.QCheckBox("Process picked tt traces")
+        self.Wave_check = QtWidgets.QCheckBox("Wavelet tranf. denoising")
+        self.ap_win_check = QtWidgets.QCheckBox("Use AP Window")
+        self.hybrid_check = QtWidgets.QCheckBox("Genrerate hybrid Data")
 
 
         #--- Text Edits ---#
-        info_Tedit = QtGui.QTextEdit()
+        info_Tedit = QtWidgets.QTextEdit()
         info_Tedit.setReadOnly(True)
 
         #--- ComboBox ---#
-        self.option_combo = QtGui.QComboBox()
+        self.option_combo = QtWidgets.QComboBox()
 
         #- ComboBox Items -#
         items = ['Centroid freq. (fft)', 'Centroid freq. (S-transform)', 'Peak-to-peak amplutide', 'Maximum absolute amplitude' ]
@@ -351,24 +351,24 @@ class ManualAmpUI(QtGui.QFrame):
 
         #------- subWidgets -------#
         #--- freq1 subwidget ---#
-        sub_freq1_widget = QtGui.QWidget()
-        sub_freq1_grid = QtGui.QGridLayout()
+        sub_freq1_widget = QtWidgets.QWidget()
+        sub_freq1_grid = QtWidgets.QGridLayout()
         sub_freq1_grid.addWidget(self.num_freq1_label, 0, 0)
         sub_freq1_grid.addWidget(freq1_label, 0, 1)
         sub_freq1_grid.setContentsMargins(0, 0, 0, 0)
         sub_freq1_widget.setLayout(sub_freq1_grid)
 
         #--- freq2 subwidget ---#
-        sub_freq2_widget = QtGui.QWidget()
-        sub_freq2_grid = QtGui.QGridLayout()
+        sub_freq2_widget = QtWidgets.QWidget()
+        sub_freq2_grid = QtWidgets.QGridLayout()
         sub_freq2_grid.addWidget(self.num_freq2_label, 0, 0)
         sub_freq2_grid.addWidget(freq2_label, 0, 1)
         sub_freq2_grid.setContentsMargins(0, 0, 0, 0)
         sub_freq2_widget.setLayout(sub_freq2_grid)
 
         #--- Trace Subwidget ---#
-        Sub_Trace_Widget = QtGui.QWidget()
-        Sub_Trace_Grid = QtGui.QGridLayout()
+        Sub_Trace_Widget = QtWidgets.QWidget()
+        Sub_Trace_Grid = QtWidgets.QGridLayout()
         Sub_Trace_Grid.addWidget(trc_Label, 0, 0)
         Sub_Trace_Grid.addWidget(self.Tnum_Edit, 0, 1)
         Sub_Trace_Grid.setContentsMargins(0, 0, 0, 0)
@@ -376,8 +376,8 @@ class ManualAmpUI(QtGui.QFrame):
         Sub_Trace_Widget.setLayout(Sub_Trace_Grid)
 
         #--- Info Subwidget ---#
-        Sub_Info_widget = QtGui.QWidget()
-        Sub_Info_grid = QtGui.QGridLayout()
+        Sub_Info_widget = QtWidgets.QWidget()
+        Sub_Info_grid = QtWidgets.QGridLayout()
         Sub_Info_grid.addWidget(position_label, 0, 1, 1, 3)
         Sub_Info_grid.addWidget(x_label, 2, 1)
         Sub_Info_grid.addWidget(y_label, 2, 2)
@@ -400,8 +400,8 @@ class ManualAmpUI(QtGui.QFrame):
         Sub_Info_widget.setStyleSheet("background: white")
 
         #--- Buttons SubWidget ---#
-        sub_button_widget = QtGui.QWidget()
-        sub_button_grid = QtGui.QGridLayout()
+        sub_button_widget = QtWidgets.QWidget()
+        sub_button_grid = QtWidgets.QGridLayout()
         sub_button_grid.addWidget(btn_load, 1, 0, 1, 4)
         sub_button_grid.addWidget(btn_Upper, 2, 0, 1, 4)
         sub_button_grid.addWidget(Sub_Trace_Widget, 3, 1, 1, 2)
@@ -414,14 +414,14 @@ class ManualAmpUI(QtGui.QFrame):
         sub_button_widget.setLayout(sub_button_grid)
 
         #--- Info Groupbox ---#
-        info_group = QtGui.QGroupBox('Infos')
-        info_grid = QtGui.QGridLayout()
+        info_group = QtWidgets.QGroupBox('Infos')
+        info_grid = QtWidgets.QGridLayout()
         info_grid.addWidget(Sub_Info_widget)
         info_group.setLayout(info_grid)
 
         #--- Settings GroupBox ---#
-        settings_group = QtGui.QGroupBox('Settings')
-        sub_settings_grid = QtGui.QGridLayout()
+        settings_group = QtWidgets.QGroupBox('Settings')
+        sub_settings_grid = QtWidgets.QGridLayout()
         sub_settings_grid.addWidget(self.hybrid_check, 0, 0)
         sub_settings_grid.addWidget(self.option_combo, 0, 1)
         sub_settings_grid.addWidget(self.weight_check, 1, 0)
@@ -450,8 +450,8 @@ class ManualAmpUI(QtGui.QFrame):
 
 
         #--- Control Center SubWidget ---#
-        Control_Center_GroupBox = QtGui.QGroupBox("Control Center")
-        Control_Center_Grid = QtGui.QGridLayout()
+        Control_Center_GroupBox = QtWidgets.QGroupBox("Control Center")
+        Control_Center_Grid = QtWidgets.QGridLayout()
         Control_Center_Grid.addWidget(info_group, 0, 0)
         Control_Center_Grid.addWidget(settings_group, 1, 0, 1, 2)
         Control_Center_Grid.addWidget(sub_button_widget, 0, 1)
@@ -459,7 +459,7 @@ class ManualAmpUI(QtGui.QFrame):
 
 
         #--- Master Grid Disposition ---#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.tool, 0, 0, 1, 3)
         master_grid.addWidget(self.uppermanager, 1, 0, 1, 3)
         master_grid.addWidget(self.lowermanager, 2, 0, 1, 2)
@@ -486,7 +486,7 @@ class ManualAmpUI(QtGui.QFrame):
             self.sender().setFlat(True)
             self.lowerFig.isTracingOn = True
 
-#class OpenMainData(QtGui.QWidget):
+#class OpenMainData(QtWidgets.QWidget):
 #    def __init__(self, ui, parent=None):
 #        super(OpenMainData, self).__init__()
 #        self.setWindowTitle("Choose Data")
@@ -495,7 +495,7 @@ class ManualAmpUI(QtGui.QFrame):
 #        self.initUI()
 #
 #    def openfile(self):
-#        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open Database')
+#        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
 #
 #        self.load_file(filename)
 #
@@ -531,13 +531,13 @@ class ManualAmpUI(QtGui.QFrame):
 #
 #        #-------  Widgets --------#
 #        #--- Edit ---#
-#        self.database_edit = QtGui.QLineEdit()
+#        self.database_edit = QtWidgets.QLineEdit()
 #        #- Edit Action -#
 #        self.database_edit.setReadOnly(True)
 #        #--- Buttons ---#
-#        self.btn_database = QtGui.QPushButton('Choose Database')
-#        self.btn_ok = QtGui.QPushButton('Ok')
-#        self.btn_cancel = QtGui.QPushButton('Cancel')
+#        self.btn_database = QtWidgets.QPushButton('Choose Database')
+#        self.btn_ok = QtWidgets.QPushButton('Ok')
+#        self.btn_cancel = QtWidgets.QPushButton('Cancel')
 #
 #        #- Buttons' Actions -#
 #        self.btn_cancel.clicked.connect(self.cancel)
@@ -545,12 +545,12 @@ class ManualAmpUI(QtGui.QFrame):
 #        self.btn_ok.clicked.connect(self.ok)
 #
 #        #--- Combobox ---#
-#        self.mog_combo = QtGui.QComboBox()
+#        self.mog_combo = QtWidgets.QComboBox()
 #
 #        #- Combobox's Action -#
 #        self.mog_combo.activated.connect(self.ui.update_control_center)
 #
-#        master_grid = QtGui.QGridLayout()
+#        master_grid = QtWidgets.QGridLayout()
 #        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
 #        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
 #        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
@@ -855,7 +855,7 @@ class StatsFig1(FigureCanvasQTAgg):
 
 
 #--- Class For Alignment ---#
-class  MyQLabel(QtGui.QLabel):
+class  MyQLabel(QtWidgets.QLabel):
     def __init__(self, label, ha='left',  parent=None):
         super(MyQLabel, self).__init__(label,parent)
         if ha == 'center':
@@ -868,7 +868,7 @@ class  MyQLabel(QtGui.QLabel):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     manual_ui = ManualAmpUI()
     manual_ui.filename = 'test_constraints'

@@ -10,19 +10,19 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 
 
-class InfoUI(QtGui.QFrame):
+class InfoUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(InfoUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Info")
@@ -48,19 +48,19 @@ class InfoUI(QtGui.QFrame):
     def initUI(self):
 
         #--- Widget ---#
-        self.database_label = QtGui.QLabel("Database : ")
+        self.database_label = QtWidgets.QLabel("Database : ")
         self.live_database_label = MyQLabel('',ha='left')
-        self.boreholes_label = QtGui.QLabel(" Borehole(s)")
+        self.boreholes_label = QtWidgets.QLabel(" Borehole(s)")
         self.num_boreholes_label = MyQLabel('',ha='right')
-        self.mogs_label = QtGui.QLabel(" MOG(s)")
+        self.mogs_label = QtWidgets.QLabel(" MOG(s)")
         self.num_mogs_label = MyQLabel('',ha='right')
-        self.models_label = QtGui.QLabel(" Model(s)")
+        self.models_label = QtWidgets.QLabel(" Model(s)")
         self.num_models_label = MyQLabel('',ha='right')
-        self.traces_label = QtGui.QLabel(" Traces")
+        self.traces_label = QtWidgets.QLabel(" Traces")
         self.num_traces_label = MyQLabel('',ha='right')
 
         #--- Grid ---#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.database_label, 0, 0)
         master_grid.addWidget(self.live_database_label, 0, 1)
         master_grid.addWidget(self.num_boreholes_label, 2, 0)
@@ -76,7 +76,7 @@ class InfoUI(QtGui.QFrame):
         self.setStyleSheet("background: white")
 
 
-class MyQLabel(QtGui.QLabel):
+class MyQLabel(QtWidgets.QLabel):
     def __init__(self, label, ha='left', parent=None):
         super(MyQLabel, self).__init__(label, parent)
         if ha == 'center':
@@ -93,7 +93,7 @@ class MyQLabel(QtGui.QLabel):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     Info_ui = InfoUI()
     Info_ui.show()

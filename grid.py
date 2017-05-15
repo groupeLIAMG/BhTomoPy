@@ -13,13 +13,13 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import math
@@ -666,7 +666,7 @@ class Grid2D(Grid):
             Z: simulated field of size nx x nz
         """
         Nx,Nz = G.shape
-        U = np.random.randn(G.shape[0], G.shape[1])
+        U = np.fft.fft2(np.random.randn(G.shape[0], G.shape[1]))
         Z = np.real(np.fft.ifft2(G*U))
         
         return Z[int(round((Nx+2)/2)):(int(round((Nx+2)/2))+self.grx.size-1),
@@ -716,6 +716,33 @@ class Grid2D(Grid):
         h5f = h5py.File(filename+'.h5', 'w')
         h5f.create_dataset(fieldname, data=field.reshape((nx,nz)).T.astype(np.float32))
         h5f.close()
+
+
+class Grid3D(Grid):
+    """
+    Class for 3D grids -> TO COMPLETE!!!
+    """
+    def __init__(self, grx=None, gry=None, grz=None, nthreads=1):
+        Grid.__init__(self)
+        if grx is not None:
+            self.grx = grx
+        if gry is not None:
+            self.gry = gry
+        if grz is not None:
+            self.grz = grz
+        self.nthreads = nthreads
+        self.nsnx = 10
+        self.nsny = 10
+        self.nsnz = 10
+        self.cgrid = None
+        self.border = np.array([1, 1, 1, 1])
+        self.flip = 0
+        self.borehole_x0 = 1
+        self.x0 = np.array([])
+        self.type = None
+
+
+
 
 if __name__ == '__main__':
 

@@ -10,18 +10,18 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import copy
 import sys
-from PyQt4 import QtGui, QtCore
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from PyQt5 import QtCore, QtWidgets
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from mpl_toolkits.axes_grid1 import make_axes_locatable # @UnresolvedImport
 #from mpl_toolkits.mplot3d import axes3d
 import numpy as np
@@ -31,7 +31,7 @@ from grid import Grid, Grid2D
 from events_ui import GridEdited
 
 
-class ModelUI(QtGui.QWidget):
+class ModelUI(QtWidgets.QWidget):
     # ------- Signals Emitted -------#
     modelInfoSignal = QtCore.pyqtSignal(int)
     modellogSignal = QtCore.pyqtSignal(str)
@@ -46,7 +46,7 @@ class ModelUI(QtGui.QWidget):
         self.initUI()
 
     def add_model(self):
-        name, ok = QtGui.QInputDialog.getText(self, "Model creation", 'Model name')
+        name, ok = QtWidgets.QInputDialog.getText(self, "Model creation", 'Model name')
         if ok :
             self.load_model(name)
 
@@ -75,9 +75,9 @@ class ModelUI(QtGui.QWidget):
         if len(self.models) != 0:
             self.chooseMog.show()
         else:
-            QtGui.QMessageBox.warning(self, 'Warning',
+            QtWidgets.QMessageBox.warning(self, 'Warning',
                                        "Please create a model before adding MOGs to it",
-                                       buttons=QtGui.QMessageBox.Ok)
+                                       buttons=QtWidgets.QMessageBox.Ok)
 
 
     def remove_mog(self):
@@ -156,7 +156,7 @@ class ModelUI(QtGui.QWidget):
                 # TODO
                 pass
         
-        d = QtGui.QDialog()
+        d = QtWidgets.QDialog()
         d.setWindowTitle('BhTomoPy/gridEditor')
         
         def cancel():
@@ -195,9 +195,9 @@ class ModelUI(QtGui.QWidget):
 
         # -------- Widgets Creation --------#
         # --- Buttons ---#
-        add_edit_btn            = QtGui.QPushButton('Add/Edit Constraints')
-        cancel_btn              = QtGui.QPushButton('Cancel')
-        done_btn                = QtGui.QPushButton('Done')
+        add_edit_btn            = QtWidgets.QPushButton('Add/Edit Constraints')
+        cancel_btn              = QtWidgets.QPushButton('Cancel')
+        done_btn                = QtWidgets.QPushButton('Done')
 
         # - Buttons' Actions -#
         add_edit_btn.clicked.connect(start_constraints)
@@ -206,7 +206,7 @@ class ModelUI(QtGui.QWidget):
         
 
         # --- ComboBox ---#
-        bhfig_combo        = QtGui.QComboBox()
+        bhfig_combo        = QtWidgets.QComboBox()
 
         # - Combobox items -#
         view_list = ['3D View', 'XY Plane', 'XZ Plane', 'YZ Plane']
@@ -218,15 +218,15 @@ class ModelUI(QtGui.QWidget):
 
         # - Grid Info GroupBox -#
         gridinfo = GridInfoUI()
-        grid_info_group         = QtGui.QGroupBox('Infos')
-        grid_info_grid          = QtGui.QGridLayout()
+        grid_info_group         = QtWidgets.QGroupBox('Infos')
+        grid_info_grid          = QtWidgets.QGridLayout()
         grid_info_grid.addWidget(gridinfo)
         grid_info_group.setLayout(grid_info_grid)
 
         # - Boreholes Figure GroupBox -#
         bhsFig = BoreholesFig()
-        bhs_group = QtGui.QGroupBox('Boreholes')
-        bhs_grid = QtGui.QGridLayout()
+        bhs_group = QtWidgets.QGroupBox('Boreholes')
+        bhs_grid = QtWidgets.QGridLayout()
         bhs_grid.addWidget(bhfig_combo, 0, 0)
         bhs_grid.addWidget(bhsFig, 1, 0, 1, 8)
         bhs_group.setLayout(bhs_grid)
@@ -243,7 +243,7 @@ class ModelUI(QtGui.QWidget):
             pass
         
         # ------- Master grid's disposition -------#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(grid_info_group, 0, 0)
         master_grid.addWidget(add_edit_btn, 1, 0)
         master_grid.addWidget(cancel_btn, 2, 0)
@@ -305,12 +305,12 @@ class ModelUI(QtGui.QWidget):
         #------- Widgets Creation -------#
 
         #--- Buttons Set ---#
-        btn_Add_Model                    = QtGui.QPushButton("Add Model")
-        btn_Remove_Model                 = QtGui.QPushButton("Remove Model")
-        btn_Create_Grid                  = QtGui.QPushButton("Create Grid")
-        btn_Edit_Grid                    = QtGui.QPushButton("Edit Grid")
-        btn_Add_MOG                      = QtGui.QPushButton("Add MOG")
-        btn_Remove_MOG                   = QtGui.QPushButton("Remove MOG")
+        btn_Add_Model                    = QtWidgets.QPushButton("Add Model")
+        btn_Remove_Model                 = QtWidgets.QPushButton("Remove Model")
+        btn_Create_Grid                  = QtWidgets.QPushButton("Create Grid")
+        btn_Edit_Grid                    = QtWidgets.QPushButton("Edit Grid")
+        btn_Add_MOG                      = QtWidgets.QPushButton("Add MOG")
+        btn_Remove_MOG                   = QtWidgets.QPushButton("Remove MOG")
         #--- Buttons Actions ---#
         btn_Add_Model.clicked.connect(self.add_model)
         btn_Remove_Model.clicked.connect(self.del_model)
@@ -320,28 +320,28 @@ class ModelUI(QtGui.QWidget):
         btn_Edit_Grid.clicked.connect(self.edit_grid)
 
         #--- Lists ---#
-        self.model_mog_list              = QtGui.QListWidget()
-        self.model_list                  = QtGui.QListWidget()
+        self.model_mog_list              = QtWidgets.QListWidget()
+        self.model_list                  = QtWidgets.QListWidget()
 
         #--- Sub Widgets ---#
         #--- Models Sub Widget ---#
-        Models_Sub_Widget                = QtGui.QWidget()
-        Models_Sub_Grid                  = QtGui.QGridLayout()
+        Models_Sub_Widget                = QtWidgets.QWidget()
+        Models_Sub_Grid                  = QtWidgets.QGridLayout()
         Models_Sub_Grid.addWidget(btn_Add_Model, 0, 0, 1, 2)
         Models_Sub_Grid.addWidget(btn_Remove_Model, 0, 2, 1, 2)
         Models_Sub_Grid.addWidget(self.model_list, 1, 0, 1, 4)
         Models_Sub_Widget.setLayout(Models_Sub_Grid)
 
         #--- Grid Sub Widget ---#
-        Grid_GroupBox                    = QtGui.QGroupBox("Grid")
-        Grid_Sub_Grid                    = QtGui.QGridLayout()
+        Grid_GroupBox                    = QtWidgets.QGroupBox("Grid")
+        Grid_Sub_Grid                    = QtWidgets.QGridLayout()
         Grid_Sub_Grid.addWidget(btn_Create_Grid, 0, 0)
         Grid_Sub_Grid.addWidget(btn_Edit_Grid, 0, 1)
         Grid_GroupBox.setLayout(Grid_Sub_Grid)
 
         #--- MOGS Sub Widget ---#
-        MOGS_Groupbox                    = QtGui.QGroupBox("MOGs")
-        MOGS_Sub_Grid                    = QtGui.QGridLayout()
+        MOGS_Groupbox                    = QtWidgets.QGroupBox("MOGs")
+        MOGS_Sub_Grid                    = QtWidgets.QGridLayout()
         MOGS_Sub_Grid.addWidget(btn_Add_MOG, 0, 0, 1, 2)
         MOGS_Sub_Grid.addWidget(btn_Remove_MOG, 0, 2, 1, 2)
         MOGS_Sub_Grid.addWidget(self.model_mog_list, 1, 0, 1, 4)
@@ -349,7 +349,7 @@ class ModelUI(QtGui.QWidget):
 
 
         #------- Grid Disposition -------#
-        master_grid                      = QtGui.QGridLayout()
+        master_grid                      = QtWidgets.QGridLayout()
         #--- Sub Widgets Disposition ---#
         master_grid.addWidget(Models_Sub_Widget, 0, 0)
         master_grid.addWidget(Grid_GroupBox, 1, 0)
@@ -358,7 +358,7 @@ class ModelUI(QtGui.QWidget):
         self.setLayout(master_grid)
 
 
-class ChooseModelMOG(QtGui.QWidget):
+class ChooseModelMOG(QtWidgets.QWidget):
 
     def __init__(self, model, parent=None):
         super(ChooseModelMOG, self).__init__()
@@ -381,19 +381,19 @@ class ChooseModelMOG(QtGui.QWidget):
     def initUI(self):
         #------- Widgets -------#
         #--- ComboBox ---#
-        self.mog_combo = QtGui.QComboBox()
+        self.mog_combo = QtWidgets.QComboBox()
         #--- Buttons ---#
-        add_btn = QtGui.QPushButton('Add')
-        cancel_btn = QtGui.QPushButton('Cancel')
-        done_btn = QtGui.QPushButton('Done')
+        add_btn = QtWidgets.QPushButton('Add')
+        cancel_btn = QtWidgets.QPushButton('Cancel')
+        done_btn = QtWidgets.QPushButton('Done')
 
         #- Buttons Actions -#
         add_btn.clicked.connect(self.add_mog)
         done_btn.clicked.connect(self.close)
 
         #--- Buttons SubWidget ---#
-        sub_btn_widget = QtGui.QWidget()
-        sub_btn_grid = QtGui.QGridLayout()
+        sub_btn_widget = QtWidgets.QWidget()
+        sub_btn_grid = QtWidgets.QGridLayout()
         sub_btn_grid.addWidget(add_btn, 0, 0)
         sub_btn_grid.addWidget(cancel_btn, 0, 1)
         sub_btn_grid.addWidget(done_btn, 1, 0, 1, 2)
@@ -401,14 +401,14 @@ class ChooseModelMOG(QtGui.QWidget):
         sub_btn_widget.setLayout(sub_btn_grid)
 
         #--- Master Grid ---#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.mog_combo, 0, 0)
         master_grid.addWidget(sub_btn_widget, 1, 0)
         self.setLayout(master_grid)
 
 
 
-class Grid2DUI(QtGui.QWidget):
+class Grid2DUI(QtWidgets.QWidget):
     def __init__(self, data, grid, parent=None):
         super(Grid2DUI, self).__init__(parent)
         self.data = data
@@ -476,7 +476,7 @@ class Grid2DUI(QtGui.QWidget):
         self.gridviewFig.plot_grid2D()
         evt = GridEdited()
         evt.data = self.grid
-        QtGui.QApplication.postEvent(self.parent(), evt)
+        QtWidgets.QApplication.postEvent(self.parent(), evt)
         
     def updateProj(self):
         az, dip = self.get_azimuth_dip()
@@ -546,29 +546,29 @@ class Grid2DUI(QtGui.QWidget):
 
         #------- Manager for the Best fit plane Figure -------#
         self.bestfitplaneFig = BestFitPlaneFig(self.data)
-        self.bestfitplanemanager = QtGui.QWidget()
+        self.bestfitplanemanager = QtWidgets.QWidget()
         self.bestfitplanetool = NavigationToolbar2QT(self.bestfitplaneFig, self)
-        bestfitplanemanagergrid = QtGui.QGridLayout()
+        bestfitplanemanagergrid = QtWidgets.QGridLayout()
         bestfitplanemanagergrid.addWidget(self.bestfitplanetool, 0, 0)
         bestfitplanemanagergrid.addWidget(self.bestfitplaneFig, 1, 0)
         self.bestfitplanemanager.setLayout(bestfitplanemanagergrid)
 
-        adjustment_btn          = QtGui.QPushButton('Adjustment of Best-Fit Plane')
+        adjustment_btn          = QtWidgets.QPushButton('Adjustment of Best-Fit Plane')
         #- Buttons' Actions -#
         adjustment_btn.clicked.connect(self.plot_adjustment)
 
         #--- Edits ---#
-        self.pad_minus_x_edit   = QtGui.QLineEdit(str(self.grid.border[0]))
-        self.pad_plus_x_edit    = QtGui.QLineEdit(str(self.grid.border[1]))
-        self.pad_minus_z_edit   = QtGui.QLineEdit(str(self.grid.border[2]))
-        self.pad_plus_z_edit    = QtGui.QLineEdit(str(self.grid.border[3]))
+        self.pad_minus_x_edit   = QtWidgets.QLineEdit(str(self.grid.border[0]))
+        self.pad_plus_x_edit    = QtWidgets.QLineEdit(str(self.grid.border[1]))
+        self.pad_minus_z_edit   = QtWidgets.QLineEdit(str(self.grid.border[2]))
+        self.pad_plus_z_edit    = QtWidgets.QLineEdit(str(self.grid.border[3]))
 
-        self.cell_size_x_edit   = QtGui.QLineEdit(str(self.dx))
-        self.cell_size_z_edit   = QtGui.QLineEdit(str(self.dz))
+        self.cell_size_x_edit   = QtWidgets.QLineEdit(str(self.dx))
+        self.cell_size_z_edit   = QtWidgets.QLineEdit(str(self.dz))
 
-        self.origin_x_edit      = QtGui.QLineEdit()
-        self.origin_y_edit      = QtGui.QLineEdit()
-        self.origin_z_edit      = QtGui.QLineEdit()
+        self.origin_x_edit      = QtWidgets.QLineEdit()
+        self.origin_y_edit      = QtWidgets.QLineEdit()
+        self.origin_z_edit      = QtWidgets.QLineEdit()
 
         #- Edits' Actions -#
         self.pad_plus_x_edit.editingFinished.connect(self.update_input)
@@ -594,22 +594,22 @@ class Grid2DUI(QtGui.QWidget):
         origin_label            = MyQLabel('Origin', ha= 'right')
 
         #--- CheckBox ---#
-        self.flip_check              = QtGui.QCheckBox('Flip horizontally')
+        self.flip_check              = QtWidgets.QCheckBox('Flip horizontally')
         self.flip_check.setChecked(self.grid.flip)
 
         #- CheckBox Actions -#
         self.flip_check.stateChanged.connect(self.update_input)
 
         #--- ComboBoxes ---#
-        self.borehole_combo     = QtGui.QComboBox()
+        self.borehole_combo     = QtWidgets.QComboBox()
         self.borehole_combo.setCurrentIndex(self.grid.borehole_x0)
 
         #- ComboBoxes Actions -#
         self.borehole_combo.activated.connect(self.update_input)
 
         #--- SubWidgets ---#
-        sub_param_widget        = QtGui.QWidget()
-        sub_param_grid          = QtGui.QGridLayout()
+        sub_param_widget        = QtWidgets.QWidget()
+        sub_param_grid          = QtWidgets.QGridLayout()
         sub_param_grid.addWidget(x_label, 1, 0)
         sub_param_grid.addWidget(z_label, 2, 0)
         sub_param_grid.addWidget(pad_minus_label, 0, 1)
@@ -632,8 +632,8 @@ class Grid2DUI(QtGui.QWidget):
 
         #--- GroupBox ---#
         #- Grid parameters GroupBox -#
-        self.grid_param_group        = QtGui.QGroupBox('Grid Parameters')
-        grid_param_grid         = QtGui.QGridLayout()
+        self.grid_param_group        = QtWidgets.QGroupBox('Grid Parameters')
+        grid_param_grid         = QtWidgets.QGridLayout()
         grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 3)
         grid_param_grid.addWidget(self.flip_check, 1, 1)
         grid_param_grid.addWidget(adjustment_btn, 2, 1)
@@ -642,15 +642,15 @@ class Grid2DUI(QtGui.QWidget):
 
         #- GridView Figure GroupBox -#
         self.gridviewFig = GridViewFig(self)
-        self.grid_view_group = QtGui.QGroupBox('Grid View')
-        grid_view_grid = QtGui.QGridLayout()
+        self.grid_view_group = QtWidgets.QGroupBox('Grid View')
+        grid_view_grid = QtWidgets.QGridLayout()
         grid_view_grid.addWidget(self.gridviewFig, 0, 0)
         self.grid_view_group.setLayout(grid_view_grid)
 
 
 
 
-class GridInfoUI(QtGui.QFrame):
+class GridInfoUI(QtWidgets.QFrame):
 
     def __init__(self, parent=None):
         super(GridInfoUI, self).__init__()
@@ -677,7 +677,7 @@ class GridInfoUI(QtGui.QFrame):
         self.num_amp_picked_label = MyQLabel('0', ha= 'right')
 
 
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(cell_label, 0, 0, 1, 2)
         master_grid.addWidget(self.num_cell_label, 1, 0, 1, 2)
         master_grid.addWidget(data_label, 2, 0, 1, 2)
@@ -905,7 +905,7 @@ class GridViewFig(FigureCanvasQTAgg):
 
         self.draw()
 
-class ConstraintsEditorUI(QtGui.QWidget):
+class ConstraintsEditorUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(ConstraintsEditorUI, self).__init__()
         self.constraintsFig = ConstraintsFig(self)
@@ -914,12 +914,12 @@ class ConstraintsEditorUI(QtGui.QWidget):
     def initUI(self):
         #-------- Widgets -------#
         #--- Buttons ---#
-        edit_btn                    = QtGui.QPushButton('Edit')
-        import_btn                  = QtGui.QPushButton('Import')
-        reinit_btn                  = QtGui.QPushButton('Reinitialize')
-        display_btn                 = QtGui.QPushButton('Display')
-        cancel_btn                  = QtGui.QPushButton('Cancel')
-        done_btn                    = QtGui.QPushButton('Done')
+        edit_btn                    = QtWidgets.QPushButton('Edit')
+        import_btn                  = QtWidgets.QPushButton('Import')
+        reinit_btn                  = QtWidgets.QPushButton('Reinitialize')
+        display_btn                 = QtWidgets.QPushButton('Display')
+        cancel_btn                  = QtWidgets.QPushButton('Cancel')
+        done_btn                    = QtWidgets.QPushButton('Done')
 
         #--- Labels ---#
         cmax_label                  = MyQLabel('Cmax', ha= 'center')
@@ -928,10 +928,10 @@ class ConstraintsEditorUI(QtGui.QWidget):
         variance_value_label        = MyQLabel('Value: ', ha= 'right')
 
         #--- Edits ---#
-        self.cmax_edit              = QtGui.QLineEdit('1')
-        self.cmin_edit              = QtGui.QLineEdit('0')
-        self.property_value_edit    = QtGui.QLineEdit('0')
-        self.variance_value_edit    = QtGui.QLineEdit('0')
+        self.cmax_edit              = QtWidgets.QLineEdit('1')
+        self.cmin_edit              = QtWidgets.QLineEdit('0')
+        self.property_value_edit    = QtWidgets.QLineEdit('0')
+        self.variance_value_edit    = QtWidgets.QLineEdit('0')
 
         #- Edits Disposition -#
         self.cmax_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -940,7 +940,7 @@ class ConstraintsEditorUI(QtGui.QWidget):
         self.variance_value_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- ComboBox ---#
-        self.property_combo         = QtGui.QComboBox()
+        self.property_combo         = QtWidgets.QComboBox()
 
         #- Combobox Items -#
         properties_list             = ['Velocity', 'Attenuation', 'Reservoir', 'Xi', 'Tilt Angle' ]
@@ -948,8 +948,8 @@ class ConstraintsEditorUI(QtGui.QWidget):
 
         #--- SubWidgets ---#
         #- Property Value SubWidget -#
-        sub_property_value_widget   = QtGui.QWidget()
-        sub_property_value_grid     = QtGui.QGridLayout()
+        sub_property_value_widget   = QtWidgets.QWidget()
+        sub_property_value_grid     = QtWidgets.QGridLayout()
         sub_property_value_grid.addWidget(property_value_label, 0, 0)
         sub_property_value_grid.addWidget(self.property_value_edit, 0, 1)
         sub_property_value_grid.setContentsMargins(0, 0, 0, 0)
@@ -957,8 +957,8 @@ class ConstraintsEditorUI(QtGui.QWidget):
         sub_property_value_widget.setLayout(sub_property_value_grid)
 
         #- Variance Value SubWidget -#
-        sub_variance_value_widget   = QtGui.QWidget()
-        sub_variance_value_grid     = QtGui.QGridLayout()
+        sub_variance_value_widget   = QtWidgets.QWidget()
+        sub_variance_value_grid     = QtWidgets.QGridLayout()
         sub_variance_value_grid.addWidget(variance_value_label, 0, 0)
         sub_variance_value_grid.addWidget(self.variance_value_edit, 0, 1)
         sub_variance_value_grid.setContentsMargins(0, 0, 0, 0)
@@ -968,8 +968,8 @@ class ConstraintsEditorUI(QtGui.QWidget):
 
         #------- GroupBoxes -------#
         #--- Constraints GroupBox ---#
-        constraints_group = QtGui.QGroupBox('Constraints')
-        constraints_grid = QtGui.QGridLayout()
+        constraints_group = QtWidgets.QGroupBox('Constraints')
+        constraints_grid = QtWidgets.QGridLayout()
         constraints_grid.addWidget(self.constraintsFig, 0, 0, 8, 1)
         constraints_grid.addWidget(cmax_label, 0, 1)
         constraints_grid.addWidget(self.cmax_edit, 1, 1)
@@ -979,14 +979,14 @@ class ConstraintsEditorUI(QtGui.QWidget):
         constraints_grid.setRowStretch(2, 100)
         constraints_group.setLayout(constraints_grid)
         #--- Variance GroupBox ---#
-        variance_group              = QtGui.QGroupBox('Variance')
-        variance_grid               = QtGui.QGridLayout()
+        variance_group              = QtWidgets.QGroupBox('Variance')
+        variance_grid               = QtWidgets.QGridLayout()
         variance_grid.addWidget(sub_variance_value_widget, 0, 0)
         variance_grid.addWidget(display_btn, 1, 0)
         variance_group.setLayout(variance_grid)
         #--- Property GroupBox ---#
-        property_group              = QtGui.QGroupBox('Property')
-        property_grid               = QtGui.QGridLayout()
+        property_group              = QtWidgets.QGroupBox('Property')
+        property_grid               = QtWidgets.QGridLayout()
         property_grid.addWidget(self.property_combo, 0, 0)
         property_grid.addWidget(sub_property_value_widget, 1, 0)
         property_grid.addWidget(edit_btn, 2, 0)
@@ -998,7 +998,7 @@ class ConstraintsEditorUI(QtGui.QWidget):
 
 
         #------- Master grid's Layout -------#
-        master_grid                 = QtGui.QGridLayout()
+        master_grid                 = QtWidgets.QGridLayout()
         master_grid.addWidget(constraints_group, 0, 0, 6, 1)
         master_grid.addWidget(property_group, 0, 1)
         master_grid.addWidget(cancel_btn, 4, 1)
@@ -1048,7 +1048,7 @@ class GridData:
 
 
 
-class  MyQLabel(QtGui.QLabel):
+class  MyQLabel(QtWidgets.QLabel):
             def __init__(self, label, ha='left',  parent=None):
                 super(MyQLabel, self).__init__(label,parent)
                 if ha == 'center':
@@ -1059,7 +1059,7 @@ class  MyQLabel(QtGui.QLabel):
                     self.setAlignment(QtCore.Qt.AlignLeft)
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     Model_ui = ModelUI()
     Model_ui.show()

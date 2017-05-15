@@ -11,16 +11,16 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from database_ui import DatabaseUI
 from manual_tt_ui import ManualttUI
 from covar_ui import CovarUI
@@ -31,7 +31,7 @@ from manual_amp_ui import ManualAmpUI
 import os
 
 
-class BhTomoPy(QtGui.QWidget):
+class BhTomoPy(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super(BhTomoPy, self).__init__()
@@ -46,11 +46,11 @@ class BhTomoPy(QtGui.QWidget):
         self.manual_amp = ManualAmpUI()
         self.initUI()
 
-        self.setSizePolicy(QtGui.QSizePolicy.Minimum,
-                           QtGui.QSizePolicy.Minimum)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
+                           QtWidgets.QSizePolicy.Minimum)
 
     def choosedb(self):
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Choose Database')
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose Database')
         if filename is not '':
             if '.db' in filename:
                 filename = filename[:-3]
@@ -73,7 +73,7 @@ class BhTomoPy(QtGui.QWidget):
         qr = self.frameGeometry()
 
         # Show it at the center of the screen
-        cp = QtGui.QDesktopWidget().availableGeometry().center()
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
 
         # Move the window's center at the center of the screen
         qr.moveCenter(cp)
@@ -91,15 +91,15 @@ class BhTomoPy(QtGui.QWidget):
 
         #------- Widgets -------#
         # --- Actions ---#
-        ChooseDbAction = QtGui.QAction('Choose Database', self)
+        ChooseDbAction = QtWidgets.QAction('Choose Database', self)
         ChooseDbAction.setShortcut('Ctrl+O')
         ChooseDbAction.triggered.connect(self.choosedb)
 
-        ConvertDbAction = QtGui.QAction('Convert Database', self)
+        ConvertDbAction = QtWidgets.QAction('Convert Database', self)
         ConvertDbAction.setShortcut('Ctrl+C')
 
         #--- Menubar ---#
-        self.menu = QtGui.QMenuBar()
+        self.menu = QtWidgets.QMenuBar()
         filemenu = self.menu.addMenu('&File')
         editmenu = self.menu.addMenu('&Edit')
         filemenu.addAction(ChooseDbAction)
@@ -107,17 +107,17 @@ class BhTomoPy(QtGui.QWidget):
 
 
         #--- Buttons ---#
-        btn_Database                            = QtGui.QPushButton("Database")
-        btn_Automatic_Traveltime_Picking        = QtGui.QPushButton("Automatic (AIC-CWT)")
-        btn_Semi_Automatic_Traveltime_Picking   = QtGui.QPushButton("Semi-Automatic (x-corr)")
-        btn_Manual_Traveltime_Picking           = QtGui.QPushButton("Manual")
-        btn_Manual_Amplitude_Picking            = QtGui.QPushButton("Manual Amplitude Picking")
-        btn_Cov_Mod                             = QtGui.QPushButton("Covariance Model")
-        btn_Inversion                           = QtGui.QPushButton("Inversion")
-        btn_Interpretation                      = QtGui.QPushButton("Interpretation (GPR)")
-        btn_Time_Lapse_Inversion                = QtGui.QPushButton("Inversion")
-        btn_Time_Lapse_Visualisation            = QtGui.QPushButton("Visualisation")
-        btn_Nano_Fluid                          = QtGui.QPushButton("Magnetic Nano Fluid Saturation")
+        btn_Database                            = QtWidgets.QPushButton("Database")
+        btn_Automatic_Traveltime_Picking        = QtWidgets.QPushButton("Automatic (AIC-CWT)")
+        btn_Semi_Automatic_Traveltime_Picking   = QtWidgets.QPushButton("Semi-Automatic (x-corr)")
+        btn_Manual_Traveltime_Picking           = QtWidgets.QPushButton("Manual")
+        btn_Manual_Amplitude_Picking            = QtWidgets.QPushButton("Manual Amplitude Picking")
+        btn_Cov_Mod                             = QtWidgets.QPushButton("Covariance Model")
+        btn_Inversion                           = QtWidgets.QPushButton("Inversion")
+        btn_Interpretation                      = QtWidgets.QPushButton("Interpretation (GPR)")
+        btn_Time_Lapse_Inversion                = QtWidgets.QPushButton("Inversion")
+        btn_Time_Lapse_Visualisation            = QtWidgets.QPushButton("Visualisation")
+        btn_Nano_Fluid                          = QtWidgets.QPushButton("Magnetic Nano Fluid Saturation")
 
         #- Buttons Disposition -#
         btn_Automatic_Traveltime_Picking.setDisabled(True)
@@ -136,14 +136,14 @@ class BhTomoPy(QtGui.QWidget):
 
         #--- Image ---#
         pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
-        image_label = QtGui.QLabel()
+        image_label = QtWidgets.QLabel()
         image_label.setPixmap(pic.scaled(250, 250,
                                          QtCore.Qt.IgnoreAspectRatio,
                                          QtCore.Qt.FastTransformation))
         image_label.setAlignment(QtCore.Qt.AlignCenter)
 
         #--- Title(if logo isnt ok) ---#
-        Title = QtGui.QLabel(
+        Title = QtWidgets.QLabel(
             'BH TOMO \n Borehole Radar/Seismic Data Processing Center')
         Title.setAlignment(QtCore.Qt.AlignHCenter)
         Title.setContentsMargins(10, 10, 10, 30)
@@ -153,29 +153,29 @@ class BhTomoPy(QtGui.QWidget):
 
         #--- Edit ---#
         # Edit to hold the chosen database's name
-        self.current_db = QtGui.QLineEdit()
+        self.current_db = QtWidgets.QLineEdit()
 
         #- Edit Disposition -#
         self.current_db.setReadOnly(True)
         self.current_db.setAlignment(QtCore.Qt.AlignHCenter)
 
         #--- Image SubWidget ---#
-        sub_image_widget = QtGui.QWidget()
-        sub_image_grid = QtGui.QGridLayout()
+        sub_image_widget = QtWidgets.QWidget()
+        sub_image_grid = QtWidgets.QGridLayout()
         sub_image_grid.addWidget(image_label, 0, 0)
         sub_image_grid.setContentsMargins(50, 0, 50, 0)
         sub_image_widget.setLayout(sub_image_grid)
         #--- Traveltime ToolBox ---#
-        travel_time_tool = QtGui.QWidget()
-        travel_time_grid = QtGui.QGridLayout()
+        travel_time_tool = QtWidgets.QWidget()
+        travel_time_grid = QtWidgets.QGridLayout()
         travel_time_grid.addWidget(btn_Manual_Traveltime_Picking, 0, 0)
         travel_time_grid.addWidget(btn_Semi_Automatic_Traveltime_Picking, 1, 0)
         travel_time_grid.addWidget(btn_Automatic_Traveltime_Picking, 2, 0)
         travel_time_tool.setLayout(travel_time_grid)
 
         #--- Time Lapse Tool ---#
-        time_lapse_tool = QtGui.QWidget()
-        time_lapse_grid = QtGui.QGridLayout()
+        time_lapse_tool = QtWidgets.QWidget()
+        time_lapse_grid = QtWidgets.QGridLayout()
         time_lapse_grid.addWidget(btn_Time_Lapse_Inversion)
         time_lapse_grid.addWidget(btn_Time_Lapse_Visualisation)
         time_lapse_tool.setLayout(time_lapse_grid)
@@ -197,8 +197,8 @@ class BhTomoPy(QtGui.QWidget):
         self.tl_tool = tl_tool
 
         #--- Buttons SubWidget ---#
-        Sub_button_widget = QtGui.QGroupBox()
-        sub_button_grid = QtGui.QGridLayout()
+        Sub_button_widget = QtWidgets.QGroupBox()
+        sub_button_grid = QtWidgets.QGridLayout()
         sub_button_grid.addWidget(btn_Database, 0, 0)
         sub_button_grid.addWidget(tt_tool, 1, 0)
         sub_button_grid.addWidget(btn_Manual_Amplitude_Picking, 2, 0)
@@ -211,7 +211,7 @@ class BhTomoPy(QtGui.QWidget):
         Sub_button_widget.setLayout(sub_button_grid)
 
         #--- Main Widget---#
-        master_grid = QtGui.QGridLayout()
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 4)
         master_grid.addWidget(sub_image_widget, 2, 0, 1, 4)
         master_grid.addWidget(self.current_db, 3, 1, 1, 2)
@@ -227,7 +227,7 @@ class BhTomoPy(QtGui.QWidget):
         self.setFixedHeight(h)
 
 
-class MyQToolBox(QtGui.QWidget):
+class MyQToolBox(QtWidgets.QWidget):
 
     """
     A custom widget that mimicks the behavior of the "Tools" sidepanel in
@@ -248,12 +248,12 @@ class MyQToolBox(QtGui.QWidget):
     def __init__(self, parent=None):
         super(MyQToolBox, self).__init__(parent)
 
-        self.__iclosed = QtGui.QWidget().style().standardIcon(
-            QtGui.QStyle.SP_ToolBarHorizontalExtensionButton)
-        self.__iexpand = QtGui.QWidget().style().standardIcon(
-            QtGui.QStyle.SP_ToolBarVerticalExtensionButton)
+        self.__iclosed = QtWidgets.QWidget().style().standardIcon(
+            QtWidgets.QStyle.SP_ToolBarHorizontalExtensionButton)
+        self.__iexpand = QtWidgets.QWidget().style().standardIcon(
+            QtWidgets.QStyle.SP_ToolBarVerticalExtensionButton)
 
-        self.setLayout(QtGui.QGridLayout())
+        self.setLayout(QtWidgets.QGridLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
         self.__currentIndex = -1
@@ -268,7 +268,7 @@ class MyQToolBox(QtGui.QWidget):
 
         #---- Add Header ----
 
-        head = QtGui.QPushButton(text)
+        head = QtWidgets.QPushButton(text)
         head.setIcon(self.__iclosed)
         head.clicked.connect(self.__isClicked__)
         head.setStyleSheet("QPushButton {text-align:left;}")
@@ -277,7 +277,7 @@ class MyQToolBox(QtGui.QWidget):
 
         #---- Add Item in a ScrollArea ----
 
-        scrollarea = QtGui.QScrollArea()
+        scrollarea = QtWidgets.QScrollArea()
         scrollarea.setFrameStyle(0)
         scrollarea.hide()
         scrollarea.setStyleSheet("QScrollArea {background-color:transparent;}")
@@ -321,7 +321,7 @@ class MyQToolBox(QtGui.QWidget):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     bh_tomo = BhTomoPy()
     bh_tomo.show()

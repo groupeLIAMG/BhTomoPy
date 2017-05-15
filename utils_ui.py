@@ -13,34 +13,34 @@ it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it /will be useful,
+This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 import dbm
 import os
 import shelve
 import sys
 
 def chooseMOG(filename=None):
-    d = QtGui.QDialog()
+    d = QtWidgets.QDialog()
 
-    l0 = QtGui.QLabel(parent=d);
+    l0 = QtWidgets.QLabel(parent=d);
     l0.setAlignment(QtCore.Qt.AlignCenter)
     l0.setStyleSheet('background-color: white')
     
-    b0 = QtGui.QPushButton("Choose Database", d)
-    b1 = QtGui.QPushButton("Ok", d)
-    b2 = QtGui.QPushButton("Cancel", d)
+    b0 = QtWidgets.QPushButton("Choose Database", d)
+    b1 = QtWidgets.QPushButton("Ok", d)
+    b2 = QtWidgets.QPushButton("Cancel", d)
     
-    b3 = QtGui.QComboBox(d)
+    b3 = QtWidgets.QComboBox(d)
 
     l0.move(10,10)
     b0.move(10,40)
@@ -66,7 +66,7 @@ def chooseMOG(filename=None):
     def choose_db():
         nonlocal d
         nonlocal l0
-        filename = QtGui.QFileDialog.getOpenFileName(d, 'Choose Database')
+        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')
         if filename is not '':
             if '.db' in filename:
                 filename = filename[:-3]
@@ -86,14 +86,14 @@ def chooseMOG(filename=None):
             sfile.close()
             filename = fname
         except dbm.error:
-            QtGui.QMessageBox.warning(b3, '', 'Database not in shelve format',
-                        QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
-                        QtGui.QMessageBox.NoButton)
+            QtWidgets.QMessageBox.warning(b3, '', 'Database not in shelve format',
+                        QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
+                        QtWidgets.QMessageBox.NoButton)
             l0.setText( '' )
         except KeyError:
-            QtGui.QMessageBox.warning(b3, '', 'File does not contain MOGS',
-                QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
-                          QtGui.QMessageBox.NoButton)
+            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS',
+                QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
+                          QtWidgets.QMessageBox.NoButton)
             l0.setText( '' )
 
 
@@ -123,17 +123,17 @@ def chooseMOG(filename=None):
 
 
 def chooseModel(filename=None):
-    d = QtGui.QDialog()
+    d = QtWidgets.QDialog()
 
-    l0 = QtGui.QLabel(parent=d);
+    l0 = QtWidgets.QLabel(parent=d);
     l0.setAlignment(QtCore.Qt.AlignCenter)
     l0.setStyleSheet('background-color: white')
     
-    b0 = QtGui.QPushButton("Choose Database", d)
-    b1 = QtGui.QPushButton("Ok", d)
-    b2 = QtGui.QPushButton("Cancel", d)
+    b0 = QtWidgets.QPushButton("Choose Database", d)
+    b1 = QtWidgets.QPushButton("Ok", d)
+    b2 = QtWidgets.QPushButton("Cancel", d)
     
-    b3 = QtGui.QComboBox(d)
+    b3 = QtWidgets.QComboBox(d)
 
     l0.move(10,10)
     b0.move(10,40)
@@ -159,7 +159,7 @@ def chooseModel(filename=None):
     def choose_db():
         nonlocal d
         nonlocal l0
-        filename = QtGui.QFileDialog.getOpenFileName(d, 'Choose Database')
+        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')
         if filename is not '':
             if '.db' in filename:
                 filename = filename[:-3]
@@ -179,14 +179,14 @@ def chooseModel(filename=None):
             sfile.close()
             filename = fname
         except dbm.error:
-            QtGui.QMessageBox.warning(b3, '', 'Database not in shelve format',
-                        QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
-                        QtGui.QMessageBox.NoButton)
+            QtWidgets.QMessageBox.warning(b3, '', 'Database not in shelve format',
+                        QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
+                        QtWidgets.QMessageBox.NoButton)
             l0.setText( '' )
         except KeyError:
-            QtGui.QMessageBox.warning(b3, '', 'File does not contain models',
-                QtGui.QMessageBox.Cancel, QtGui.QMessageBox.NoButton,
-                          QtGui.QMessageBox.NoButton)
+            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain models',
+                QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
+                          QtWidgets.QMessageBox.NoButton)
             l0.setText( '' )
 
 
@@ -219,7 +219,7 @@ def chooseModel(filename=None):
 
 if __name__ == '__main__':
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     mog_no, fname, ok = chooseMOG()
     
