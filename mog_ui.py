@@ -19,7 +19,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import sys
 import re
-import shelve
 import unicodedata
 
 from PyQt5 import QtGui, QtWidgets, QtCore
@@ -38,6 +37,9 @@ from utils import compute_SNR, data_select
 from utils_ui import chooseMOG
 import database
 
+current_module = sys.modules[__name__]
+import data_manager
+data_manager.create_data_management(current_module)
 
 #-----------------------------------------------------------------------------------------------------------------------
 #
@@ -187,6 +189,7 @@ class MOGUI(QtWidgets.QWidget):
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
+
         for i in ind:
             from sqlalchemy import inspect
             if inspect(self.MOGs[int(i.row())]).persistent:
@@ -849,9 +852,11 @@ class MOGUI(QtWidgets.QWidget):
         self.deltat.getcompat()
 
     def import_mog(self):
-        item = chooseMOG()
+        item = chooseMOG(current_module)
+        current_module.session.close()
+        current_module.engine.dispose()
+        
         if item != None:
-            
             item = database.session.merge(item)
             database.session.add(item)
             self.MOGs.append(item)

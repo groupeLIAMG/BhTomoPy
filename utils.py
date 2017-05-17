@@ -21,12 +21,20 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
+import sys
 import inspect,dis
 import numpy as np
 import scipy.signal
 
 from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base() # Base must be present in the child-most module in order not to cause inter-dependencies
+
+def Hook(Type, value, traceback):
+    initial_ctx = traceback.tb_next
+    while initial_ctx.tb_next is not None:
+        initial_ctx = initial_ctx.tb_next
+    sys.__excepthook__(Type, value, traceback)
+sys.excepthook = Hook # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
 
 def nargout():
     """

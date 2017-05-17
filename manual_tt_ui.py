@@ -22,10 +22,14 @@ import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
-import shelve
 import numpy as np
+from mog import Mog
 
 from utils_ui import chooseMOG
+
+current_module = sys.modules[__name__]
+import data_manager
+data_manager.create_data_management(current_module)
 
 class ManualttUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
@@ -162,21 +166,21 @@ class ManualttUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText(str(to_pick))
         self.update_control_center()
 
-    def check_save(self):
-        if self.save_checkbox.isChecked():
-            self.intermediate_saves()
-
-    def intermediate_saves(self):
-        num_done = np.not_equal(self.mog.tt_done, 0)
-        num_done = sum(num_done.astype(int))
-        if num_done % 50 == 0:
-#            save_file = open(self.filename, 'wb')
-#            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-            sfile = shelve.open(self.filename)
-            sfile['mogs'] = self.mogs
-            if self.mog.useAirShots == 1:
-                sfile['air'] = self.air
-            sfile.close()
+#     def check_save(self):
+#         if self.save_checkbox.isChecked():
+#             self.intermediate_saves()
+# 
+#     def intermediate_saves(self):
+#         num_done = np.not_equal(self.mog.tt_done, 0)
+#         num_done = sum(num_done.astype(int))
+#         if num_done % 50 == 0:
+# #            save_file = open(self.filename, 'wb')
+# #            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+#             sfile = shelve.open(self.filename)
+#             sfile['mogs'] = self.mogs
+#             if self.mog.useAirShots == 1:
+#                 sfile['air'] = self.air
+#             sfile.close()
 
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
@@ -189,33 +193,25 @@ class ManualttUI(QtWidgets.QFrame):
         self.statsFig1.showMaximized()
 
     def savefile(self):
-#        save_file = open(self.filename, 'wb')
-#        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-        sfile = shelve.open(self.filename)
-        sfile['mogs'] = self.mogs
-        if self.mog.useAirShots == 1:
-            sfile['air'] = self.air
-        sfile.close()
-    
+        current_module.session.commit()
+#         if self.mog.useAirShots == 1: #TODO: verify implantation with sqlalchemy
+#             sfile['air'] = self.air
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtWidgets.QMessageBox.Ok)
                                                 
     def openfile(self):
-        mog_no, filename, ok = chooseMOG(self.filename)
-        if ok == 1:
-            self.filename = filename
-            sfile = shelve.open(self.filename)
-            self.mogs = sfile['mogs']
-            self.mog = self.mogs[mog_no]
-            if self.mog.useAirShots == 1:
-                self.air = sfile['air']
-                self.t0_before_radio.setEnabled(True)
-                self.t0_after_radio.setEnabled(True)
-            else:
-                self.t0_before_radio.setEnabled(False)
-                self.t0_after_radio.setEnabled(False)
-
-            sfile.close()
+        item = chooseMOG(current_module, str(current_module.engine.url()))
+        if item != None:
+            data_manager.load(current_module)
+            self.mogs = data_manager.get(current_module, Mog)
+            self.mog = item
+#             if self.mog.useAirShots == 1:
+#                 self.air = sfile['air']
+#                 self.t0_before_radio.setEnabled(True)
+#                 self.t0_after_radio.setEnabled(True)
+#             else:
+#                 self.t0_before_radio.setEnabled(False)
+#                 self.t0_after_radio.setEnabled(False)
             self.update_control_center()
 
     def import_tt_file(self):

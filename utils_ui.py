@@ -23,15 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 from PyQt5 import QtWidgets, QtCore
 import os
-import sys
 import data_manager
 from mog import Mog
 from model import Model
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-# from data_manager import Base
 
-def chooseMOG(filename=None):
+def chooseMOG(module, filename=None):
     d = QtWidgets.QDialog()
 
     l0 = QtWidgets.QLabel(parent=d);
@@ -65,36 +61,29 @@ def chooseMOG(filename=None):
         nonlocal d
         d.done(1)
     
-    session = None
     def choose_db():
         nonlocal d
         nonlocal l0
         nonlocal b3
-        nonlocal session
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
             if filename.find('.db') != -1:
                 
-                engine = create_engine("sqlite:///" + filename)
-                Session = sessionmaker(bind=engine)
-                session = Session()
-                Base.metadata.create_all(engine)
+                data_manager.load(module, filename)
                 l0.setText( os.path.basename(filename) )
                 load_mogs(filename)
-             
+
             else:
                 QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
                         QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
                         QtWidgets.QMessageBox.NoButton)
                 l0.setText( '' )
-        
 
     def load_mogs(fname):
         nonlocal b3
         nonlocal l0
         nonlocal filename
-        nonlocal session
-        mogs = session.query(Mog).all() 
+        mogs = module.session.query(Mog).all() 
         if mogs:
             for mog in mogs:
                 b3.addItem(mog.name)
@@ -105,29 +94,29 @@ def chooseMOG(filename=None):
                           QtWidgets.QMessageBox.NoButton)
             l0.setText( '' )
 
-
     if filename:
         l0.setText( os.path.basename(filename) )
         load_mogs(filename)
     else:
         l0.setText('')
-
+    
     b1.clicked.connect( ok )
     b2.clicked.connect( cancel )
     b0.clicked.connect( choose_db )
     
     d.setWindowTitle("Choose MOG")
     d.setWindowModality(QtCore.Qt.ApplicationModal)
+    
     isOk = d.exec_()
     
     if isOk == 1:
         mog_no = b3.currentIndex()
         if mog_no != -1:
-            return session.query(Mog).filter(Mog.name == str(b3.currentText())).first()
+            return module.session.query(Mog).filter(Mog.name == str(b3.currentText())).first()
 
 
 
-def chooseModel(filename=None):
+def chooseModel(module, filename=None):
     d = QtWidgets.QDialog()
 
     l0 = QtWidgets.QLabel(parent=d);
@@ -144,9 +133,9 @@ def chooseModel(filename=None):
     b0.move(10,40)
     b1.setMinimumWidth( b2.width() )
     b2.setMinimumWidth( b1.minimumWidth() )
-    b0.setMinimumWidth( 10+2*b1.minimumWidth())
-    l0.setMinimumWidth( 10+2*b1.minimumWidth())
-    b3.setMinimumWidth( 2*b1.minimumWidth())
+    b0.setMinimumWidth( 10+2*b1.minimumWidth() )
+    l0.setMinimumWidth( 10+2*b1.minimumWidth() )
+    b3.setMinimumWidth( 2*b1.minimumWidth() )
     
     b3.move(15,70)
     
@@ -161,22 +150,17 @@ def chooseModel(filename=None):
         nonlocal d
         d.done(1)
     
-    session = None
     def choose_db():
         nonlocal d
         nonlocal l0
         nonlocal b3
-        nonlocal session
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
             if filename.find('.db') != -1:
                 
-                engine = create_engine("sqlite:///" + filename)
-                Session = sessionmaker(bind=engine)
-                session = Session()
-                Base.metadata.create_all(engine)
+                data_manager.load(module, filename)
                 l0.setText( os.path.basename(filename) )
-                load_models(filename)
+                load_models(module, filename)
              
             else:
                 QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
@@ -189,9 +173,8 @@ def chooseModel(filename=None):
         nonlocal b3
         nonlocal l0
         nonlocal filename
-        nonlocal session
                  
-        models = session.query(Mog).all()
+        models = module.session.query(Model).all()
         if models:
             for model in models:
                 b3.addItem(model.name)
@@ -220,16 +203,4 @@ def chooseModel(filename=None):
     if isOk == 1:
         model_no = b3.currentIndex()
         if model_no != -1:
-            return session.query(Model).filter(Model.name == str(b3.currentText())).first()
-
-
-
-if __name__ == '__main__':
-
-    app = QtWidgets.QApplication(sys.argv)
-
-    mogs, mog = chooseMOG()
-    
-    print(mog.name)
-
-    sys.exit(app.exec_())
+            return module.session.query(Model).filter(Model.name == str(b3.currentText())).first()

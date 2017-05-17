@@ -212,6 +212,9 @@ class DatabaseUI(QtWidgets.QWidget):
                 
                 self.update_database_info(os.path.basename(filename))
                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
+            
+            else:
+                database.session.commit()
                     
     def editname(self):
         new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name')
@@ -313,13 +316,6 @@ class MyLogWidget(QtWidgets.QTextEdit):
         self.verticalScrollBar().setValue(bottom)
 
 if __name__ == '__main__':
-    
-    def Hook(Type, value, traceback):
-        initial_ctx = traceback.tb_next
-        while initial_ctx.tb_next is not None:
-            initial_ctx = initial_ctx.tb_next
-        sys.__excepthook__(Type, value, traceback)
-    sys.excepthook = Hook # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
 
     app = QtWidgets.QApplication(sys.argv)
 

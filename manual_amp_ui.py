@@ -22,25 +22,16 @@ import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
-import shelve
 import numpy as np
 from utils_ui import chooseMOG
 import re
 import scipy as spy
 from scipy import signal
+from mog import Mog
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-engine = create_engine("sqlite:///:memory:")
-Session = sessionmaker(bind=engine)
-session = Session()
-
-from borehole import Borehole # imports required by create_all
-from model import Model
-from mog import Mog, AirShots
-from database import Base
-Base.metadata.create_all(engine)
+current_module = sys.modules[__name__]
+import data_manager
+data_manager.create_data_management(current_module)
 
 
 class ManualAmpUI(QtWidgets.QFrame):
@@ -53,7 +44,6 @@ class ManualAmpUI(QtWidgets.QFrame):
 #        self.air = []
 #        self.boreholes = []
 #        self.models = []
-        self.filename = ''
         self.mog = 0
         self.initUI()
 
@@ -119,14 +109,14 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText(str(to_pick))
         self.update_control_center()
 
-    def intermediate_saves(self):
-        if float(self.Tnum_Edit.text()) % 50 == 0:
-            sfile = shelve.open(self.filename)
-            sfile['mogs'] = self.mogs
-            sfile.close()
-#            save_file = open(self.filename, 'wb')
-#            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-#            print('saved')
+#     def intermediate_saves(self):
+#         if float(self.Tnum_Edit.text()) % 50 == 0:
+#             sfile = shelve.open(self.filename)
+#             sfile['mogs'] = self.mogs
+#             sfile.close()
+# #            save_file = open(self.filename, 'wb')
+# #            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+# #            print('saved')
 
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
@@ -139,74 +129,17 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.statsFig1.showMaximized()
 
     def savefile(self):
-        sfile = shelve.open(self.filename)
-        sfile['mogs'] = self.mogs
-        sfile.close()
-#        save_file = open(self.filename, 'wb')
-#        pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
+        current_module.session.commit()
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully"
                                                 ,buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
         
-        mog_no, filename, ok = chooseMOG(self.filename)
-        if ok == 1:
-            self.filename = filename
-            sfile = shelve.open(self.filename)
-            self.mogs = sfile['mogs']
-            self.mog = self.mogs[mog_no]
-
-            sfile.close()
+        item = chooseMOG(current_module, str(current_module.engine.url()))
+        if item != None:
+            self.mogs = data_manager.get(current_module, Mog)
+            self.mog = item
             self.update_control_center()
-            
-#         item = chooseMOG(self.filename)
-#         if item != None:
-#             self.filename = filename
-    #         Session.close_all()
-    #         engine.dispose()
-    #         engine  = create_engine("sqlite:///" + self.filename)
-    #         Session = sessionmaker(bind=engine)
-    #         session = Session()
-    #         Base.metadata.create_all(engine)
-#             items = session.merge(item)
-#             session.add_all(items)
-#             self.MOGs.append(item)
-#             self.mog = self.mogs[mog_no]
-#             self.update_control_center()
-
-#         self.filename = filename
-#         
-#         Session.close_all()
-#         engine.dispose()
-#         
-#         engine  = create_engine("sqlite:///" + self.filename)
-#         Session = sessionmaker(bind=engine)
-#         session = Session()
-#         Base.metadata.create_all(engine)
-
-#                 Session.close_all()
-#                 engine.dispose()
-#                  
-#                 engine = create_engine("sqlite:///" + filename)
-#                 Base.metadata.create_all(engine)
-#                 Session.configure(bind=engine)
-#                 session = Session()
-# 
-#                 for item in get_many(current_module):
-#                     session.delete(item)
-#                 
-#                 items = [session.merge(item) for item in items]
-#                 session.add_all(items)
-#                 
-#                 session.commit()
-#                     
-#                 self.bh.boreholes = get(Borehole)
-#                 self.mog.MOGs = get(Mog)
-#                 self.model.models = get(Model)
-#                 self.mog.air = get(AirShots)
-#                 
-#                 self.update_database_info(os.path.basename(filename))
-#                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
 
     def import_tt_file(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')[0]

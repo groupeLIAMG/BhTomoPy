@@ -16,7 +16,7 @@ def create_data_management(module):
 def load(module, file):
     
     try:
-        module.Session.close_all()
+        module.session.close()
         module.engine.dispose()
         
         module.engine  = create_engine("sqlite:///" + file)
@@ -24,8 +24,7 @@ def load(module, file):
         module.session = module.Session()
         Base.metadata.create_all(module.engine)
         
-#         if []
-        get_many(module) # initiate the session
+        get_many(module) # initiate the session's objects
         
     except AttributeError:
         create_data_management(module)
@@ -36,7 +35,7 @@ def save_as(module, file):
     try:
         items = get_many(module)
         
-        module.Session.close_all()
+        module.session.close()
         module.engine.dispose()
         
         module.engine = create_engine("sqlite:///" + file)
@@ -44,9 +43,7 @@ def save_as(module, file):
         module.Session.configure(bind=module.engine)
         module.session = module.Session()
         
-        from sqlalchemy import inspect
         for item in get_many(module):
-            print(inspect(item).persistent)
             module.session.delete(item)
            
         items = [module.session.merge(item) for item in items]
@@ -57,28 +54,6 @@ def save_as(module, file):
     except AttributeError:
         create_data_management(module)
         save_as(module, file)
-        
-# 
-#                 database.Session.close_all()
-#                 database.engine.dispose()
-#                  
-#                 database.engine = database.create_engine("sqlite:///" + filename)
-#                 database.Base.metadata.create_all(database.engine)
-#                 database.Session.configure(bind=database.engine)
-#                 database.session = database.Session()
-# 
-#                 for item in database.get_many(current_module):
-#                     database.session.delete(item)
-#                 
-#                 items = [database.session.merge(item) for item in items]
-#                 database.session.add_all(items)
-#                 
-#                 database.session.commit()
-#                     
-#                 self.bh.boreholes = database.get(Borehole)
-#                 self.mog.MOGs = database.get(Mog)
-#                 self.model.models = database.get(Model)
-#                 self.mog.air = database.get(AirShots)
 
 def get(module, item, Id=None):
 
