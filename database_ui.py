@@ -38,18 +38,14 @@ class DatabaseUI(QtWidgets.QWidget):
         self.setWindowTitle("BhTomoPy/Database")
         #--- Other Modules Instance ---#
         self.bh = BoreholeUI()
-        self.mog = MOGUI(self.bh)
-        self.model = ModelUI(borehole=self.bh, mog=self.mog)
+        self.mog = MOGUI()
+        self.model = ModelUI()
         self.info = InfoUI()
-        self.mergemog = MergeMog(self.mog.MOGs)
+        self.mergemog = MergeMog(self.mog)
         self.initUI()
         self.action_list = []
         self.filename = ''
         self.name = ''
-        self.models = self.model.models
-        self.boreholes = self.bh.boreholes
-        self.mogs = self.mog.MOGs
-        self.air = self.mog.air
 
         # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
         # modules in order to update them
@@ -142,11 +138,6 @@ class DatabaseUI(QtWidgets.QWidget):
         data_manager.load(database, filename)
         
         try:
-     
-            self.bh.boreholes = data_manager.get(database, Borehole)
-            self.mog.MOGs = data_manager.get(database, Mog)
-            self.model.models = data_manager.get(database, Model)
-            self.mog.air = data_manager.get(database, AirShots)
             
             self.update_database_info(os.path.basename(filename))
             self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
@@ -204,11 +195,6 @@ class DatabaseUI(QtWidgets.QWidget):
                 self.filename = filename
                 
                 data_manager.save_as(database, filename)
-                    
-                self.bh.boreholes = data_manager.get(database, Borehole)
-                self.mog.MOGs     = data_manager.get(database, Mog)
-                self.model.models = data_manager.get(database, Model)
-                self.mog.air      = data_manager.get(database, AirShots)
                 
                 self.update_database_info(os.path.basename(filename))
                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
@@ -216,7 +202,7 @@ class DatabaseUI(QtWidgets.QWidget):
             else:
                 database.session.commit()
                     
-    def editname(self):
+    def editname(self): #FIXME
         new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name')
 
         if new_name != '':
@@ -261,25 +247,25 @@ class DatabaseUI(QtWidgets.QWidget):
         #--- GroupBoxes ---#
         #- Boreholes GroupBox -#
         bh_GroupBox =  QtWidgets.QGroupBox("Boreholes")
-        bh_Sub_Grid   = QtWidgets.QGridLayout()
+        bh_Sub_Grid = QtWidgets.QGridLayout()
         bh_Sub_Grid.addWidget(self.bh)
         bh_GroupBox.setLayout(bh_Sub_Grid)
 
         #- MOGs GroupBox -#
         MOGs_GroupBox =  QtWidgets.QGroupBox("MOGs")
-        MOGs_Sub_Grid   = QtWidgets.QGridLayout()
+        MOGs_Sub_Grid = QtWidgets.QGridLayout()
         MOGs_Sub_Grid.addWidget(self.mog)
         MOGs_GroupBox.setLayout(MOGs_Sub_Grid)
 
         #- Models GroupBox -#
         Models_GroupBox =  QtWidgets.QGroupBox("Models")
-        Models_Sub_Grid   = QtWidgets.QGridLayout()
+        Models_Sub_Grid = QtWidgets.QGridLayout()
         Models_Sub_Grid.addWidget(self.model)
         Models_GroupBox.setLayout(Models_Sub_Grid)
 
         #- Info GroupBox -#
         Info_GroupBox =  QtWidgets.QGroupBox("Infos")
-        Info_Sub_Grid   = QtWidgets.QGridLayout()
+        Info_Sub_Grid = QtWidgets.QGridLayout()
         Info_Sub_Grid.addWidget(self.info)
         Info_GroupBox.setLayout(Info_Sub_Grid)
 

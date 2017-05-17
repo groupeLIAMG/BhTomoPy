@@ -36,6 +36,7 @@ from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
 from utils_ui import chooseMOG
 import database
+from borehole import Borehole
 
 current_module = sys.modules[__name__]
 import data_manager
@@ -48,19 +49,16 @@ data_manager.create_data_management(current_module)
 #-----------------------------------------------------------------------------------------------------------------------
 class MOGUI(QtWidgets.QWidget):
 
-    mogInfoSignal = QtCore.pyqtSignal(int)
-    ntraceSignal = QtCore.pyqtSignal(int)
+    mogInfoSignal  = QtCore.pyqtSignal(int)
+    ntraceSignal   = QtCore.pyqtSignal(int)
     databaseSignal = QtCore.pyqtSignal(str)
-    moglogSignal = QtCore.pyqtSignal(str)
+    moglogSignal   = QtCore.pyqtSignal(str)
 
 
-    def __init__(self, borehole, parent=None):
+    def __init__(self, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("BhTomoPy/MOGs")
         self.initUI()
-        self.MOGs = []
-        self.air = []
-        self.borehole = borehole
         self.data_rep = ''
 
 
@@ -89,15 +87,14 @@ class MOGUI(QtWidgets.QWidget):
             mogdata.readRAMAC(basename)
             
             mog = Mog(rname, mogdata)
-            self.MOGs.append(mog)
+            database.session.add(mog)
             self.update_List_Widget()
-            self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
+            self.MOG_list.setCurrentRow(database.session.query(Mog).count() - 1)
             self.update_spectra_and_coverage_Tx_num_list()
             self.update_spectra_and_coverage_Tx_elev_value_label()
             self.update_edits()
             self.update_prune_edits_info()
             self.update_prune_info()
-            database.session.add(mog)
             self.moglogSignal.emit("{} Multi Offset-Gather has been loaded successfully".format(rname))
         
         except Exception as e:
@@ -107,11 +104,11 @@ class MOGUI(QtWidgets.QWidget):
 
     def update_edits(self):
         """
-        this function updates the info either in the MOG's edits or in the info's labels
+        updates the info either in the MOG's edits or in the info's labels
         """
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            mog = self.MOGs[i.row()]
+            mog = database.session.query(Mog).all()[i.row()]
 
             self.Rx_Offset_edit.clear()
             self.Tx_Offset_edit.clear()
@@ -138,16 +135,16 @@ class MOGUI(QtWidgets.QWidget):
                 self.Air_shots_checkbox.setChecked(False)
 
 
-            for i in range(len(self.borehole.boreholes)):
-                if mog.Tx ==1 and mog.Rx ==1 :
+            for i in range(database.session.query(Borehole).count()):
+                if mog.Tx == 1 and mog.Rx == 1 :
                     pass
-                elif mog.Tx.name == self.borehole.boreholes[i].name:
+                elif mog.Tx.name == database.session.query(Borehole).all()[i].name:
                     self.Tx_combo.setCurrentIndex(i)
 
-                elif mog.Rx.name == self.borehole.boreholes[i].name:
+                elif mog.Rx.name == database.session.query(Borehole).all()[i].name:
                     self.Rx_combo.setCurrentIndex(i)
             tot_traces = 0
-            for mog in self.MOGs:
+            for mog in database.session.query(Mog).all():
                 tot_traces += mog.data.ntrace
             self.ntraceSignal.emit(tot_traces)
 
@@ -178,7 +175,7 @@ class MOGUI(QtWidgets.QWidget):
         
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
-            mog = self.MOGs[i.row()]
+            mog = database.session.query(Mog).all()[i.row()]
 
             mog.data.rnomfreq = float(self.Nominal_Frequency_edit.text())
             mog.data.RxOffset = float(self.Rx_Offset_edit.text())
@@ -191,13 +188,8 @@ class MOGUI(QtWidgets.QWidget):
         ind = self.MOG_list.selectedIndexes()
 
         for i in ind:
-            from sqlalchemy import inspect
-            if inspect(self.MOGs[int(i.row())]).persistent:
-                database.session.delete(self.MOGs[int(i.row())])
-            else:
-                database.session.expunge(self.MOGs[int(i.row())])
-            self.moglogSignal.emit("MOG {} has been deleted".format(self.MOGs[int(i.row())].name))
-            del self.MOGs[int(i.row())]
+            self.moglogSignal.emit("MOG {} has been deleted".format(database.session.query(Mog).all()[int(i.row())].name))
+            data_manager.delete(database, database.session.query(Mog).all()[int(i.row())])
         self.update_List_Widget()
 
     def rename(self):
@@ -205,13 +197,13 @@ class MOGUI(QtWidgets.QWidget):
         new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'new MOG name')
         if ok:
             for i in ind:
-                self.moglogSignal.emit("MOG {} is now {}".format(self.MOGs[int(i.row())].name, new_name))
-                self.MOGs[int(i.row())].name = new_name
+                self.moglogSignal.emit("MOG {} is now {}".format(database.session.query(Mog).all()[int(i.row())].name, new_name))
+                database.session.query(Mog).all()[int(i.row())].name = new_name
         self.update_List_Widget()
 
     def use_air(self):
         ind = self.MOG_list.currentRow()
-        mog = self.MOGs[ind]
+        mog = database.session.query(Mog).all()[ind]
 
         if self.Air_shots_checkbox.isChecked():
             mog.useAirShots = 1
@@ -242,7 +234,7 @@ class MOGUI(QtWidgets.QWidget):
                     # then we verify if we've already applied the airshots
                     if str(basename) in str(self.air[n].name):
                         # then we associate the index of the air shot to the selected mog
-                        self.MOGs[i.row()].av = n
+                        database.session.query(Mog).all()[i.row()].av = n
                         break
 
                 else:
@@ -280,7 +272,7 @@ class MOGUI(QtWidgets.QWidget):
                         self.air[n].d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
                         self.air[n].fac_dt = 1
                         self.air[n].in_vect = np.ones(data.ntrace, dtype= bool)
-                        self.MOGs[i.row()].av = n
+                        database.session.query(Mog).all()[i.row()].av = n
                         if len(distance_list) == 1:
                             self.air[n].method ='fixed_antenna'
                         else:
@@ -304,7 +296,7 @@ class MOGUI(QtWidgets.QWidget):
                 
                 for n in range(len(self.air)):
                     if str(basename) in str(self.air[n].name):
-                        self.MOGs[i.row()].ap = n
+                        database.session.query(Mog).all()[i.row()].ap = n
                         break
 
                 else:
@@ -330,7 +322,7 @@ class MOGUI(QtWidgets.QWidget):
                         self.air[n].d_TxRx = distance_list
                         self.air[n].fac_dt = 1
                         self.air[n].ing = np.ones(data.ntrace, dtype= bool)
-                        self.MOGs[i.row()].ap = n
+                        database.session.query(Mog).all()[i.row()].ap = n
                         if len(distance_list) == 1:
                             self.air[n].method ='fixed_antenna'
                         else:
@@ -342,7 +334,7 @@ class MOGUI(QtWidgets.QWidget):
         self.Tx_num_list.clear()
         
         if ind:
-            mog = self.MOGs[ind[0].row()]
+            mog = database.session.query(Mog).all()[ind[0].row()]
             unique_Tx_z = np.unique(mog.data.Tx_z)
     
             for Tx in range(len(unique_Tx_z)):
@@ -357,7 +349,7 @@ class MOGUI(QtWidgets.QWidget):
         ind1 = self.MOG_list.selectedIndexes()
         
         if ind1:
-            mog = self.MOGs[ind1[0].row()]
+            mog = database.session.query(Mog).all()[ind1[0].row()]
             self.Tx_elev_value_label.clear()
             ind2 = self.Tx_num_list.selectedIndexes()
             ind3 = int(self.trace_num_edit.text())
@@ -375,15 +367,16 @@ class MOGUI(QtWidgets.QWidget):
             except:
                 pass
             ind = self.MOG_list.selectedIndexes()
-            for i in range(len(self.MOGs[ind[0].row()].data.Tx_z)):
-                if self.MOGs[ind[0].row()].data.Tx_z[i] == item:
+            mog = database.session.query(Mog).all()[ind[0].row()]
+            for i in range(len(mog.data.Tx_z)):
+                if mog.data.Tx_z[i] == item:
                     self.Tx_num_list.setCurrentRow(i + 1)
-                elif item not in self.MOGs[ind[0].row()].data.Tx_z:
-                    idx = np.argmin((np.abs(np.unique(self.MOGs[ind[0].row()].data.Tx_z) - item)))
+                elif item not in mog.data.Tx_z:
+                    idx = np.argmin((np.abs(np.unique(mog.data.Tx_z) - item)))
                     self.Tx_num_list.setCurrentRow(idx + 1)
                     green = QtGui.QPalette()
                     green.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
-                    self.search_info_label.setText('{} is not a value in this data, {} is the closest'.format(item, np.unique(self.MOGs[ind[0].row()].data.Tx_z)[idx], decimals=1))
+                    self.search_info_label.setText('{} is not a value in this data, {} is the closest'.format(item, np.unique(mog.data.Tx_z)[idx], decimals=1))
                     self.search_info_label.setPalette(green)
                 self.update_spectra_and_coverage_Tx_elev_value_label()
 
@@ -399,7 +392,7 @@ class MOGUI(QtWidgets.QWidget):
 
     def update_List_Widget(self):
         self.MOG_list.clear()
-        for mog in self.MOGs:
+        for mog in database.session.query(Mog).all():
             self.MOG_list.addItem(mog.name)
         self.mogInfoSignal.emit(len(self.MOG_list))
 
@@ -414,9 +407,8 @@ class MOGUI(QtWidgets.QWidget):
         ind = self.MOG_list.selectedIndexes()
         iTx = self.Tx_combo.currentIndex()
         iRx = self.Rx_combo.currentIndex()
-        boreholes = self.borehole.boreholes
         for i in ind:
-            mog = self.MOGs[i.row()]
+            mog = database.session.query(Mog).all()[i.row()]
 
             if 'true positions' in mog.data.comment:
 
@@ -440,8 +432,8 @@ class MOGUI(QtWidgets.QWidget):
                 #    mog.TxCosDir[ind, 3] = l[n,3]
 
             #TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
-            Tx = self.borehole.boreholes[iTx]
-            Rx = self.borehole.boreholes[iRx]
+            Tx = database.session.query(Borehole).all()[i].name[iTx]
+            Rx = database.session.query(Borehole).all()[i].name[iRx]
             mog.Tx = Tx
             mog.Rx = Rx
             mog.data.Tx_x = np.ones(mog.data.ntrace)
@@ -483,11 +475,11 @@ class MOGUI(QtWidgets.QWidget):
 
 
     def plot_rawdata(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
             for i in ind:
-                self.rawdataFig.plot_raw_data(self.MOGs[i.row()].data)
-                self.moglogSignal.emit(" MOG {}'s Raw Data has been plotted ". format(self.MOGs[i.row()].name))
+                self.rawdataFig.plot_raw_data(database.session.query(Mog).all()[i.row()].data)
+                self.moglogSignal.emit(" MOG {}'s Raw Data has been plotted ". format(database.session.query(Mog).all()[i.row()].name))
                 self.rawdatamanager.showMaximized()
 
         else:
@@ -495,10 +487,10 @@ class MOGUI(QtWidgets.QWidget):
                                            buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_spectra(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             ind                 = self.MOG_list.selectedIndexes()
             n                   = self.Tx_num_list.currentIndex().row()
-            mog                 = self.MOGs[ind[0].row()]
+            mog                 = database.session.query(Mog).all()[ind[0].row()]
             Fmax                = float(self.f_max_edit.text())
             filter_state        = self.filter_check.isChecked()
             scale               = self.snr_combo.currentText()
@@ -514,19 +506,19 @@ class MOGUI(QtWidgets.QWidget):
 
 
     def plot_zop(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
             self.zopFig.plot_zop()
-            #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ". format(self.MOGs[ind[0].row()].name))
+            #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ". format(database.session.query(Mog).all()[ind[0].row()].name))
             self.zopmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_zop_rays(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
-            mog = self.MOGs[ind[0].row()]
+            mog = database.session.query(Mog).all()[ind[0].row()]
             tol = float(self.tol_edit.text())
 
             self.zopraysFig.plot_rays(mog, tol)
@@ -536,9 +528,9 @@ class MOGUI(QtWidgets.QWidget):
                                                buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_statstt(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
-            mog = self.MOGs[ind[0].row()]
+            mog = database.session.query(Mog).all()[ind[0].row()]
             done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
 
             if len(np.nonzero(done == 1)[0]) == 0:
@@ -547,7 +539,7 @@ class MOGUI(QtWidgets.QWidget):
 
             else:
                 self.statsttFig.plot_stats(mog, self.air)
-                self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(self.MOGs[ind[0].row()].name))
+                self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
                 self.statsttmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
@@ -556,17 +548,17 @@ class MOGUI(QtWidgets.QWidget):
 
     def plot_statsamp(self):
 
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
-            self.statsampFig.plot_stats(self.MOGs[ind[0].row()])
-            self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(self.MOGs[ind[0].row()].name))
+            self.statsampFig.plot_stats(database.session.query(Mog).all()[ind[0].row()])
+            self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
             self.statsampmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_ray_coverage(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
 
             ind = self.MOG_list.selectedIndexes()
             coverage_ind = self.trace_num_combo.currentIndex()
@@ -574,18 +566,18 @@ class MOGUI(QtWidgets.QWidget):
             entire_state = self.entire_coverage_check.isChecked()
             n = int(self.trace_num_edit.text()) - 1
 
-            self.raycoverageFig.plot_ray_coverage(self.MOGs[ind[0].row()], n, show_type, entire_state)
-            #self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(self.MOGs[ind[0].row()].name))
+            self.raycoverageFig.plot_ray_coverage(database.session.query(Mog).all()[ind[0].row()], n, show_type, entire_state)
+            #self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
             self.raymanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtWidgets.QMessageBox.Ok)
     def plot_prune(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
-            if self.MOGs[ind[0].row()].Tx != 1 and self.MOGs[ind[0].row()].Tx != 1:
-                self.pruneFig.plot_prune(self.MOGs[ind[0].row()], 0 )
-                self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(self.MOGs[ind[0].row()].name))
+            if database.session.query(Mog).all()[ind[0].row()].Tx != 1 and database.session.query(Mog).all()[ind[0].row()].Tx != 1:
+                self.pruneFig.plot_prune(database.session.query(Mog).all()[ind[0].row()], 0 )
+                self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
                 self.prunemanager.show()
             else:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Please select Tx and Rx for MOG",
@@ -609,11 +601,11 @@ class MOGUI(QtWidgets.QWidget):
         self.plot_ray_coverage()
 
     def export_tt(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).all() != 0:
             filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Export tt')
             self.moglogSignal.emit('Exporting Traveltime file ...')
 
-            mog = self.MOGs[self.MOG_list.currentRow()]
+            mog = database.session.query(Mog).all()[self.MOG_list.currentRow()]
             ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
             ind = np.where(ind == 2)[0]
             export_file = open(filename, 'w')
@@ -626,7 +618,7 @@ class MOGUI(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtWidgets.QMessageBox.Ok)
     def export_tau(self):
-        if len(self.MOGs) != 0:
+        if database.session.query(Mog).all() != 0:
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Export tau')[0]
             self.moglogSignal.emit('Exporting tau file ...')
             # TODO
@@ -675,7 +667,7 @@ class MOGUI(QtWidgets.QWidget):
         
         # First, we get the mog instance's informations
         ind = self.MOG_list.selectedIndexes()
-        mog = self.MOGs[ind[0].row()]
+        mog = database.session.query(Mog).all()[ind[0].row()]
 
         # List which contain the indexes of the skipped Tx and Rx
         inRx = []
@@ -785,7 +777,7 @@ class MOGUI(QtWidgets.QWidget):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             try:
-                mog = self.MOGs[i.row()]
+                mog = database.session.query(Mog).all()[i.row()]
                 self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
                 self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
     
@@ -805,7 +797,7 @@ class MOGUI(QtWidgets.QWidget):
         ind = self.MOG_list.selectedIndexes()
         
         if ind:
-            mog = self.MOGs[ind[0].row()]
+            mog = database.session.query(Mog).all()[ind[0].row()]
             selected_angle = float(self.max_ang_edit.text()) - float(self.min_ang_edit.text())
             removed_Tx = mog.data.ntrace - sum(mog.in_Tx_vect)
             removed_Rx = mog.data.ntrace - sum(mog.in_Rx_vect)
@@ -835,7 +827,7 @@ class MOGUI(QtWidgets.QWidget):
                                           buttons= QtWidgets.QMessageBox.Ok)
             return
 
-        for mog in self.MOGs:
+        for mog in database.session.query(Mog).all():
             self.mergemog.ref_combo.addItem(str(mog.name))
 
         self.mergemog.getcompat()
@@ -847,7 +839,7 @@ class MOGUI(QtWidgets.QWidget):
             QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
                                           buttons= QtWidgets.QMessageBox.Ok )
             return
-        for mog in self.MOGs:
+        for mog in database.session.query(Mog).all():
             self.deltat.min_combo.addItem(str(mog.name))
         self.deltat.getcompat()
 
@@ -859,9 +851,8 @@ class MOGUI(QtWidgets.QWidget):
         if item != None:
             item = database.session.merge(item)
             database.session.add(item)
-            self.MOGs.append(item)
             self.update_List_Widget()
-            self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
+            self.MOG_list.setCurrentRow(database.session.query(Mog).count() - 1)
             self.update_spectra_and_coverage_Tx_num_list()
             self.update_spectra_and_coverage_Tx_elev_value_label()
             self.update_edits()
@@ -1800,7 +1791,7 @@ class ZOPFig(FigureCanvasQTAgg):
         self.ax2.cla()
 
         ind = self.ui.MOG_list.selectedIndexes()
-        mog = self.ui.MOGs[ind[0].row()]
+        mog = database.session.query(Mog).all()[ind[0].row()]
 
         mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
         mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
@@ -2383,15 +2374,15 @@ class MergeMog(QtWidgets.QWidget):
     def getcompat(self):
         self.comp_list.clear()
         n = self.ref_combo.currentIndex()
-        ref_mog = self.mog.MOGs[n]
+        ref_mog = database.session.query(Mog).all()[n]
         ids = []
         nc = 0
 
-        if n == len(self.mog.MOGs):
+        if n == database.session.query(Mog).count():
             QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtWidgets.QMessageBox.Ok)
             return
 
-        for mog in self.mog.MOGs:
+        for mog in database.session.query(Mog).all():
             if mog != ref_mog:
                 test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
                 test2 = False
@@ -2434,13 +2425,14 @@ class MergeMog(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for the new MOG",buttons= QtWidgets.QMessageBox.Ok)
 
 
-        for i in range(len(self.mog.MOGs)):
-            if self.mog.MOGs[i].name == merge_name:
-                merging_mog = self.mog.MOGs[i]
+        for i in range(database.session.query(Mog).count()):
+            if database.session.query(Mog).all()[i].name == merge_name:
+                merging_mog = database.session.query(Mog).all()[i]
                 merge_ind = i
         newName = self.new_edit.text()
-        refMog = self.mog.MOGs[num]
+        refMog = database.session.query(Mog).all()[num]
         newMog = Mog(newName, refMog.data)
+        database.session.add(newMog)
 
         newMog.av           = np.array([refMog.av, merging_mog.av])
         newMog.ap           = np.array([refMog.ap, merging_mog.ap])
@@ -2487,14 +2479,12 @@ class MergeMog(QtWidgets.QWidget):
                     " {} and {} have been merged and erased to create {}".format(merging_mog.name,
                                                                                  refMog.name,
                                                                                  newName))
-                self.mog.MOGs.remove(refMog)
-                self.mog.MOGs.remove(merging_mog)
-                self.mog.MOGs.append(newMog)
+                data_manager.delete(database, refMog)
+                data_manager.delete(database, merging_mog)
                 self.mog.update_List_Widget()
                 self.close()
 
         elif self.erase_check.isChecked() == False:
-            self.mog.MOGs.append(newMog)
             self.mergemoglogSignal.emit("MOG {} have been created by the merge of {} and {}".format(newName,
                                                                                                     refMog.name,
                                                                                                     merging_mog.name))
@@ -2557,24 +2547,23 @@ class MergeMog(QtWidgets.QWidget):
     #
     #-----------------------------------------------------------------------------------------------------------------------
 class DeltaTMOG(QtWidgets.QWidget):
-    def __init__(self, mog, parent=None):
+    def __init__(self, parent=None):
         super(DeltaTMOG, self).__init__()
         char2 = unicodedata.lookup("GREEK CAPITAL LETTER DELTA")
         self.setWindowTitle("Create {}t MOG".format(char2))
-        self.mog = mog
         self.initUI()
 
     def getcompat(self):
-        if len(self.mog.MOGs) != 0:
+        if database.session.query(Mog).count() != 0:
             self.sub_combo.clear()
             n = self.min_combo.currentIndex()
-            ref_mog = self.mog.MOGs[n]
+            ref_mog = database.session.query(Mog).all()[n]
             ids = []
             nc = 0
-            if len(self.mog.MOGs) == 1:
+            if database.session.query(Mog).count() == 1:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database",buttons= QtWidgets.QMessageBox.Ok)
                 return
-            for mog in self.mog.MOGs:
+            for mog in database.session.query(Mog).all():
                 if mog != ref_mog:
                     test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
                     test2 = False
@@ -2615,7 +2604,7 @@ class DeltaTMOG(QtWidgets.QWidget):
 
         # Check if traveltimes were picked
         n = self.min_combo.currentIndex()
-        refMog = self.mog.MOGs[n]
+        refMog = database.session.query(Mog).all()[n]
         ind = refMog.tt == -1
         if np.any(ind == True):
             QtWidgets.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)

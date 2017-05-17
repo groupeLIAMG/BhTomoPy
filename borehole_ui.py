@@ -27,6 +27,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
 import time
 import database
+import data_manager
 # from logging import exception
 
 class BoreholeUI(QtWidgets.QWidget):
@@ -40,7 +41,6 @@ class BoreholeUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Borehole")
-        self.boreholes = []   # we initialize a list which will contain instances of Borehole class
         self.db = Database()
         self.initUI()
 
@@ -63,6 +63,7 @@ class BoreholeUI(QtWidgets.QWidget):
         rname             = rname[-1]
         rname             = rname.strip('.xyz')
         bh                = Borehole(str(rname))
+        database.session.add(bh)
         bh.fdata          = np.loadtxt(filename)
         bh.X              = bh.fdata[0, 0]
         bh.Y              = bh.fdata[0, 1]
@@ -70,11 +71,9 @@ class BoreholeUI(QtWidgets.QWidget):
         bh.Xmax           = bh.fdata[-1, 0]
         bh.Ymax           = bh.fdata[-1, 1]
         bh.Zmax           = bh.fdata[-1, 2]
-        self.boreholes.append(bh)
         self.update_List_Widget()
-        self.bh_list.setCurrentRow(len(self.boreholes) - 1)
+        self.bh_list.setCurrentRow(database.session.query(Borehole).count() - 1)
         self.update_List_Edits()
-        database.session.add(bh)
         self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
 
     def add_bhole(self):
@@ -85,10 +84,9 @@ class BoreholeUI(QtWidgets.QWidget):
         name, ok = QtWidgets.QInputDialog.getText(self, "Borehole creation", "Borehole name")
         if ok :
             bh = Borehole(str(name))
-            self.boreholes.append(bh)
             database.session.add(bh)
             self.update_List_Widget()
-            self.bh_list.setCurrentRow(len(self.boreholes) - 1)
+            self.bh_list.setCurrentRow(database.session.query(Borehole).count() - 1)
             self.update_List_Edits()
             self.bhlogSignal.emit("{} borehole has been added successfully".format(name))
 
@@ -99,10 +97,10 @@ class BoreholeUI(QtWidgets.QWidget):
         length of bh_list to DatabaseUI
         """
         self.bh_list.clear()
-        for bh in self.boreholes:
+        for bh in database.session.query(Borehole).all():
             self.bh_list.addItem(bh.name)
         self.bhInfoSignal.emit(len(self.bh_list))
-        self.bhUpdateSignal.emit(self.boreholes)
+        self.bhUpdateSignal.emit(database.session.query(Borehole).all())
 
 
     def update_List_Edits(self):
@@ -112,7 +110,7 @@ class BoreholeUI(QtWidgets.QWidget):
         ind = self.bh_list.selectedIndexes()
         if ind:
             for i in ind:
-                bh = self.boreholes[i.row()]
+                bh = database.session.query(Borehole).all()[i.row()]
                 self.X_edit.setText(str(bh.X))
                 self.Y_edit.setText(str(bh.Y))
                 self.Z_edit.setText(str(bh.Z))
@@ -142,13 +140,8 @@ class BoreholeUI(QtWidgets.QWidget):
         ind = self.bh_list.selectedIndexes()
         
         for i in ind:
-            from sqlalchemy import inspect
-            if inspect(self.boreholes[int(i.row())]).persistent:
-                database.session.delete(self.boreholes[int(i.row())])
-            else:
-                database.session.expunge(self.boreholes[int(i.row())])
-            self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
-            del self.boreholes[int(i.row())]
+            data_manager.delete(database, database.session.query(Borehole).all()[int(i.row())])
+            self.bhlogSignal.emit("{} has been deleted".format(database.session.query(Borehole).all()[int(i.row())].name))
 
         self.update_List_Widget()
         self.update_List_Edits()
@@ -184,7 +177,7 @@ class BoreholeUI(QtWidgets.QWidget):
         
         ind = self.bh_list.selectedIndexes()
         for i in ind:
-            bh                = self.boreholes[i.row()]
+            bh                = database.session.query(Borehole).all()[i.row()]
             bh.X              = float(self.X_edit.text())
             bh.Y              = float(self.Y_edit.text())
             bh.Z              = float(self.Z_edit.text())
@@ -208,11 +201,11 @@ class BoreholeUI(QtWidgets.QWidget):
         """
         Plots all the Borehole instances in boreholes
         """
-        if len(self.boreholes) != 0:
+        if database.session.query(Borehole).count() != 0:
             self.bholeFig = BoreholeFig()
-            self.bholeFig.plot_bholes(self.boreholes)
+            self.bholeFig.plot_bholes(database.session.query(Borehole).all())
     
-            for bh in self.boreholes:
+            for bh in database.session.query(Borehole).all():
                 self.bhlogSignal.emit("{}'s trajectory has been plotted".format(bh.name))
             self.bholeFig.show()
 
@@ -231,7 +224,7 @@ class BoreholeUI(QtWidgets.QWidget):
             rname = rname[-1]
             rname = rname[:-4]
             if ".con" in filename:
-                bh = self.boreholes[i.row()]
+                bh = database.session.query(Borehole).all()[i.row()]
                 cont = np.loadtxt(filename)
 
                 acont.x, acont.y, acont.z, c = bh.project(bh.fdata, cont[:, 0]) # @UnusedVariable
@@ -265,7 +258,7 @@ class BoreholeUI(QtWidgets.QWidget):
             rname = rname[-1]
             rname = rname[:-4]
             if ".con" in filename:
-                bh = self.boreholes[i.row()]
+                bh = database.session.query(Borehole).all()[i.row()]
                 cont = np.loadtxt(filename)
 
                 scont.x, scont.y, scont.z, c = bh.project(bh.fdata, cont[:, 0])

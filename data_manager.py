@@ -80,11 +80,34 @@ def get_many(module, *classes):
     if not classes:
         classes = (Borehole, Mog, AirShots, Model)
     
-    for i in classes:
+    for item in classes:
         
-        items += get(module, i)
+        items += get(module, item)
     
     return items
+
+def delete(module, item):
+    
+    from sqlalchemy import inspect
+    if inspect(item).persistent:
+        module.session.delete(item)
+    else:
+        module.session.expunge(item)
+
+if __name__ == '__main__':
+    
+    import sys
+    current_module = sys.modules[__name__]
+    create_data_management(current_module)
+    
+    current_module.session.add(Borehole('test3'))
+    current_module.session.add(Borehole('test1'))
+    current_module.session.flush()
+    current_module.session.add(Borehole('test2'))
+    
+    from sqlalchemy import inspect
+    for item in current_module.session.query(Borehole).all():
+         print(item.name, inspect(item).persistent)
 
 # import sys
 # current_module = sys.modules[__name__]
