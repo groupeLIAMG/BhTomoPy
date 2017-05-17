@@ -236,12 +236,9 @@ class DatabaseUI(QtWidgets.QWidget):
     def editname(self):
         new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name')
 
-        self.name = new_name
-
-        if new_name == '':
-            return
-
-        self.info.live_database_label.setText(str(new_name))
+        if new_name != '':
+            self.name = new_name
+            self.info.live_database_label.setText(str(new_name))
 
     def initUI(self):
 

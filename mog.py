@@ -243,7 +243,7 @@ class Mog(Base):
     f_et                     = Column(Float)
     amp_name_Ldc             = Column(PickleType)
     type                     = Column(SmallInteger)     # X-hole (1) ou VRP (2)
-    fac_dt                   = Column(Float)            #TODO: Verify type
+    fac_dt                   = Column(Float)
     user_fac_dt              = Column(Float)
     useAirShots              = Column(Boolean)
     TxCosDir                 = Column(PickleType)
@@ -448,9 +448,8 @@ class AirShots(Base):
     mog     = Column(PickleType)
     data    = Column(PickleType)            # MogData instance
     d_TxRx  = Column(Float)            # Distance between Tx and Rx
-    fac_dt  = Column(Float)      #TODO: Verify type
-    ing     = Column(Float)      #TODO: Verify type
-    method  = Column(Float)      #TODO: Verify type
+    fac_dt  = Column(Float)
+    method  = Column(String)
     
     def __init__(self, name='', data= MogData()):
         self.mog = Mog()
@@ -458,8 +457,6 @@ class AirShots(Base):
         self.data = data           # MogData instance
         self.d_TxRx = 0            # Distance between Tx and Rx
         self.fac_dt = 1
-        #self.ing = 0
-        self.method = 0
         
         self.init_on_load()
 

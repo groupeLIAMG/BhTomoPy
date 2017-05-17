@@ -25,8 +25,11 @@ from PyQt5 import QtWidgets, QtCore
 import os
 import sys
 import data_manager
-from mog import Mog
+from mog import Mog, AirShots
 from model import Model
+from borehole import Borehole
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 def chooseMOG(filename=None):
     d = QtWidgets.QDialog()
@@ -62,16 +65,21 @@ def chooseMOG(filename=None):
         nonlocal d
         d.done(1)
     
+    session = None
     def choose_db():
         nonlocal d
         nonlocal l0
         nonlocal b3
+        nonlocal session
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
             if filename.find('.db') != -1:
                 
+                engine = create_engine("sqlite:///" + filename)
+                Session = sessionmaker(bind=engine)
+                session = Session()
+                Base.metadata.create_all(engine)
                 l0.setText( os.path.basename(filename) )
-                data_manager.engine.url = ("sqlite:///" + filename)
                 load_mogs(filename)
              
             else:
@@ -85,8 +93,9 @@ def chooseMOG(filename=None):
         nonlocal b3
         nonlocal l0
         nonlocal filename
+        nonlocal session
         try:          
-            mogs = data_manager.get(Mog) 
+            mogs = session.query(Mog).all() 
             for mog in mogs:
                 b3.addItem(mog.name)
             filename = fname

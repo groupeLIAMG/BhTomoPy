@@ -412,7 +412,7 @@ class MOGUI(QtWidgets.QWidget):
                 #    mog.TxCosDir[ind, 2] = l[n,2]
                 #    mog.TxCosDir[ind, 3] = l[n,3]
 
-            #TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS si ils sont modifiés
+            #TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
             Tx = self.borehole.boreholes[iTx]
             Rx = self.borehole.boreholes[iRx]
             mog.Tx = Tx

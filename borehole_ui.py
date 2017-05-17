@@ -155,6 +155,29 @@ class BoreholeUI(QtWidgets.QWidget):
         """
         Updates the borehole's attributes from the coordinates edits
         """
+        for item in [self.X_edit, self.Y_edit, self.Z_edit,
+                     self.Xmax_edit, self.Ymax_edit, self.Zmax_edit,
+                     self.Z_surf_edit]:
+            
+            item.setText(item.text().replace(',', '.')) 
+            
+            for ch in item.text():
+                if not(ch.isnumeric() or ch == '.' or ch == '-'):
+                    self.bhlogSignal.emit("Error: Fields cannot contain letters or special characters.")
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
+                                       buttons=QtWidgets.QMessageBox.Ok)
+                    item.setFocus()
+                    return
+                
+        if self.Z_water_edit.text() != 'None':
+            for ch in self.Z_water_edit.text():
+                if not(ch.isnumeric() or ch == '.' or ch == '-'):
+                    self.bhlogSignal.emit("Error: Fields cannot contain letters or special characters.")
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
+                                       buttons=QtWidgets.QMessageBox.Ok)
+                    self.Z_water_edit.setFocus()
+                    return
+            
         ind = self.bh_list.selectedIndexes()
         for i in ind:
             bh                = self.boreholes[i.row()]
@@ -176,6 +199,10 @@ class BoreholeUI(QtWidgets.QWidget):
             bh.fdata[-1,1]    = bh.Ymax
             bh.fdata[-1,2]    = bh.Zmax
 
+    def edit_validation(self):
+        
+        pass
+    
 
 
     def plot(self):
