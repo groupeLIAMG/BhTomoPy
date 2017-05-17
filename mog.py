@@ -20,8 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import re
 import numpy as np
 from sqlalchemy import Column, Integer, String, Float, PickleType, Boolean, SmallInteger
-from data_manager import Base
-from sqlalchemy.types import UserDefinedType # allows the use of custom classes as SQL types
+from utils import Base
 from sqlalchemy import orm
 
 class MogData(object):

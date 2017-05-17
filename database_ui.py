@@ -28,14 +28,15 @@ from mog import Mog, AirShots
 from info_ui import InfoUI
 import time
 import os
+import database
 import data_manager
+data_manager.create_data_management(database)
 
 class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Database")
         #--- Other Modules Instance ---#
-        self.actual_time = time.asctime()[11:16]
         self.bh = BoreholeUI()
         self.mog = MOGUI(self.bh)
         self.model = ModelUI(borehole=self.bh, mog=self.mog)
@@ -91,7 +92,7 @@ class DatabaseUI(QtWidgets.QWidget):
         self.log.clear()
 
         # Appends the time and the action that was done
-        self.action_list.append("[{}] {} " .format(self.actual_time, action))
+        self.action_list.append("[{}] {} ".format(time.asctime()[11:16], action))
 
         # Shows the Error messages in red and the others in black
         for item in self.action_list:
@@ -138,20 +139,14 @@ class DatabaseUI(QtWidgets.QWidget):
     def load_file(self, filename):
         self.filename = filename
         
-        data_manager.Session.close_all()
-        data_manager.engine.dispose()
-        
-        data_manager.engine  = data_manager.create_engine("sqlite:///" + self.filename)
-        data_manager.Session = data_manager.sessionmaker(bind=data_manager.engine)
-        data_manager.session = data_manager.Session()
-        data_manager.Base.metadata.create_all(data_manager.engine)
+        data_manager.load(database, filename)
         
         try:
      
-            self.bh.boreholes = data_manager.get(Borehole)
-            self.mog.MOGs = data_manager.get(Mog)
-            self.model.models = data_manager.get(Model)
-            self.mog.air = data_manager.get(AirShots)
+            self.bh.boreholes = data_manager.get(database, Borehole)
+            self.mog.MOGs = data_manager.get(database, Mog)
+            self.model.models = data_manager.get(database, Model)
+            self.mog.air = data_manager.get(database, AirShots)
             
             self.update_database_info(os.path.basename(filename))
             self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
@@ -185,7 +180,7 @@ class DatabaseUI(QtWidgets.QWidget):
                 self.saveasfile()
                 return
 
-            data_manager.session.commit()
+            database.session.commit()
         
             try:
                 self.model.gridui.update_model_grid()
@@ -207,28 +202,13 @@ class DatabaseUI(QtWidgets.QWidget):
         if filename:
             if filename != self.filename:
                 self.filename = filename
-                items = data_manager.get_many(Borehole, Mog, AirShots, Model)
-
-                data_manager.Session.close_all()
-                data_manager.engine.dispose()
-                 
-                data_manager.engine = data_manager.create_engine("sqlite:///" + filename)
-                data_manager.Base.metadata.create_all(data_manager.engine)
-                data_manager.Session.configure(bind=data_manager.engine)
-                data_manager.session = data_manager.Session()
-
-                for item in data_manager.get_many(Borehole, Mog, AirShots, Model):
-                    data_manager.session.delete(item)
                 
-                items = [data_manager.session.merge(item) for item in items]
-                data_manager.session.add_all(items)
-                
-                data_manager.session.commit()
+                data_manager.save_as(database, filename)
                     
-                self.bh.boreholes = data_manager.get(Borehole)
-                self.mog.MOGs = data_manager.get(Mog)
-                self.model.models = data_manager.get(Model)
-                self.mog.air = data_manager.get(AirShots)
+                self.bh.boreholes = data_manager.get(database, Borehole)
+                self.mog.MOGs     = data_manager.get(database, Mog)
+                self.model.models = data_manager.get(database, Model)
+                self.mog.air      = data_manager.get(database, AirShots)
                 
                 self.update_database_info(os.path.basename(filename))
                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
@@ -340,8 +320,6 @@ if __name__ == '__main__':
             initial_ctx = initial_ctx.tb_next
         sys.__excepthook__(Type, value, traceback)
     sys.excepthook = Hook # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
-    
-    data_manager.Base.metadata.create_all(data_manager.engine)
 
     app = QtWidgets.QApplication(sys.argv)
 

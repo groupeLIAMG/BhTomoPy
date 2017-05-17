@@ -25,11 +25,11 @@ from PyQt5 import QtWidgets, QtCore
 import os
 import sys
 import data_manager
-from mog import Mog, AirShots
+from mog import Mog
 from model import Model
-from borehole import Borehole
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+# from data_manager import Base
 
 def chooseMOG(filename=None):
     d = QtWidgets.QDialog()
@@ -94,13 +94,13 @@ def chooseMOG(filename=None):
         nonlocal l0
         nonlocal filename
         nonlocal session
-        try:          
-            mogs = session.query(Mog).all() 
+        mogs = session.query(Mog).all() 
+        if mogs:
             for mog in mogs:
                 b3.addItem(mog.name)
             filename = fname
-        except KeyError:
-            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS',
+        else:
+            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS.',
                 QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
                           QtWidgets.QMessageBox.NoButton)
             l0.setText( '' )
@@ -122,12 +122,8 @@ def chooseMOG(filename=None):
     
     if isOk == 1:
         mog_no = b3.currentIndex()
-        if mog_no == -1:
-            isOk = 0            
-    else:
-        mog_no = -1;
-        
-    return mog_no, filename, isOk
+        if mog_no != -1:
+            return session.query(Mog).filter(Mog.name == str(b3.currentText())).first()
 
 
 
@@ -165,16 +161,21 @@ def chooseModel(filename=None):
         nonlocal d
         d.done(1)
     
+    session = None
     def choose_db():
         nonlocal d
         nonlocal l0
         nonlocal b3
+        nonlocal session
         filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
         if filename:
             if filename.find('.db') != -1:
                 
+                engine = create_engine("sqlite:///" + filename)
+                Session = sessionmaker(bind=engine)
+                session = Session()
+                Base.metadata.create_all(engine)
                 l0.setText( os.path.basename(filename) )
-                data_manager.engine.url = ("sqlite:///" + filename)
                 load_models(filename)
              
             else:
@@ -188,13 +189,15 @@ def chooseModel(filename=None):
         nonlocal b3
         nonlocal l0
         nonlocal filename
-        try:           
-            models = data_manager.get(Model)
+        nonlocal session
+                 
+        models = session.query(Mog).all()
+        if models:
             for model in models:
                 b3.addItem(model.name)
             filename = fname
-        except KeyError:
-            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain models',
+        else:
+            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain Models.',
                 QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
                           QtWidgets.QMessageBox.NoButton)
             l0.setText( '' )
@@ -206,7 +209,6 @@ def chooseModel(filename=None):
     else:
         l0.setText('')
 
-
     b1.clicked.connect( ok )
     b2.clicked.connect( cancel )
     b0.clicked.connect( choose_db )
@@ -217,13 +219,8 @@ def chooseModel(filename=None):
     
     if isOk == 1:
         model_no = b3.currentIndex()
-        if model_no == -1:
-            isOk = 0            
-    else:
-        model_no = -1;
-        
-    return model_no, filename, isOk
-
+        if model_no != -1:
+            return session.query(Model).filter(Model.name == str(b3.currentText())).first()
 
 
 
@@ -231,8 +228,8 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
 
-    mog_no, fname, ok = chooseMOG()
+    mogs, mog = chooseMOG()
     
-    print(mog_no)
+    print(mog.name)
 
     sys.exit(app.exec_())

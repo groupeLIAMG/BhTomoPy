@@ -26,7 +26,7 @@ import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
 import time
-import data_manager
+import database
 # from logging import exception
 
 class BoreholeUI(QtWidgets.QWidget):
@@ -43,7 +43,6 @@ class BoreholeUI(QtWidgets.QWidget):
         self.boreholes = []   # we initialize a list which will contain instances of Borehole class
         self.db = Database()
         self.initUI()
-        self.actual_time = time.asctime()[11:16]
 
 
     def import_bhole(self):
@@ -75,7 +74,7 @@ class BoreholeUI(QtWidgets.QWidget):
         self.update_List_Widget()
         self.bh_list.setCurrentRow(len(self.boreholes) - 1)
         self.update_List_Edits()
-        data_manager.session.add(bh)
+        database.session.add(bh)
         self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
 
     def add_bhole(self):
@@ -87,7 +86,7 @@ class BoreholeUI(QtWidgets.QWidget):
         if ok :
             bh = Borehole(str(name))
             self.boreholes.append(bh)
-            data_manager.session.add(bh)
+            database.session.add(bh)
             self.update_List_Widget()
             self.bh_list.setCurrentRow(len(self.boreholes) - 1)
             self.update_List_Edits()
@@ -121,7 +120,10 @@ class BoreholeUI(QtWidgets.QWidget):
                 self.Ymax_edit.setText(str(bh.Ymax))
                 self.Zmax_edit.setText(str(bh.Zmax))
                 self.Z_surf_edit.setText(str(bh.Z_surf))
-                self.Z_water_edit.setText(str(bh.Z_water))
+                if bh.Z_water == None:
+                    self.Z_water_edit.setText('')
+                else:
+                    self.Z_water_edit.setText(str(bh.Z_water))
         else:
             self.X_edit.setText('0.0')
             self.Y_edit.setText('0.0')
@@ -130,7 +132,7 @@ class BoreholeUI(QtWidgets.QWidget):
             self.Ymax_edit.setText('0.0')
             self.Zmax_edit.setText('0.0')
             self.Z_surf_edit.setText('0.0')
-            self.Z_water_edit.setText('None')
+            self.Z_water_edit.setText('')
 
 
     def del_bhole(self):
@@ -142,42 +144,44 @@ class BoreholeUI(QtWidgets.QWidget):
         for i in ind:
             from sqlalchemy import inspect
             if inspect(self.boreholes[int(i.row())]).persistent:
-                data_manager.session.delete(self.boreholes[int(i.row())])
+                database.session.delete(self.boreholes[int(i.row())])
             else:
-                data_manager.session.expunge(self.boreholes[int(i.row())])
+                database.session.expunge(self.boreholes[int(i.row())])
             self.bhlogSignal.emit("{} has been deleted".format(self.boreholes[int(i.row())].name))
             del self.boreholes[int(i.row())]
 
         self.update_List_Widget()
         self.update_List_Edits()
-
+    
+    updateHandler = False # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandler' prevents that.
     def update_bhole_data(self):
         """
         Updates the borehole's attributes from the coordinates edits
         """
+        if self.updateHandler:
+            return
+        
+        self.updateHandler = True
+        import re
+        
+        exp = re.compile("^-?[0-9]+([\.,][0-9]+)?$") # float number, with or without decimals, and allowing negatives
+        
         for item in [self.X_edit, self.Y_edit, self.Z_edit,
                      self.Xmax_edit, self.Ymax_edit, self.Zmax_edit,
-                     self.Z_surf_edit]:
+                     self.Z_surf_edit, self.Z_water_edit]:
             
-            item.setText(item.text().replace(',', '.')) 
+            if item.text() != '' and not exp.match(item.text()):
+                self.bhlogSignal.emit("Error: Some edited information is incorrect.")
+                item.setFocus()
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
+                                   buttons=QtWidgets.QMessageBox.Ok)
+                self.updateHandler = False
+                return
             
-            for ch in item.text():
-                if not(ch.isnumeric() or ch == '.' or ch == '-'):
-                    self.bhlogSignal.emit("Error: Fields cannot contain letters or special characters.")
-                    QtWidgets.QMessageBox.warning(self, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
-                                       buttons=QtWidgets.QMessageBox.Ok)
-                    item.setFocus()
-                    return
-                
-        if self.Z_water_edit.text() != 'None':
-            for ch in self.Z_water_edit.text():
-                if not(ch.isnumeric() or ch == '.' or ch == '-'):
-                    self.bhlogSignal.emit("Error: Fields cannot contain letters or special characters.")
-                    QtWidgets.QMessageBox.warning(self, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
-                                       buttons=QtWidgets.QMessageBox.Ok)
-                    self.Z_water_edit.setFocus()
-                    return
-            
+            item.setText(item.text().replace(',', '.'))
+        
+        self.updateHandler = False
+        
         ind = self.bh_list.selectedIndexes()
         for i in ind:
             bh                = self.boreholes[i.row()]
@@ -188,7 +192,7 @@ class BoreholeUI(QtWidgets.QWidget):
             bh.Ymax           = float(self.Ymax_edit.text())
             bh.Zmax           = float(self.Zmax_edit.text())
             bh.Z_surf         = float(self.Z_surf_edit.text())
-            if self.Z_water_edit.text() == 'None':
+            if self.Z_water_edit.text() == '':
                 bh.Z_water    = None
             else:
                 bh.Z_water    = float(self.Z_water_edit.text())
@@ -198,11 +202,6 @@ class BoreholeUI(QtWidgets.QWidget):
             bh.fdata[-1,0]    = bh.Xmax
             bh.fdata[-1,1]    = bh.Ymax
             bh.fdata[-1,2]    = bh.Zmax
-
-    def edit_validation(self):
-        
-        pass
-    
 
 
     def plot(self):

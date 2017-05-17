@@ -28,7 +28,7 @@ import matplotlib as mpl
 from model import Model
 from grid import Grid, Grid2D
 from events_ui import GridEdited
-import data_manager
+import database
 
 
 class ModelUI(QtWidgets.QWidget):
@@ -54,7 +54,7 @@ class ModelUI(QtWidgets.QWidget):
         model = Model(name)
         self.models.append(model)
         self.model_list.setCurrentRow(0)
-        data_manager.session.add(model)
+        database.session.add(model)
         self.modellogSignal.emit("Model {} has been added successfully".format(name))
         self.update_model_list()
 
@@ -63,9 +63,9 @@ class ModelUI(QtWidgets.QWidget):
         for i in ind:
             from sqlalchemy import inspect
             if inspect(self.models[int(i.row())]).persistent:
-                data_manager.session.delete(self.models[int(i.row())])
+                database.session.delete(self.models[int(i.row())])
             else:
-                data_manager.session.expunge(self.models[int(i.row())])
+                database.session.expunge(self.models[int(i.row())])
             self.modellogSignal.emit("Model {} has been deleted successfully".format(self.models[int(i.row())].name))
             del self.models[int(i.row())]
         self.update_model_list()
@@ -83,7 +83,7 @@ class ModelUI(QtWidgets.QWidget):
             self.chooseMog.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning',
-                                       "Please create a model before adding MOGs to it",
+                                       "Please create a model before adding MOGs to it.",
                                        buttons=QtWidgets.QMessageBox.Ok)
 
 

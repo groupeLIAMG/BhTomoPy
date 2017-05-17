@@ -25,6 +25,9 @@ import inspect,dis
 import numpy as np
 import scipy.signal
 
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base() # Base must be present in the child-most module in order not to cause inter-dependencies
+
 def nargout():
     """
     Return how many values the caller is expecting

@@ -29,6 +29,18 @@ import re
 import scipy as spy
 from scipy import signal
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+engine = create_engine("sqlite:///:memory:")
+Session = sessionmaker(bind=engine)
+session = Session()
+
+from borehole import Borehole # imports required by create_all
+from model import Model
+from mog import Mog, AirShots
+from database import Base
+Base.metadata.create_all(engine)
 
 
 class ManualAmpUI(QtWidgets.QFrame):
@@ -136,6 +148,7 @@ class ManualAmpUI(QtWidgets.QFrame):
                                                 ,buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
+        
         mog_no, filename, ok = chooseMOG(self.filename)
         if ok == 1:
             self.filename = filename
@@ -145,6 +158,55 @@ class ManualAmpUI(QtWidgets.QFrame):
 
             sfile.close()
             self.update_control_center()
+            
+#         item = chooseMOG(self.filename)
+#         if item != None:
+#             self.filename = filename
+    #         Session.close_all()
+    #         engine.dispose()
+    #         engine  = create_engine("sqlite:///" + self.filename)
+    #         Session = sessionmaker(bind=engine)
+    #         session = Session()
+    #         Base.metadata.create_all(engine)
+#             items = session.merge(item)
+#             session.add_all(items)
+#             self.MOGs.append(item)
+#             self.mog = self.mogs[mog_no]
+#             self.update_control_center()
+
+#         self.filename = filename
+#         
+#         Session.close_all()
+#         engine.dispose()
+#         
+#         engine  = create_engine("sqlite:///" + self.filename)
+#         Session = sessionmaker(bind=engine)
+#         session = Session()
+#         Base.metadata.create_all(engine)
+
+#                 Session.close_all()
+#                 engine.dispose()
+#                  
+#                 engine = create_engine("sqlite:///" + filename)
+#                 Base.metadata.create_all(engine)
+#                 Session.configure(bind=engine)
+#                 session = Session()
+# 
+#                 for item in get_many(current_module):
+#                     session.delete(item)
+#                 
+#                 items = [session.merge(item) for item in items]
+#                 session.add_all(items)
+#                 
+#                 session.commit()
+#                     
+#                 self.bh.boreholes = get(Borehole)
+#                 self.mog.MOGs = get(Mog)
+#                 self.model.models = get(Model)
+#                 self.mog.air = get(AirShots)
+#                 
+#                 self.update_database_info(os.path.basename(filename))
+#                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
 
     def import_tt_file(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')[0]

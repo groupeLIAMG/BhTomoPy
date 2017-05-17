@@ -36,7 +36,7 @@ from mpl_toolkits.mplot3d import axes3d
 from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
 from utils_ui import chooseMOG
-import data_manager
+import database
 
 
 #-----------------------------------------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ class MOGUI(QtWidgets.QWidget):
             self.update_edits()
             self.update_prune_edits_info()
             self.update_prune_info()
-            data_manager.session.add(mog)
+            database.session.add(mog)
             self.moglogSignal.emit("{} Multi Offset-Gather has been loaded successfully".format(rname))
         
         except Exception as e:
@@ -149,7 +149,31 @@ class MOGUI(QtWidgets.QWidget):
                 tot_traces += mog.data.ntrace
             self.ntraceSignal.emit(tot_traces)
 
+    updateHandlerMog = False # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
     def update_mog_info(self):
+        
+        if self.updateHandlerMog:
+            return
+        
+        self.updateHandlerMog = True
+        
+        expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$") # float number, with or without decimals, and allowing negatives
+        
+        for item in [self.Nominal_Frequency_edit, self.Rx_Offset_edit, self.Tx_Offset_edit,
+                     self.Correction_Factor_edit, self.Multiplication_Factor_edit]:
+            
+            if item.text() != '' and not expFloat.match(item.text()):
+                self.moglogSignal.emit("Error: Some edited information is incorrect.")
+                item.setFocus()
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
+                                   buttons=QtWidgets.QMessageBox.Ok)
+                self.updateHandlerMog = False
+                return
+            
+            item.setText(item.text().replace(',', '.'))
+        
+        self.updateHandlerMog = False
+        
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             mog = self.MOGs[i.row()]
@@ -157,18 +181,18 @@ class MOGUI(QtWidgets.QWidget):
             mog.data.rnomfreq = float(self.Nominal_Frequency_edit.text())
             mog.data.RxOffset = float(self.Rx_Offset_edit.text())
             mog.data.TxOffset = float(self.Tx_Offset_edit.text())
-            mog.user_fac_dt = float(self.Correction_Factor_edit.text())
-            mog.f_et = float(self.Multiplication_Factor_edit.text())
-            mog.date = self.Date_edit.text()
+            mog.user_fac_dt   = float(self.Correction_Factor_edit.text())
+            mog.f_et          = float(self.Multiplication_Factor_edit.text())
+            mog.date          = self.Date_edit.text()
 
     def del_MOG(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             from sqlalchemy import inspect
             if inspect(self.MOGs[int(i.row())]).persistent:
-                data_manager.session.delete(self.MOGs[int(i.row())])
+                database.session.delete(self.MOGs[int(i.row())])
             else:
-                data_manager.session.expunge(self.MOGs[int(i.row())])
+                database.session.expunge(self.MOGs[int(i.row())])
             self.moglogSignal.emit("MOG {} has been deleted".format(self.MOGs[int(i.row())].name))
             del self.MOGs[int(i.row())]
         self.update_List_Widget()
@@ -608,11 +632,44 @@ class MOGUI(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                                buttons=QtWidgets.QMessageBox.Ok)
 
+    updateHandlerPrune = False # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
     def update_prune(self):
         """
         This method updates the figure containing the points of Tx and Rx
-        with the information which is into the different edits of the prune widget
+        with the information which is in the different edits of the prune widget
         """
+        if self.updateHandlerPrune:
+            return
+        
+        self.updateHandlerPrune = True
+        
+        expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$") # float number, with or without decimals, and allowing negatives
+        expInt   = re.compile("^[0-9]+$")                 # positive integer
+        
+        for item in [self.min_elev_edit,  self.max_elev_edit,
+                     self.round_fac_edit, self.thresh_edit,
+                     self.min_ang_edit,   self.max_ang_edit]:
+            
+            if item.text() != '' and not expFloat.match(item.text()):
+                item.setFocus()
+                QtWidgets.QMessageBox.warning(None, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
+                                   buttons=QtWidgets.QMessageBox.Ok)
+                self.updateHandlerPrune = False
+                return
+            
+            item.setText(item.text().replace(',', '.'))
+        
+        for item in [self.skip_Rx_edit, self.skip_Tx_edit]:
+            
+            if item.text() != '' and not expInt.match(item.text()):
+                item.setFocus()
+                QtWidgets.QMessageBox.warning(None, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
+                                   buttons=QtWidgets.QMessageBox.Ok)
+                self.updateHandlerPrune = False
+                return
+        
+        self.updateHandlerPrune = False
+        
         # First, we get the mog instance's informations
         ind = self.MOG_list.selectedIndexes()
         mog = self.MOGs[ind[0].row()]
@@ -792,14 +849,12 @@ class MOGUI(QtWidgets.QWidget):
         self.deltat.getcompat()
 
     def import_mog(self):
-        mog_no, filename, ok = chooseMOG()
-        if ok == 1:
-            sfile = shelve.open(filename)
-            mogs = sfile['mogs']
-            mog = mogs[mog_no]
-            sfile.close()
-        
-            self.MOGs.append(mog)
+        item = chooseMOG()
+        if item != None:
+            
+            item = database.session.merge(item)
+            database.session.add(item)
+            self.MOGs.append(item)
             self.update_List_Widget()
             self.MOG_list.setCurrentRow(len(self.MOGs) - 1)
             self.update_spectra_and_coverage_Tx_num_list()
@@ -807,6 +862,7 @@ class MOGUI(QtWidgets.QWidget):
             self.update_edits()
             self.update_prune_edits_info()
             self.update_prune_info()
+            self.moglogSignal.emit("Mog '{}' was imported successfully".format(item.name))
 
     def update_color_scale(self):
         if self.color_scale_combo.currentText() == 'Low':
@@ -850,13 +906,13 @@ class MOGUI(QtWidgets.QWidget):
 
         #------- Widgets in Prune -------#
         #--- Labels ---#
-        skip_Tx_label = MyQLabel('Number of stations to Skip - Tx', ha='center')
-        skip_Rx_label = MyQLabel('Number of stations to Skip - Rx', ha='center')
-        round_fac_label = MyQLabel('Rouding Factor', ha='center')
-        min_ang_label = MyQLabel('Minimum Ray Angle', ha='center')
-        max_ang_label = MyQLabel('Maximum Ray Angle', ha='center')
-        min_elev_label = MyQLabel('Minimum Elevation', ha='center')
-        max_elev_label = MyQLabel('Maximum Elevation', ha='center')
+        skip_Tx_label   = MyQLabel('Number of stations to Skip - Tx', ha='center')
+        skip_Rx_label   = MyQLabel('Number of stations to Skip - Rx', ha='center')
+        round_fac_label = MyQLabel('Rounding Factor', ha='center')
+        min_ang_label   = MyQLabel('Minimum Ray Angle', ha='center')
+        max_ang_label   = MyQLabel('Maximum Ray Angle', ha='center')
+        min_elev_label  = MyQLabel('Minimum Elevation', ha='center')
+        max_elev_label  = MyQLabel('Maximum Elevation', ha='center')
 
         # - Labels in Info -#
         Tx_info_label = MyQLabel('Tx', ha='left')
@@ -1081,7 +1137,7 @@ class MOGUI(QtWidgets.QWidget):
         self.tmax_edit = QtWidgets.QLineEdit()
         self.zmin_edit = QtWidgets.QLineEdit()
         self.zmax_edit = QtWidgets.QLineEdit()
-        self.tol_edit = QtWidgets.QLineEdit('0.05')
+        self.tol_edit  = QtWidgets.QLineEdit('0.05')
         self.color_scale_edit = QtWidgets.QLineEdit('7000')
 
         #--- Edits Disposition ---#
@@ -2327,7 +2383,7 @@ class MergeMog(QtWidgets.QWidget):
         nc = 0
 
         if n == len(self.mog.MOGs):
-            dialog = QtWidgets.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtWidgets.QMessageBox.Ok)
             return
 
         for mog in self.mog.MOGs:
@@ -2368,9 +2424,9 @@ class MergeMog(QtWidgets.QWidget):
             self.dialog.setStandardButtons(QtWidgets.QMessageBox.Ok)
             self.dialog.setIcon(QtWidgets.QMessageBox.Warning)
         if merge_name == None:
-            dialog = QtWidgets.QMessageBox.information(self, 'Warning', "No MOG selected for merging",buttons= QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected for merging",buttons= QtWidgets.QMessageBox.Ok)
         if not self.new_edit.text():
-            dialog = QtWidgets.QMessageBox.information(self, 'Warning', "Please enter a name for the new MOG",buttons= QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for the new MOG",buttons= QtWidgets.QMessageBox.Ok)
 
 
         for i in range(len(self.mog.MOGs)):

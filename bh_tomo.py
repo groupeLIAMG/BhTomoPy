@@ -29,13 +29,13 @@ from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
 import os
 
-import data_manager
+import database
 
 from borehole import Borehole # imports required by create_all
 from model import Model
 from mog import Mog, AirShots
 import database_ui
-data_manager.Base.metadata.create_all(data_manager.engine)
+database.Base.metadata.create_all(database.engine)
 
 class BhTomoPy(QtWidgets.QWidget):
 

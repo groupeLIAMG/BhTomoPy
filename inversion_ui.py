@@ -80,16 +80,16 @@ class InversionUI(QtWidgets.QFrame):
                                       buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        model_no, filename, ok = chooseModel(self.filename)
-        if ok == 1:
-            self.filename = filename
+        models, model = chooseModel(self.filename) #TODO: refactoring
+        if models:
+            self.filename = None
             sfile = shelve.open(self.filename)
             self.models = sfile['models']
             self.mogs = sfile['mogs']
             self.air = sfile['air']
             sfile.close()
             
-            self.model_ind = model_no
+            self.model_ind = None
             self.inv_frame.setHidden(True)
             self.gv = Gridviewer(self.models[self.model_ind].grid, self)
             self.global_grid.addWidget(self.gv, 1, 1, 7, 2)

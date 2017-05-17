@@ -1,39 +1,118 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine("sqlite:///:memory:")
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
-session = Session()
+from borehole import Borehole
+from mog import Mog, AirShots
+from model import Model
+from utils import Base
 
-def get(item, Id=None):
+def create_data_management(module):
+    
+    module.engine = create_engine("sqlite:///:memory:")
+    module.Session = sessionmaker(bind=module.engine)
+    module.session = module.Session()
+    Base.metadata.create_all(module.engine)
+
+def load(module, file):
+    
+    try:
+        module.Session.close_all()
+        module.engine.dispose()
+        
+        module.engine  = create_engine("sqlite:///" + file)
+        module.Session = sessionmaker(bind=module.engine)
+        module.session = module.Session()
+        Base.metadata.create_all(module.engine)
+        
+#         if []
+        get_many(module) # initiate the session
+        
+    except AttributeError:
+        create_data_management(module)
+        load(module, file)
+   
+def save_as(module, file):
+    
+    try:
+        items = get_many(module)
+        
+        module.Session.close_all()
+        module.engine.dispose()
+        
+        module.engine = create_engine("sqlite:///" + file)
+        Base.metadata.create_all(module.engine)
+        module.Session.configure(bind=module.engine)
+        module.session = module.Session()
+        
+        from sqlalchemy import inspect
+        for item in get_many(module):
+            print(inspect(item).persistent)
+            module.session.delete(item)
+           
+        items = [module.session.merge(item) for item in items]
+        module.session.add_all(items)
+         
+        module.session.commit()
+                
+    except AttributeError:
+        create_data_management(module)
+        save_as(module, file)
+        
+# 
+#                 database.Session.close_all()
+#                 database.engine.dispose()
+#                  
+#                 database.engine = database.create_engine("sqlite:///" + filename)
+#                 database.Base.metadata.create_all(database.engine)
+#                 database.Session.configure(bind=database.engine)
+#                 database.session = database.Session()
+# 
+#                 for item in database.get_many(current_module):
+#                     database.session.delete(item)
+#                 
+#                 items = [database.session.merge(item) for item in items]
+#                 database.session.add_all(items)
+#                 
+#                 database.session.commit()
+#                     
+#                 self.bh.boreholes = database.get(Borehole)
+#                 self.mog.MOGs = database.get(Mog)
+#                 self.model.models = database.get(Model)
+#                 self.mog.air = database.get(AirShots)
+
+def get(module, item, Id=None):
 
     # item as class
     
     if Id == None:
-        return session.query(item).all()
+        return module.session.query(item).all()
     
     if Id is int:
-        return session.query(item).filter(item.name == Id)
+        return module.session.query(item).filter(item.name == Id)
     
     if Id is list:
-        return [session.query(item).filter(item.name == i) for i in Id]
+        return [module.session.query(item).filter(item.name == i) for i in Id]
     
     else:
         raise TypeError
 
-def get_many(*classes):
+def get_many(module, *classes):
     
     # also loads items into current session
     
     items = []
     
+    if not classes:
+        classes = (Borehole, Mog, AirShots, Model)
+    
     for i in classes:
         
-        items += get(i)
+        items += get(module, i)
     
     return items
+
+# import sys
+# current_module = sys.modules[__name__]
 
 # def save(items):
 #     
