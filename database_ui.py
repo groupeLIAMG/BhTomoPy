@@ -22,11 +22,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 from borehole_ui import BoreholeUI
-from borehole import Borehole
 from model_ui import ModelUI
-from model import Model
 from mog_ui import MOGUI, MergeMog
-from mog import Mog, AirShots
 from info_ui import InfoUI
 import time
 import os
@@ -35,11 +32,12 @@ import data_manager
 
 data_manager.create_data_management(database)
 
+
 class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Database")
-        #--- Other Modules Instance ---#
+        # --- Other Modules Instance --- #
         self.bh = BoreholeUI()
         self.mog = MOGUI()
         self.model = ModelUI()
@@ -61,7 +59,6 @@ class DatabaseUI(QtWidgets.QWidget):
         self.bh.bhlogSignal.connect(self.update_log)
         self.mog.moglogSignal.connect(self.update_log)
         self.model.modellogSignal.connect(self.update_log)
-
 
     def update_spectra(self, Tx_list):
         self.mog.update_spectra_Tx_num_combo(Tx_list)
@@ -103,7 +100,6 @@ class DatabaseUI(QtWidgets.QWidget):
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
 
-
     def show(self):
         super(DatabaseUI, self).show()
 
@@ -124,25 +120,25 @@ class DatabaseUI(QtWidgets.QWidget):
     def openfile(self):
 
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-        
+
         if filename:
             if filename[-3:] == '.db':
                 self.load_file(filename)
             else:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
 
     def load_file(self, filename):
         data_manager.load(database, filename)
-        
+
         try:
-            
+
             self.update_database_info(os.path.basename(filename))
             self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
-     
+
             self.bh.update_List_Widget()
             self.bh.bh_list.setCurrentRow(0)
             self.bh.update_List_Edits()
-     
+
             self.mog.update_List_Widget()
             self.mog.update_edits()
             self.mog.MOG_list.setCurrentRow(0)
@@ -151,53 +147,53 @@ class DatabaseUI(QtWidgets.QWidget):
             self.mog.update_edits()
             self.mog.update_prune_edits_info()
             self.mog.update_prune_info()
-      
+
             self.model.update_model_list()
             self.model.update_model_mog_list()
- 
+
         except Exception as e:
             self.update_log("Error: Database was not recognised")
             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
-                                       buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
         try:
-            
+
             if str(database.engine.url) == 'sqlite:///:memory:':
                 self.saveasfile()
                 return
 
             database.session.commit()
-        
+
             try:
                 self.model.gridui.update_model_grid()
             except:
                 print("Warning : 'update_model_grid' skipped [database_ui 1]")
-        
+
             self.update_log("Database was saved successfully")
             QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtWidgets.QMessageBox.Ok)
+                                              buttons=QtWidgets.QMessageBox.Ok)
 
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved : " + str(e),
-                                      buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def saveasfile(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
-                                                     self.name, filter= 'Database (*.db)', )[0]
-                                                     
+                                                         self.name, filter='Database (*.db)', )[0]
+
         if filename:
             if filename != str(database.engine.url).replace('sqlite:///', ''):
                 data_manager.save_as(database, filename)
-                
+
                 self.update_database_info(os.path.basename(filename))
                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
-            
+
             else:
                 database.session.commit()
-                    
-    def editname(self): #FIXME
+
+    def editname(self):  # FIXME
         new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name')
 
         if new_name != '':
@@ -206,12 +202,12 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def initUI(self):
 
-        #--- Log Widget ---#
+        # --- Log Widget --- #
         self.log = QtWidgets.QTextEdit()
         self.log.setReadOnly(True)
         self.log.setLineWrapMode(0)
 
-        #--- Actions ---#
+        # --- Actions --- #
         openAction = QtWidgets.QAction('Open', self)
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.openfile)
@@ -227,8 +223,7 @@ class DatabaseUI(QtWidgets.QWidget):
         editnameAction = QtWidgets.QAction('Edit database name', self)
         editnameAction.triggered.connect(self.editname)
 
-
-        #--- Menubar ---#
+        # --- Menubar --- #
         self.menu = QtWidgets.QMenuBar()
         filemenu = self.menu.addMenu('&File')
         filemenu.addAction(openAction)
@@ -238,33 +233,32 @@ class DatabaseUI(QtWidgets.QWidget):
         editmenu = self.menu.addMenu('&Edit')
         editmenu.addAction(editnameAction)
 
-
-        #--- GroupBoxes ---#
-        #- Boreholes GroupBox -#
-        bh_GroupBox =  QtWidgets.QGroupBox("Boreholes")
+        # --- GroupBoxes --- #
+        # - Boreholes GroupBox - #
+        bh_GroupBox = QtWidgets.QGroupBox("Boreholes")
         bh_Sub_Grid = QtWidgets.QGridLayout()
         bh_Sub_Grid.addWidget(self.bh)
         bh_GroupBox.setLayout(bh_Sub_Grid)
 
-        #- MOGs GroupBox -#
-        MOGs_GroupBox =  QtWidgets.QGroupBox("MOGs")
+        # - MOGs GroupBox - #
+        MOGs_GroupBox = QtWidgets.QGroupBox("MOGs")
         MOGs_Sub_Grid = QtWidgets.QGridLayout()
         MOGs_Sub_Grid.addWidget(self.mog)
         MOGs_GroupBox.setLayout(MOGs_Sub_Grid)
 
-        #- Models GroupBox -#
-        Models_GroupBox =  QtWidgets.QGroupBox("Models")
+        # - Models GroupBox - #
+        Models_GroupBox = QtWidgets.QGroupBox("Models")
         Models_Sub_Grid = QtWidgets.QGridLayout()
         Models_Sub_Grid.addWidget(self.model)
         Models_GroupBox.setLayout(Models_Sub_Grid)
 
-        #- Info GroupBox -#
-        Info_GroupBox =  QtWidgets.QGroupBox("Infos")
+        # - Info GroupBox - #
+        Info_GroupBox = QtWidgets.QGroupBox("Infos")
         Info_Sub_Grid = QtWidgets.QGridLayout()
         Info_Sub_Grid.addWidget(self.info)
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
-        #- Big SubWidget -#
+        # - Big SubWidget - #
         sub_big_widget = QtWidgets.QWidget()
         sub_big_grid = QtWidgets.QGridLayout()
         sub_big_grid.addWidget(bh_GroupBox, 0, 0, 1, 1)
@@ -275,9 +269,9 @@ class DatabaseUI(QtWidgets.QWidget):
         sub_big_grid.setColumnStretch(1, 1)
         sub_big_grid.setColumnStretch(2, 1)
         sub_big_widget.setLayout(sub_big_grid)
-  
-        #--- Grid ---#
-        master_grid     = QtWidgets.QGridLayout()
+
+        # --- Grid --- #
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
         master_grid.addWidget(sub_big_widget, 1, 0, 1, 3)
         master_grid.addWidget(self.log, 2, 0, 2, 3)
@@ -286,8 +280,9 @@ class DatabaseUI(QtWidgets.QWidget):
 
         self.setLayout(master_grid)
 
+
 class MyLogWidget(QtWidgets.QTextEdit):
-    def __init__(self, parent =None):
+    def __init__(self, parent=None):
         super(MyLogWidget, self).__init__(parent)
 
     def append(self, txt):
@@ -295,6 +290,7 @@ class MyLogWidget(QtWidgets.QTextEdit):
 
         bottom = self.verticalScrollBar().maximum()
         self.verticalScrollBar().setValue(bottom)
+
 
 if __name__ == '__main__':
 

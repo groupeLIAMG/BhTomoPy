@@ -9,13 +9,13 @@ from cutils import segy
 
 filename  = '/Users/giroux/CloudStation/Projets/Frio/donnees_brutes/pre-xwell-all.sgy'
 
-d = segy.read_segy(filename, fields=['sx','sy','gx','gy','selev']) # @UndefinedVariable
+d = segy.read_segy(filename, fields=['sx', 'sy', 'gx', 'gy', 'selev'])  # @UndefinedVariable
 
 for k in d.bh:
-    print(k, d.bh[k] )
+    print(k, d.bh[k])
 
 for k in d.th:
-    print(k, d.th[k][1] )
+    print(k, d.th[k][1])
 
 print(d.data.shape)
-print(d.data[:50,0])
+print(d.data[:50, 0])

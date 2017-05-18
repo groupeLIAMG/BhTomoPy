@@ -23,8 +23,9 @@ import numpy as np
 from sqlalchemy import Column, String, PickleType
 from utils import Base
 
+
 class Model(Base):
-    
+
     __tablename__ = "Model"
     name       = Column(String, primary_key=True)  # Model's name
     mogs       = Column(PickleType)    # List of mogs contained in the model
@@ -34,8 +35,8 @@ class Model(Base):
     amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
     inv_res    = Column(PickleType)    # Results of inversion
     tlinv_res  = Column(PickleType)    # Time-lapse inversion results
-    
-    def __init__(self, name= ''):
+
+    def __init__(self, name=''):
         self.name       = name  # Model's name
         self.mogs       = []    # List of mogs contained in the model
         self.boreholes  = []    # List of boreholes contained in the model
@@ -46,7 +47,7 @@ class Model(Base):
         self.tlinv_res  = None  # Time-lapse inversion results
 
     @staticmethod
-    def getModelData(model, air, selected_mogs, type1, type2= ''):
+    def getModelData(model, air, selected_mogs, type1, type2=''):
         data = np.array([])
         type2 = ''
 
@@ -64,46 +65,37 @@ class Model(Base):
             ind = np.not_equal(mog.tt, -1).T
             tt, t0 = mog.getCorrectedTravelTimes(air)
             tt = tt.T
-            et = fac_dt*mog.f_et*mog.et.T
+            et = fac_dt * mog.f_et * mog.et.T
             in_vect = mog.in_vect.T
             no = np.arange(mog.data.ntrace).T
 
             if len(mogs) > 1:
                 for n in range(1, len(model.mogs)):
                     mog = mogs[n]
-                    ind = np.concatenate((ind, np.not_equal(mog.tt, -1).T), axis= 0)
-                    tt = np.concatenate((tt, mog.getCorrectedTravelTimes(air)[0].T), axis= 0)
-                    et = np.concatenate((et, fac_dt*mog.et*mog.f_et.T), axis= 0)
-                    in_vect = np.concatenate((in_vect, mog.in_vect.T), axis= 0)
-                    no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis = 0)
+                    ind = np.concatenate((ind, np.not_equal(mog.tt, -1).T), axis=0)
+                    tt = np.concatenate((tt, mog.getCorrectedTravelTimes(air)[0].T), axis=0)
+                    et = np.concatenate((et, fac_dt * mog.et * mog.f_et.T), axis=0)
+                    in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
+                    no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
 
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
 
             data = np.array([tt[ind], et[ind], no[ind]]).T
 
-
             return data, ind
 
         if type2 == 'depth':
-            data, ind = getModelData(model, air, selected_mogs, type1) # @UndefinedVariable
+            data, ind = getModelData(model, air, selected_mogs, type1)  # @UndefinedVariable
             mog = mogs[0]
             tt = mog.Tx_z_orig.T
             et = mog.Rx_z_orig.T
             in_vect = mog.in_vect.T
             if len(mogs) > 1:
                 for n in (1, len(mogs)):
-                    tt = np.concatenate((tt, mogs[n].Tx_z_orig.T), axis= 0)
-                    et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis= 0)
-                    in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis= 0)
+                    tt = np.concatenate((tt, mogs[n].Tx_z_orig.T), axis=0)
+                    et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis=0)
+                    in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis=0)
 
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
             data = np.array([tt[ind], et[ind], no[ind]]).T
             return data, ind
-
-
-
-
-
-
-
-

@@ -36,6 +36,7 @@ import database
 import data_manager
 data_manager.create_data_management(database)
 
+
 class BhTomoPy(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
@@ -60,12 +61,12 @@ class BhTomoPy(QtWidgets.QWidget):
             if filename[-3:] == '.db':
                 self.loaddb(filename)
             else:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
 
     def loaddb(self, filename):
         # Allows loading databases from the main
         self.current_db.setText(os.path.basename(filename))
-        
+
         self.database.load_file(filename)
 
     def show(self):
@@ -91,8 +92,8 @@ class BhTomoPy(QtWidgets.QWidget):
 
     def initUI(self):
 
-        #------- Widgets -------#
-        #--- Actions ---#
+        # ------- Widgets ------- #
+        # --- Actions --- #
         ChooseDbAction = QtWidgets.QAction('Choose Database', self)
         ChooseDbAction.setShortcut('Ctrl+O')
         ChooseDbAction.triggered.connect(self.choosedb)
@@ -100,15 +101,14 @@ class BhTomoPy(QtWidgets.QWidget):
         ConvertDbAction = QtWidgets.QAction('Convert Database', self)
         ConvertDbAction.setShortcut('Ctrl+C')
 
-        #--- Menubar ---#
+        # --- Menubar --- #
         self.menu = QtWidgets.QMenuBar()
         filemenu = self.menu.addMenu('&File')
         editmenu = self.menu.addMenu('&Edit')
         filemenu.addAction(ChooseDbAction)
         editmenu.addAction(ConvertDbAction)
 
-
-        #--- Buttons ---#
+        # --- Buttons --- #
         btn_Database                            = QtWidgets.QPushButton("Database")
         btn_Automatic_Traveltime_Picking        = QtWidgets.QPushButton("Automatic (AIC-CWT)")
         btn_Semi_Automatic_Traveltime_Picking   = QtWidgets.QPushButton("Semi-Automatic (x-corr)")
@@ -121,13 +121,13 @@ class BhTomoPy(QtWidgets.QWidget):
         btn_Time_Lapse_Visualisation            = QtWidgets.QPushButton("Visualisation")
         btn_Nano_Fluid                          = QtWidgets.QPushButton("Magnetic Nano Fluid Saturation")
 
-        #- Buttons Disposition -#
+        # - Buttons Disposition - #
         btn_Automatic_Traveltime_Picking.setDisabled(True)
         btn_Time_Lapse_Inversion.setDisabled(True)
         btn_Time_Lapse_Visualisation.setDisabled(True)
-        #btn_Nano_Fluid.setDisabled(True)
+        # btn_Nano_Fluid.setDisabled(True)
 
-        #- Buttons Actions -#
+        # - Buttons Actions - #
         btn_Database.clicked.connect(self.database.show)
         btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt.showMaximized)
         btn_Semi_Automatic_Traveltime_Picking.clicked.connect(self.semi_tt.showMaximized)
@@ -136,7 +136,7 @@ class BhTomoPy(QtWidgets.QWidget):
         btn_Interpretation.clicked.connect(self.interp.show)
         btn_Manual_Amplitude_Picking.clicked.connect(self.manual_amp.showMaximized)
 
-        #--- Image ---#
+        # --- Image --- #
         pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
         image_label = QtWidgets.QLabel()
         image_label.setPixmap(pic.scaled(250, 250,
@@ -144,7 +144,7 @@ class BhTomoPy(QtWidgets.QWidget):
                                          QtCore.Qt.FastTransformation))
         image_label.setAlignment(QtCore.Qt.AlignCenter)
 
-#         #--- Title ---#
+#         # --- Title --- #
 #         Title = QtWidgets.QLabel(
 #             'BH TOMO \n Borehole Radar/Seismic Data Processing Center')
 #         Title.setAlignment(QtCore.Qt.AlignHCenter)
@@ -153,22 +153,22 @@ class BhTomoPy(QtWidgets.QWidget):
 #         serifFont = QtGui.QFont("Times", 10, QtGui.QFont.Bold)
 #         Title.setFont(serifFont)
 
-        #--- Edit ---#
+        # --- Edit --- #
         # Edit to hold the chosen database's name
         self.current_db = QtWidgets.QLineEdit()
 
-        #- Edit Disposition -#
+        # - Edit Disposition - #
         self.current_db.setReadOnly(True)
         self.current_db.setAlignment(QtCore.Qt.AlignHCenter)
 
-        #--- Image SubWidget ---#
+        # --- Image SubWidget --- #
         sub_image_widget = QtWidgets.QWidget()
         sub_image_grid = QtWidgets.QGridLayout()
         sub_image_grid.addWidget(image_label, 0, 0)
         sub_image_grid.setContentsMargins(50, 0, 50, 0)
         sub_image_widget.setLayout(sub_image_grid)
-        
-        #--- Traveltime ToolBox ---#
+
+        # --- Traveltime ToolBox --- #
         travel_time_tool = QtWidgets.QWidget()
         travel_time_grid = QtWidgets.QGridLayout()
         travel_time_grid.addWidget(btn_Manual_Traveltime_Picking, 0, 0)
@@ -176,35 +176,34 @@ class BhTomoPy(QtWidgets.QWidget):
         travel_time_grid.addWidget(btn_Automatic_Traveltime_Picking, 2, 0)
         travel_time_tool.setLayout(travel_time_grid)
 
-        #--- Time Lapse Tool ---#
+        # --- Time Lapse Tool --- #
         time_lapse_tool = QtWidgets.QWidget()
         time_lapse_grid = QtWidgets.QGridLayout()
         time_lapse_grid.addWidget(btn_Time_Lapse_Inversion, 0, 0)
         time_lapse_grid.addWidget(btn_Time_Lapse_Visualisation, 1, 0)
         time_lapse_tool.setLayout(time_lapse_grid)
 
-        #--- Traveltime ToolBox ---#
+        # --- Traveltime ToolBox --- #
         tt_tool = MyQToolBox()
         tt_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
-                              QtGui.QIcon('Icons/triangle_down.png'))
+                         QtGui.QIcon('Icons/triangle_down.png'))
         tt_tool.addItem(travel_time_tool, 'Travel Time Picking')
         tt_tool.sizeChanged.connect(self.fitHeight)
         self.tt_tool = tt_tool
 
-        #--- Time Lapse ToolBox ---#
+        # --- Time Lapse ToolBox --- #
         tl_tool = MyQToolBox()
         tl_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
-                              QtGui.QIcon('Icons/triangle_down.png'))
+                         QtGui.QIcon('Icons/triangle_down.png'))
         tl_tool.addItem(time_lapse_tool, 'Time Lapse')
         tl_tool.sizeChanged.connect(self.fitHeight)
         self.tl_tool = tl_tool
-        
-        #--- Connecting mutual closing ---#
-        
+
+        # --- Connecting mutual closing --- #
         tl_tool.toolboxOpened.connect(tt_tool.closeAll)
         tt_tool.toolboxOpened.connect(tl_tool.closeAll)
 
-        #--- Buttons SubWidget ---#
+        # --- Buttons SubWidget --- #
         Sub_button_widget = QtWidgets.QGroupBox()
         sub_button_grid = QtWidgets.QGridLayout()
         sub_button_grid.addWidget(btn_Database, 0, 0)
@@ -218,7 +217,7 @@ class BhTomoPy(QtWidgets.QWidget):
         sub_button_grid.setRowStretch(8, 100)
         Sub_button_widget.setLayout(sub_button_grid)
 
-        #--- Main Widget---#
+        # --- Main Widget--- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 4)
         master_grid.addWidget(sub_image_widget, 1, 0, 1, 4)
@@ -277,7 +276,7 @@ class MyQToolBox(QtWidgets.QWidget):
 
         N = self.layout().rowCount()
 
-        #---- Add Header ----
+        # ---- Add Header ----
 
         head = QtWidgets.QPushButton(text)
         head.setIcon(self.__iclosed)
@@ -285,9 +284,9 @@ class MyQToolBox(QtWidgets.QWidget):
         head.setStyleSheet("QPushButton {text-align:left;}")
         head.sizeHint().height()
 
-        self.layout().addWidget(head, N-1, 0)
+        self.layout().addWidget(head, N - 1, 0)
 
-        #---- Add Item in a ScrollArea ----
+        # ---- Add Item in a ScrollArea ----
 
         scrollarea = QtWidgets.QScrollArea()
         scrollarea.setFrameStyle(0)
@@ -303,43 +302,43 @@ class MyQToolBox(QtWidgets.QWidget):
 
     def __isClicked__(self):  # ===============================================
 
-        for row in range(0, self.layout().rowCount()-1, 2):
- 
+        for row in range(0, self.layout().rowCount() - 1, 2):
+
             head = self.layout().itemAtPosition(0, 0).widget()
-            tool = self.layout().itemAtPosition(row+1, 0).widget()
- 
+            tool = self.layout().itemAtPosition(row + 1, 0).widget()
+
             if head == self.sender():
                 if self.__currentIndex == row:
                     # if clicked tool is open, close it
                     head.setIcon(self.__iclosed)
                     tool.hide()
                     self.__currentIndex = -1
-                    self.sizeChanged.emit(self.sizeHint().height()+head.sizeHint().height())
- 
+                    self.sizeChanged.emit(self.sizeHint().height() + head.sizeHint().height())
+
                 else:
                     # if clicked tool is closed, expand it
                     head.setIcon(self.__iexpand)
                     tool.show()
                     self.__currentIndex = row
                     self.toolboxOpened.emit()
-                    self.sizeChanged.emit(self.sizeHint().height()+head.sizeHint().height())
-
+                    self.sizeChanged.emit(self.sizeHint().height() + head.sizeHint().height())
 
     def closeAll(self):  # ====================================================
-        
+
         # allows opening only one toolbox at a time using the 'toolboxOpened' signal
 
-        for row in range(0, self.layout().rowCount()-1, 2):
- 
+        for row in range(0, self.layout().rowCount() - 1, 2):
+
             head = self.layout().itemAtPosition(0, 0).widget()
-            tool = self.layout().itemAtPosition(row+1, 0).widget()
+            tool = self.layout().itemAtPosition(row + 1, 0).widget()
 
             if self.__currentIndex == row:
- 
+
                     head.setIcon(self.__iclosed)
                     tool.hide()
                     self.__currentIndex = -1
-                    self.sizeChanged.emit(self.sizeHint().height()+head.sizeHint().height())
+                    self.sizeChanged.emit(self.sizeHint().height() + head.sizeHint().height())
+
 
 if __name__ == '__main__':
 

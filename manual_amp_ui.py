@@ -30,13 +30,14 @@ import scipy as spy
 from scipy import signal
 from mog import Mog
 
-current_module = sys.modules[__name__]
 import data_manager
+current_module = sys.modules[__name__]
 data_manager.create_data_management(current_module)
 
 
 class ManualAmpUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         super(ManualAmpUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
@@ -48,12 +49,10 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.mog = 0
         self.initUI()
 
-        #self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
+        # self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
         self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
-
-
 
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
@@ -69,7 +68,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.update_control_center()
 
     def update_control_center(self):
-        n = int(self.Tnum_Edit.text())-1
+        n = int(self.Tnum_Edit.text()) - 1
 
 #        ind = self.openmain.mog_combo.currentIndex()
 #        self.mog = self.mogs[ind]
@@ -114,21 +113,21 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText('1')
 
     def plot_stats(self):
-#        ind = self.openmain.mog_combo.currentIndex()
-#        mog = self.mogs[ind]
+        # ind = self.openmain.mog_combo.currentIndex()
+        # mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(self.mog, self.air)
         self.statsFig1.showMaximized()
 
     def savefile(self):
         current_module.session.commit()
-        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully"
-                                                ,buttons=QtWidgets.QMessageBox.Ok)
+        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        
+
         item = chooseMOG(current_module, str(current_module.engine.url).replace('sqlite:///', ''))
-        if item != None:
+        if item is not None:
             self.mogs = data_manager.get(current_module, Mog)
             self.mog = item
             self.update_control_center()
@@ -136,6 +135,7 @@ class ManualAmpUI(QtWidgets.QFrame):
     def import_tt_file(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')[0]
         self.load_tt_file(filename)
+
     def load_tt_file(self, filename):
         try:
             info_tt = np.loadtxt(filename)
@@ -146,17 +146,16 @@ class ManualAmpUI(QtWidgets.QFrame):
                 self.mog.tt_done[trc_number - 1] = 1
                 self.mog.tt[trc_number - 1] = tt
                 self.mog.et[trc_number - 1] = et
-    
+
             self.update_control_center()
         except:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename),buttons= QtWidgets.QMessageBox.Ok)
-
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename), buttons=QtWidgets.QMessageBox.Ok)
 
     def initUI(self):
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
 
-        #------ Creation of the Manager for the Upper figure -------#
+        # ------ Creation of the Manager for the Upper figure ------- #
         self.upperFig = UpperFig(self)
         self.uppertool = NavigationToolbar2QT(self.upperFig, self)
         self.uppermanager = QtWidgets.QWidget()
@@ -167,7 +166,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         uppermanagergrid.setVerticalSpacing(3)
         self.uppermanager.setLayout(uppermanagergrid)
 
-        #------ Creation of the Manager for the Lower figure -------#
+        # ------ Creation of the Manager for the Lower figure ------- #
         self.lowerFig = LowerFig(self)
         self.lowermanager = QtWidgets.QWidget()
         lowermanagergrid = QtWidgets.QGridLayout()
@@ -175,8 +174,8 @@ class ManualAmpUI(QtWidgets.QFrame):
         lowermanagergrid.setContentsMargins(0, 0, 0, 0)
         self.lowermanager.setLayout(lowermanagergrid)
 
-        #------- Widgets Creation -------#
-        #--- Buttons ---#
+        # ------- Widgets Creation ------- #
+        # --- Buttons --- #
         btn_load = QtWidgets.QPushButton("Load Curved Rays")
         btn_Prev = QtWidgets.QPushButton("Previous Trace")
         btn_Next = QtWidgets.QPushButton("Next Trace")
@@ -186,7 +185,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         btn_Stats = QtWidgets.QPushButton("Statistics")
         btn_fit = QtWidgets.QPushButton("Fit Spectra")
 
-        #- Buttons' Actions -#
+        # - Buttons' Actions - #
         btn_Next.clicked.connect(self.next_trace)
         btn_Prev.clicked.connect(self.prev_trace)
         btn_Upper.clicked.connect(self.upper_trace_isClicked)
@@ -194,43 +193,40 @@ class ManualAmpUI(QtWidgets.QFrame):
         btn_Reini.clicked.connect(self.reinit_trace)
         btn_Next_Pick.clicked.connect(self.next_trace_to_pick)
 
-        #--- Label ---#
-        trc_Label                       = MyQLabel("Trace number :", ha= 'right')
-        t_min_label                     = MyQLabel("t min", ha= 'right')
-        t_max_label                     = MyQLabel("t max", ha= 'right')
-        ang_min_label                   = MyQLabel("Minimum angle", ha= 'right')
-        z_surf_label                    = MyQLabel("Z surface", ha= 'right')
+        # --- Label --- #
+        trc_Label                       = MyQLabel("Trace number :", ha='right')
+        t_min_label                     = MyQLabel("t min", ha='right')
+        t_max_label                     = MyQLabel("t max", ha='right')
+        ang_min_label                   = MyQLabel("Minimum angle", ha='right')
+        z_surf_label                    = MyQLabel("Z surface", ha='right')
         position_label                  = MyQLabel(("Position Tx--Rx"), ha='center')
-        x_label                         = MyQLabel("x", ha= 'center')
-        y_label                         = MyQLabel("y", ha= 'center')
-        z_label                         = MyQLabel("z", ha= 'center')
-        Tx_label                        = MyQLabel("Tx:", ha= 'right')
-        Rx_label                        = MyQLabel("Rx:", ha= 'right')
-        centroid_freq_label             = MyQLabel('Centroid freq.: ', ha= 'right')
-        centroid_var_label              = MyQLabel('Var. Centroid: ', ha= 'right')
-        freq1_label                     = MyQLabel('MHz', ha= 'center')
-        freq2_label                     = MyQLabel('MHz', ha= 'center')
-        trace_label                     = MyQLabel("traces", ha= 'center')
+        x_label                         = MyQLabel("x", ha='center')
+        y_label                         = MyQLabel("y", ha='center')
+        z_label                         = MyQLabel("z", ha='center')
+        Tx_label                        = MyQLabel("Tx:", ha='right')
+        Rx_label                        = MyQLabel("Rx:", ha='right')
+        centroid_freq_label             = MyQLabel('Centroid freq.: ', ha='right')
+        centroid_var_label              = MyQLabel('Var. Centroid: ', ha='right')
+        freq1_label                     = MyQLabel('MHz', ha='center')
+        freq2_label                     = MyQLabel('MHz', ha='center')
+        trace_label                     = MyQLabel("traces", ha='center')
 
         tx_freq_label                   = MyQLabel("Tx Frequency [MHz]", ha='right')
         f_min_label                     = MyQLabel("Min F centroid", ha='right')
         f_max_label                     = MyQLabel("Max F centroid", ha='right')
-        auto_pick_label                 = MyQLabel("Window - Auto pick", ha= 'right')
+        auto_pick_label                 = MyQLabel("Window - Auto pick", ha='right')
 
-        self.num_freq1_label            = MyQLabel('0', ha= 'center')
-        self.num_freq2_label            = MyQLabel('0', ha= 'center')
-        self.xTx_label                  = MyQLabel("", ha= 'center')
-        self.yTx_label                  = MyQLabel("", ha= 'center')
-        self.zTx_label                  = MyQLabel("", ha= 'center')
-        self.xRx_label                  = MyQLabel("", ha= 'center')
-        self.yRx_label                  = MyQLabel("", ha= 'center')
-        self.zRx_label                  = MyQLabel("", ha= 'center')
-        self.ntrace_label               = MyQLabel("", ha= 'center')
+        self.num_freq1_label            = MyQLabel('0', ha='center')
+        self.num_freq2_label            = MyQLabel('0', ha='center')
+        self.xTx_label                  = MyQLabel("", ha='center')
+        self.yTx_label                  = MyQLabel("", ha='center')
+        self.zTx_label                  = MyQLabel("", ha='center')
+        self.xRx_label                  = MyQLabel("", ha='center')
+        self.yRx_label                  = MyQLabel("", ha='center')
+        self.zRx_label                  = MyQLabel("", ha='center')
+        self.ntrace_label               = MyQLabel("", ha='center')
 
-
-
-
-        #--- Edits ---#
+        # --- Edits --- #
         self.Tnum_Edit = QtWidgets.QLineEdit('1')
         self.num_tx_freq_edit = QtWidgets.QLineEdit()
         self.value_f_min_edit = QtWidgets.QLineEdit('1')
@@ -241,7 +237,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.value_ang_min_edit = QtWidgets.QLineEdit('45')
         self.value_z_surf_edit = QtWidgets.QLineEdit()
 
-        #- Edits' Disposition -#
+        # - Edits' Disposition - #
         self.Tnum_Edit.setAlignment(QtCore.Qt.AlignCenter)
         self.num_tx_freq_edit.setAlignment(QtCore.Qt.AlignCenter)
         self.value_f_min_edit.setAlignment(QtCore.Qt.AlignCenter)
@@ -252,15 +248,14 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.value_ang_min_edit.setAlignment(QtCore.Qt.AlignCenter)
         self.value_z_surf_edit.setAlignment(QtCore.Qt.AlignCenter)
 
-        #- Edits' Disposition -#
+        # - Edits' Disposition - #
         self.Tnum_Edit.setFixedWidth(100)
         self.Tnum_Edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        #- Edits' Actions -#
+        # - Edits' Actions - #
         self.Tnum_Edit.editingFinished.connect(self.update_control_center)
 
-
-        #--- Actions ---#
+        # --- Actions --- #
         openAction = QtWidgets.QAction('Open main data file', self)
 #        openAction.triggered.connect(self.openmain.show)
         openAction.triggered.connect(self.openfile)
@@ -271,16 +266,13 @@ class ManualAmpUI(QtWidgets.QFrame):
         importAction = QtWidgets.QAction('Import ...', self)
         importAction.triggered.connect(self.import_tt_file)
 
-
-
-        #--- ToolBar ---#
+        # --- ToolBar --- #
         self.tool = QtWidgets.QMenuBar()
 
         fileMenu = self.tool.addMenu('&File')
         fileMenu.addAction(openAction)
         fileMenu.addAction(saveAction)
         fileMenu.addAction(importAction)
-
 
         optionMenu = self.tool.addMenu('&Options')
         radiationMenu = optionMenu.addMenu('&Radiation Pattern')
@@ -300,44 +292,40 @@ class ManualAmpUI(QtWidgets.QFrame):
         maxenergyAction = QtWidgets.QAction('&Evaluate at maximum of energy', self)
         maxenergyAction = QtWidgets.QAction('&Evaluate at maximum of amplitude', self)
 
-        #sinAction.setCheckable(True)
-        #sin2Action.setCheckable(True)
+        # sinAction.setCheckable(True)
+        # sin2Action.setCheckable(True)
 
-        #sinAction.setChecked(True)
+        # sinAction.setChecked(True)
 
-        #radiationMenu.addAction(sinAction)
-        #radiationMenu.addAction(sin2Action)
+        # radiationMenu.addAction(sinAction)
+        # radiationMenu.addAction(sin2Action)
 
         radiationActionGroup = QtWidgets.QActionGroup(self)
         radiationActionGroup.addAction(sinAction)
         radiationActionGroup.addAction(sin2Action)
 
-        #radiationMenu.addAction(radiationActionGroup)
+        # radiationMenu.addAction(radiationActionGroup)
 
-
-
-        #--- Checkboxes ---#
+        # --- Checkboxes --- #
         self.weight_check = QtWidgets.QCheckBox('Weighting 1/(S/N)')
         self.process_check = QtWidgets.QCheckBox("Process picked tt traces")
         self.Wave_check = QtWidgets.QCheckBox("Wavelet tranf. denoising")
         self.ap_win_check = QtWidgets.QCheckBox("Use AP Window")
         self.hybrid_check = QtWidgets.QCheckBox("Genrerate hybrid Data")
 
-
-        #--- Text Edits ---#
+        # --- Text Edits --- #
         info_Tedit = QtWidgets.QTextEdit()
         info_Tedit.setReadOnly(True)
 
-        #--- ComboBox ---#
+        # --- ComboBox --- #
         self.option_combo = QtWidgets.QComboBox()
 
-        #- ComboBox Items -#
-        items = ['Centroid freq. (fft)', 'Centroid freq. (S-transform)', 'Peak-to-peak amplutide', 'Maximum absolute amplitude' ]
+        # - ComboBox Items - #
+        items = ['Centroid freq. (fft)', 'Centroid freq. (S-transform)', 'Peak-to-peak amplutide', 'Maximum absolute amplitude']
         self.option_combo.addItems(items)
 
-
-        #------- subWidgets -------#
-        #--- freq1 subwidget ---#
+        # ------- subWidgets ------- #
+        # --- freq1 subwidget --- #
         sub_freq1_widget = QtWidgets.QWidget()
         sub_freq1_grid = QtWidgets.QGridLayout()
         sub_freq1_grid.addWidget(self.num_freq1_label, 0, 0)
@@ -345,7 +333,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         sub_freq1_grid.setContentsMargins(0, 0, 0, 0)
         sub_freq1_widget.setLayout(sub_freq1_grid)
 
-        #--- freq2 subwidget ---#
+        # --- freq2 subwidget --- #
         sub_freq2_widget = QtWidgets.QWidget()
         sub_freq2_grid = QtWidgets.QGridLayout()
         sub_freq2_grid.addWidget(self.num_freq2_label, 0, 0)
@@ -353,7 +341,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         sub_freq2_grid.setContentsMargins(0, 0, 0, 0)
         sub_freq2_widget.setLayout(sub_freq2_grid)
 
-        #--- Trace Subwidget ---#
+        # --- Trace Subwidget --- #
         Sub_Trace_Widget = QtWidgets.QWidget()
         Sub_Trace_Grid = QtWidgets.QGridLayout()
         Sub_Trace_Grid.addWidget(trc_Label, 0, 0)
@@ -362,7 +350,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         Sub_Trace_Grid.setAlignment(QtCore.Qt.AlignCenter)
         Sub_Trace_Widget.setLayout(Sub_Trace_Grid)
 
-        #--- Info Subwidget ---#
+        # --- Info Subwidget --- #
         Sub_Info_widget = QtWidgets.QWidget()
         Sub_Info_grid = QtWidgets.QGridLayout()
         Sub_Info_grid.addWidget(position_label, 0, 1, 1, 3)
@@ -386,7 +374,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         Sub_Info_widget.setLayout(Sub_Info_grid)
         Sub_Info_widget.setStyleSheet("background: white")
 
-        #--- Buttons SubWidget ---#
+        # --- Buttons SubWidget --- #
         sub_button_widget = QtWidgets.QWidget()
         sub_button_grid = QtWidgets.QGridLayout()
         sub_button_grid.addWidget(btn_load, 1, 0, 1, 4)
@@ -400,13 +388,13 @@ class ManualAmpUI(QtWidgets.QFrame):
         sub_button_grid.addWidget(btn_fit, 8, 0, 1, 4)
         sub_button_widget.setLayout(sub_button_grid)
 
-        #--- Info Groupbox ---#
+        # --- Info Groupbox --- #
         info_group = QtWidgets.QGroupBox('Infos')
         info_grid = QtWidgets.QGridLayout()
         info_grid.addWidget(Sub_Info_widget)
         info_group.setLayout(info_grid)
 
-        #--- Settings GroupBox ---#
+        # --- Settings GroupBox --- #
         settings_group = QtWidgets.QGroupBox('Settings')
         sub_settings_grid = QtWidgets.QGridLayout()
         sub_settings_grid.addWidget(self.hybrid_check, 0, 0)
@@ -433,10 +421,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         sub_settings_grid.addWidget(z_surf_label, 4, 3)
         settings_group.setLayout(sub_settings_grid)
 
-
-
-
-        #--- Control Center SubWidget ---#
+        # --- Control Center SubWidget --- #
         Control_Center_GroupBox = QtWidgets.QGroupBox("Control Center")
         Control_Center_Grid = QtWidgets.QGridLayout()
         Control_Center_Grid.addWidget(info_group, 0, 0)
@@ -444,8 +429,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         Control_Center_Grid.addWidget(sub_button_widget, 0, 1)
         Control_Center_GroupBox.setLayout(Control_Center_Grid)
 
-
-        #--- Master Grid Disposition ---#
+        # --- Master Grid Disposition --- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.tool, 0, 0, 1, 3)
         master_grid.addWidget(self.uppermanager, 1, 0, 1, 3)
@@ -473,7 +457,7 @@ class ManualAmpUI(QtWidgets.QFrame):
             self.sender().setFlat(True)
             self.lowerFig.isTracingOn = True
 
-#class OpenMainData(QtWidgets.QWidget):
+# class OpenMainData(QtWidgets.QWidget):
 #    def __init__(self, ui, parent=None):
 #        super(OpenMainData, self).__init__()
 #        self.setWindowTitle("Choose Data")
@@ -516,12 +500,12 @@ class ManualAmpUI(QtWidgets.QFrame):
 #
 #    def initUI(self):
 #
-#        #-------  Widgets --------#
-#        #--- Edit ---#
+#        # -------  Widgets -------- #
+#        # --- Edit --- #
 #        self.database_edit = QtWidgets.QLineEdit()
 #        #- Edit Action -#
 #        self.database_edit.setReadOnly(True)
-#        #--- Buttons ---#
+#        # --- Buttons --- #
 #        self.btn_database = QtWidgets.QPushButton('Choose Database')
 #        self.btn_ok = QtWidgets.QPushButton('Ok')
 #        self.btn_cancel = QtWidgets.QPushButton('Cancel')
@@ -531,7 +515,7 @@ class ManualAmpUI(QtWidgets.QFrame):
 #        self.btn_database.clicked.connect(self.openfile)
 #        self.btn_ok.clicked.connect(self.ok)
 #
-#        #--- Combobox ---#
+#        # --- Combobox --- #
 #        self.mog_combo = QtWidgets.QComboBox()
 #
 #        #- Combobox's Action -#
@@ -552,37 +536,35 @@ class UpperFig(FigureCanvasQTAgg):
 
     def __init__(self, ui):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(UpperFig, self).__init__(fig)
         self.initFig()
         self.trc_number = 0
         self.ui = ui
         self.mpl_connect('button_press_event', self.onclick)
-        #self.mpl_connect('key_press_event', self.press)
+        # self.mpl_connect('key_press_event', self.press)
         self.isTracingOn = False
-
 
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
-
 
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
         self.ax.set_ylabel('Amplitude')
 
-        self.trace,  = self.ax.plot([],
-                                    [],
-                                    color='b')
+        self.trace, = self.ax.plot([],
+                                   [],
+                                   color='b')
 
-        self.pick_amp_tmin  = self.ax.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='g')
+        self.pick_amp_tmin = self.ax.axvline(-100,
+                                             ymin=0,
+                                             ymax=1,
+                                             color='g')
 
-        self.pick_amp_tmax  = self.ax.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='g')
+        self.pick_amp_tmax = self.ax.axvline(-100,
+                                             ymin=0,
+                                             ymax=1,
+                                             color='g')
 
         self.pick_amp_tmax.set_visible(False)
         self.pick_amp_tmin.set_visible(False)
@@ -595,7 +577,7 @@ class UpperFig(FigureCanvasQTAgg):
 
         n = int(self.ui.Tnum_Edit.text())
 
-        self.trc_number = n-1
+        self.trc_number = n - 1
 
         trace = self.ui.mog.data.rdata[:, self.trc_number]
 
@@ -609,7 +591,6 @@ class UpperFig(FigureCanvasQTAgg):
         self.trace.set_xdata(self.ui.mog.data.timestp)
         self.draw()
 
-
     def onclick(self, event):
 
         if self.isTracingOn is False:
@@ -619,7 +600,7 @@ class UpperFig(FigureCanvasQTAgg):
 
         if event.button == 1:
 
-            if self.x != None and self.y != None:
+            if self.x is not None and self.y is not None:
 
                 self.ui.mog.amp_tmin[self.trc_number] = event.xdata
 
@@ -632,23 +613,22 @@ class UpperFig(FigureCanvasQTAgg):
 
         elif event.button == 3:
 
-            if self.x != None and self.y != None:
+            if self.x is not None and self.y is not None:
 
                 self.ui.mog.amp_tmax[self.trc_number] = event.xdata
 
                 self.ui.update_control_center()
                 self.UpperTracePickedSignal.emit(True)
 
-
-
         self.draw()
 
 
 class LowerFig(FigureCanvasQTAgg):
     LowerTracePickedSignal = QtCore.pyqtSignal(bool)
+
     def __init__(self, ui):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor= 'white')
+        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(LowerFig, self).__init__(fig)
         self.initFig()
         self.ui = ui
@@ -668,11 +648,11 @@ class LowerFig(FigureCanvasQTAgg):
     def plot_spectra(self):
         self.ax.cla()
         if 'ns' in self.ui.mog.data.tunits:
-            fac_f = 10 ** 6
-            fac_t = 10 ** -9
+            fac_f = 10**6
+            fac_t = 10**-9
         elif 'ms' in self.ui.mog.data.tunits:
-            fac_f = 10 ** 3
-            fac_t = 10 ** -3
+            fac_f = 10**3
+            fac_t = 10**-3
 
         dt = self.ui.mog.data.timec * self.ui.mog.fac_dt
         dt = dt * fac_t
@@ -680,25 +660,23 @@ class LowerFig(FigureCanvasQTAgg):
 
         n = int(self.ui.Tnum_Edit.text())
 
-        self.trc_number = n-1
+        self.trc_number = n - 1
         trace = self.ui.mog.data.rdata[:, self.trc_number]
         if self.ui.mog.amp_tmin[self.trc_number] != -1 and self.ui.mog.amp_tmax[self.trc_number] != -1:
             imin = np.argmin((np.abs(self.ui.mog.data.timestp - self.ui.mog.amp_tmin[self.trc_number])))
             imax = np.argmin((np.abs(self.ui.mog.data.timestp - self.ui.mog.amp_tmax[self.trc_number])))
             trace = trace[imin:imax]
-            #freq, tmp = spy.signal.welch(trace, Fs)
-            #Pxx = tmp.T
+            # freq, tmp = spy.signal.welch(trace, Fs)
+            # Pxx = tmp.T
             Pxx = np.fft.rfft(trace, axis=0)
             freq = np.fft.rfftfreq(len(Pxx), Fs)
             print(freq)
             print(freq.shape)
             print(Pxx.shape)
-            #self.ax.plot(Pxx, freq)
+            # self.ax.plot(Pxx, freq)
             self.draw()
-        #self.spectrum_plot.set_ydata(Pxx)
-        #self.ax.set_xlim(min(Pxx), max(Pxx))
-
-
+        # self.spectrum_plot.set_ydata(Pxx)
+        # self.ax.set_xlim(min(Pxx), max(Pxx))
 
     def onclick(self, event):
         if self.isTracingOn is False:
@@ -707,7 +685,7 @@ class LowerFig(FigureCanvasQTAgg):
         self.x, self.y = event.x, event.y
 
         if event.button == 1:
-            if self.x != None and self.y != None:
+            if self.x is not None and self.y is not None:
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
@@ -746,32 +724,29 @@ class LowerFig(FigureCanvasQTAgg):
             else:
                 self.tt.next_trace()
 
-
         elif event.button == 3:
-            if self.x != None and self.y != None:
+            if self.x is not None and self.y is not None:
 
                 if self.tt.main_data_radio.isChecked():
-                    self.tt.mog.et[self.trc_number] =  np.abs(self.tt.mog.tt[self.trc_number] -event.ydata)
+                    self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.ydata)
                 elif self.tt.t0_before_radio.isChecked():
-                    self.tt.air[self.tt.mog.av].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] -event.ydata)
+                    self.tt.air[self.tt.mog.av].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.ydata)
                 elif self.tt.t0_after_radio.isChecked():
-                    self.tt.air[self.tt.mog.ap].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] -event.ydata)
+                    self.tt.air[self.tt.mog.ap].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.ydata)
 
                 self.LowerTracePickedSignal.emit(True)
-
 
         self.draw()
 
 
 class StatsFig1(FigureCanvasQTAgg):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
         super(StatsFig1, self).__init__(fig)
         self.initFig()
 
     def initFig(self):
-
 
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
@@ -791,31 +766,26 @@ class StatsFig1(FigureCanvasQTAgg):
         et = mog.et[ind]
         tt = tt[ind]
 
-
-        hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
-                      + (mog.data.Tx_y[ind] - mog.data.Rx_y[ind] )**2
-                      + (mog.data.Tx_z[ind] -  mog.data.Rx_z[ind] )**2)
+        hyp = np.sqrt((mog.data.Tx_x[ind] - mog.data.Rx_x[ind])**2 +
+                      (mog.data.Tx_y[ind] - mog.data.Rx_y[ind])**2 +
+                      (mog.data.Tx_z[ind] - mog.data.Rx_z[ind])**2)
         dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
 
-        theta = 180/ np.pi * np.arcsin(dz/hyp)
+        theta = 180 / np.pi * np.arcsin(dz / hyp)
 
-        vapp = hyp/(tt-t0[ind])
+        vapp = hyp / (tt - t0[ind])
 
-        #n = np.arange(len(ind)-1)
-        #n = n[ind]
+        # n = np.arange(len(ind)-1)
+        # n = n[ind]
         ind2 = np.less(vapp, 0)
         ind2 = np.nonzero(ind2)[0]
 
-        self.ax4.plot(hyp, tt, marker='o', ls= 'None')
-        self.ax5.plot(theta, hyp/tt, marker='o', ls= 'None')
-        self.ax2.plot(theta, vapp, marker='o', ls= 'None')
+        self.ax4.plot(hyp, tt, marker='o', ls='None')
+        self.ax5.plot(theta, hyp / tt, marker='o', ls='None')
+        self.ax2.plot(theta, vapp, marker='o', ls='None')
         self.ax6.plot(t0)
-        self.ax1.plot(hyp, et, marker='o', ls= 'None')
-        self.ax3.plot(theta, et, marker='o', ls= 'None')
-
-
-
-
+        self.ax1.plot(hyp, et, marker='o', ls='None')
+        self.ax3.plot(theta, et, marker='o', ls='None')
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
         mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
@@ -840,11 +810,10 @@ class StatsFig1(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
 
-
-#--- Class For Alignment ---#
-class  MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left',  parent=None):
-        super(MyQLabel, self).__init__(label,parent)
+# --- Class For Alignment --- #
+class MyQLabel(QtWidgets.QLabel):
+    def __init__(self, label, ha='left', parent=None):
+        super(MyQLabel, self).__init__(label, parent)
         if ha == 'center':
             self.setAlignment(QtCore.Qt.AlignCenter)
         elif ha == 'right':
@@ -861,6 +830,6 @@ if __name__ == '__main__':
 #    manual_ui.update_control_center()
 #    manual_ui.update_settings_edits()
     manual_ui.showMaximized()
-    #manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
+    # manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
     sys.exit(app.exec_())

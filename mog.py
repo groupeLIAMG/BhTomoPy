@@ -25,36 +25,37 @@ from sqlalchemy import Column, Integer, String, Float, PickleType, Boolean, Smal
 from utils import Base
 from sqlalchemy import orm
 
+
 class MogData(object):
     """
     Class to hold multi-offset gather (mog) data
     """
 
     def __init__(self, name='', date=None):
-        self.ntrace       = 0       # number of traces
-        self.nptsptrc     = 0       # number of points per trace
-        self.rstepsz      = 0       # size of step used
-        self.rnomfreq     = 0       # nominal frequency of antenna
-        self.csurvmod     = ''      # survey mode
-        self.timec        = 0       # the step of time data
-        self.rdata        = 0       # raw data
-        self.tdata        = None    # time data
-        self.timestp      = 0       # matrix of range self.nptstrc containing all the time referencies
-        self.Tx_x         = [0]     # x position of the transmitter
-        self.Tx_y         = [0]     # y position of the transmitter
-        self.Tx_z         = [0]     # z position of the transmitter
-        self.Rx_x         = [0]     # x position of the receptor
-        self.Rx_y         = [0]     # y position of the receptor
-        self.Rx_z         = [0]     # z position of the receptor
-        self.antennas     = ''      # name of the antenna
-        self.synthetique  = 0       # if 1 results from numerical modelling and 0 for field data
-        self.tunits       = 0       # time units
-        self.cunits       = ''      # coordinates units
-        self.TxOffset     = 0       # length of he transmittor which is above the surface
-        self.RxOffset     = 0       # length of he receptor which is above the surface
-        self.comment      = ''      # is defined by the presence of any comment in the file
-        self.date         = ''      # the date of the data sample
-        self.name         = name
+        self.ntrace      = 0     # number of traces
+        self.nptsptrc    = 0     # number of points per trace
+        self.rstepsz     = 0     # size of step used
+        self.rnomfreq    = 0     # nominal frequency of antenna
+        self.csurvmod    = ''    # survey mode
+        self.timec       = 0     # the step of time data
+        self.rdata       = 0     # raw data
+        self.tdata       = None  # time data
+        self.timestp     = 0     # matrix of range self.nptstrc containing all the time referencies
+        self.Tx_x        = [0]   # x position of the transmitter
+        self.Tx_y        = [0]   # y position of the transmitter
+        self.Tx_z        = [0]   # z position of the transmitter
+        self.Rx_x        = [0]   # x position of the receptor
+        self.Rx_y        = [0]   # y position of the receptor
+        self.Rx_z        = [0]   # z position of the receptor
+        self.antennas    = ''    # name of the antenna
+        self.synthetique = 0     # if 1 results from numerical modelling and 0 for field data
+        self.tunits      = 0     # time units
+        self.cunits      = ''    # coordinates units
+        self.TxOffset    = 0     # length of he transmittor which is above the surface
+        self.RxOffset    = 0     # length of he receptor which is above the surface
+        self.comment     = ''    # is defined by the presence of any comment in the file
+        self.date        = ''    # the date of the data sample
+        self.name        = name
 
     def readRAMAC(self, basename):
         """
@@ -91,7 +92,6 @@ class MogData(object):
         self.Tx_x = np.zeros(self.ntrace)
         self.Rx_x = np.zeros(self.ntrace)
 
-
     def readRAD(self, basename):
         """
         loads contents of Malå header file (*.rad extension)
@@ -121,21 +121,21 @@ class MogData(object):
             elif "FREQUENCY:" in line:
                 self.timec = float(re.search(r"[-+]?\d*\.\d+|\d+", line).group())
             elif "OPERATOR:" in line:
-                if 'MoRad' in line  or 'syntetic' in line:
+                if 'MoRad' in line or 'syntetic' in line:
                     self.synthetique = True
                 else:
                     self.synthetique = False
-            elif "ANTENNAS:" in line :
+            elif "ANTENNAS:" in line:
                 start, end = re.search('\d+', line).span()
                 self.rnomfreq = float(line[start:end])
                 self.antennas = line[9:].strip('\n')
             elif "LAST TRACE" in line:
                 self.ntrace = int(re.search('\d+', line).group())
 
-        self.timec = 1000.0/self.timec
-        self.timestp = self.timec*np.arange(self.nptsptrc)
+        self.timec = 1000.0 / self.timec
+        self.timestp = self.timec * np.arange(self.nptsptrc)
 
-        if self.synthetique == False :
+        if not self.synthetique:
             self.antennas = self.antennas + "  - Ramac"
 
         file.close()
@@ -145,7 +145,6 @@ class MogData(object):
 #         print(self.rnomfreq)
 #         print(self.antennas)
 #         print(self.ntrace)
-
 
     def readRD3(self, basename):
         """
@@ -163,10 +162,9 @@ class MogData(object):
                 except Exception as e:
                     raise IOError("Cannot open RD3 file '" + str(e)[:42] + "...' [mog 3]")
 
-        self.rdata = np.fromfile(file, dtype= 'int16', count= self.nptsptrc*self.ntrace)
+        self.rdata = np.fromfile(file, dtype='int16', count=self.nptsptrc * self.ntrace)
         self.rdata.resize((self.ntrace, self.nptsptrc))
         self.rdata = self.rdata.T
-
 
     def readTLF(self, basename):
         """
@@ -186,7 +184,7 @@ class MogData(object):
         self.Rx_z = np.array([])
         lines = file.readlines()[1:]
         for line in lines:
-            line_contents = re.findall(r"[-+]?\d*\.\d+|\d+", line )
+            line_contents = re.findall(r"[-+]?\d*\.\d+|\d+", line)
             tnd          = int(line_contents[0])     # first trace
             tnf          = int(line_contents[1])     # last trace
             Rxd          = float(line_contents[2])   # first coordinate of the Rx
@@ -195,26 +193,24 @@ class MogData(object):
             nt           = tnf - tnd + 1
             if nt == 1:
                 dRx = 1
-                if Rxd > Rxf :
+                if Rxd > Rxf:
                     Rxd = Rxf
             else:
-                dRx = (Rxf - Rxd)/ (nt - 1)
+                dRx = (Rxf - Rxd) / (nt - 1)
 
-
-            vect = np.arange(Rxd,Rxf+dRx/2, dRx)
+            vect = np.arange(Rxd, Rxf + dRx / 2, dRx)
 
             if nt > 0:
-                self.Tx_z = np.append(self.Tx_z, (Tx*np.ones(np.abs(nt))))
+                self.Tx_z = np.append(self.Tx_z, (Tx * np.ones(np.abs(nt))))
                 self.Rx_z = np.concatenate((self.Rx_z, vect))
         file.close()
 
-
     def readSEGY(self, basename):
         """
-
         :param basename:
         :return:
         """
+
 
 class PruneParams(object):
     def __init__(self):
@@ -230,7 +226,7 @@ class PruneParams(object):
 
 
 class Mog(Base):
-    
+
     __tablename__ = "Mog"
     name                     = Column(String, primary_key=True)
     pruneParams              = Column(PickleType)
@@ -249,75 +245,74 @@ class Mog(Base):
     useAirShots              = Column(Boolean)
     TxCosDir                 = Column(PickleType)
     RxCosDir                 = Column(PickleType)
-    
-    def __init__(self, name= '', data= MogData()):
-        self.pruneParams              = PruneParams()
-        self.name                     = name
-        self.data                     = data          # Instance of MogData
-        self.av                       = ''
-        self.ap                       = ''
-        self.Tx                       = 1
-        self.Rx                       = 1
-        self.tau_params               = np.array([])
-        self.fw                       = np.array([])
-        self.f_et                     = 1
-        self.amp_name_Ldc             = []
-        self.type                     = 1
-        self.fac_dt                   = 1
-        self.user_fac_dt              = 0
-        self.pruneParams.stepTx       = 0
-        self.pruneParams.stepRx       = 0
-        self.pruneParams.round_factor = 0
-        self.pruneParams.use_SNR      = 0
+
+    def __init__(self, name='', data=MogData()):
+        self.pruneParams               = PruneParams()
+        self.name                      = name
+        self.data                      = data          # Instance of MogData
+        self.av                        = ''
+        self.ap                        = ''
+        self.Tx                        = 1
+        self.Rx                        = 1
+        self.tau_params                = np.array([])
+        self.fw                        = np.array([])
+        self.f_et                      = 1
+        self.amp_name_Ldc              = []
+        self.type                      = 1
+        self.fac_dt                    = 1
+        self.user_fac_dt               = 0
+        self.pruneParams.stepTx        = 0
+        self.pruneParams.stepRx        = 0
+        self.pruneParams.round_factor  = 0
+        self.pruneParams.use_SNR       = 0
         self.pruneParams.threshold_SNR = 0
-        self.pruneParams.zmin         = -1e99
-        self.pruneParams.zmax         = 1e99
-        self.pruneParams.thetaMin     = -90
-        self.pruneParams.thetaMax     = 90
-        self.useAirShots              = False
-        self.TxCosDir                 = np.array([])
-        self.RxCosDir                 = np.array([])
-        
+        self.pruneParams.zmin          = -1e99
+        self.pruneParams.zmax          = 1e99
+        self.pruneParams.thetaMin      = -90
+        self.pruneParams.thetaMax      = 90
+        self.useAirShots               = False
+        self.TxCosDir                  = np.array([])
+        self.RxCosDir                  = np.array([])
+
         self.init_on_load()
-    
+
     @orm.reconstructor
-    def init_on_load(self): # reconstructs the objects from the stored one
-        
+    def init_on_load(self):  # reconstructs the objects from the stored one
+
         self.ID                       = Mog.getID()
         self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=bool)
         self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=bool)
         self.in_vect                  = np.ones(self.data.ntrace, dtype=bool)
         self.date                     = self.data.date
-        self.tt                       = -1*np.ones(self.data.ntrace, dtype=float)
-        self.et                       = -1*np.ones(self.data.ntrace, dtype=float)
-        self.tt_done                  = np.zeros(self.data.ntrace, dtype =bool)
+        self.tt                       = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.et                       = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.tt_done                  = np.zeros(self.data.ntrace, dtype=bool)
 
-        if self.data.tdata == None:
+        if self.data.tdata is None:
             self.ttTx                 = np.array([])
             self.ttTx_done            = np.array([])
         else:
             self.ttTx                 = np.zeros(self.data.ntrace)
             self.ttTx_done            = np.zeros(self.data.ntrace, dtype=bool)
 
-        self.amp_tmin             = -1*np.ones(self.data.ntrace, dtype=float)   # à Définir avec Bernard
-        self.amp_tmax             = -1*np.ones(self.data.ntrace, dtype=float)
-        self.amp_done             = np.zeros(self.data.ntrace, dtype=bool)
-        self.App                  = np.zeros(self.data.ntrace, dtype=float)
-        self.fcentroid            = np.zeros(self.data.ntrace, dtype=float)
-        self.scentroid            = np.zeros(self.data.ntrace, dtype=float)
-        self.tauApp               = -1*np.ones(self.data.ntrace, dtype=float)
-        self.tauApp_et            = -1*np.ones(self.data.ntrace, dtype=float)
-        self.tauFce               = -1*np.ones(self.data.ntrace, dtype=float)
-        self.tauFce_et            = -1*np.ones(self.data.ntrace, dtype=float)
-        self.tauHyb               = -1*np.ones(self.data.ntrace, dtype=float)
-        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype=float)
-        self.tauHyb_et            = -1*np.ones(self.data.ntrace, dtype=float)
-        self.Tx_z_orig            = self.data.Tx_z
-        self.Rx_z_orig            = self.data.Rx_z
+        self.amp_tmin                 = -1 * np.ones(self.data.ntrace, dtype=float)   # à Définir avec Bernard
+        self.amp_tmax                 = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.amp_done                 = np.zeros(self.data.ntrace, dtype=bool)
+        self.App                      = np.zeros(self.data.ntrace, dtype=float)
+        self.fcentroid                = np.zeros(self.data.ntrace, dtype=float)
+        self.scentroid                = np.zeros(self.data.ntrace, dtype=float)
+        self.tauApp                   = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.tauApp_et                = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.tauFce                   = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.tauFce_et                = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.tauHyb                   = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.tauHyb_et                = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.tauHyb_et                = -1 * np.ones(self.data.ntrace, dtype=float)
+        self.Tx_z_orig                = self.data.Tx_z
+        self.Rx_z_orig                = self.data.Rx_z
 
-        self.pruneParams.zmin     = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
-        self.pruneParams.zmax     = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
-
+        self.pruneParams.zmin         = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+        self.pruneParams.zmax         = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
 
     def correction_t0(self, ndata, air_before, air_after):
         """
@@ -326,13 +321,13 @@ class Mog(Base):
         :param air_after: instance of class Airshots
         """
 
-#        show = False  #TODO:
+#        show = False  # TODO:
         fac_dt_av = 1
         fac_dt_ap = 1
         if not self.useAirShots:
             t0 = np.zeros(ndata)
             return t0, fac_dt_av, fac_dt_ap
-        elif air_before.name == '' and air_after.name == ''  and self.useAirShots :
+        elif air_before.name == '' and air_after.name == '' and self.useAirShots:
             t0 = np.zeros(ndata)
             raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
 
@@ -340,18 +335,18 @@ class Mog(Base):
         t0av = np.array([])
         t0ap = np.array([])
 
-        if air_before.name != '' :
+        if air_before.name != '':
             if 'fixed_antenna' in air_before.method:
                 t0av = self.get_t0_fixed(air_before, v_air)
             if 'walkaway' in air_before.method:
-                pass #TODO get_t0_wa
+                pass  # TODO: get_t0_wa
 
         if air_after.name != '':
             if 'fixed_antenna' in air_before.method:
                 t0ap = self.get_t0_fixed(air_after, v_air)
 
             if 'walkaway' in air_before.method:
-                pass #TODO get_t0_wa
+                pass  # TODO: get_t0_wa
 
         if np.isnan(t0av) or np.isnan(t0ap):
             t0 = np.zeros((1, ndata))
@@ -360,16 +355,16 @@ class Mog(Base):
         if np.all(t0av == 0) and np.all(t0ap == 0):
             t0 = np.zeros((1, ndata))
         elif t0av == 0:
-            t0 = t0ap+np.zeros((1, ndata))
+            t0 = t0ap + np.zeros((1, ndata))
         elif t0ap == 0:
-            t0 = t0av+np.zeros((1, ndata))
+            t0 = t0av + np.zeros((1, ndata))
         else:
             dt0 = t0ap - t0av
-            ddt0 = dt0/(ndata-1)
-            t0 = t0av + ddt0*np.arange(ndata)      # pas sur de cette etape là
+            ddt0 = dt0 / (ndata - 1)
+            t0 = t0av + ddt0 * np.arange(ndata)  # pas sur de cette etape là
 
         return t0, fac_dt_av, fac_dt_ap
-    
+
     @staticmethod
     def load_self(mog):
         Mog.getID(mog.ID)
@@ -382,8 +377,8 @@ class Mog(Base):
         if np.all(std_times == -1.0):
             times = np.mean(times[ind])
         else:
-            times = sum(times[ind] * std_times[ind])/sum(std_times[ind])
-        t0 = times - float(shot.d_TxRx[0])/v
+            times = sum(times[ind] * std_times[ind]) / sum(std_times[ind])
+        t0 = times - float(shot.d_TxRx[0]) / v
         return t0
 
     @staticmethod
@@ -428,7 +423,7 @@ class Mog(Base):
 
         if self.user_fac_dt == 0:
             if fac_dt_av != 1 and fac_dt_ap != 1:
-                self.fac_dt = 0.5*(fac_dt_av + fac_dt_ap)
+                self.fac_dt = 0.5 * (fac_dt_av + fac_dt_ap)
             elif fac_dt_av != 1:
                 self.fac_dt = fac_dt_av
             elif fac_dt_ap != 1:
@@ -443,7 +438,7 @@ class Mog(Base):
 
 
 class AirShots(Base):
-    
+
     __tablename__ = "Airshots"
     name    = Column(String, primary_key=True)
     mog     = Column(PickleType)
@@ -451,22 +446,22 @@ class AirShots(Base):
     d_TxRx  = Column(Float)            # Distance between Tx and Rx
     fac_dt  = Column(Float)
     method  = Column(String)
-    
-    def __init__(self, name='', data= MogData()):
+
+    def __init__(self, name='', data=MogData()):
         self.mog = Mog()
         self.name = name
         self.data = data           # MogData instance
         self.d_TxRx = 0            # Distance between Tx and Rx
         self.fac_dt = 1
-        
+
         self.init_on_load()
 
     @orm.reconstructor
-    def init_on_load(self): # reconstructs the objects from the stored one
-        
-        self.tt = -1*np.ones((1, self.data.ntrace), dtype = float) #arrival time
-        self.et = -1*np.ones((1, self.data.ntrace), dtype = float) #standard deviation of arrival time
-        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool) #boolean indicator of arrival time
+    def init_on_load(self):  # reconstructs the objects from the stored one
+
+        self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)  # arrival time
+        self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)  # standard deviation of arrival time
+        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool)  # boolean indicator of arrival time
 
 
 if __name__ == '__main__':

@@ -103,7 +103,7 @@ class Covariance(object):
         t2 = self.trans(x0)
         h = 0
         for ii in np.arange(d):
-            # TODO debug this for n2>1
+            # TODO: debug this for n2>1
             tmp1 = np.tile(t1[:,ii],(n2,1)).T
             tmp2 = np.tile(t2[:,ii],(n1,1))
             h = h+(tmp1 - tmp2)**2

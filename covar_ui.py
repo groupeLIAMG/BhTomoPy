@@ -20,7 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
-from PyQt5 import QtGui, QtWidgets, QtCore 
+from PyQt5 import QtGui, QtWidgets, QtCore
+
 
 class CovarUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
@@ -29,13 +30,14 @@ class CovarUI(QtWidgets.QFrame):
         self.initUI()
 
     def initUI(self):
-        #--- color for the labels ---#
+        # --- color for the labels --- #
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
-        #--- Class For Alignment ---#
-        class  MyQLabel(QtWidgets.QLabel):
-            def __init__(self, label, ha='left',  parent=None):
-                super(MyQLabel, self).__init__(label,parent)
+
+        # --- Class For Alignment --- #
+        class MyQLabel(QtWidgets.QLabel):
+            def __init__(self, label, ha='left', parent=None):
+                super(MyQLabel, self).__init__(label, parent)
                 if ha == 'center':
                     self.setAlignment(QtCore.Qt.AlignCenter)
                 elif ha == 'right':
@@ -43,43 +45,42 @@ class CovarUI(QtWidgets.QFrame):
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
-        #------- Widgets Creation -------#
-        #--- Buttons Set ---#
+        # ------- Widgets Creation ------- #
+        # --- Buttons Set --- #
         btn_Show_Stats = QtWidgets.QPushButton("Show Stats")
         btn_Add_Struct = QtWidgets.QPushButton("Add Structure")
         btn_Rem_Struct = QtWidgets.QPushButton("Remove Structure")
         btn_compute = QtWidgets.QPushButton("Compute")
         btn_GO = QtWidgets.QPushButton("GO")
 
-        #--- Label ---#
-        cells_Label = MyQLabel("Cells", ha= 'center')
-        cells_Labeli = MyQLabel("Cells", ha= 'center')
-        rays_label = MyQLabel("Rays", ha= 'center')
+        # --- Label --- #
+        cells_Label = MyQLabel("Cells", ha='center')
+        cells_Labeli = MyQLabel("Cells", ha='center')
+        rays_label = MyQLabel("Rays", ha='center')
 
-        curv_rays_label = MyQLabel("Curved Rays", ha= 'right')
-        X_label = MyQLabel("X", ha= 'center')
-        Y_label = MyQLabel("Y", ha= 'center')
-        Z_label = MyQLabel("Y", ha= 'center')
-        Xi_label = MyQLabel("X", ha= 'center')
-        Yi_label = MyQLabel("Y", ha= 'center')
-        Zi_label = MyQLabel("Z", ha= 'center')
-        self.X_min_label = MyQLabel("0", ha= 'center')
-        self.Y_min_label = MyQLabel("0", ha= 'center')
-        self.Z_min_label = MyQLabel("0", ha= 'center')
-        self.X_max_label = MyQLabel("0", ha= 'center')
-        self.Y_max_label = MyQLabel("0", ha= 'center')
-        self.Z_max_label = MyQLabel("0", ha= 'center')
+        curv_rays_label = MyQLabel("Curved Rays", ha='right')
+        X_label = MyQLabel("X", ha='center')
+        Y_label = MyQLabel("Y", ha='center')
+        Z_label = MyQLabel("Y", ha='center')
+        Xi_label = MyQLabel("X", ha='center')
+        Yi_label = MyQLabel("Y", ha='center')
+        Zi_label = MyQLabel("Z", ha='center')
+        self.X_min_label = MyQLabel("0", ha='center')
+        self.Y_min_label = MyQLabel("0", ha='center')
+        self.Z_min_label = MyQLabel("0", ha='center')
+        self.X_max_label = MyQLabel("0", ha='center')
+        self.Y_max_label = MyQLabel("0", ha='center')
+        self.Z_max_label = MyQLabel("0", ha='center')
 
-        Min_label = MyQLabel("Min", ha= 'right')
+        Min_label = MyQLabel("Min", ha='right')
         Max_label = MyQLabel("Max", ha='right')
-        step_label = MyQLabel("Step :", ha= 'center')
+        step_label = MyQLabel("Step :", ha='center')
         slowness_label = MyQLabel("Slowness", ha='right')
-        traveltime_label = MyQLabel("Traveltime", ha= 'right')
-        separ_label = MyQLabel("|", ha= 'center')
-        bin_label = MyQLabel("Bin Length", ha= 'right')
-        bin_frac_label = MyQLabel("Fraction of Bins", ha= 'right')
-        Iter_label = MyQLabel("Number of Iterations", ha= 'right')
-
+        traveltime_label = MyQLabel("Traveltime", ha='right')
+        separ_label = MyQLabel("|", ha='center')
+        bin_label = MyQLabel("Bin Length", ha='right')
+        bin_frac_label = MyQLabel("Fraction of Bins", ha='right')
+        Iter_label = MyQLabel("Number of Iterations", ha='right')
 
         self.X_min_label.setPalette(palette)
         self.Y_min_label.setPalette(palette)
@@ -90,7 +91,7 @@ class CovarUI(QtWidgets.QFrame):
         cells_Label.setPalette(palette)
         cells_Labeli.setPalette(palette)
         rays_label.setPalette(palette)
-        #--- Edits ---#
+        # --- Edits --- #
         cells_Edit = QtWidgets.QLineEdit()
         step_X_Edit = QtWidgets.QLineEdit()
         step_X_Edit.setFixedWidth(50)
@@ -104,8 +105,7 @@ class CovarUI(QtWidgets.QFrame):
         bin_frac_Edit = QtWidgets.QLineEdit('0.25')
         Iter_Edit = QtWidgets.QLineEdit('5')
 
-
-        #--- Checkboxes ---#
+        # --- Checkboxes --- #
         Upper_limit_checkbox = QtWidgets.QCheckBox("Upper Limit - Apparent Velocity")
         ellip_veloc_checkbox = QtWidgets.QCheckBox("Elliptical Velocity Anisotropy")
         tilted_ellip_veloc_checkbox = QtWidgets.QCheckBox("Tilted Elliptical Velocity Anisotropy")
@@ -114,14 +114,13 @@ class CovarUI(QtWidgets.QFrame):
         traveltime_checkbox = QtWidgets.QCheckBox()
         auto_update_checkbox = QtWidgets.QCheckBox("Auto Update")
 
-
-        #--- Text Edits ---#
+        # --- Text Edits --- #
         futur_Graph1 = QtWidgets.QTextEdit()
         futur_Graph1.setReadOnly(True)
         futur_Graph2 = QtWidgets.QTextEdit()
         futur_Graph2.setReadOnly(True)
 
-        #--- combobox ---#
+        # --- combobox --- #
         T_and_A_combo = QtWidgets.QComboBox()
         T_and_A_combo.addItem("Traveltime")
         T_and_A_combo.addItem("Amplitude - Peak-to-Peak")
@@ -130,11 +129,11 @@ class CovarUI(QtWidgets.QFrame):
         covar_struct_combo = QtWidgets.QComboBox()
         covar_struct_combo.addItem("Structure no 1")
 
-        #--- List ---#
+        # --- List --- #
         self.ray_list = QtWidgets.QListWidget()
 
-        #------- SubWidgets -------#
-        #--- Curved Rays SubWidget ---#
+        # ------- SubWidgets ------- #
+        # --- Curved Rays SubWidget --- #
         Sub_Curved_Rays_Widget = QtWidgets.QWidget()
         Sub_Curved_Rays_Grid = QtWidgets.QGridLayout()
         Sub_Curved_Rays_Grid.addWidget(curv_rays_label, 0, 0)
@@ -142,7 +141,7 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Curved_Rays_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_Curved_Rays_Widget.setLayout(Sub_Curved_Rays_Grid)
 
-        #--- Grid Coordinates SubWidget ---#
+        # --- Grid Coordinates SubWidget --- #
         Sub_Grid_Coord_Widget = QtWidgets.QWidget()
         Sub_Grid_Coord_grid = QtWidgets.QGridLayout()
         Sub_Grid_Coord_grid.addWidget(X_label, 0, 1)
@@ -159,7 +158,7 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Grid_Coord_grid.setHorizontalSpacing(55)
         Sub_Grid_Coord_Widget.setLayout(Sub_Grid_Coord_grid)
 
-        #--- Step SubWidget ---#
+        # --- Step SubWidget --- #
         Sub_Step_Widget = QtWidgets.QWidget()
         Sub_Step_Grid = QtWidgets.QGridLayout()
         Sub_Step_Grid.addWidget(step_label, 1, 0)
@@ -173,9 +172,8 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Step_Grid.setHorizontalSpacing(0)
         Sub_Step_Widget.setLayout(Sub_Step_Grid)
 
-
-        #------- SubGroupboxes -------#
-        #--- Data Groupbox ---#
+        # ------- SubGroupboxes ------- #
+        # --- Data Groupbox --- #
         data_groupbox = QtWidgets.QGroupBox("Data")
         data_grid = QtWidgets.QGridLayout()
         data_grid.addWidget(cells_Label, 0, 0)
@@ -191,19 +189,19 @@ class CovarUI(QtWidgets.QFrame):
         data_grid.addWidget(Sub_Curved_Rays_Widget, 5, 1)
         data_groupbox.setLayout(data_grid)
 
-        #--- Grid Groupbox ---#
+        # --- Grid Groupbox --- #
         Grid_groupbox = QtWidgets.QGroupBox("Grid")
         Grid_grid = QtWidgets.QGridLayout()
         Grid_grid.addWidget(Sub_Grid_Coord_Widget, 0, 0)
         Grid_grid.addWidget(Sub_Step_Widget, 0, 1)
         Grid_groupbox.setLayout(Grid_grid)
 
-        #--- Parameters Groupbox ---#
+        # --- Parameters Groupbox --- #
         Param_groupbox = QtWidgets.QGroupBox("Parameters")
         Param_grid = QtWidgets.QGridLayout()
         Param_groupbox.setLayout(Param_grid)
 
-        #--- Nugget Effect Groupbox ---#
+        # --- Nugget Effect Groupbox --- #
         Nug_groupbox = QtWidgets.QGroupBox("Nugget Effect")
         Nug_grid = QtWidgets.QGridLayout()
         Nug_grid.addWidget(slowness_label, 0, 0)
@@ -215,7 +213,7 @@ class CovarUI(QtWidgets.QFrame):
         Nug_grid.addWidget(traveltime_checkbox, 0, 6)
         Nug_groupbox.setLayout(Nug_grid)
 
-        #--- Covariance Model Groupbox ---#
+        # --- Covariance Model Groupbox --- #
         covar_groupbox = QtWidgets.QGroupBox("Covariance Model")
         covar_grid = QtWidgets.QGridLayout()
         covar_grid.addWidget(covar_struct_combo, 0, 0)
@@ -227,7 +225,7 @@ class CovarUI(QtWidgets.QFrame):
         covar_grid.addWidget(btn_compute, 3, 1)
         covar_groupbox.setLayout(covar_grid)
 
-        #--- Adjust Model Groupbox ---#
+        # --- Adjust Model Groupbox --- #
         Adjust_Model_groupbox = QtWidgets.QGroupBox("Adjust Model (Simplex Method)")
         Adjust_Model_grid = QtWidgets.QGridLayout()
         Adjust_Model_grid.addWidget(bin_label, 0, 0)
@@ -240,7 +238,7 @@ class CovarUI(QtWidgets.QFrame):
         Adjust_Model_grid.setColumnStretch(4, 100)
         Adjust_Model_groupbox.setLayout(Adjust_Model_grid)
 
-        #------- master Grid Disposition -------#
+        # ------- master Grid Disposition ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(futur_Graph1, 0, 0, 2, 3)
         master_grid.addWidget(futur_Graph2, 2, 0, 2, 3)
@@ -250,7 +248,6 @@ class CovarUI(QtWidgets.QFrame):
         master_grid.addWidget(Adjust_Model_groupbox, 3, 3)
         master_grid.setColumnStretch(0, 100)
         master_grid.setColumnStretch(3, 100)
-
 
         self.setLayout(master_grid)
 

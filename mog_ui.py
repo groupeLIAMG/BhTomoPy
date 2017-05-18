@@ -32,7 +32,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
-# from spectrum import arburg
+from spectrum import arburg
 
 from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
@@ -40,15 +40,16 @@ from utils_ui import chooseMOG
 import database
 from borehole import Borehole
 
-current_module = sys.modules[__name__]
 import data_manager
+current_module = sys.modules[__name__]
 data_manager.create_data_management(current_module)
 
-#-----------------------------------------------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Multi Offset Gather User Interface (MOGUI) Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class MOGUI(QtWidgets.QWidget):
 
     mogInfoSignal  = QtCore.pyqtSignal(int)
@@ -56,13 +57,11 @@ class MOGUI(QtWidgets.QWidget):
     databaseSignal = QtCore.pyqtSignal(str)
     moglogSignal   = QtCore.pyqtSignal(str)
 
-
     def __init__(self, parent=None):
         super(MOGUI, self).__init__()
         self.setWindowTitle("BhTomoPy/MOGs")
         self.initUI()
         self.data_rep = ''
-
 
     def add_MOG(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
@@ -78,16 +77,15 @@ class MOGUI(QtWidgets.QWidget):
         else:
             self.moglogSignal.emit("Error: MOG file must have either *.rad, *.rd3 or *.tlf extension")
             return
-        
+
         try:
-            
             rname = basename.split('/')  # the split method gives back a list which contains all the strings that were
             rname = rname[-1]            # separated by / and the name of file (i.e. rname) is the last item of this list
-            self.data_rep = basename[:-1-len(rname)]
-            
+            self.data_rep = basename[:-1 - len(rname)]
+
             mogdata = MogData(rname)
             mogdata.readRAMAC(basename)
-            
+
             mog = Mog(rname, mogdata)
             database.session.add(mog)
             self.update_List_Widget()
@@ -98,11 +96,10 @@ class MOGUI(QtWidgets.QWidget):
             self.update_prune_edits_info()
             self.update_prune_info()
             self.moglogSignal.emit("{} Multi Offset-Gather has been loaded successfully".format(rname))
-        
+
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : '" + str(e)[:42] + "...' [mog_ui 1]",
-                                      buttons=QtWidgets.QMessageBox.Ok)
-        
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def update_edits(self):
         """
@@ -136,9 +133,8 @@ class MOGUI(QtWidgets.QWidget):
             elif mog.useAirShots == 0:
                 self.Air_shots_checkbox.setChecked(False)
 
-
             for i in range(database.session.query(Borehole).count()):
-                if mog.Tx == 1 and mog.Rx == 1 :
+                if mog.Tx == 1 and mog.Rx == 1:
                     pass
                 elif mog.Tx.name == database.session.query(Borehole).all()[i].name:
                     self.Tx_combo.setCurrentIndex(i)
@@ -150,31 +146,32 @@ class MOGUI(QtWidgets.QWidget):
                 tot_traces += mog.data.ntrace
             self.ntraceSignal.emit(tot_traces)
 
-    updateHandlerMog = False # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
+    updateHandlerMog = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
+
     def update_mog_info(self):
-        
+
         if self.updateHandlerMog:
             return
-        
+
         self.updateHandlerMog = True
-        
-        expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$") # float number, with or without decimals, and allowing negatives
-        
+
+        expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$")  # float number, with or without decimals, and allowing negatives
+
         for item in [self.Nominal_Frequency_edit, self.Rx_Offset_edit, self.Tx_Offset_edit,
                      self.Correction_Factor_edit, self.Multiplication_Factor_edit]:
-            
+
             if item.text() != '' and not expFloat.match(item.text()):
                 self.moglogSignal.emit("Error: Some edited information is incorrect.")
                 item.setFocus()
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
-                                   buttons=QtWidgets.QMessageBox.Ok)
+                                              buttons=QtWidgets.QMessageBox.Ok)
                 self.updateHandlerMog = False
                 return
-            
+
             item.setText(item.text().replace(',', '.'))
-        
+
         self.updateHandlerMog = False
-        
+
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
             mog = database.session.query(Mog).all()[i.row()]
@@ -227,11 +224,11 @@ class MOGUI(QtWidgets.QWidget):
 
             # the object ind contains all the selected indexes
             for i in ind:
-                #then we get only the real name of the file (i.e. not the path behind it)
+                # then we get only the real name of the file (i.e. not the path behind it)
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
-                
+
                 for n in range(len(self.air)):
                     # then we verify if we've already applied the airshots
                     if str(basename) in str(self.air[n].name):
@@ -256,31 +253,29 @@ class MOGUI(QtWidgets.QWidget):
 
                     # The getText method returns a tuple containing the entered data and a boolean factor
                     # (i.e. if the ok button is clicked, it returns True)
-                    if ok :
+                    if ok:
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
                         distance_list = [float(i) for i in distance_list]
 
                         if len(distance_list) > 1:
-                            if len(distance_list)!= data.ntrace:
+                            if len(distance_list) != data.ntrace:
                                 self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
                         airshot_before = AirShots(str(rname))
                         self.air.append(airshot_before)
                         self.air[n].data = data
-                        self.air[n].tt = -1* np.ones(data.ntrace) # tt stands for the travel time vector
-                        self.air[n].et = -1* np.ones(data.ntrace) # to be defined
-                        self.air[n].tt_done = np.zeros(data.ntrace, dtype=bool) # the tt_done is a zeros array and whenever a ray arrives,
-                                                                                # its value will be changed to one
+                        self.air[n].tt = -1 * np.ones(data.ntrace)  # tt stands for the travel time vector
+                        self.air[n].et = -1 * np.ones(data.ntrace)  # to be defined
+                        self.air[n].tt_done = np.zeros(data.ntrace, dtype=bool)  # the tt_done is a zeros array and whenever a ray arrives, its value will be changed to one
                         self.air[n].d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
                         self.air[n].fac_dt = 1
-                        self.air[n].in_vect = np.ones(data.ntrace, dtype= bool)
+                        self.air[n].in_vect = np.ones(data.ntrace, dtype=bool)
                         database.session.query(Mog).all()[i.row()].av = n
                         if len(distance_list) == 1:
-                            self.air[n].method ='fixed_antenna'
+                            self.air[n].method = 'fixed_antenna'
                         else:
-                            self.air[n].method ='walkaway'
+                            self.air[n].method = 'walkaway'
                         self.Air_Shot_Before_edit.setText(self.air[n].name[:-4])
-
 
     def airAfter(self):
         # As you can see, the airAfter method is almost the same as airBefore (refer to airBefore for any questions)
@@ -295,7 +290,7 @@ class MOGUI(QtWidgets.QWidget):
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
-                
+
                 for n in range(len(self.air)):
                     if str(basename) in str(self.air[n].name):
                         database.session.query(Mog).all()[i.row()].ap = n
@@ -312,44 +307,43 @@ class MOGUI(QtWidgets.QWidget):
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
                         distance_list = [float(i) for i in distance_list]
                         if len(distance_list) > 1:
-                            if len(distance_list)!= data.ntrace:
+                            if len(distance_list) != data.ntrace:
                                 self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
 
                         self.air.append(AirShots(str(rname)))
                         self.air[n].data = data
-                        self.air[n].tt = -1* np.ones(data.ntrace)
-                        self.air[n].et = -1* np.ones(data.ntrace)
-                        self.air[n].tt_done = np.zeros( data.ntrace, dtype=bool)
+                        self.air[n].tt = -1 * np.ones(data.ntrace)
+                        self.air[n].et = -1 * np.ones(data.ntrace)
+                        self.air[n].tt_done = np.zeros(data.ntrace, dtype=bool)
                         self.air[n].d_TxRx = distance_list
                         self.air[n].fac_dt = 1
-                        self.air[n].ing = np.ones(data.ntrace, dtype= bool)
+                        self.air[n].ing = np.ones(data.ntrace, dtype=bool)
                         database.session.query(Mog).all()[i.row()].ap = n
                         if len(distance_list) == 1:
-                            self.air[n].method ='fixed_antenna'
+                            self.air[n].method = 'fixed_antenna'
                         else:
-                            self.air[n].method ='walkaway'
+                            self.air[n].method = 'walkaway'
                         self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
 
     def update_spectra_and_coverage_Tx_num_list(self):
         ind = self.MOG_list.selectedIndexes()
         self.Tx_num_list.clear()
-        
+
         if ind:
             mog = database.session.query(Mog).all()[ind[0].row()]
             unique_Tx_z = np.unique(mog.data.Tx_z)
-    
+
             for Tx in range(len(unique_Tx_z)):
                 self.Tx_num_list.addItem(str(Tx))
                 self.trace_num_combo.addItem(str(Tx))
-    
+
             self.Tx_num_list.setCurrentRow(0)
             self.trace_num_combo.setCurrentIndex(0)
 
-
     def update_spectra_and_coverage_Tx_elev_value_label(self):
         ind1 = self.MOG_list.selectedIndexes()
-        
+
         if ind1:
             mog = database.session.query(Mog).all()[ind1[0].row()]
             self.Tx_elev_value_label.clear()
@@ -358,9 +352,8 @@ class MOGUI(QtWidgets.QWidget):
             unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
             for j in ind2:
                 self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[-j.row()]))
-    
-            self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3]))
 
+            self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3]))
 
     def search_Tx_elev(self):
         if self.search_combo.currentText() == 'Search with Elevation':
@@ -389,7 +382,7 @@ class MOGUI(QtWidgets.QWidget):
             else:
                 red = QtGui.QPalette()
                 red.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
-                self.search_info_label.setText('This data contains only {} traces, {} is out of range'.format(len(self.Tx_num_list) -1, int(item)))
+                self.search_info_label.setText('This data contains only {} traces, {} is out of range'.format(len(self.Tx_num_list) - 1, int(item)))
                 self.search_info_label.setPalette(red)
 
     def update_List_Widget(self):
@@ -414,7 +407,7 @@ class MOGUI(QtWidgets.QWidget):
 
             if 'true positions' in mog.data.comment:
 
-                Tx = np.concatenate((mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z), axis= 1)
+                Tx = np.concatenate((mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z), axis=1)
                 mog.TxCosDir = np.zeros(np.shape(Tx))
 
                 # Equivalent of unique(Tx, 'rows') of the Matlab version
@@ -423,17 +416,17 @@ class MOGUI(QtWidgets.QWidget):
                 tmp = np.sort(tmp, axis=0)
                 tmp = tmp[::-1]
                 v = -np.diff(tmp, axis=0)
-                d = np.sqrt(np.sum(v**2, axis= 1))
-                l = v/ np.kron(d, np.array([1, 1, 1]))
+                d = np.sqrt(np.sum(v**2, axis=1))
+                l = v / np.kron(d, np.array([1, 1, 1]))
 
-                #TODO finir la condition pour 'true positions'
-                #for n in range(np.shape(tmp)[0]):
-                #    ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
-                #    mog.TxCosDir[ind, 1] = l[n,1]
-                #    mog.TxCosDir[ind, 2] = l[n,2]
-                #    mog.TxCosDir[ind, 3] = l[n,3]
+                # TODO: finir la condition pour 'true positions'
+                # for n in range(np.shape(tmp)[0]):
+                #     ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
+                #     mog.TxCosDir[ind, 1] = l[n,1]
+                #     mog.TxCosDir[ind, 2] = l[n,2]
+                #     mog.TxCosDir[ind, 3] = l[n,3]
 
-            #TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
+            # TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
             Tx = database.session.query(Borehole).all()[i].name[iTx]
             Rx = database.session.query(Borehole).all()[i].name[iRx]
             mog.Tx = Tx
@@ -447,34 +440,32 @@ class MOGUI(QtWidgets.QWidget):
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -MOG'
 
                 # Vertical boreholes
-                if len(Tx.fdata[:,0]) == 2 and len(Tx.fdata[:,1]) == 2 :
-                    if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05 :
+                if len(Tx.fdata[:, 0]) == 2 and len(Tx.fdata[:, 1]) == 2:
+                    if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05:
                         mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
                         mog.data.Tx_z = Tx.Z - mog.data.TxOffset - mog.Tx_z_orig
                         mog.TxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
 
-
                 if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
-                    if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) <1e-05 :
+                    if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) < 1e-05:
                         mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
                         mog.data.Rx_z = Rx.Z - mog.data.RxOffset - mog.Rx_z_orig
                         mog.RxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
 
-                #TODO: Forages non verticaux
+                # TODO: Forages non verticaux
 
-            #TODO: faire la condition pour le mode VRP
+            # TODO: faire la condition pour le mode VRP
             elif self.Type_combo.currentText() == 'VSP/VRP':
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
 
             if iTx == iRx:
                 QtWidgets.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
-                                                       buttons=QtWidgets.QMessageBox.Ok)
+                                                  buttons=QtWidgets.QMessageBox.Ok)
 
             if Tx != Rx:
                 self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
-
 
     def plot_rawdata(self):
         if database.session.query(Mog).count() != 0:
@@ -486,7 +477,7 @@ class MOGUI(QtWidgets.QWidget):
 
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                           buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_spectra(self):
         if database.session.query(Mog).count() != 0:
@@ -498,24 +489,22 @@ class MOGUI(QtWidgets.QWidget):
             scale               = self.snr_combo.currentText()
             estimation_method   = self.psd_combo.currentText()
 
-
             self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
-            #self.moglogSignal.emit(" MOG {}'s Spectra has been plotted ". format(mog.name))
+            # self.moglogSignal.emit(" MOG {}'s Spectra has been plotted ". format(mog.name))
             self.spectramanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
-
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_zop(self):
         if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
             self.zopFig.plot_zop()
-            #self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ". format(database.session.query(Mog).all()[ind[0].row()].name))
+            # self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ". format(database.session.query(Mog).all()[ind[0].row()].name))
             self.zopmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_zop_rays(self):
         if database.session.query(Mog).count() != 0:
@@ -527,7 +516,7 @@ class MOGUI(QtWidgets.QWidget):
             self.zopraysmanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_statstt(self):
         if database.session.query(Mog).count() != 0:
@@ -537,7 +526,7 @@ class MOGUI(QtWidgets.QWidget):
 
             if len(np.nonzero(done == 1)[0]) == 0:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Data not processed",
-                                                       buttons=QtWidgets.QMessageBox.Ok)
+                                              buttons=QtWidgets.QMessageBox.Ok)
 
             else:
                 self.statsttFig.plot_stats(mog, self.air)
@@ -545,8 +534,7 @@ class MOGUI(QtWidgets.QWidget):
                 self.statsttmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
-
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_statsamp(self):
 
@@ -557,7 +545,7 @@ class MOGUI(QtWidgets.QWidget):
             self.statsampmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_ray_coverage(self):
         if database.session.query(Mog).count() != 0:
@@ -569,24 +557,25 @@ class MOGUI(QtWidgets.QWidget):
             n = int(self.trace_num_edit.text()) - 1
 
             self.raycoverageFig.plot_ray_coverage(database.session.query(Mog).all()[ind[0].row()], n, show_type, entire_state)
-            #self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
+            # self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
             self.raymanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
+
     def plot_prune(self):
         if database.session.query(Mog).count() != 0:
             ind = self.MOG_list.selectedIndexes()
             if database.session.query(Mog).all()[ind[0].row()].Tx != 1 and database.session.query(Mog).all()[ind[0].row()].Tx != 1:
-                self.pruneFig.plot_prune(database.session.query(Mog).all()[ind[0].row()], 0 )
+                self.pruneFig.plot_prune(database.session.query(Mog).all()[ind[0].row()], 0)
                 self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
                 self.prunemanager.show()
             else:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Please select Tx and Rx for MOG",
-                                                   buttons=QtWidgets.QMessageBox.Ok)
+                                              buttons=QtWidgets.QMessageBox.Ok)
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def next_trace(self):
         n = int(self.trace_num_edit.text())
@@ -618,7 +607,8 @@ class MOGUI(QtWidgets.QWidget):
             self.moglogSignal.emit('File exported successfully ')
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
+
     def export_tau(self):
         if database.session.query(Mog).all() != 0:
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Export tau')[0]
@@ -627,9 +617,10 @@ class MOGUI(QtWidgets.QWidget):
             self.moglogSignal.emit('File exported successfully ')
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
-                                               buttons=QtWidgets.QMessageBox.Ok)
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
-    updateHandlerPrune = False # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
+    updateHandlerPrune = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
+
     def update_prune(self):
         """
         This method updates the figure containing the points of Tx and Rx
@@ -637,36 +628,36 @@ class MOGUI(QtWidgets.QWidget):
         """
         if self.updateHandlerPrune:
             return
-        
+
         self.updateHandlerPrune = True
-        
-        expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$") # float number, with or without decimals, and allowing negatives
-        expInt   = re.compile("^[0-9]+$")                 # positive integer
-        
-        for item in [self.min_elev_edit,  self.max_elev_edit,
+
+        expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$")  # float number, with or without decimals, and allowing negatives
+        expInt   = re.compile("^[0-9]+$")                  # positive integer
+
+        for item in [self.min_elev_edit, self.max_elev_edit,
                      self.round_fac_edit, self.thresh_edit,
-                     self.min_ang_edit,   self.max_ang_edit]:
-            
+                     self.min_ang_edit, self.max_ang_edit]:
+
             if item.text() != '' and not expFloat.match(item.text()):
                 item.setFocus()
                 QtWidgets.QMessageBox.warning(None, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
-                                   buttons=QtWidgets.QMessageBox.Ok)
+                                              buttons=QtWidgets.QMessageBox.Ok)
                 self.updateHandlerPrune = False
                 return
-            
+
             item.setText(item.text().replace(',', '.'))
-        
+
         for item in [self.skip_Rx_edit, self.skip_Tx_edit]:
-            
+
             if item.text() != '' and not expInt.match(item.text()):
                 item.setFocus()
                 QtWidgets.QMessageBox.warning(None, 'Warning', "Some edited information is incorrect. Edit fields cannot contain letters or special characters.",
-                                   buttons=QtWidgets.QMessageBox.Ok)
+                                              buttons=QtWidgets.QMessageBox.Ok)
                 self.updateHandlerPrune = False
                 return
-        
+
         self.updateHandlerPrune = False
-        
+
         # First, we get the mog instance's informations
         ind = self.MOG_list.selectedIndexes()
         mog = database.session.query(Mog).all()[ind[0].row()]
@@ -676,8 +667,8 @@ class MOGUI(QtWidgets.QWidget):
         inTx = []
 
         # Reinitialisation of the boolean vectors before modification
-        mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype= bool)
-        mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype= bool)
+        mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype=bool)
+        mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype=bool)
 
         # Information from all the edits of the prune widget
         new_min = float(self.min_elev_edit.text())
@@ -695,21 +686,20 @@ class MOGUI(QtWidgets.QWidget):
 
         # We first create a boolean vector which will have a True value if the elevation is greater or equals the new min
         # and will be False the other way
-        min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z),new_min)
+        min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z), new_min)
         min_Rx = np.greater_equal(-np.unique(np.sort(mog.data.Rx_z)), new_min)
 
         # Then we create another boolean vector which will have a True value if the elevation is less or equals the new max
         # and will be false otherwise
-        max_Tx = np.less_equal(-np.unique(mog.data.Tx_z),new_max)
-        max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max + 0.0000000001) #À voir avec bernard
-
+        max_Tx = np.less_equal(-np.unique(mog.data.Tx_z), new_max)
+        max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max + 0.0000000001)  # À voir avec bernard
 
         # Finally, we add these two boolean vectors as integer type. The subsequent vector will have values of 1 and 2,
         # but only the 2s are of interest because they mean that the value is true, either in the min vector than the
         # max vector.we than substract 1 to this vector and transform it to a boolean type to have the right points
         # plotted in the pruneFig
-        mog.in_Tx_vect = ( min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
-        mog.in_Rx_vect = ( min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
+        mog.in_Tx_vect = (min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
+        mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
 
         # We then append a False boolean vector to fit the lenght of ntrace
         mog.in_Tx_vect = np.append(mog.in_Tx_vect, np.ones(mog.data.ntrace - len(min_Tx), dtype=bool))
@@ -745,7 +735,7 @@ class MOGUI(QtWidgets.QWidget):
         dr = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 + (mog.data.Tx_y - mog.data.Rx_y)**2)
 
         # Then we call the arctan2 function from numpy which gives us the angle for every couple Tx-Rx
-        theta = np.arctan2(mog.data.Tx_z-mog.data.Rx_z, dr) * 180 / np.pi
+        theta = np.arctan2(mog.data.Tx_z - mog.data.Rx_z, dr) * 180 / np.pi
 
         # After finding all the angles of the Tx-Rx set, we do the same thing we did for the elevation
         min_theta = np.greater_equal(theta, ang_min)
@@ -754,7 +744,7 @@ class MOGUI(QtWidgets.QWidget):
         intheta = (min_theta.astype(int) + max_theta.astype(int) - 1).astype(bool)
 
         # We then look for the indexes of the angle values which don't fit in the restrictions
-        false_theta = np.where(intheta==False)
+        false_theta = np.where(not intheta)
 
         # Then we associate a false value to these indexes in the in_Rx_vect so the plot will contain only the Rx points
         # which fit the constraints values of the min_ang and max_ang edits
@@ -762,7 +752,7 @@ class MOGUI(QtWidgets.QWidget):
             mog.in_Rx_vect[false_index] = False
 
         if use_snr:
-            #TODO Faire la fonction detrend_rad
+            # TODO: Faire la fonction detrend_rad
             SNR = compute_SNR(mog)
 
         mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1).astype(bool)
@@ -774,7 +764,6 @@ class MOGUI(QtWidgets.QWidget):
         # well it's because the update prune method modifies the boolean vector in_Tx_vect and in_Rx_vect
         # and the applicatiomn of a round facotr modifies the data itself so we had to put it in the plotting
 
-
     def update_prune_edits_info(self):
         ind = self.MOG_list.selectedIndexes()
         for i in ind:
@@ -782,39 +771,38 @@ class MOGUI(QtWidgets.QWidget):
                 mog = database.session.query(Mog).all()[i.row()]
                 self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
                 self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
-    
+
                 if min(mog.data.Tx_z) < min(mog.data.Rx_z):
                     self.min_elev_edit.setText(str(-mog.data.Tx_z[-1]))
                     self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
-      
+
                 elif min(mog.data.Rx_z) < min(mog.data.Tx_z):
                     self.min_elev_edit.setText(str(-max(mog.data.Rx_z)))
                     self.max_elev_edit.setText(str(-min(mog.data.Rx_z)))
             except Exception as e:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : '" + str(e)[:42] + "...' [mog_ui 2]",
-                                    buttons=QtWidgets.QMessageBox.Ok)
-        
+                                              buttons=QtWidgets.QMessageBox.Ok)
 
     def update_prune_info(self):
         ind = self.MOG_list.selectedIndexes()
-        
+
         if ind:
             mog = database.session.query(Mog).all()[ind[0].row()]
             selected_angle = float(self.max_ang_edit.text()) - float(self.min_ang_edit.text())
             removed_Tx = mog.data.ntrace - sum(mog.in_Tx_vect)
             removed_Rx = mog.data.ntrace - sum(mog.in_Rx_vect)
-            removed_Tx_and_Rx = (removed_Tx + removed_Rx)/mog.data.ntrace * 100
+            removed_Tx_and_Rx = (removed_Tx + removed_Rx) / mog.data.ntrace * 100
             tot_traces = mog.data.ntrace
             selec_traces = sum(mog.in_vect)
-            kept_traces = (selec_traces/tot_traces)*100
-    
+            kept_traces = (selec_traces / tot_traces) * 100
+
             self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
             self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
             self.value_Tx_Rx_removed_label.setText(str(np.round(removed_Tx_and_Rx)))
-            self.value_ray_angle_removed_label.setText(str(np.round(((180-selected_angle)/180)*100)))
+            self.value_ray_angle_removed_label.setText(str(np.round(((180 - selected_angle) / 180) * 100)))
             self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
-    
-            # TODO updater le label qui contient la valeur du S/M ration lorsque la fonction computeSNR sera finie
+
+            # TODO: updater le label qui contient la valeur du S/M ration lorsque la fonction computeSNR sera finie
 
     def start_merge(self):
         self.mergemog = MergeMog(self)
@@ -822,11 +810,11 @@ class MOGUI(QtWidgets.QWidget):
 
         if len(self.MOG_list) == 0:
             QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
-                                          buttons= QtWidgets.QMessageBox.Ok )
+                                              buttons=QtWidgets.QMessageBox.Ok)
             return
         if len(self.MOG_list) == 1:
             QtWidgets.QMessageBox.information(self, 'Warning', "Only 1 MOG in Database",
-                                          buttons= QtWidgets.QMessageBox.Ok)
+                                              buttons=QtWidgets.QMessageBox.Ok)
             return
 
         for mog in database.session.query(Mog).all():
@@ -836,10 +824,10 @@ class MOGUI(QtWidgets.QWidget):
 
     def start_delta_t(self):
         self.deltat = DeltaTMOG(self)
-        
+
         if len(self.MOG_list) == 0:
             QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
-                                          buttons= QtWidgets.QMessageBox.Ok )
+                                              buttons=QtWidgets.QMessageBox.Ok)
             return
         for mog in database.session.query(Mog).all():
             self.deltat.min_combo.addItem(str(mog.name))
@@ -849,8 +837,8 @@ class MOGUI(QtWidgets.QWidget):
         item = chooseMOG(current_module)
         current_module.session.close()
         current_module.engine.dispose()
-        
-        if item != None:
+
+        if item is not None:
             item = database.session.merge(item)
             database.session.add(item)
             self.update_List_Widget()
@@ -875,7 +863,7 @@ class MOGUI(QtWidgets.QWidget):
         char1 = unicodedata.lookup("GREEK SMALL LETTER TAU")
         char2 = unicodedata.lookup("GREEK CAPITAL LETTER DELTA")
 
-        #-------- Creation of the manager for the ZOPRay figure -------#
+        # -------- Creation of the manager for the ZOPRay figure ------- #
         self.zopraysFig = ZOPRaysFig()
         self.zopraysmanager = QtWidgets.QWidget()
         self.zopraystool = NavigationToolbar2QT(self.zopraysFig, self)
@@ -884,7 +872,7 @@ class MOGUI(QtWidgets.QWidget):
         zopraysmanagergrid.addWidget(self.zopraysFig, 1, 0)
         self.zopraysmanager.setLayout(zopraysmanagergrid)
 
-        #-------- Creation of the manager for the Stats Amp figure -------#
+        # -------- Creation of the manager for the Stats Amp figure ------- #
         self.statsampFig = StatsAmpFig()
         self.statsampmanager = QtWidgets.QWidget()
         self.statsamptool = NavigationToolbar2QT(self.statsampFig, self)
@@ -893,7 +881,7 @@ class MOGUI(QtWidgets.QWidget):
         statsampmanagergrid.addWidget(self.statsampFig, 1, 0)
         self.statsampmanager.setLayout(statsampmanagergrid)
 
-        #------- Creation of the manager for the Stats tt figure -------#
+        # ------- Creation of the manager for the Stats tt figure ------- #
         self.statsttFig = StatsttFig()
         self.statsttmanager = QtWidgets.QWidget()
         self.statstttool = NavigationToolbar2QT(self.statsttFig, self)
@@ -902,8 +890,8 @@ class MOGUI(QtWidgets.QWidget):
         statsttmanagergrid.addWidget(self.statsttFig, 1, 0)
         self.statsttmanager.setLayout(statsttmanagergrid)
 
-        #------- Widgets in Prune -------#
-        #--- Labels ---#
+        # ------- Widgets in Prune ------- #
+        # --- Labels --- #
         skip_Tx_label   = MyQLabel('Number of stations to Skip - Tx', ha='center')
         skip_Rx_label   = MyQLabel('Number of stations to Skip - Rx', ha='center')
         round_fac_label = MyQLabel('Rounding Factor', ha='center')
@@ -927,7 +915,7 @@ class MOGUI(QtWidgets.QWidget):
         self.value_ray_angle_removed_label = MyQLabel('0', ha='right')
         self.value_traces_kept_label = MyQLabel('100', ha='right')
 
-        #--- Edits ---#
+        # --- Edits --- #
         self.skip_Tx_edit = QtWidgets.QLineEdit('0')
         self.skip_Rx_edit = QtWidgets.QLineEdit('0')
         self.round_fac_edit = QtWidgets.QLineEdit('0')
@@ -956,18 +944,18 @@ class MOGUI(QtWidgets.QWidget):
         self.max_elev_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.thresh_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        #--- CheckBox ---#
+        # --- CheckBox --- #
         self.thresh_check = QtWidgets.QCheckBox('Threshold - SNR')
 
         # - CheckBox Action -#
         self.thresh_check.stateChanged.connect(self.update_prune)
 
-        #--- Button ---#
+        # --- Button --- #
         btn_done = QtWidgets.QPushButton('Done')
 
-        #--- Info Frame ---#
+        # --- Info Frame --- #
         info_frame = QtWidgets.QFrame()
-        info_frame_grid =QtWidgets.QGridLayout()
+        info_frame_grid = QtWidgets.QGridLayout()
         info_frame_grid.addWidget(self.value_Tx_info_label, 1, 0)
         info_frame_grid.addWidget(Tx_info_label, 1, 1)
         info_frame_grid.addWidget(self.value_Rx_info_label, 2, 0)
@@ -984,13 +972,13 @@ class MOGUI(QtWidgets.QWidget):
         info_frame.setLayout(info_frame_grid)
         info_frame.setStyleSheet('background: white')
 
-        #--- Info GroupBox ---#
+        # --- Info GroupBox --- #
         info_group = QtWidgets.QGroupBox('Informations')
         info_grid = QtWidgets.QGridLayout()
         info_grid.addWidget(info_frame, 0, 0)
         info_group.setLayout(info_grid)
 
-        #--- Prune SubWidget ---#
+        # --- Prune SubWidget --- #
         Sub_prune_widget = QtWidgets.QWidget()
         Sub_prune_grid = QtWidgets.QGridLayout()
         Sub_prune_grid.addWidget(skip_Tx_label, 0, 0)
@@ -1013,7 +1001,7 @@ class MOGUI(QtWidgets.QWidget):
         Sub_prune_grid.addWidget(btn_done, 17, 0)
         Sub_prune_widget.setLayout(Sub_prune_grid)
 
-        #-------- Creation of the manager for Prune Figure --------#
+        # -------- Creation of the manager for Prune Figure -------- #
         self.pruneFig = PruneFig()
         self.prunetool = NavigationToolbar2QT(self.pruneFig, self)
         self.prunemanager = QtWidgets.QWidget()
@@ -1025,8 +1013,8 @@ class MOGUI(QtWidgets.QWidget):
 #         prunemanagergrid.setRowStretch(0, 100)
         self.prunemanager.setLayout(prunemanagergrid)
 
-        #------- Widgets in Raycoverage -------#
-        #--- Edit ---#
+        # ------- Widgets in Raycoverage ------- #
+        # --- Edit --- #
         self.trace_num_edit = QtWidgets.QLineEdit('1')
 
         # - Edit's Actions -#
@@ -1036,7 +1024,7 @@ class MOGUI(QtWidgets.QWidget):
         # - Edit's Disposition -#
         self.trace_num_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        #--- Buttons ---#
+        # --- Buttons --- #
         next_trace_btn = QtWidgets.QPushButton('Next Tx')
         prev_trace_btn = QtWidgets.QPushButton('Prev Tx')
 
@@ -1044,36 +1032,36 @@ class MOGUI(QtWidgets.QWidget):
         next_trace_btn.clicked.connect(self.next_trace)
         prev_trace_btn.clicked.connect(self.prev_trace)
 
-        #--- List ---#
+        # --- List --- #
         self.trace_num_combo = QtWidgets.QComboBox()
 
         # - List Actions -#
         self.trace_num_combo.activated.connect(self.update_spectra_and_coverage_Tx_elev_value_label)
         self.trace_num_combo.activated.connect(self.plot_ray_coverage)
 
-        #--- Labels ---#
-        coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
-        self.value_elev_label = MyQLabel('', ha= 'left')
-        trace_label = MyQLabel('Tx Number: ', ha= 'right')
+        # --- Labels --- #
+        coverage_elev_label = MyQLabel('Tx elevation:', ha='right')
+        self.value_elev_label = MyQLabel('', ha='left')
+        trace_label = MyQLabel('Tx Number: ', ha='right')
 
-        #--- CheckBox ---#
+        # --- CheckBox --- #
         self.entire_coverage_check = QtWidgets.QCheckBox('Show entire coverage')
         self.entire_coverage_check.stateChanged.connect(self.plot_ray_coverage)
 
-        #--- Combobox ---#
+        # --- Combobox --- #
         self.show_type_combo = QtWidgets.QComboBox()
         show_list = ['Show picked and unpicked', 'Show picked only', 'Show unpicked only']
         self.show_type_combo.addItems(show_list)
         self.show_type_combo.activated.connect(self.plot_ray_coverage)
 
-        #--- Elevation SubWidget ---#
+        # --- Elevation SubWidget --- #
         sub_coverage_elev_widget = QtWidgets.QWidget()
         sub_coverage_elev_grid = QtWidgets.QGridLayout()
         sub_coverage_elev_grid.addWidget(coverage_elev_label, 0, 0)
         sub_coverage_elev_grid.addWidget(self.value_elev_label, 0, 1)
         sub_coverage_elev_widget.setLayout(sub_coverage_elev_grid)
 
-        #--- Trace SubWidget ---#
+        # --- Trace SubWidget --- #
         sub_trace_widget = QtWidgets.QWidget()
         sub_trace_grid = QtWidgets.QGridLayout()
         sub_trace_grid.addWidget(trace_label, 0, 0)
@@ -1081,7 +1069,7 @@ class MOGUI(QtWidgets.QWidget):
         sub_trace_grid.setContentsMargins(0, 0, 0, 0)
         sub_trace_widget.setLayout(sub_trace_grid)
 
-        #--- Buttons SubWidget ---#
+        # --- Buttons SubWidget --- #
         sub_buttons_widget = QtWidgets.QWidget()
         sub_buttons_grid = QtWidgets.QGridLayout()
         sub_buttons_grid.addWidget(next_trace_btn, 0, 1)
@@ -1089,18 +1077,18 @@ class MOGUI(QtWidgets.QWidget):
         sub_buttons_grid.setContentsMargins(0, 0, 0, 0)
         sub_buttons_widget.setLayout(sub_buttons_grid)
 
-        #--- Global SubWidget ---#
-        #First Option
-        #sub_coverage_widget = QtWidgets.QWidget()
-        #sub_coverage_grid = QtWidgets.QGridLayout()
-        #sub_coverage_grid.addWidget(self.trace_num_combo, 0, 0)
-        #sub_coverage_grid.addWidget(sub_coverage_elev_widget, 1, 0)
-        #sub_coverage_grid.addWidget(self.entire_coverage_check, 2, 0)
-        #sub_coverage_grid.addWidget(self.show_type_combo, 3, 0)
-        #sub_coverage_grid.setRowStretch(4, 100)
-        #sub_coverage_widget.setLayout(sub_coverage_grid)
+        # --- Global SubWidget --- #
+        # First Option
+        # sub_coverage_widget = QtWidgets.QWidget()
+        # sub_coverage_grid = QtWidgets.QGridLayout()
+        # sub_coverage_grid.addWidget(self.trace_num_combo, 0, 0)
+        # sub_coverage_grid.addWidget(sub_coverage_elev_widget, 1, 0)
+        # sub_coverage_grid.addWidget(self.entire_coverage_check, 2, 0)
+        # sub_coverage_grid.addWidget(self.show_type_combo, 3, 0)
+        # sub_coverage_grid.setRowStretch(4, 100)
+        # sub_coverage_widget.setLayout(sub_coverage_grid)
 
-        #Second Option
+        # Second Option
         sub_coverage_widget = QtWidgets.QWidget()
         sub_coverage_grid = QtWidgets.QGridLayout()
         sub_coverage_grid.addWidget(sub_trace_widget, 0, 0)
@@ -1111,8 +1099,7 @@ class MOGUI(QtWidgets.QWidget):
 #         sub_coverage_grid.setRowStretch(5, 100)
         sub_coverage_widget.setLayout(sub_coverage_grid)
 
-
-        #-------- Creation of the manager for the Ray Coverage figure -------#
+        # -------- Creation of the manager for the Ray Coverage figure ------- #
         self.raycoverageFig = RayCoverageFig()
         self.raymanager = QtWidgets.QWidget()
         self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
@@ -1122,15 +1109,15 @@ class MOGUI(QtWidgets.QWidget):
         raymanagergrid.addWidget(sub_coverage_widget, 1, 1)
         self.raymanager.setLayout(raymanagergrid)
 
-        #-------- Widgets in ZOP -------#
-        #--- Labels ---#
-        tmin_label = MyQLabel('t min', ha= 'right')
-        tmax_label = MyQLabel('t max', ha= 'right')
-        zmin_label = MyQLabel('z min', ha= 'right')
-        zmax_label = MyQLabel('z max', ha= 'right')
+        # -------- Widgets in ZOP ------- #
+        # --- Labels --- #
+        tmin_label = MyQLabel('t min', ha='right')
+        tmax_label = MyQLabel('t max', ha='right')
+        zmin_label = MyQLabel('z min', ha='right')
+        zmax_label = MyQLabel('z max', ha='right')
         tol_label = MyQLabel('Vertical Tx-Rx Offset Tolerance')
 
-        #--- Edits ---#
+        # --- Edits --- #
         self.tmin_edit = QtWidgets.QLineEdit()
         self.tmax_edit = QtWidgets.QLineEdit()
         self.zmin_edit = QtWidgets.QLineEdit()
@@ -1138,7 +1125,7 @@ class MOGUI(QtWidgets.QWidget):
         self.tol_edit  = QtWidgets.QLineEdit('0.05')
         self.color_scale_edit = QtWidgets.QLineEdit('7000')
 
-        #--- Edits Disposition ---#
+        # --- Edits Disposition --- #
         self.tmin_edit.setFixedWidth(80)
         self.tmax_edit.setFixedWidth(80)
         self.zmin_edit.setFixedWidth(80)
@@ -1163,7 +1150,7 @@ class MOGUI(QtWidgets.QWidget):
         self.tol_edit.editingFinished.connect(self.plot_zop)
         self.color_scale_edit.editingFinished.connect(self.plot_zop)
 
-        #--- Combobox ---#
+        # --- Combobox --- #
         self.color_scale_combo = QtWidgets.QComboBox()
 
         # - ComboBox Actions -#
@@ -1175,7 +1162,7 @@ class MOGUI(QtWidgets.QWidget):
         self.color_scale_combo.addItem('Medium')
         self.color_scale_combo.addItem('High')
 
-        #--- Checkboxes ---#
+        # --- Checkboxes --- #
         self.veloc_check = QtWidgets.QCheckBox('Show Apparent Velocity')
         self.const_check = QtWidgets.QCheckBox("Show BH's Velocity Constaints")
         self.amp_check = QtWidgets.QCheckBox('Show Amplitude Data')
@@ -1185,15 +1172,15 @@ class MOGUI(QtWidgets.QWidget):
         self.const_check.stateChanged.connect(self.plot_zop)
         self.amp_check.stateChanged.connect(self.plot_zop)
 
-        #--- Buttons ---#
+        # --- Buttons --- #
         btn_show = QtWidgets.QPushButton('Show Rays')
         btn_print = QtWidgets.QPushButton('Print')
 
-        #--- Buttons' Actions ---#
+        # --- Buttons' Actions --- #
         btn_show.clicked.connect(self.plot_zop_rays)
 
-        #------- SubWidgets in ZOP -------#
-        #--- Time and Elevation SubWidget ---#
+        # ------- SubWidgets in ZOP ------- #
+        # --- Time and Elevation SubWidget --- #
         Sub_t_and_z_widget = QtWidgets.QWidget()
         Sub_t_and_z_grid = QtWidgets.QGridLayout()
         Sub_t_and_z_grid.addWidget(tmin_label, 0, 0)
@@ -1206,7 +1193,7 @@ class MOGUI(QtWidgets.QWidget):
         Sub_t_and_z_grid.addWidget(self.zmax_edit, 3, 1)
         Sub_t_and_z_widget.setLayout(Sub_t_and_z_grid)
 
-        #--- tolerance SubWidget ---#
+        # --- tolerance SubWidget --- #
         Sub_tol_widget = QtWidgets.QWidget()
         Sub_tol_grid = QtWidgets.QGridLayout()
         Sub_tol_grid.addWidget(tol_label, 0, 0)
@@ -1214,8 +1201,8 @@ class MOGUI(QtWidgets.QWidget):
         Sub_tol_grid.setAlignment(QtCore.Qt.AlignCenter)
         Sub_tol_widget.setLayout(Sub_tol_grid)
 
-        #------- Groupboxes in ZOP -------#
-        #--- Color Scale GroupBox ---#
+        # ------- Groupboxes in ZOP ------- #
+        # --- Color Scale GroupBox --- #
         color_group = QtWidgets.QGroupBox('Color Scale')
         color_grid = QtWidgets.QGridLayout()
         color_grid.addWidget(self.color_scale_edit, 0, 0)
@@ -1223,7 +1210,7 @@ class MOGUI(QtWidgets.QWidget):
         color_grid.setAlignment(QtCore.Qt.AlignCenter)
         color_group.setLayout(color_grid)
 
-        #--- Control GroupBox ---#
+        # --- Control GroupBox --- #
         control_group = QtWidgets.QGroupBox('Control')
         control_grid = QtWidgets.QGridLayout()
         control_grid.addWidget(Sub_t_and_z_widget, 0, 0)
@@ -1236,8 +1223,7 @@ class MOGUI(QtWidgets.QWidget):
         control_grid.addWidget(btn_print, 7, 0)
         control_group.setLayout(control_grid)
 
-
-        #------- Creation of the manager for the ZOP figure -------#
+        # ------- Creation of the manager for the ZOP figure ------- #
         self.zopFig = ZOPFig(self)
         self.zopmanager = QtWidgets.QWidget()
         zopmanagergrid = QtWidgets.QGridLayout()
@@ -1247,8 +1233,7 @@ class MOGUI(QtWidgets.QWidget):
 #         zopmanagergrid.setRowStretch(1, 100)
         self.zopmanager.setLayout(zopmanagergrid)
 
-
-        #------- Creation of the Manager for the raw Data figure -------#
+        # ------- Creation of the Manager for the raw Data figure ------- #
         self.rawdataFig = RawDataFig()
         self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
         self.rawdatamanager = QtWidgets.QWidget()
@@ -1257,19 +1242,18 @@ class MOGUI(QtWidgets.QWidget):
         rawdatamanagergrid.addWidget(self.rawdataFig, 1, 0)
         self.rawdatamanager.setLayout(rawdatamanagergrid)
 
-
-        #--- Widgets in Spectra ---#
+        # --- Widgets in Spectra --- #
         # - Labels -#
         Tx_num_label = MyQLabel(('Tx Number'), ha='center')
         Tx_elev_label = QtWidgets.QLabel('Tx elevation: ')
         self.Tx_elev_value_label = QtWidgets.QLabel('')
-        psd_label = MyQLabel(('PSD Estimation Method'), ha= 'center')
+        psd_label = MyQLabel(('PSD Estimation Method'), ha='center')
         f_max_label = MyQLabel(('F Max'), ha='center')
         snr_label = MyQLabel(('SNR Scale'), ha='center')
         f_min_label = MyQLabel(('F Min'), ha='right')
         f_maxi_label = MyQLabel(('F Max'), ha='right')
-        self.search_info_label = MyQLabel((''), ha= 'center')
-        self.info_label = MyQLabel((''), ha= 'center')
+        self.search_info_label = MyQLabel((''), ha='center')
+        self.info_label = MyQLabel((''), ha='center')
 
         # - Edits -#
         self.f_max_edit = QtWidgets.QLineEdit('400')
@@ -1361,7 +1345,7 @@ class MOGUI(QtWidgets.QWidget):
         sub_freq_widget.setLayout(sub_freq_grid)
 
         # - Dominant frequency Groupbox -#
-        dominant_frequency_GroupBox =  QtWidgets.QGroupBox("Dominant Frequency")
+        dominant_frequency_GroupBox = QtWidgets.QGroupBox("Dominant Frequency")
         dominant_frequency_Grid     = QtWidgets.QGridLayout()
         dominant_frequency_Grid.addWidget(sub_freq_widget, 0, 0)
         dominant_frequency_Grid.addWidget(self.compute_check, 1, 0)
@@ -1375,7 +1359,7 @@ class MOGUI(QtWidgets.QWidget):
 #         sub_total_grid.setRowStretch(1, 100)
         sub_total_widget.setLayout(sub_total_grid)
 
-        #------ Creation of the Manager for the Spectra figure -------#
+        # ------ Creation of the Manager for the Spectra figure ------- #
         self.spectraFig = SpectraFig()
         self.spectratool = NavigationToolbar2QT(self.spectraFig, self)
         self.spectramanager = QtWidgets.QWidget()
@@ -1388,8 +1372,8 @@ class MOGUI(QtWidgets.QWidget):
 #         spectramanagergrid.setColumnStretch(1, 100)
         self.spectramanager.setLayout(spectramanagergrid)
 
-        #------- Widgets Creation -------#
-        #--- Buttons Set ---#
+        # ------- Widgets Creation ------- #
+        # --- Buttons Set --- #
         btn_Add_MOG                 = QtWidgets.QPushButton("Add MOG")
         btn_Remove_MOG              = QtWidgets.QPushButton("Remove MOG")
         btn_Air_Shot_Before         = QtWidgets.QPushButton("Air Shot Before")
@@ -1408,13 +1392,13 @@ class MOGUI(QtWidgets.QWidget):
         btn_Prune                   = QtWidgets.QPushButton("Prune")
         btn_delta_t_mog             = QtWidgets.QPushButton(" Create {}t MOG".format(char2))
 
-        #--- List ---#
+        # --- List --- #
         self.MOG_list = QtWidgets.QListWidget()
 
-        #--- List Actions ---#
+        # --- List Actions --- #
         self.MOG_list.itemSelectionChanged.connect(self.update_edits)
 
-        #--- ComboBoxes ---#
+        # --- ComboBoxes --- #
         self.Type_combo = QtWidgets.QComboBox()
         self.Tx_combo = QtWidgets.QComboBox()
         self.Rx_combo = QtWidgets.QComboBox()
@@ -1427,14 +1411,14 @@ class MOGUI(QtWidgets.QWidget):
         self.Tx_combo.activated.connect(self.updateCoords)
         self.Rx_combo.activated.connect(self.updateCoords)
 
-        #--- CheckBox ---#
+        # --- CheckBox --- #
         self.Air_shots_checkbox                  = QtWidgets.QCheckBox("Use Air Shots")
         Correction_Factor_checkbox          = QtWidgets.QCheckBox("Fixed Time Step Correction Factor")
 
         # - CheckBoxes' Actions -#
         self.Air_shots_checkbox.stateChanged.connect(self.use_air)
 
-        #--- Labels ---#
+        # --- Labels --- #
         Type_label                          = MyQLabel('Type:', ha='right')
         Tx_label                            = MyQLabel('Tx:', ha='right')
         Rx_label                            = MyQLabel('Rx:', ha='right')
@@ -1444,7 +1428,7 @@ class MOGUI(QtWidgets.QWidget):
         Multiplication_Factor_label         = MyQLabel('Std Dev. Multiplication Factor:', ha='right')
         Date_label                          = MyQLabel('Date:', ha='right')
 
-        #--- Edits ---#
+        # --- Edits --- #
         self.Air_Shot_Before_edit                = QtWidgets.QLineEdit()
         self.Air_Shot_After_edit                 = QtWidgets.QLineEdit()
         self.Nominal_Frequency_edit              = QtWidgets.QLineEdit()
@@ -1466,8 +1450,8 @@ class MOGUI(QtWidgets.QWidget):
 
         # - Edits Disposition -#
         self.Date_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        
-        #--- Buttons actions ---#
+
+        # --- Buttons actions --- #
         btn_Add_MOG.clicked.connect(self.add_MOG)
         btn_Rename.clicked.connect(self.rename)
         btn_Remove_MOG.clicked.connect(self.del_MOG)
@@ -1486,7 +1470,7 @@ class MOGUI(QtWidgets.QWidget):
         btn_delta_t_mog.clicked.connect(self.start_delta_t)
         btn_Import.clicked.connect(self.import_mog)
 
-        #--- Sub Widgets ---#
+        # --- Sub Widgets --- #
         # - Sub AirShots Widget-#
         Sub_AirShots_Widget                 = QtWidgets.QWidget()
         Sub_AirShots_Grid                   = QtWidgets.QGridLayout()
@@ -1553,28 +1537,28 @@ class MOGUI(QtWidgets.QWidget):
         sub_MOG_and_List_Grid.addWidget(self.MOG_list, 1, 0, 1, 2)
         sub_MOG_and_List_Grid.setContentsMargins(0, 0, 0, 0)
         sub_MOG_and_List_widget.setLayout(sub_MOG_and_List_Grid)
-        
-        #------- Grid Disposition -------#
+
+        # ------- Grid Disposition ------- #
         master_grid                        = QtWidgets.QGridLayout()
-        #--- Sub Widgets Disposition ---#
+        # --- Sub Widgets Disposition --- #
         master_grid.addWidget(sub_MOG_and_List_widget, 0, 0)
         master_grid.addWidget(sub_right_buttons_widget, 0, 1)
         master_grid.addWidget(Sub_Labels_Checkbox_and_Edits_Widget, 1, 1)
         master_grid.addWidget(Sub_AirShots_Widget, 1, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
-        
-        # ------- set Layout -------#
+
+        # ------- set Layout ------- #
         self.setLayout(master_grid)
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       MyQLabel Class for easy Label Alignment
 #
-#-----------------------------------------------------------------------------------------------------------------------
-class  MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left',  parent= None):
-        super(MyQLabel, self).__init__(label,parent)
+# -----------------------------------------------------------------------------------------------------------------------
+class MyQLabel(QtWidgets.QLabel):
+    def __init__(self, label, ha='left', parent=None):
+        super(MyQLabel, self).__init__(label, parent)
         if ha == 'center':
             self.setAlignment(QtCore.Qt.AlignCenter)
         elif ha == 'right':
@@ -1583,11 +1567,11 @@ class  MyQLabel(QtWidgets.QLabel):
             self.setAlignment(QtCore.Qt.AlignLeft)
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Raw Data Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class RawDataFig(FigureCanvasQTAgg):
 
     def __init__(self):
@@ -1598,7 +1582,7 @@ class RawDataFig(FigureCanvasQTAgg):
     def initFig(self):
         ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
         divider = make_axes_locatable(ax)
-        divider.append_axes('right', size= 0.5, pad= 0.1)
+        divider.append_axes('right', size=0.5, pad=0.1)
         ax.set_axisbelow(True)
 
     def plot_raw_data(self, mogd):
@@ -1609,20 +1593,20 @@ class RawDataFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(ax1, 'Trace No')
         mpl.axes.Axes.set_ylabel(ax1, 'Time units[{}]'.format(mogd.tunits))
         cmax = np.abs(max(mogd.rdata.flatten()))
-        h = ax1.imshow(mogd.rdata,cmap='seismic', interpolation='none',aspect= 'auto', vmin= -cmax, vmax= cmax  )
+        h = ax1.imshow(mogd.rdata, cmap='seismic', interpolation='none', aspect='auto', vmin=-cmax, vmax=cmax)
         mpl.colorbar.Colorbar(ax2, h)
 
         self.draw()
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Spectra Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class SpectraFig(FigureCanvasQTAgg):
     def __init__(self):
-        fig = mpl.figure.Figure(facecolor= 'white')
+        fig = mpl.figure.Figure(facecolor='white')
         super(SpectraFig, self).__init__(fig)
         self.initFig()
 
@@ -1639,10 +1623,9 @@ class SpectraFig(FigureCanvasQTAgg):
         self.ax2.cla()
         self.ax3.cla()
 
-        Tx= np.unique(mog.data.Tx_z)
+        Tx = np.unique(mog.data.Tx_z)
 
         ind = Tx[n] == mog.data.Tx_z
-
 
         fac_f = 1
         fac_t = 1
@@ -1658,19 +1641,18 @@ class SpectraFig(FigureCanvasQTAgg):
 
         dt = mog.data.timec * mog.fac_dt
         dt = dt * fac_t
-        Fs = 1/dt
+        Fs = 1 / dt
 
         # Getting the maximum amplitude value for each column
-        A = np.amax(mog.data.rdata, axis= 0)
+        A = np.amax(mog.data.rdata, axis=0)
 
         # Making a matrix which has the same size as rdata but filled with the maximum amplitude of each column
-        Amax= np.tile(A, (550,1))
+        Amax = np.tile(A, (550, 1))
 
         # Dividing the original rdata by A max in order to have a normalised amplitude matrix
-        normalised_rdata = mog.data.rdata/Amax
+        normalised_rdata = mog.data.rdata / Amax
 
         traces = normalised_rdata[:, ind]
-
 
         if filter_state:
             # Applying Lowpass Filter
@@ -1687,10 +1669,10 @@ class SpectraFig(FigureCanvasQTAgg):
                 traces[:, nt] = spy.signal.filtfilt(b, a, traces[:, nt], method='gust')
 
         if method == 'Welch':
-            freq, tmp = spy.signal.welch(traces[:,0], Fs)
-            Pxx = np.zeros((len(tmp),np.shape(traces)[1]))
+            freq, tmp = spy.signal.welch(traces[:, 0], Fs)
+            Pxx = np.zeros((len(tmp), np.shape(traces)[1]))
             Pxx[:, 0] = tmp
-            for nt in range(1,np.shape(traces)[1]):
+            for nt in range(1, np.shape(traces)[1]):
                 freq, Pxx[:, nt] = spy.signal.welch(traces[:, nt], Fs)
             self.ax2.imshow(np.log10(Pxx).T[:, :Fmax],
                             cmap='plasma',
@@ -1706,15 +1688,15 @@ class SpectraFig(FigureCanvasQTAgg):
                             interpolation='none',
                             extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
 
-        #TODO calculer le spectre avec la méthode Burg
+        # TODO: calculer le spectre avec la méthode Burg
         if method == 'Burg - Order 2':
             Pxx = arburg(traces, 2)
             self.ax2.imshow(np.log10(Pxx).T[:, :Fmax], cmap='plasma', aspect='auto',
-                        interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
+                            interpolation='none', extent=[0, Fmax, -np.round(np.max(mog.data.Tx_z)), 0])
         if method == 'Burg - Order 3':
-            Pxx = spectrum.arburg(traces[:, nt], 3)
+            Pxx = arburg(traces[:, nt], 3)
         if method == 'Burg - Order 4':
-            Pxx = spectrum.arburg(traces[:, nt], 4)
+            Pxx = arburg(traces[:, nt], 4)
 
         win_snr = np.round(20 / mog.data.timec)
         SNR = data_select(traces, f0, dt, win_snr)
@@ -1726,21 +1708,20 @@ class SpectraFig(FigureCanvasQTAgg):
         # These next conditions ensure the consistency ok the link between the signal to noise ratio and the amplitudes
         if mog.data.Rx_z[ind][-1] > mog.data.Rx_z[ind][0]:
             self.ax1.imshow(traces.T,
-                            extent= [0, mog.data.nptsptrc, mog.data.Rx_z[ind][0], mog.data.Rx_z[ind][-1]],
-                            cmap= 'plasma',
-                            aspect= 'auto',
-                            interpolation= 'none',
-                            vmin = cmin,
-                            vmax = cmax)
+                            extent=[0, mog.data.nptsptrc, mog.data.Rx_z[ind][0], mog.data.Rx_z[ind][-1]],
+                            cmap='plasma',
+                            aspect='auto',
+                            interpolation='none',
+                            vmin=cmin,
+                            vmax=cmax)
         else:
             self.ax1.imshow(traces[::1].T,
-                            extent= [0, mog.data.nptsptrc, mog.data.Rx_z[ind][-1] , mog.data.Rx_z[ind][0]],
-                            cmap= 'plasma',
-                            aspect= 'auto',
-                            interpolation= 'none',
-                            vmin = cmin,
-                            vmax = cmax)
-
+                            extent=[0, mog.data.nptsptrc, mog.data.Rx_z[ind][-1], mog.data.Rx_z[ind][0]],
+                            cmap='plasma',
+                            aspect='auto',
+                            interpolation='none',
+                            vmin=cmin,
+                            vmax=cmax)
 
         if scale == 'Linear':
             if mog.data.Rx_z[ind][0] > mog.data.Rx_z[ind][-1]:
@@ -1749,7 +1730,6 @@ class SpectraFig(FigureCanvasQTAgg):
             else:
                 self.ax3.plot(SNR, mog.data.Rx_z[ind])
                 self.ax3.set_ylim(mog.data.Rx_z[ind][0], mog.data.Rx_z[ind][-1])
-
 
         elif scale == 'Logarithmic':
             if mog.data.Rx_z[ind][0] > mog.data.Rx_z[ind][-1]:
@@ -1772,14 +1752,14 @@ class SpectraFig(FigureCanvasQTAgg):
         self.draw()
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Zero Offset Profile (ZOP) Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class ZOPFig(FigureCanvasQTAgg):
     def __init__(self, ui):
-        fig = mpl.figure.Figure(facecolor= 'white')
+        fig = mpl.figure.Figure(facecolor='white')
         super(ZOPFig, self).__init__(fig)
         self.ui = ui
         self.initFig()
@@ -1805,7 +1785,6 @@ class ZOPFig(FigureCanvasQTAgg):
         amp_state = self.ui.amp_check.isChecked()
         color_scale = float(self.ui.color_scale_edit.text())
 
-
         dz = np.abs(mog.data.Tx_z - mog.data.Rx_z)
         zop_ind = np.where(dz <= tol)[0]
 
@@ -1827,77 +1806,74 @@ class ZOPFig(FigureCanvasQTAgg):
         if veloc_state:
 
             self.ax2.plot(vapp[zop_picked_ind], mog.data.Rx_z[zop_picked_ind],
-                          marker = 'o',
-                          fillstyle= 'none',
-                          color= 'blue',
-                          markersize= 5,
-                          mew= 1,
-                          ls = 'None')
+                          marker='o',
+                          fillstyle='none',
+                          color='blue',
+                          markersize=5,
+                          mew=1,
+                          ls='None')
 
             self.ax2.plot([in_plus[zop_picked_ind], in_minus[zop_picked_ind]],
                           [mog.data.Rx_z[zop_ind], mog.data.Rx_z[zop_ind]],
-                          color= 'grey')
+                          color='grey')
             self.ax2.set_xlabel('Apparent velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
             self.ax2.set_ylim(zmin, zmax)
 
-
         if scont_state:
-            self.ax2.plot(1/mog.Tx.scont.valeur,
+            self.ax2.plot(1 / mog.Tx.scont.valeur,
                           mog.Tx.scont.z,
-                          color= 'black')
+                          color='black')
 
-        #TODO: faire le module bh_tomo_amp afin de pouvoir obtenir les informations sur les amplitudes
+        # TODO: faire le module bh_tomo_amp afin de pouvoir obtenir les informations sur les amplitudes
         if amp_state:
-            rayl = np.sqrt((mog.data.Tx_x[zop_ind] - mog.data.Rx_x[zop_ind])**2
-                         + (mog.data.Tx_y[zop_ind] - mog.data.Rx_y[zop_ind])**2
-                         + (mog.data.Tx_z[zop_ind] - mog.data.Rx_z[zop_ind])**2)
-
+            rayl = np.sqrt((mog.data.Tx_x[zop_ind] - mog.data.Rx_x[zop_ind])**2 +
+                           (mog.data.Tx_y[zop_ind] - mog.data.Rx_y[zop_ind])**2 +
+                           (mog.data.Tx_z[zop_ind] - mog.data.Rx_z[zop_ind])**2)
 
         self.ax1.imshow(mog.data.rdata[:, zop_ind].T,
-                        extent= [mog.data.timestp[0], mog.data.timestp[-1], zmin, zmax],
-                        interpolation= 'none',
-                        cmap= 'seismic',
-                        aspect= 'auto',
-                        vmin = -color_scale,
-                        vmax= color_scale)
+                        extent=[mog.data.timestp[0], mog.data.timestp[-1], zmin, zmax],
+                        interpolation='none',
+                        cmap='seismic',
+                        aspect='auto',
+                        vmin=-color_scale,
+                        vmax=color_scale)
 
         self.ax1.set_ylim(zmin, zmax)
         self.ax1.set_xlim(mog.data.timestp[0], mog.data.timestp[-1])
 
-
         self.ax1.plot(mog.tt[zop_picked_ind],
-                        mog.data.Rx_z[zop_picked_ind],
-                        marker = 'o',
-                        fillstyle= 'none',
-                        color= 'green',
-                        markersize= 5,
-                        mew= 2,
-                        ls = 'None')
+                      mog.data.Rx_z[zop_picked_ind],
+                      marker='o',
+                      fillstyle='none',
+                      color='green',
+                      markersize=5,
+                      mew=2,
+                      ls='None')
 
         self.draw()
 
     def calculate_Vapp(self, mog, air):
 
-        hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2
-                      + (mog.data.Tx_y - mog.data.Rx_y )**2
-                      + (mog.data.Tx_z -  mog.data.Rx_z )**2)
+        hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 +
+                      (mog.data.Tx_y - mog.data.Rx_y)**2 +
+                      (mog.data.Tx_z - mog.data.Rx_z)**2)
 
         tt, t0 = mog.getCorrectedTravelTimes(air)
         et = mog.et
-        vapp = hyp/tt
-        in_minus = hyp/(tt-et)
-        in_plus = hyp/(tt+et)
+        vapp = hyp / tt
+        in_minus = hyp / (tt - et)
+        in_plus = hyp / (tt + et)
         return tt, in_plus, in_minus, vapp
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       ZOP Rays Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class ZOPRaysFig(FigureCanvasQTAgg):
     def __init__(self):
-        fig = mpl.figure.Figure(figsize=(6,8), facecolor='white')
+        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(ZOPRaysFig, self).__init__(fig)
         self.initFig()
 
@@ -1910,8 +1886,7 @@ class ZOPRaysFig(FigureCanvasQTAgg):
 
         zop = np.less_equal(dz, offset_tol)
 
-
-        false_ind = np.nonzero(zop == False)
+        false_ind = np.nonzero(not zop)
 
         Tx_zs = mog.data.Tx_z
         Rx_zs = mog.data.Rx_z
@@ -1943,16 +1918,16 @@ class ZOPRaysFig(FigureCanvasQTAgg):
         Tx_Rx_zs = Tx_Rx_zs.T
 
         for i in range(num_Tx):
-            self.ax.plot(xs= Tx_Rx_xs[:, i], ys= Tx_Rx_ys[:, i], zs= Tx_Rx_zs[:, i], c='g')
+            self.ax.plot(xs=Tx_Rx_xs[:, i], ys=Tx_Rx_ys[:, i], zs=Tx_Rx_zs[:, i], c='g')
 
         self.ax.plot(mog.Tx.fdata[:, 0], mog.Tx.fdata[:, 1], mog.Tx.fdata[:, 2], color='b')
         self.ax.plot(mog.Rx.fdata[:, 0], mog.Rx.fdata[:, 1], mog.Rx.fdata[:, 2], color='b')
 
-        self.ax.text(x=mog.data.Rx_x[0], y=mog.data.Rx_y[0], z= max(mog.data.Rx_z) + 0.5, s=str(mog.Rx.name))
-        self.ax.text(x=mog.data.Tx_x[0], y=mog.data.Tx_y[0], z= max(mog.data.Tx_z) + 0.5, s=str(mog.Tx.name))
+        self.ax.text(x=mog.data.Rx_x[0], y=mog.data.Rx_y[0], z=max(mog.data.Rx_z) + 0.5, s=str(mog.Rx.name))
+        self.ax.text(x=mog.data.Tx_x[0], y=mog.data.Tx_y[0], z=max(mog.data.Tx_z) + 0.5, s=str(mog.Tx.name))
 
-        self.ax.scatter(xs=mog.data.Rx_x[0], ys=mog.data.Rx_y[0], zs= mog.Tx.fdata[0, 2], c='black', marker='o')
-        self.ax.scatter(xs=mog.data.Tx_x[0], ys=mog.data.Tx_y[0], zs= mog.Rx.fdata[0, 2], c='black', marker='o')
+        self.ax.scatter(xs=mog.data.Rx_x[0], ys=mog.data.Rx_y[0], zs=mog.Tx.fdata[0, 2], c='black', marker='o')
+        self.ax.scatter(xs=mog.data.Tx_x[0], ys=mog.data.Tx_y[0], zs=mog.Rx.fdata[0, 2], c='black', marker='o')
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
@@ -1961,20 +1936,19 @@ class ZOPRaysFig(FigureCanvasQTAgg):
         self.draw()
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Traveltime Statistics Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class StatsttFig(FigureCanvasQTAgg):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
         super(StatsttFig, self).__init__(fig)
         self.initFig()
 
     def initFig(self):
-
 
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
@@ -1988,39 +1962,35 @@ class StatsttFig(FigureCanvasQTAgg):
         done = (mog.tt_done + mog.in_vect.astype(int))
         ind = np.where(done == 2)[0]
 
-
         tt, t0 = mog.getCorrectedTravelTimes(airshots)
         et = mog.et[ind]
         tt = tt[ind]
 
-
-        hyp = np.sqrt((mog.data.Tx_x[ind]-mog.data.Rx_x[ind])**2
-                      + (mog.data.Tx_y[ind] - mog.data.Rx_y[ind] )**2
-                      + (mog.data.Tx_z[ind] -  mog.data.Rx_z[ind] )**2)
+        hyp = np.sqrt((mog.data.Tx_x[ind] - mog.data.Rx_x[ind])**2 +
+                      (mog.data.Tx_y[ind] - mog.data.Rx_y[ind])**2 +
+                      (mog.data.Tx_z[ind] - mog.data.Rx_z[ind])**2)
 
         dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
 
-        theta = 180/ np.pi * np.arcsin(dz/hyp)
+        theta = 180 / np.pi * np.arcsin(dz / hyp)
 
-        vapp = hyp/tt
-        #n = np.arange(len(ind))
-        #n = n[ind]
+        vapp = hyp / tt
+        # n = np.arange(len(ind))
+        # n = n[ind]
         ind2 = np.less(vapp, 0)
         ind2 = np.nonzero(ind2)[0]
 
-        self.ax4.plot(hyp, tt, marker='o', ls= 'None')
-        self.ax5.plot(theta, hyp/(tt+t0[ind]), marker='o', ls= 'None')  # tt are corrected, must undo t0 correction
-        self.ax2.plot(theta, vapp, marker='o', ls= 'None')
+        self.ax4.plot(hyp, tt, marker='o', ls='None')
+        self.ax5.plot(theta, hyp / (tt + t0[ind]), marker='o', ls='None')  # tt are corrected, must undo t0 correction
+        self.ax2.plot(theta, vapp, marker='o', ls='None')
         self.ax6.plot(t0)
-        self.ax1.plot(hyp, et, marker='o', ls= 'None')
-        self.ax3.plot(theta, et, marker='o', ls= 'None')
+        self.ax1.plot(hyp, et, marker='o', ls='None')
+        self.ax3.plot(theta, et, marker='o', ls='None')
 
-        vapp= hyp/tt
+        vapp = hyp / tt
         self.vappFig = VAppFig()
         self.vappFig.plot_vapp(mog, vapp, ind)
         self.vappFig.show()
-
-
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
         mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
@@ -2045,56 +2015,56 @@ class StatsttFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Apparent Velocity Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class VAppFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(VAppFig, self).__init__(fig)
         self.initFig()
+
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_vapp(self, mog, vapp, ind):
-        #for n in vapp:
-        #   print(n)
+        # for n in vapp:
+        #    print(n)
         Tx = np.array([mog.data.Tx_x[ind], mog.data.Tx_y[ind], mog.data.Tx_z[ind]]).T
         Rx = np.array([mog.data.Rx_x[ind], mog.data.Rx_y[ind], mog.data.Rx_z[ind]]).T
         vmax = max(vapp)
         vmin = min(vapp)
         print(vmax, 'vmax')
         print(vmin, 'vmin')
-        X = np.concatenate((Tx, Rx), axis= 0)
+        X = np.concatenate((Tx, Rx), axis=0)
 
         c = np.array([[0, 0, 1],
                       [0, 1, 0],
                       [1, 0, 0]])
 
-        c = interpolate.interp1d(np.arange(-100, 101, 100).T, c.T)( np.arange(-100, 101, 2).T)
-        m = 200/(vmax - vmin)
+        c = interpolate.interp1d(np.arange(-100, 101, 100).T, c.T)(np.arange(-100, 101, 2).T)
+        m = 200 / (vmax - vmin)
         b = -100 - m * vmin
 
-        #TODO mettre une colorbar qui affiche le scaling de la vitesse apparente
+        # TODO: mettre une colorbar qui affiche le scaling de la vitesse apparente
         for n in range(len(vapp)):
-            p = m*vapp[n] + b
+            p = m * vapp[n] + b
 
             color = interpolate.interp1d(np.arange(-100, 101, 2), c)(p)
-            self.ax.plot([Tx[n, 0], Rx[n, 0]], [Tx[n, 1], Rx[n, 1]], [Tx[n, 2], Rx[n, 2]], c= color)
+            self.ax.plot([Tx[n, 0], Rx[n, 0]], [Tx[n, 1], Rx[n, 1]], [Tx[n, 2], Rx[n, 2]], c=color)
 
         self.ax.text2D(0.05, 0.95, "{} - Apparent Velocity".format(mog.name), transform=self.ax.transAxes)
 
-
     def lsplane(self, X):
-        '''
+        """
         Least-squares plane
         :param X:
         :return:
         x0 : Centroid of the data = point on the best fit plane
         a : Direction cosines of the normal to the best fit plane
-        '''
+        """
 
         # First we check the number of data points
         m = np.shape(X)[0]
@@ -2102,15 +2072,15 @@ class VAppFig(FigureCanvasQTAgg):
             raise ValueError(' At least 3 data points required')
 
         # Calculate centroid
-        x0 = np.mean(X, axis= 0)
+        x0 = np.mean(X, axis=0)
 
         # Form a matrix A of translated points
         A = np.array([X[:, 0] - x0[0], X[:, 1] - x0[1], X[:, 2] - x0[2]])
 
         # Calculate the Single Valued Decomposition of A
-        U, S, V = np.linalg.svd(A, full_matrices= False)
+        U, S, V = np.linalg.svd(A, full_matrices=False)
 
-        s = np.amax(np.diag(S), axis= -1)
+        s = np.amax(np.diag(S), axis=-1)
         s = min(s)
         i = np.nonzero(S == s)
         a = V[:, i]
@@ -2118,15 +2088,15 @@ class VAppFig(FigureCanvasQTAgg):
         return x0, a
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Amplitude Statistics Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class StatsAmpFig(FigureCanvasQTAgg):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize= (100, 100), facecolor='white')
+        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
         super(StatsAmpFig, self).__init__(fig)
         self.initFig()
 
@@ -2141,10 +2111,10 @@ class StatsAmpFig(FigureCanvasQTAgg):
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
     def plot_stats(self, mog):
-        #TODO faire le module Bh_Tomo_amp afin d'avoir les données nécessaires pour les statistiques sur les amplitudes pointées
-        hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x) ** 2
-                      + (mog.data.Tx_y - mog.data.Rx_y) ** 2
-                      + (mog.data.Tx_z - mog.data.Rx_z) ** 2)
+        # TODO: faire le module Bh_Tomo_amp afin d'avoir les données nécessaires pour les statistiques sur les amplitudes pointées
+        hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 +
+                      (mog.data.Tx_y - mog.data.Rx_y)**2 +
+                      (mog.data.Tx_z - mog.data.Rx_z)**2)
 
         dz = mog.data.Rx_z - mog.data.Tx_z
 
@@ -2173,19 +2143,19 @@ class StatsAmpFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Ray Coverage Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class RayCoverageFig(FigureCanvasQTAgg):
-    def __init__(self, parent= None):
-        fig = mpl.figure.Figure(figsize= (6, 8), facecolor='white')
+    def __init__(self, parent=None):
+        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(RayCoverageFig, self).__init__(fig)
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection= '3d')
+        self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_ray_coverage(self, mog, n, show_type, entire_state):
         self.ax.cla()
@@ -2218,40 +2188,39 @@ class RayCoverageFig(FigureCanvasQTAgg):
         Tx_Rx_ys = Tx_Rx_ys.T
         Tx_Rx_zs = Tx_Rx_zs.T
 
-        percent_coverage = 100* np.round((len(picked_tt)/mog.data.ntrace), 4)
+        percent_coverage = 100 * np.round((len(picked_tt) / mog.data.ntrace), 4)
         self.ax.set_title(str(percent_coverage) + ' %')
 
-        self.ax.text2D(0.05, 0.95, "Ray Coverage", transform= self.ax.transAxes)
+        self.ax.text2D(0.05, 0.95, "Ray Coverage", transform=self.ax.transAxes)
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
         self.ax.set_ylabel('Tx-Rx Y Distance [{}]'.format(mog.data.cunits))
         self.ax.set_zlabel('Elevation [{}]'.format(mog.data.cunits))
 
-
         if entire_state:
             if show_type == 'Show picked and unpicked':
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
-                                       Y= Tx_Rx_ys[:, unpicked_tt],
-                                       Z= Tx_Rx_zs[:, unpicked_tt],
+                self.ax.plot_wireframe(X=Tx_Rx_xs[:, unpicked_tt],
+                                       Y=Tx_Rx_ys[:, unpicked_tt],
+                                       Z=Tx_Rx_zs[:, unpicked_tt],
                                        color='red')
 
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
-                                       Y= Tx_Rx_ys[:, picked_tt],
-                                       Z= Tx_Rx_zs[:, picked_tt],
+                self.ax.plot_wireframe(X=Tx_Rx_xs[:, picked_tt],
+                                       Y=Tx_Rx_ys[:, picked_tt],
+                                       Z=Tx_Rx_zs[:, picked_tt],
                                        color='green')
 
                 self.draw()
 
             elif show_type == 'Show picked only':
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, picked_tt],
-                                       Y= Tx_Rx_ys[:, picked_tt],
-                                       Z= Tx_Rx_zs[:, picked_tt],
+                self.ax.plot_wireframe(X=Tx_Rx_xs[:, picked_tt],
+                                       Y=Tx_Rx_ys[:, picked_tt],
+                                       Z=Tx_Rx_zs[:, picked_tt],
                                        color='green')
                 self.draw()
 
             elif show_type == 'Show unpicked only':
-                self.ax.plot_wireframe(X= Tx_Rx_xs[:, unpicked_tt],
-                                       Y= Tx_Rx_ys[:, unpicked_tt],
-                                       Z= Tx_Rx_zs[:, unpicked_tt],
+                self.ax.plot_wireframe(X=Tx_Rx_xs[:, unpicked_tt],
+                                       Y=Tx_Rx_ys[:, unpicked_tt],
+                                       Z=Tx_Rx_zs[:, unpicked_tt],
                                        color='red')
                 self.draw()
         else:
@@ -2263,17 +2232,17 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
-                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_unpicked],
-                                       Y= tmp_Tx_Rx_ys[:, ind_unpicked],
-                                       Z= tmp_Tx_Rx_zs[:, ind_unpicked],
+                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_unpicked],
+                                       Y=tmp_Tx_Rx_ys[:, ind_unpicked],
+                                       Z=tmp_Tx_Rx_zs[:, ind_unpicked],
                                        color='red')
 
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
-                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_picked],
-                                       Y= tmp_Tx_Rx_ys[:, ind_picked],
-                                       Z= tmp_Tx_Rx_zs[:, ind_picked],
+                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_picked],
+                                       Y=tmp_Tx_Rx_ys[:, ind_picked],
+                                       Z=tmp_Tx_Rx_zs[:, ind_picked],
                                        color='green')
                 self.draw()
 
@@ -2281,9 +2250,9 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
-                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_picked],
-                                       Y= tmp_Tx_Rx_ys[:, ind_picked],
-                                       Z= tmp_Tx_Rx_zs[:, ind_picked],
+                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_picked],
+                                       Y=tmp_Tx_Rx_ys[:, ind_picked],
+                                       Z=tmp_Tx_Rx_zs[:, ind_picked],
                                        color='green')
 
                 self.draw()
@@ -2292,22 +2261,21 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
-                self.ax.plot_wireframe(X= tmp_Tx_Rx_xs[:, ind_unpicked],
-                                       Y= tmp_Tx_Rx_ys[:, ind_unpicked],
-                                       Z= tmp_Tx_Rx_zs[:, ind_unpicked],
+                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_unpicked],
+                                       Y=tmp_Tx_Rx_ys[:, ind_unpicked],
+                                       Z=tmp_Tx_Rx_zs[:, ind_unpicked],
                                        color='red')
 
                 self.draw()
 
 
-
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Prune Figure Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class PruneFig(FigureCanvasQTAgg):
-    def __init__(self, parent= None):
+    def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(PruneFig, self).__init__(fig)
         self.initFig()
@@ -2318,13 +2286,11 @@ class PruneFig(FigureCanvasQTAgg):
     def plot_prune(self, mog, round_factor):
         self.ax.cla()
 
-        false_Rx_ind = np.nonzero(mog.in_Rx_vect == False)
-        false_Tx_ind = np.nonzero(mog.in_Tx_vect == False)
-
+        false_Rx_ind = np.nonzero(not mog.in_Rx_vect)
+        false_Tx_ind = np.nonzero(not mog.in_Tx_vect)
 
         Tx_zs = np.unique(mog.data.Tx_z)
         Rx_zs = np.unique(mog.data.Rx_z)
-
 
         Tx_zs = np.delete(Tx_zs, false_Tx_ind[0])
         Rx_zs = np.delete(Rx_zs, false_Rx_ind[0])
@@ -2332,23 +2298,21 @@ class PruneFig(FigureCanvasQTAgg):
         if round_factor == 0:
             pass
         else:
-            Tx_zs = round_factor*np.round(Tx_zs/round_factor)
-            Rx_zs = round_factor*np.round(Rx_zs/round_factor)
+            Tx_zs = round_factor * np.round(Tx_zs / round_factor)
+            Rx_zs = round_factor * np.round(Rx_zs / round_factor)
 
         num_Tx = len(Tx_zs)
         num_Rx = len(Rx_zs)
         Tx_xs = mog.data.Tx_x[:num_Tx]
         Rx_xs = mog.data.Rx_x[:num_Rx]
-        Tx_ys= mog.data.Tx_y[:num_Tx]
+        Tx_ys = mog.data.Tx_y[:num_Tx]
         Rx_ys = mog.data.Rx_y[:num_Rx]
 
+        self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c='g', marker='o', label='Tx')
 
-        self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c= 'g', marker= 'o', label= 'Tx')
+        self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*', label='Rx')
 
-        self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*', label= 'Rx')
-
-        l = self.ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left',
-                    borderpad=0)
+        l = self.ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left', borderpad=0)
         l.draw_frame(False)
 
         self.ax.set_xlabel('Tx-Rx X Distance [{}]'.format(mog.data.cunits))
@@ -2358,11 +2322,11 @@ class PruneFig(FigureCanvasQTAgg):
         self.draw()
 
 
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 #
 #                       Merge MOG Class
 #
-#-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
 class MergeMog(QtWidgets.QWidget):
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
@@ -2381,7 +2345,7 @@ class MergeMog(QtWidgets.QWidget):
         nc = 0
 
         if n == database.session.query(Mog).count():
-            QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
             return
 
         for mog in database.session.query(Mog).all():
@@ -2403,12 +2367,11 @@ class MergeMog(QtWidgets.QWidget):
 
                 if test1 and test2 and test3 and test4 and test5:
                     nc += 1
-                    self.comp_list.addItem("{}".format( mog.name))
+                    self.comp_list.addItem("{}".format(mog.name))
                     ids.append(mog.ID)
 
-
-        if nc == 0 :
-            dialog = QtWidgets.QMessageBox.information(self, 'Warning', "No compatible MOG found",buttons= QtWidgets.QMessageBox.Ok)
+        if nc == 0:
+            dialog = QtWidgets.QMessageBox.information(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
 
         else:
             self.show()
@@ -2421,11 +2384,10 @@ class MergeMog(QtWidgets.QWidget):
             self.dialog.setText("No compatible MOG found")
             self.dialog.setStandardButtons(QtWidgets.QMessageBox.Ok)
             self.dialog.setIcon(QtWidgets.QMessageBox.Warning)
-        if merge_name == None:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected for merging",buttons= QtWidgets.QMessageBox.Ok)
+        if merge_name is None:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected for merging", buttons=QtWidgets.QMessageBox.Ok)
         if not self.new_edit.text():
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for the new MOG",buttons= QtWidgets.QMessageBox.Ok)
-
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for the new MOG", buttons=QtWidgets.QMessageBox.Ok)
 
         for i in range(database.session.query(Mog).count()):
             if database.session.query(Mog).all()[i].name == merge_name:
@@ -2468,8 +2430,7 @@ class MergeMog(QtWidgets.QWidget):
         newMog.in_Tx_vect   = np.array([refMog.in_Tx_vect, merging_mog.in_Tx_vect])
         newMog.in_Rx_vect   = np.array([refMog.in_Rx_vect, merging_mog.in_Rx_vect])
 
-
-        if self.erase_check.isChecked() == True :
+        if self.erase_check.isChecked():
 
             self.dialog.setText("following MOGs will be erased : {} {}".format(refMog.name, merging_mog.name))
             self.dialog.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
@@ -2486,38 +2447,37 @@ class MergeMog(QtWidgets.QWidget):
                 self.mog.update_List_Widget()
                 self.close()
 
-        elif self.erase_check.isChecked() == False:
+        elif not self.erase_check.isChecked():  # TODO: else?
             self.mergemoglogSignal.emit("MOG {} have been created by the merge of {} and {}".format(newName,
                                                                                                     refMog.name,
                                                                                                     merging_mog.name))
             self.mog.update_List_Widget()
             self.close()
 
-
     def initUI(self):
 
-        #------- Widgets -------#
-        #--- Labels ---#
-        ref_label = MyQLabel('Reference MOG', ha= 'center')
-        comp_label = MyQLabel('Compatible MOGs', ha= 'center')
-        new_label = MyQLabel('New MOG Name', ha ='center')
+        # ------- Widgets ------- #
+        # --- Labels --- #
+        ref_label = MyQLabel('Reference MOG', ha='center')
+        comp_label = MyQLabel('Compatible MOGs', ha='center')
+        new_label = MyQLabel('New MOG Name', ha='center')
 
-        #--- Edit ---#
+        # --- Edit --- #
         self.new_edit = QtWidgets.QLineEdit()
 
-        #--- List ---#
+        # --- List --- #
         self.comp_list = QtWidgets.QListWidget()
 
-        #--- ComboBox ---#
+        # --- ComboBox --- #
         self.ref_combo = QtWidgets.QComboBox()
 
-        #--- ComboBoxes Actions ---#
+        # --- ComboBoxes Actions --- #
         self.ref_combo.activated.connect(self.getcompat)
 
-        #--- Checkbox ---#
+        # --- Checkbox --- #
         self.erase_check = QtWidgets.QCheckBox('Erase MOGs after merge')
 
-        #--- Buttons ---#
+        # --- Buttons --- #
         self.btn_cancel = QtWidgets.QPushButton('Cancel')
         self.btn_merge = QtWidgets.QPushButton('Merge')
 
@@ -2525,10 +2485,10 @@ class MergeMog(QtWidgets.QWidget):
         self.btn_merge.clicked.connect(self.doMerge)
         self.btn_cancel.clicked.connect(self.close)
 
-        #--- MessageBox ---#
+        # --- MessageBox --- #
         self.dialog = QtWidgets.QMessageBox()
 
-        #------- Master Grid -------#
+        # ------- Master Grid ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(ref_label, 0, 0)
         master_grid.addWidget(self.ref_combo, 1, 0)
@@ -2543,11 +2503,11 @@ class MergeMog(QtWidgets.QWidget):
         self.setLayout(master_grid)
 
 
-    #-----------------------------------------------------------------------------------------------------------------------
-    #
-    #                       Delta T MOG Class
-    #
-    #-----------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------
+#
+#                       Delta T MOG Class
+#
+# -----------------------------------------------------------------------------------------------------------------------
 class DeltaTMOG(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DeltaTMOG, self).__init__()
@@ -2563,7 +2523,7 @@ class DeltaTMOG(QtWidgets.QWidget):
             ids = []
             nc = 0
             if database.session.query(Mog).count() == 1:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database",buttons= QtWidgets.QMessageBox.Ok)
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database", buttons=QtWidgets.QMessageBox.Ok)
                 return
             for mog in database.session.query(Mog).all():
                 if mog != ref_mog:
@@ -2589,8 +2549,8 @@ class DeltaTMOG(QtWidgets.QWidget):
 
                 else:
                     pass
-            if nc == 0 :
-                QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtWidgets.QMessageBox.Ok)
+            if nc == 0:
+                QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
 
             else:
                 self.show()
@@ -2600,39 +2560,39 @@ class DeltaTMOG(QtWidgets.QWidget):
 
     def done(self):
         if len(self.sub_combo) == 0:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found",buttons= QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
         if not self.name_edit.text():
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for new MOG",buttons= QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for new MOG", buttons=QtWidgets.QMessageBox.Ok)
 
         # Check if traveltimes were picked
         n = self.min_combo.currentIndex()
         refMog = database.session.query(Mog).all()[n]
         ind = refMog.tt == -1
-        if np.any(ind == True):
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name)
-                                                   ,buttons= QtWidgets.QMessageBox.Ok)
+        if np.any(ind):
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name),
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def initUI(self):
-        #------- Widgets -------#
-        #--- Buttons ---#
+        # ------- Widgets ------- #
+        # --- Buttons --- #
         cancel_btn = QtWidgets.QPushButton('Cancel')
         done_btn = QtWidgets.QPushButton('Done')
-        #--- Labels ---#
-        min_label = MyQLabel('Minuend MOG', ha= 'center')
-        sub_label = MyQLabel('Subtrahend MOG', ha= 'center')
-        offset_label = MyQLabel('Offset Tolerance', ha= 'right')
-        name_label = MyQLabel('Name of Difference MOG', ha= 'right')
-        #--- Edits ---#
+        # --- Labels --- #
+        min_label = MyQLabel('Minuend MOG', ha='center')
+        sub_label = MyQLabel('Subtrahend MOG', ha='center')
+        offset_label = MyQLabel('Offset Tolerance', ha='right')
+        name_label = MyQLabel('Name of Difference MOG', ha='right')
+        # --- Edits --- #
         self.offset_edit = QtWidgets.QLineEdit('0.5')
         self.name_edit = QtWidgets.QLineEdit()
-        #--- ComboBoxes ---#
+        # --- ComboBoxes --- #
         self.min_combo = QtWidgets.QComboBox()
         self.sub_combo = QtWidgets.QComboBox()
 
-        #--- ComboBoxes' Actions ---#
+        # --- ComboBoxes' Actions --- #
         self.min_combo.activated.connect(self.getcompat)
 
-        #------- Master grid's disposition -------#
+        # ------- Master grid's disposition ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(min_label, 0, 0)
         master_grid.addWidget(sub_label, 0, 1)

@@ -24,6 +24,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from unicodedata import *
 
+
 class InterpretationUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(InterpretationUI, self).__init__()
@@ -32,7 +33,7 @@ class InterpretationUI(QtWidgets.QFrame):
 
     def initUI(self):
 
-        #--- Importation of the greek letters ---#
+        # --- Importation of the greek letters --- #
         char1 = lookup("GREEK SMALL LETTER ALPHA")
         char2 = lookup("GREEK SMALL LETTER THETA")
         char3 = lookup("GREEK SMALL LETTER EPSILON")
@@ -41,14 +42,14 @@ class InterpretationUI(QtWidgets.QFrame):
         char6 = lookup("GREEK SMALL LETTER RHO")
         char7 = lookup("GREEK SMALL LETTER DELTA")
 
-        #--- Color for the labels ---#
+        # --- Color for the labels --- #
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
 
-        #--- Class For Alignment ---#
-        class  MyQLabel(QtWidgets.QLabel):
-            def __init__(self, label, ha='left',  parent=None):
-                super(MyQLabel, self).__init__(label,parent)
+        # --- Class For Alignment --- #
+        class MyQLabel(QtWidgets.QLabel):
+            def __init__(self, label, ha='left', parent=None):
+                super(MyQLabel, self).__init__(label, parent)
                 if ha == 'center':
                     self.setAlignment(QtCore.Qt.AlignCenter)
                 elif ha == 'right':
@@ -56,30 +57,29 @@ class InterpretationUI(QtWidgets.QFrame):
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
+        # ------- Widgets Creation ------- #
 
-        #------- Widgets Creation -------#
-
-        #--- Label ---#
-        Min_labeli             = MyQLabel("Min :", ha= 'right')
+        # --- Label --- #
+        Min_labeli             = MyQLabel("Min :", ha='right')
         Max_labeli             = MyQLabel("Max :", ha='right')
         slow_label             = QtWidgets.QLabel("Slowness")
         atten_label            = QtWidgets.QLabel("Attentuation")
         type_label             = QtWidgets.QLabel("Type")
-        freq_label             = MyQLabel("Frequency[MHz]", ha= 'right')
+        freq_label             = MyQLabel("Frequency[MHz]", ha='right')
 
-        #--- Edits ---#
+        # --- Edits --- #
         Min_editi              = QtWidgets.QLineEdit()
         Max_editi              = QtWidgets.QLineEdit()
         freq_edit              = QtWidgets.QLineEdit("100")
 
-        #--- Checkbox ---#
+        # --- Checkbox --- #
         set_color_checkbox     = QtWidgets.QCheckBox("Set Color Limits")
 
-        #--- Text Edits ---#
+        # --- Text Edits --- #
         futur_Graph1           = QtWidgets.QTextEdit()
         futur_Graph1.setReadOnly(True)
 
-        #--- combobox ---#
+        # --- combobox --- #
         slow_combo             = QtWidgets.QComboBox()
         atten_combo            = QtWidgets.QComboBox()
         type_combo             = QtWidgets.QComboBox()
@@ -87,13 +87,12 @@ class InterpretationUI(QtWidgets.QFrame):
         petro_combo            = QtWidgets.QComboBox()
         fig_combo              = QtWidgets.QComboBox()
 
-
-        #--- Items in the comboboxes ---#
-        #--- Type Combobox's Items ---#
+        # --- Items in the comboboxes --- #
+        # --- Type Combobox's Items --- #
         type_combo.addItem("Cokriging")
         type_combo.addItem("Cosimulation")
 
-        #--- Physical Property Combobox's Items ---#
+        # --- Physical Property Combobox's Items --- #
         phys_combo.addItem("Velocity")
         phys_combo.addItem("Slowness")
         phys_combo.addItem("Attenuation {}".format(char1))
@@ -104,12 +103,12 @@ class InterpretationUI(QtWidgets.QFrame):
         phys_combo.addItem("Electric resistivity {}".format(char6))
         phys_combo.addItem("VLoss tangent {}".format(char7))
 
-        #--- Petrophysical Combobox's Items ---#
+        # --- Petrophysical Combobox's Items --- #
         petro_combo.addItem("Topp")
         petro_combo.addItem("CRIM")
         petro_combo.addItem("Hanai-Brugemann")
 
-        #--- Figure Combobox's Items ---#
+        # --- Figure Combobox's Items --- #
         fig_combo.addItem("cmr")
         fig_combo.addItem("polarmap")
         fig_combo.addItem("parula")
@@ -130,9 +129,8 @@ class InterpretationUI(QtWidgets.QFrame):
         fig_combo.addItem("colorcube")
         fig_combo.addItem("lines")
 
-
-        #------- Groupboxes -------#
-        #--- Tomograms Groupbox ---#
+        # ------- Groupboxes ------- #
+        # --- Tomograms Groupbox --- #
         Tomo_groupbox  = QtWidgets.QGroupBox("Tomograms")
         Tomo_grid      = QtWidgets.QGridLayout()
         Tomo_grid.addWidget(slow_label, 0, 0)
@@ -143,7 +141,7 @@ class InterpretationUI(QtWidgets.QFrame):
         Tomo_grid.addWidget(type_combo, 5, 0, 1, 2)
         Tomo_groupbox.setLayout(Tomo_grid)
 
-        #--- Physical Property Groupbox ---#
+        # --- Physical Property Groupbox --- #
         Phys_groupbox  = QtWidgets.QGroupBox("Physical Property")
         Phys_grid      = QtWidgets.QGridLayout()
         Phys_grid.addWidget(phys_combo, 0, 0, 1, 2)
@@ -151,13 +149,13 @@ class InterpretationUI(QtWidgets.QFrame):
         Phys_grid.addWidget(freq_edit, 1, 1)
         Phys_groupbox.setLayout(Phys_grid)
 
-        #--- Petrophysical Model Groupbox ---#
+        # --- Petrophysical Model Groupbox --- #
         Petro_groupbox = QtWidgets.QGroupBox("Parameters")
         Petro_grid     = QtWidgets.QGridLayout()
         Petro_grid.addWidget(petro_combo, 0, 0)
         Petro_groupbox.setLayout(Petro_grid)
 
-        #--- Figures Groupbox ---#
+        # --- Figures Groupbox --- #
         fig_groupbox  = QtWidgets.QGroupBox("Figures")
         fig_grid      = QtWidgets.QGridLayout()
         fig_grid.addWidget(set_color_checkbox, 0, 0)
@@ -169,9 +167,8 @@ class InterpretationUI(QtWidgets.QFrame):
         fig_grid.setColumnStretch(6, 100)
         fig_groupbox.setLayout(fig_grid)
 
-
-        #------- Sub Widgets -------#
-        #--- Right Part SubWidget ---#
+        # ------- Sub Widgets ------- #
+        # --- Right Part SubWidget --- #
         # The Right part SubWidget is created in order to have a more uniform disposition of the Figure Groupbox
         Sub_right_Widget = QtWidgets.QWidget()
         Sub_right_Grid = QtWidgets.QGridLayout()
@@ -179,7 +176,7 @@ class InterpretationUI(QtWidgets.QFrame):
         Sub_right_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_right_Widget.setLayout(Sub_right_Grid)
 
-        #------- Master Grid Disposition -------#
+        # ------- Master Grid Disposition ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(Tomo_groupbox, 0, 0, 3, 1)
         master_grid.addWidget(Phys_groupbox, 3, 0, 3, 1)
@@ -189,6 +186,7 @@ class InterpretationUI(QtWidgets.QFrame):
         master_grid.setColumnStretch(2, 100)
         master_grid.setRowStretch(7, 100)
         self.setLayout(master_grid)
+
 
 if __name__ == '__main__':
 

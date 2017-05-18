@@ -77,7 +77,7 @@ class InversionUI(QtWidgets.QFrame):
                                       buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-#         models, model = chooseModel(self.filename) #TODO: Is this necessary?
+#         models, model = chooseModel(self.filename) # TODO: Is this necessary?
 #         if model:
         
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
@@ -177,12 +177,12 @@ class InversionUI(QtWidgets.QFrame):
             data, idata = Model.getModelData(model, current_module.session.query(AirShots).all(), self.lsqrParams.selectedMogs, 'tt')
             data = np.concatenate((model.grid.Tx[idata, :], model.grid.Rx[idata, :], data, model.grid.TxCosDir[idata, :], model.grid.RxCosDir[idata, :]), axis=1)
 
-        #TODO: Faire les autres cas du self.T_and_A_combo
+        # TODO: Faire les autres cas du self.T_and_A_combo
 
         L = np.array([])
         rays = np.array([])
 
-        #TODO
+        # TODO
         if self.use_Rays_checkbox.isChecked():
             # Change L and Rays
             pass
@@ -193,7 +193,7 @@ class InversionUI(QtWidgets.QFrame):
             self.tomo = invLSQR(self.lsqrParams, data, idata, model.grid, L, app, self)
 
         if self.algo_combo.currentText() == 'Geostatistical':
-            #TODO: Faire l'inversion géostatistique
+            # TODO: Faire l'inversion géostatistique
             pass
 
     def plot_inv(self):
@@ -248,7 +248,7 @@ class InversionUI(QtWidgets.QFrame):
         if '-LSQR' in name:
             self.lsqrParams = params
 
-        #TODO: Faire une classe contenant les paramètres pour les inversions géostatistiques
+        # TODO: Faire une classe contenant les paramètres pour les inversions géostatistiques
 
         self.algo_label.setText(results[0])
         self.noIter_label.setText('|  {} Iterations'.format(self.lsqrParams.numItCurved + self.lsqrParams.numItStraight))
@@ -266,28 +266,28 @@ class InversionUI(QtWidgets.QFrame):
 
     def initinvUI(self):
 
-        #------- Widget Creation -------#
-        #--- Labels ---#
+        # ------- Widget Creation ------- #
+        # --- Labels --- #
         num_simulation_label        = MyQLabel("Number of Simulations", ha='right')
         slowness_label              = MyQLabel("Slowness", ha='right')
         islowness_label             = MyQLabel("Slowness", ha='center')
-        separ_label                 = MyQLabel("|", ha= 'center')
-        traveltime_label            = MyQLabel("Traveltime", ha= 'right')
-        solver_tol_label            = MyQLabel('Solver Tolerance', ha= 'right')
-        max_iter_label              = MyQLabel('Max number of solver iterations', ha= 'right')
-        constraints_weight_label    = MyQLabel('Constraints weight', ha= 'right')
-        smoothing_weight_x_label    = MyQLabel('Smoothing weight x', ha= 'right')
-        smoothing_weight_y_label    = MyQLabel('Smoothing weight y', ha= 'right')
-        smoothing_weight_z_label    = MyQLabel('Smoothing weight z', ha= 'right')
-        smoothing_order_label       = MyQLabel('Smoothing operator order', ha= 'right')
-        veloc_var_label             = MyQLabel('Max velocity varitation per iteration[%]', ha= 'right')
-        range_x_label = MyQLabel('Range X', ha= 'right')
-        range_z_label = MyQLabel('Range Z', ha= 'right')
-        theta_x_label = MyQLabel('theta X', ha= 'right')
-        sill_label = MyQLabel('Sill', ha= 'right')
+        separ_label                 = MyQLabel("|", ha='center')
+        traveltime_label            = MyQLabel("Traveltime", ha='right')
+        solver_tol_label            = MyQLabel('Solver Tolerance', ha='right')
+        max_iter_label              = MyQLabel('Max number of solver iterations', ha='right')
+        constraints_weight_label    = MyQLabel('Constraints weight', ha='right')
+        smoothing_weight_x_label    = MyQLabel('Smoothing weight x', ha='right')
+        smoothing_weight_y_label    = MyQLabel('Smoothing weight y', ha='right')
+        smoothing_weight_z_label    = MyQLabel('Smoothing weight z', ha='right')
+        smoothing_order_label       = MyQLabel('Smoothing operator order', ha='right')
+        veloc_var_label             = MyQLabel('Max velocity varitation per iteration[%]', ha='right')
+        range_x_label = MyQLabel('Range X', ha='right')
+        range_z_label = MyQLabel('Range Z', ha='right')
+        theta_x_label = MyQLabel('theta X', ha='right')
+        sill_label = MyQLabel('Sill', ha='right')
 
 
-        #--- Edits ---#
+        # --- Edits --- #
         self.num_simulation_edit     = QtWidgets.QLineEdit('128')
         self.slowness_edit           = QtWidgets.QLineEdit('0')
         self.traveltime_edit         = QtWidgets.QLineEdit('0')
@@ -343,13 +343,13 @@ class InversionUI(QtWidgets.QFrame):
         self.smoothing_weight_z_edit.editingFinished.connect(self.update_params)
         self.veloc_var_edit.editingFinished.connect(self.update_params)
 
-        #--- CheckBoxes ---#
+        # --- CheckBoxes --- #
         include_checkbox                = QtWidgets.QCheckBox("Include Experimental Variance")
         tilted_ellip_veloc_checkbox     = QtWidgets.QCheckBox("Tilted Elliptical Velocity Anisotropy")
         simulations_checkbox            = QtWidgets.QCheckBox("Simulations")
         ellip_veloc_checkbox            = QtWidgets.QCheckBox("Elliptical Velocity Anisotropy")
 
-        #--- ComboBoxes ---#
+        # --- ComboBoxes --- #
         self.geostat_struct_combo       = QtWidgets.QComboBox()
         self.smoothing_order_combo      = QtWidgets.QComboBox()
         self.param_combo = QtWidgets.QComboBox()
@@ -357,19 +357,19 @@ class InversionUI(QtWidgets.QFrame):
         #- Comboboxes Actions -#
         self.smoothing_order_combo.activated.connect(self.update_params)
 
-        #--- Combobox's Items ---#
+        # --- Combobox's Items --- #
         params = ['Cubic', 'Sperical', 'Gaussian', 'Exponential', 'Linear', 'Thin Plate', 'Gravimetric', 'Magnetic', 'Hole Effect Sine', 'Hole Effect Cosine']
         self.param_combo.addItems(params)
         self.geostat_struct_combo.addItem("Structure no 1")
         self.smoothing_order_combo.addItems(['2', '1'])
 
-        #--- Slowness Frame ---#
+        # --- Slowness Frame --- #
         slownessFrame = QtWidgets.QFrame()
         slownessGrid = QtWidgets.QGridLayout()
         slownessGrid.addWidget(islowness_label)
         slownessFrame.setLayout(slownessGrid)
 
-        #--- Param SubWidget ---#
+        # --- Param SubWidget --- #
         sub_param_widget = QtWidgets.QWidget()
         sub_param_grid = QtWidgets.QGridLayout()
         sub_param_grid.addWidget(slownessFrame, 0, 1)
@@ -384,18 +384,18 @@ class InversionUI(QtWidgets.QFrame):
         sub_param_grid.addWidget(self.sill_edit, 5, 1)
         sub_param_widget.setLayout(sub_param_grid)
 
-        #--- Scroll Area which contains the Geostatistical Parameters ---#
+        # --- Scroll Area which contains the Geostatistical Parameters --- #
         scrollArea = QtWidgets.QScrollArea()
         scrollArea.setWidget(sub_param_widget)
 
-        #--- Parameters Groupbox ---#
+        # --- Parameters Groupbox --- #
         Param_groupbox = QtWidgets.QGroupBox("Parameters")
         Param_grid = QtWidgets.QGridLayout()
         Param_grid.addWidget(scrollArea, 0, 0)
         Param_grid.setVerticalSpacing(0)
         Param_groupbox.setLayout(Param_grid)
 
-        #--- Nugget Effect Groupbox ---#
+        # --- Nugget Effect Groupbox --- #
         Nug_groupbox = QtWidgets.QGroupBox("Nugget Effect")
         Nug_grid = QtWidgets.QGridLayout()
         Nug_grid.addWidget(slowness_label, 0, 0)
@@ -405,7 +405,7 @@ class InversionUI(QtWidgets.QFrame):
         Nug_grid.addWidget(self.traveltime_edit, 0, 5)
         Nug_groupbox.setLayout(Nug_grid)
 
-        #--- Geostatistical inversion Groupbox ---#
+        # --- Geostatistical inversion Groupbox --- #
         Geostat_groupbox = QtWidgets.QGroupBox("Geostatistical inversion")
         Geostat_grid = QtWidgets.QGridLayout()
         Geostat_grid.addWidget(simulations_checkbox, 0, 0)
@@ -420,7 +420,7 @@ class InversionUI(QtWidgets.QFrame):
         Geostat_grid.setRowStretch(3, 100)
         Geostat_groupbox.setLayout(Geostat_grid)
 
-        #--- LSQR Solver GroupBox ---#
+        # --- LSQR Solver GroupBox --- #
         LSQR_group = QtWidgets.QGroupBox('LSQR Solver')
         LSQR_grid = QtWidgets.QGridLayout()
         LSQR_grid.addWidget(solver_tol_label, 0, 0)
@@ -485,8 +485,8 @@ class InversionUI(QtWidgets.QFrame):
 
     def initUI(self):
 
-        #-------- Widgets in RaysFig --------#
-        #--- Edit ---#
+        # -------- Widgets in RaysFig -------- #
+        # --- Edit --- #
         self.trace_num_edit = QtWidgets.QLineEdit('1')
 
         #- Edit's Actions -#
@@ -496,7 +496,7 @@ class InversionUI(QtWidgets.QFrame):
         #- Edit's Disposition -#
         self.trace_num_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        #--- Buttons ---#
+        # --- Buttons --- #
         next_trace_btn = QtWidgets.QPushButton('Next Tx')
         prev_trace_btn = QtWidgets.QPushButton('Prev Tx')
 
@@ -504,23 +504,23 @@ class InversionUI(QtWidgets.QFrame):
         next_trace_btn.clicked.connect(self.next_trace)
         prev_trace_btn.clicked.connect(self.prev_trace)
 
-        #--- Labels ---#
-        coverage_elev_label = MyQLabel('Tx elevation:', ha= 'right')
-        self.value_elev_label = MyQLabel('', ha= 'left')
-        trace_label = MyQLabel('Tx Number: ', ha= 'right')
+        # --- Labels --- #
+        coverage_elev_label = MyQLabel('Tx elevation:', ha='right')
+        self.value_elev_label = MyQLabel('', ha='left')
+        trace_label = MyQLabel('Tx Number: ', ha='right')
 
-        #--- CheckBox ---#
+        # --- CheckBox --- #
         self.entire_coverage_check = QtWidgets.QCheckBox('Show entire coverage')
         self.entire_coverage_check.stateChanged.connect(self.plot_rays)
 
-        #--- Elevation SubWidget ---#
+        # --- Elevation SubWidget --- #
         sub_coverage_elev_widget = QtWidgets.QWidget()
         sub_coverage_elev_grid = QtWidgets.QGridLayout()
         sub_coverage_elev_grid.addWidget(coverage_elev_label, 0, 0)
         sub_coverage_elev_grid.addWidget(self.value_elev_label, 0, 1)
         sub_coverage_elev_widget.setLayout(sub_coverage_elev_grid)
 
-        #--- Trace SubWidget ---#
+        # --- Trace SubWidget --- #
         sub_trace_widget = QtWidgets.QWidget()
         sub_trace_grid = QtWidgets.QGridLayout()
         sub_trace_grid.addWidget(trace_label, 0, 0)
@@ -528,7 +528,7 @@ class InversionUI(QtWidgets.QFrame):
         sub_trace_grid.setContentsMargins(0, 0, 0, 0)
         sub_trace_widget.setLayout(sub_trace_grid)
 
-        #--- Buttons SubWidget ---#
+        # --- Buttons SubWidget --- #
         sub_buttons_widget = QtWidgets.QWidget()
         sub_buttons_grid = QtWidgets.QGridLayout()
         sub_buttons_grid.addWidget(next_trace_btn, 0, 1)
@@ -545,11 +545,11 @@ class InversionUI(QtWidgets.QFrame):
         sub_coverage_grid.setRowStretch(5, 100)
         sub_coverage_widget.setLayout(sub_coverage_grid)
 
-        #------- Frame to fill invFig's place before loading model -------#
+        # ------- Frame to fill invFig's place before loading model ------- #
         self.inv_frame = QtWidgets.QFrame()
         self.inv_frame.setStyleSheet('background: white')
 
-        #-------Manager for RaysFig ------#
+        # -------Manager for RaysFig ------ #
         self.raysFig = RaysFig(self)
         self.raystool = NavigationToolbar2QT(self.raysFig, self)
         self.rays_manager = QtWidgets.QWidget()
@@ -559,7 +559,7 @@ class InversionUI(QtWidgets.QFrame):
         rays_grid.addWidget(sub_coverage_widget, 1, 1)
         self.rays_manager.setLayout(rays_grid)
 
-        #-------Manager for RayDensityFig ------#
+        # -------Manager for RayDensityFig ------ #
         self.raydensityFig = RayDensityFig(self)
         self.raydensitytool = NavigationToolbar2QT(self.raydensityFig, self)
         self.ray_density_manager = QtWidgets.QWidget()
@@ -568,7 +568,7 @@ class InversionUI(QtWidgets.QFrame):
         ray_density_grid.addWidget(self.raydensityFig, 1, 0)
         self.ray_density_manager.setLayout(ray_density_grid)
 
-        #-------Manager for ResidualsFig ------#
+        # -------Manager for ResidualsFig ------ #
         self.residualsFig = ResidualsFig(self)
         self.residualstool = NavigationToolbar2QT(self.residualsFig, self)
         self.residuals_manager = QtWidgets.QWidget()
@@ -577,7 +577,7 @@ class InversionUI(QtWidgets.QFrame):
         residuals_grid.addWidget(self.residualsFig, 1, 0)
         self.residuals_manager.setLayout(residuals_grid)
 
-        #-------Manager for TomoFig ------#
+        # -------Manager for TomoFig ------ #
         self.tomoFig = TomoFig(self)
         self.tomotool = NavigationToolbar2QT(self.tomoFig, self)
         self.tomo_manager = QtWidgets.QWidget()
@@ -586,7 +586,7 @@ class InversionUI(QtWidgets.QFrame):
         tomo_grid.addWidget(self.tomoFig, 1, 0)
         self.tomo_manager.setLayout(tomo_grid)
 
-        #-------Manager for TomoFig ------#
+        # -------Manager for TomoFig ------ #
         self.previnvFig = PrevInvFig(self)
         self.previnvtool = NavigationToolbar2QT(self.previnvFig, self)
         self.prev_inv_manager = QtWidgets.QWidget()
@@ -596,12 +596,12 @@ class InversionUI(QtWidgets.QFrame):
         self.prev_inv_manager.setLayout(prev_inv_grid)
 
 
-        #--- Color for the labels ---#
+        # --- Color for the labels --- #
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
 
-        #------- Widgets Creation -------#
-        #--- Buttons Set ---#
+        # ------- Widgets Creation ------- #
+        # --- Buttons Set --- #
         btn_View        = QtWidgets.QPushButton("View")
         btn_Delete      = QtWidgets.QPushButton("Delete")
         btn_Load        = QtWidgets.QPushButton("Load")
@@ -613,42 +613,42 @@ class InversionUI(QtWidgets.QFrame):
         btn_Delete.clicked.connect(self.delete_prev)
         btn_Load.clicked.connect(self.load_prev)
 
-        #--- Label ---#
-        model_label                 = MyQLabel("Model :", ha= 'center')
-        cells_label                 = MyQLabel("Cells", ha= 'center')
-        mog_label                   = MyQLabel("Select Mog", ha= 'center')
-        Min_label                   = MyQLabel("Min", ha= 'right')
+        # --- Label --- #
+        model_label                 = MyQLabel("Model :", ha='center')
+        cells_label                 = MyQLabel("Cells", ha='center')
+        mog_label                   = MyQLabel("Select Mog", ha='center')
+        Min_label                   = MyQLabel("Min", ha='right')
         Max_label                   = MyQLabel("Max", ha='right')
-        Min_labeli                  = MyQLabel("Min :", ha= 'right')
+        Min_labeli                  = MyQLabel("Min :", ha='right')
         Max_labeli                  = MyQLabel("Max :", ha='right')
-        X_label                     = MyQLabel("X", ha= 'center')
-        Y_label                     = MyQLabel("Y", ha= 'center')
-        Z_label                     = MyQLabel("Z", ha= 'center')
-        algo_label                  = MyQLabel("Algorithm", ha= 'right')
-        straight_ray_label          = MyQLabel("Straight Rays", ha= 'right')
-        curv_ray_label              = MyQLabel("Curved Rays", ha= 'right')
-        step_label                  = MyQLabel("Step :", ha= 'center')
-        Xi_label                    = MyQLabel("X", ha= 'center')           # The Xi, Yi and Zi  QLabels are practically the
-        Yi_label                    = MyQLabel("Y", ha= 'center')           # same as the X, Y and Z  QLabels, it's just that
-        Zi_label                    = MyQLabel("Z", ha= 'center')           # QtWidgets does not allow to use the same QLabel
+        X_label                     = MyQLabel("X", ha='center')
+        Y_label                     = MyQLabel("Y", ha='center')
+        Z_label                     = MyQLabel("Z", ha='center')
+        algo_label                  = MyQLabel("Algorithm", ha='right')
+        straight_ray_label          = MyQLabel("Straight Rays", ha='right')
+        curv_ray_label              = MyQLabel("Curved Rays", ha='right')
+        step_label                  = MyQLabel("Step :", ha='center')
+        Xi_label                    = MyQLabel("X", ha='center')           # The Xi, Yi and Zi  QLabels are practically the
+        Yi_label                    = MyQLabel("Y", ha='center')           # same as the X, Y and Z  QLabels, it's just that
+        Zi_label                    = MyQLabel("Z", ha='center')           # QtWidgets does not allow to use the same QLabel
                                                                             # twice or more. So we had to create new Qlabels
 
         # These Labels are bein set as attributes of the InversionUI class because they need to be modified
         # depending on the model's informations
-        self.X_min_label            = MyQLabel("0", ha= 'center')
-        self.Y_min_label            = MyQLabel("0", ha= 'center')
-        self.Z_min_label            = MyQLabel("0", ha= 'center')
-        self.X_max_label            = MyQLabel("0", ha= 'center')
-        self.Y_max_label            = MyQLabel("0", ha= 'center')
-        self.Z_max_label            = MyQLabel("0", ha= 'center')
-        self.step_Xi_label          = MyQLabel("0", ha= 'center')
-        self.step_Yi_label          = MyQLabel("0", ha= 'center')
-        self.step_Zi_label          = MyQLabel("0", ha= 'center')
-        self.num_cells_label        = MyQLabel("0", ha= 'center')
-        self.algo_label             = MyQLabel('', ha= 'right')
-        self.noIter_label           = MyQLabel('', ha= 'left')
+        self.X_min_label            = MyQLabel("0", ha='center')
+        self.Y_min_label            = MyQLabel("0", ha='center')
+        self.Z_min_label            = MyQLabel("0", ha='center')
+        self.X_max_label            = MyQLabel("0", ha='center')
+        self.Y_max_label            = MyQLabel("0", ha='center')
+        self.Z_max_label            = MyQLabel("0", ha='center')
+        self.step_Xi_label          = MyQLabel("0", ha='center')
+        self.step_Yi_label          = MyQLabel("0", ha='center')
+        self.step_Zi_label          = MyQLabel("0", ha='center')
+        self.num_cells_label        = MyQLabel("0", ha='center')
+        self.algo_label             = MyQLabel('', ha='right')
+        self.noIter_label           = MyQLabel('', ha='left')
 
-        #--- Setting Label's color ---#
+        # --- Setting Label's color --- #
         self.num_cells_label.setPalette(palette)
         self.X_min_label.setPalette(palette)
         self.Y_min_label.setPalette(palette)
@@ -664,7 +664,7 @@ class InversionUI(QtWidgets.QFrame):
         self.algo_label.setPalette(palette)
         self.noIter_label.setPalette(palette)
 
-        #--- Edits ---#
+        # --- Edits --- #
         self.straight_ray_edit       = QtWidgets.QLineEdit("1")  # Putting a string as the argument of the QLineEdit initializes
         self.curv_ray_edit           = QtWidgets.QLineEdit("1")  # it to the argument
         self.Min_editi               = QtWidgets.QLineEdit('0.06')
@@ -680,7 +680,7 @@ class InversionUI(QtWidgets.QFrame):
         self.Min_editi.editingFinished.connect(self.plot_inv)
         self.Max_editi.editingFinished.connect(self.plot_inv)
 
-        #--- Checkboxes ---#
+        # --- Checkboxes --- #
         self.use_const_checkbox = QtWidgets.QCheckBox("Use Constraints")  # The argument of the QCheckBox is the title
         self.use_Rays_checkbox  = QtWidgets.QCheckBox("Use Rays")         # of it
         self.set_color_checkbox = QtWidgets.QCheckBox("Set Color Limits")
@@ -689,7 +689,7 @@ class InversionUI(QtWidgets.QFrame):
         self.use_const_checkbox.stateChanged.connect(self.update_params)
         self.set_color_checkbox.stateChanged.connect(self.plot_inv)
 
-        #--- Actions ---#
+        # --- Actions --- #
         openAction = QtWidgets.QAction('Open main data file', self)
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.openfile)
@@ -713,7 +713,7 @@ class InversionUI(QtWidgets.QFrame):
 
         residAction = QtWidgets.QAction('Residuals', self)
         residAction.triggered.connect(self.plot_residuals)
-        #--- ToolBar ---#
+        # --- ToolBar --- #
         self.tool = QtWidgets.QMenuBar()
         fileMenu = self.tool.addMenu('&File')
         resultsMenu = self.tool.addMenu('&Results')
@@ -723,7 +723,7 @@ class InversionUI(QtWidgets.QFrame):
         fileMenu.addAction(openAction)
         fileMenu.addAction(saveAction)
 
-        #--- List ---#
+        # --- List --- #
         self.mog_list            = QtWidgets.QListWidget()
 
         #- List disposition -#
@@ -733,19 +733,19 @@ class InversionUI(QtWidgets.QFrame):
         #- List Actions -#
         self.mog_list.itemSelectionChanged.connect(self.update_params)
 
-        #--- combobox ---#
+        # --- combobox --- #
         self.T_and_A_combo            = QtWidgets.QComboBox()
         self.prev_inversion_combo     = QtWidgets.QComboBox()
         self.algo_combo               = QtWidgets.QComboBox()
         self.fig_combo                = QtWidgets.QComboBox()
 
-        #------- Items in the comboboxes --------#
-        #--- Time and Amplitude Combobox's Items ---#
+        # ------- Items in the comboboxes -------- #
+        # --- Time and Amplitude Combobox's Items --- #
         self.T_and_A_combo.addItem("Traveltime")
         self.T_and_A_combo.addItem("Amplitude - Peak-to-Peak")
         self.T_and_A_combo.addItem("Amplitude - Centroid Frequency")
 
-        #--- Algorithm Combobox's Items ---#
+        # --- Algorithm Combobox's Items --- #
         self.algo_combo.addItem("LSQR Solver")
         self.algo_combo.addItem("Geostatistic")
 
@@ -753,7 +753,7 @@ class InversionUI(QtWidgets.QFrame):
         self.algo_combo.activated.connect(self.initinvUI)
         self.fig_combo.activated.connect(self.plot_inv)
 
-        #--- Figure's ComboBox's Items ---#
+        # --- Figure's ComboBox's Items --- #
 
         list1 = ['inferno', 'seismic', 'jet', 'hsv', 'hot',
                  'cool', 'autumn', 'winter', 'spring', 'summer',
@@ -761,7 +761,7 @@ class InversionUI(QtWidgets.QFrame):
 
         self.fig_combo.addItems(list1)
 
-        #------- Frame for number of Iterations -------#
+        # ------- Frame for number of Iterations ------- #
         iterFrame = QtWidgets.QFrame()
         iterGrid = QtWidgets.QGridLayout()
         iterGrid.addWidget(self.noIter_label, 0, 1)
@@ -769,8 +769,8 @@ class InversionUI(QtWidgets.QFrame):
         iterFrame.setLayout(iterGrid)
         iterFrame.setStyleSheet('background: white')
 
-        #------- SubWidgets -------#
-        #--- Algo SubWidget ---#
+        # ------- SubWidgets ------- #
+        # --- Algo SubWidget --- #
         Sub_algo_Widget = QtWidgets.QWidget()
         Sub_algo_Grid = QtWidgets.QGridLayout()
         Sub_algo_Grid.addWidget(algo_label, 0, 0)
@@ -778,7 +778,7 @@ class InversionUI(QtWidgets.QFrame):
         Sub_algo_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_algo_Widget.setLayout(Sub_algo_Grid)
 
-        #---  Grid Coordinates SubWidget ---#
+        # ---  Grid Coordinates SubWidget --- #
         Sub_Grid_Coord_Widget = QtWidgets.QWidget()
         Sub_Grid_Coord_grid = QtWidgets.QGridLayout()
         Sub_Grid_Coord_grid.addWidget(X_label, 0, 1)
@@ -796,14 +796,14 @@ class InversionUI(QtWidgets.QFrame):
         Sub_Grid_Coord_grid.setVerticalSpacing(3)
         Sub_Grid_Coord_Widget.setLayout(Sub_Grid_Coord_grid)
 
-        #--- Cells SubWidget ---#
+        # --- Cells SubWidget --- #
         sub_cells_widget = QtWidgets.QWidget()
         sub_cells_grid = QtWidgets.QGridLayout()
         sub_cells_grid.addWidget(self.num_cells_label, 0, 0)
         sub_cells_grid.addWidget(cells_label, 0, 1)
         sub_cells_widget.setLayout(sub_cells_grid)
 
-        #--- Step SubWidget ---#
+        # --- Step SubWidget --- #
         Sub_Step_Widget = QtWidgets.QWidget()
         Sub_Step_Grid = QtWidgets.QGridLayout()
         Sub_Step_Grid.addWidget(step_label, 1, 0)
@@ -818,7 +818,7 @@ class InversionUI(QtWidgets.QFrame):
         Sub_Step_Grid.setVerticalSpacing(3)
         Sub_Step_Widget.setLayout(Sub_Step_Grid)
 
-        #--- Straight Rays SubWidget ---#
+        # --- Straight Rays SubWidget --- #
         sub_straight_widget = QtWidgets.QWidget()
         sub_straight_grid = QtWidgets.QGridLayout()
         sub_straight_grid.addWidget(straight_ray_label, 0, 0)
@@ -826,7 +826,7 @@ class InversionUI(QtWidgets.QFrame):
         sub_straight_grid.setContentsMargins(0, 0, 0, 0)
         sub_straight_widget.setLayout(sub_straight_grid)
 
-        #--- Curved Rays SubWidget ---#
+        # --- Curved Rays SubWidget --- #
         sub_curved_widget = QtWidgets.QWidget()
         sub_curved_grid = QtWidgets.QGridLayout()
         sub_curved_grid.addWidget(curv_ray_label, 0, 0)
@@ -834,8 +834,8 @@ class InversionUI(QtWidgets.QFrame):
         sub_curved_grid.setContentsMargins(0, 0, 0, 0)
         sub_curved_widget.setLayout(sub_curved_grid)
 
-        #------- SubGroupboxes -------#
-        #--- Data Groupbox ---#
+        # ------- SubGroupboxes ------- #
+        # --- Data Groupbox --- #
         data_groupbox = QtWidgets.QGroupBox("Data")
         data_grid = QtWidgets.QGridLayout()
         data_grid.addWidget(model_label, 0, 0)
@@ -845,14 +845,14 @@ class InversionUI(QtWidgets.QFrame):
         data_grid.addWidget(self.mog_list, 1, 2, 2, 1)
         data_groupbox.setLayout(data_grid)
 
-        #--- Grid Groupbox ---#
+        # --- Grid Groupbox --- #
         Grid_groupbox = QtWidgets.QGroupBox("Grid")
         Grid_grid = QtWidgets.QGridLayout()
         Grid_grid.addWidget(Sub_Grid_Coord_Widget, 0, 0)
         Grid_grid.addWidget(Sub_Step_Widget, 0, 1)
         Grid_groupbox.setLayout(Grid_grid)
 
-        #--- Previous Inversion Groupbox ---#
+        # --- Previous Inversion Groupbox --- #
         prev_inv_groupbox = QtWidgets.QGroupBox("Previous Inversions")
         prev_inv_grid = QtWidgets.QGridLayout()
         prev_inv_grid.addWidget(self.prev_inversion_combo, 0, 0, 1, 2)
@@ -862,14 +862,14 @@ class InversionUI(QtWidgets.QFrame):
         prev_inv_grid.addWidget(self.use_Rays_checkbox, 0, 2)
         prev_inv_groupbox.setLayout(prev_inv_grid)
 
-        #--- Number of Iteration Groupbox ---#
+        # --- Number of Iteration Groupbox --- #
         Iter_num_groupbox = QtWidgets.QGroupBox("Number of Iterations")
         Iter_num_grid = QtWidgets.QGridLayout()
         Iter_num_grid.addWidget(sub_straight_widget, 0, 0)
         Iter_num_grid.addWidget(sub_curved_widget, 0, 1)
         Iter_num_groupbox.setLayout(Iter_num_grid)
 
-        #--- Inversion Parameters Groupbox ---#
+        # --- Inversion Parameters Groupbox --- #
         Inv_Param_groupbox = QtWidgets.QGroupBox(" Inversion Parameters")
         self.Inv_Param_grid = QtWidgets.QGridLayout()
         self.Inv_Param_grid.addWidget(Sub_algo_Widget, 0, 0)
@@ -878,7 +878,7 @@ class InversionUI(QtWidgets.QFrame):
         self.Inv_Param_grid.addWidget(btn_GO, 3, 1)
         Inv_Param_groupbox.setLayout(self.Inv_Param_grid)
 
-        #--- Figures Groupbox ---#
+        # --- Figures Groupbox --- #
         fig_groupbox = QtWidgets.QGroupBox("Figures")
         self.fig_grid = QtWidgets.QGridLayout()
         self.fig_grid.addWidget(self.set_color_checkbox, 0, 0)
@@ -889,14 +889,14 @@ class InversionUI(QtWidgets.QFrame):
         self.fig_grid.addWidget(self.fig_combo, 0, 5)
         fig_groupbox.setLayout(self.fig_grid)
 
-        #--- Figure Groupbox dependent SubWidget ---#
+        # --- Figure Groupbox dependent SubWidget --- #
         Sub_right_Widget = QtWidgets.QWidget()
         Sub_right_Grid = QtWidgets.QGridLayout()
         Sub_right_Grid.addWidget(fig_groupbox, 0, 0)
         Sub_right_Grid.setContentsMargins(0, 0, 0, 0)
         Sub_right_Widget.setLayout(Sub_right_Grid)
 
-        #------- Global Widget Disposition -------#
+        # ------- Global Widget Disposition ------- #
         global_widget = QtWidgets.QWidget()
         self.global_grid = QtWidgets.QGridLayout()
         self.global_grid.addWidget(data_groupbox, 0, 0, 3, 1)
@@ -911,7 +911,7 @@ class InversionUI(QtWidgets.QFrame):
         self.global_grid.setRowStretch(7, 100)
         global_widget.setLayout(self.global_grid)
 
-        #------- Master Grid Disposition -------#
+        # ------- Master Grid Disposition ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.tool, 0, 0)
         master_grid.addWidget(global_widget, 1, 0)
@@ -963,14 +963,14 @@ class InversionUI(QtWidgets.QFrame):
 #
 #    def initUI(self):
 #
-#        #-------  Widgets --------#
-#        #--- Edit ---#
+#        # -------  Widgets -------- #
+#        # --- Edit --- #
 #        self.database_edit = QtWidgets.QLineEdit()
 #
 #        #- Edit Action -#
 #        self.database_edit.setReadOnly(True)
 #
-#        #--- Buttons ---#
+#        # --- Buttons --- #
 #        self.btn_database = QtWidgets.QPushButton('Choose Database')
 #        self.btn_ok = QtWidgets.QPushButton('Ok')
 #        self.btn_cancel = QtWidgets.QPushButton('Cancel')
@@ -980,7 +980,7 @@ class InversionUI(QtWidgets.QFrame):
 #        self.btn_database.clicked.connect(self.openfile)
 #        self.btn_ok.clicked.connect(self.ok)
 #
-#        #--- Combobox ---#
+#        # --- Combobox --- #
 #        self.model_combo = QtWidgets.QComboBox()
 #
 #        #- Combobox's Action -#
@@ -1180,11 +1180,11 @@ class ResidualsFig(FigureCanvasQTAgg):
         self.ax5 = self.figure.axes[4]
 
         #                      Layout
-        #---------------------------------------
+        # ---------------------------------------
         # |       ax1       |        ax2        |
-        #---------------------------------------
+        # ---------------------------------------
         # |       ax3       |      ax4/ax5      |
-        #---------------------------------------
+        # ---------------------------------------
 
         self.ax1.set_ylabel('||res||')
         self.ax1.set_xlabel('Iteration')
@@ -1285,7 +1285,7 @@ class TomoFig(FigureCanvasQTAgg):
         self.ax.set_ylabel('Elevation [m]')
 
     def plot_tomo(self):
-        #TODO Changer le titre de la figure tout dépendant du type d'inversion
+        # TODO: Changer le titre de la figure tout dépendant du type d'inversion
         grid = self.ui.models[self.ui.model_ind].grid
         s = self.ui.tomo.s
 
@@ -1384,7 +1384,7 @@ class Gridviewer(QtWidgets.QWidget):
         self.noIter = 0
 
     def init2DUI(self):
-        #-------- Manager for InvFig -------#
+        # -------- Manager for InvFig ------- #
         self.invFig = InvFig(self, self.ui)
         inv_grid = QtWidgets.QGridLayout()
         inv_grid.addWidget(self.invFig, 0, 0)
@@ -1392,20 +1392,20 @@ class Gridviewer(QtWidgets.QWidget):
         self.setLayout(inv_grid)
 
     def init3DUI(self):
-        #-------- Manager for InvFig -------#
+        # -------- Manager for InvFig ------- #
         self.invFig = InvFig(self, self.ui)
         inv_grid = QtWidgets.QGridLayout()
         inv_grid.addWidget(self.invFig, 0, 0)
         inv_grid.setVerticalSpacing(0)
         self.setLayout(inv_grid)
 
-        y_plane_label = MyQLabel('Y Plane', ha= 'right')
+        y_plane_label = MyQLabel('Y Plane', ha='right')
         self.y_plane_scroll = QtWidgets.QScrollBar(QtCore.Qt.Horizontal)
         self.ui.fig_grid.addWidget(y_plane_label, 0, 6)
         self.ui.fig_grid.addWidget(self.y_plane_scroll, 0, 7)
 
 
-class  MyQLabel(QtWidgets.QLabel):   #--- Class For Alignment ---#
+class  MyQLabel(QtWidgets.QLabel):   # --- Class For Alignment --- #
     def __init__(self, label, ha='left',  parent=None):
         super(MyQLabel, self).__init__(label,parent)
         if ha == 'center':

@@ -29,7 +29,7 @@ class InfoUI(QtWidgets.QFrame):
         self.setWindowTitle("BhTomoPy/Info")
         self.initUI()
 
-    #------- Updating the information -------#
+    # ------- Updating the information ------- #
     def update_database(self, name):
         self.live_database_label.setText(name)
 
@@ -45,22 +45,21 @@ class InfoUI(QtWidgets.QFrame):
     def update_trace(self, value):
         self.num_traces_label.setText(str(value))
 
-
     def initUI(self):
 
-        #--- Widget ---#
+        # --- Widget --- #
         self.database_label = QtWidgets.QLabel("Database : ")
-        self.live_database_label = MyQLabel('',ha='left')
+        self.live_database_label = MyQLabel('', ha='left')
         self.boreholes_label = QtWidgets.QLabel(" Borehole(s)")
-        self.num_boreholes_label = MyQLabel('0',ha='right')
+        self.num_boreholes_label = MyQLabel('0', ha='right')
         self.mogs_label = QtWidgets.QLabel(" MOG(s)")
-        self.num_mogs_label = MyQLabel('0',ha='right')
+        self.num_mogs_label = MyQLabel('0', ha='right')
         self.models_label = QtWidgets.QLabel(" Model(s)")
-        self.num_models_label = MyQLabel('0',ha='right')
+        self.num_models_label = MyQLabel('0', ha='right')
         self.traces_label = QtWidgets.QLabel(" Traces")
-        self.num_traces_label = MyQLabel('0',ha='right')
+        self.num_traces_label = MyQLabel('0', ha='right')
 
-        #--- Grid ---#
+        # --- Grid --- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.database_label, 0, 0)
         master_grid.addWidget(self.live_database_label, 0, 1)
