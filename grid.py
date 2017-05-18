@@ -118,15 +118,15 @@ class Grid(object):
 
         x0 = np.mean(X, axis=0).T
 
-        A = np.vstack([X[:,0]-x0[0], X[:,1]-x0[1], X[:,2]-x0[2]]).T
+        A = np.vstack([X[:, 0] - x0[0], X[:, 1] - x0[1], X[:, 2] - x0[2]]).T
         (U, S, V) = np.linalg.svd(A)
 
         i = np.argmin(S)
-        a = V[i,:].T
+        a = V[i, :].T
 
         if nout == 4:
             s = np.amin(S)
-            d = U[:,i]*s
+            d = U[:, i] * s
             normd = np.linalg.norm(d)
             return (x0, a, d, normd)
         elif nout == 2:
@@ -146,8 +146,8 @@ class Grid(object):
         x = [b.X for b in bh]
         y = [b.Y for b in bh]
 
-        dx = max(x)-min(x)
-        dy = max(y)-min(y)
+        dx = max(x) - min(x)
+        dy = max(y) - min(y)
 
         # find along which dimension we should work
         if dx > dy:
@@ -172,15 +172,15 @@ class Grid(object):
             order[ind] = order[iy]
 
         # sort sequentially according to distance from previous bh
-        for n in np.arange(nd-2):
-            dist = np.sqrt((x[n]-x[n+1:])**2 + (y[n]-y[n+1:])**2)
+        for n in np.arange(nd - 2):
+            dist = np.sqrt((x[n] - x[n + 1:])**2 + (y[n] - y[n + 1:])**2)
             ind = np.argsort(dist)
-            tmp = x[n+1:]
-            x[n+1:] = tmp[ind]
-            tmp = y[n+1:]
-            y[n+1:] = tmp[ind]
-            tmp = order[n+1:]
-            order[n+1:] = tmp[ind]
+            tmp = x[n + 1:]
+            x[n + 1:] = tmp[ind]
+            tmp = y[n + 1:]
+            y[n + 1:] = tmp[ind]
+            tmp = order[n + 1:]
+            order[n + 1:] = tmp[ind]
 
         return order
 
@@ -199,9 +199,9 @@ class Grid(object):
         """
         p_data = data.copy()
         for n in np.arange(data.shape[0]):
-            r = x0 - data[n,:]
+            r = x0 - data[n, :]
             p = np.dot(a, r)
-            p_data[n,:] = data[n,:] + p*a
+            p_data[n, :] = data[n, :] + p * a
 
         return p_data
 
@@ -225,11 +225,11 @@ class Grid(object):
         p = np.zeros((len(planes),))
         for n in np.arange(data.shape[0]):
             for nn in np.arange(len(planes)):
-                r = planes[nn].x0 - data[n,:]
+                r = planes[nn].x0 - data[n, :]
                 p[nn] = np.dot(planes[nn].a, r)
 
             no = np.argmin(np.abs(p))  # find plane closest to current point
-            p_data[n,:] = data[n,:] + p[no]*planes[no].a  # project on closest plane
+            p_data[n, :] = data[n, :] + p[no] * planes[no].a  # project on closest plane
             no_plane[n] = no
 
         return p_data, no_plane
@@ -243,19 +243,19 @@ class Grid(object):
 
         """
         # translation w/r to origin
-        m_data = np.vstack([data[:,0]-origin[0], data[:,1]-origin[1], data[:,2]-origin[2]]).T
+        m_data = np.vstack([data[:, 0] - origin[0], data[:, 1] - origin[1], data[:, 2] - origin[2]]).T
         # rotation w/r to azimuth
-        if np.abs(az) > (math.pi/720.0):  # if azimuth larger that 1/4 of a degree
+        if np.abs(az) > (math.pi / 720.0):  # if azimuth larger that 1/4 of a degree
             rot = np.array([[np.cos(az), -np.sin(az)], [np.sin(az), np.cos(az)]])
             for n in np.arange(m_data.shape[0]):
-                m_data[n,:2] = np.dot(m_data[n,:2], rot.T)
+                m_data[n, :2] = np.dot(m_data[n, :2], rot.T)
                 # np.dot(m_data[n,:2], rot.T) is equal to np.dot(rot, m_data[n,:2].T).T
 
         # rotation w/r to dip
-        if np.abs(dip) > (math.pi/720.0):  # if azimuth larger that 1/4 of a degree
+        if np.abs(dip) > (math.pi / 720.0):  # if azimuth larger that 1/4 of a degree
             rot = np.array([[np.cos(dip), -np.sin(dip)], [np.sin(dip), np.cos(dip)]])
             for n in np.arange(m_data.shape[0]):
-                m_data[n,1:] = np.dot(m_data[n,1:], rot.T)
+                m_data[n, 1:] = np.dot(m_data[n, 1:], rot.T)
 
         return m_data
 
@@ -369,15 +369,15 @@ class Grid2D(Grid):
             raise ValueError('Length of theta should equal length of slowness')
 
         if len(t0) == 0:
-            t0 = np.zeros([Tx.shape[0],])
+            t0 = np.zeros([Tx.shape[0], ])
         elif len(t0) != Tx.shape[0]:
             raise ValueError('Length of t0 should equal number of Tx')
 
         if self.cgrid is None:
-            nx = len(self.grx)-1
-            nz = len(self.grz)-1
-            dx = self.grx[1]-self.grx[0]
-            dz = self.grz[1]-self.grz[0]
+            nx = len(self.grx) - 1
+            nz = len(self.grz) - 1
+            dx = self.grx[1] - self.grx[0]
+            dz = self.grz[1] - self.grz[0]
 
             typeG = b'iso'
             if len(xi) != 0:
@@ -415,12 +415,12 @@ class Grid2D(Grid):
         if dx is None:
             grx = self.grx
         else:
-            grx = np.arange(self.grx[0], self.grx[-1]+small, dx)
+            grx = np.arange(self.grx[0], self.grx[-1] + small, dx)
 
         if dz is None:
             grz = self.grz
         else:
-            grz = np.arange(self.grz[0], self.grz[-1]+small, dz)
+            grz = np.arange(self.grz[0], self.grz[-1] + small, dz)
 
         if not aniso:
             return cgrid2d.Grid2Dcpp.Lsr2d(self.Tx[np.ix_(ind, [0, 2])], self.Rx[np.ix_(ind, [0, 2])], grx, grz)
@@ -436,15 +436,15 @@ class Grid2D(Grid):
         if dz is None:
             dz = self.grz[1] - self.grz[0]
 
-        xmin = self.grx[0] + dx/2.0
-        zmin = self.grz[0] + dz/2.0
-        xmax = self.grx[-1] - dx/3.0  # divide by 3 to avoid truncation error
-        zmax = self.grz[-1] = dz/3.0
-        nx = np.ceil((xmax-xmin)/dx)
-        nz = np.ceil((zmax-zmin)/dz)
+        xmin = self.grx[0] + dx / 2.0
+        zmin = self.grz[0] + dz / 2.0
+        xmax = self.grx[-1] - dx / 3.0  # divide by 3 to avoid truncation error
+        zmax = self.grz[-1] = dz / 3.0
+        nx = np.ceil((xmax - xmin) / dx)
+        nz = np.ceil((zmax - zmin) / dz)
 
-        c = np.vstack([xmin+np.kron(np.ones((nz,)), np.arange(nx)*dx),
-                       zmin+np.kron(np.arange(nz),  np.ones((nx,))*dz)]).T
+        c = np.vstack([xmin + np.kron(np.ones((nz, )), np.arange(nx) * dx),
+                       zmin + np.kron(np.arange(nz), np.ones((nx, )) * dz)]).T
         return c
 
     def checkCenter(self, x, y, z):
@@ -455,23 +455,23 @@ class Grid2D(Grid):
             return False    # Y should be empty for 2D grids
 
         dx = self.grx[1] - self.grx[0]
-        xmin = self.grx[0] + dx/2.0
-        xmax = self.grx[-1] - dx/3.0  # divide by 3 to avoid truncation error
+        xmin = self.grx[0] + dx / 2.0
+        xmax = self.grx[-1] - dx / 3.0  # divide by 3 to avoid truncation error
         xx = np.arange(xmin, xmax, dx)
         if xx.size() != x.size():
             return False
 
-        if np.any(np.abs(x-xx) > 1000.0*np.finfo(float).eps):
+        if np.any(np.abs(x - xx) > 1000.0 * np.finfo(float).eps):
             return False
 
         dz = self.grz[1] - self.grz[0]
-        zmin = self.grz[0] + dz/2.0
-        zmax = self.grz[-1] - dz/3.0  # divide by 3 to avoid truncation error
+        zmin = self.grz[0] + dz / 2.0
+        zmax = self.grz[-1] - dz / 3.0  # divide by 3 to avoid truncation error
         zz = np.arange(zmin, zmax, dz)
         if zz.size() != z.size():
             return False
 
-        if np.any(np.abs(z-zz) > 1000.0*np.finfo(float).eps):
+        if np.any(np.abs(z - zz) > 1000.0 * np.finfo(float).eps):
             return False
 
         return True
@@ -505,41 +505,41 @@ class Grid2D(Grid):
             # centered operator is (u_{i+1} - u_{i-1})/(2dx)
             # backward operator is (u_i - u_{i-1})/dx
 
-            idx = 1/dx
-            idz = 1/dz
+            idx = 1 / dx
+            idz = 1 / dz
 
-            i = np.kron(np.arange(nx*nz), np.ones((2,)))
-            j = np.zeros((nz * nx * 2,))
-            v = np.zeros((nz * nx * 2,))
+            i = np.kron(np.arange(nx * nz), np.ones((2, )))
+            j = np.zeros((nz * nx * 2, ))
+            v = np.zeros((nz * nx * 2, ))
 
-            jj = np.vstack((np.arange(nz), nz+np.arange(nz))).T
+            jj = np.vstack((np.arange(nz), nz + np.arange(nz))).T
             jj = jj.flatten()
-            j[:2*nz] = jj
-            vd = idx * np.tile(np.array([-1, 1]), (nz,))
-            v[:2*nz] = vd
+            j[:2 * nz] = jj
+            vd = idx * np.tile(np.array([-1, 1]), (nz, ))
+            v[:2 * nz] = vd
 
-            jj = np.vstack((-nz+np.arange(nz), nz+np.arange(nz))).T
+            jj = np.vstack((-nz + np.arange(nz), nz + np.arange(nz))).T
             jj = jj.flatten()
-            for n in range(1, nx-1):
-                j[n*2*nz:(n+1)*2*nz] = n*nz + jj
-                v[n*2*nz:(n+1)*2*nz] = 0.5*vd
+            for n in range(1, nx - 1):
+                j[n * 2 * nz:(n + 1) * 2 * nz] = n * nz + jj
+                v[n * 2 * nz:(n + 1) * 2 * nz] = 0.5 * vd
 
-            jj = np.vstack((-nz+np.arange(nz), np.arange(nz))).T
+            jj = np.vstack((-nz + np.arange(nz), np.arange(nz))).T
             jj = jj.flatten()
-            j[(nx-1)*2*nz:nx*2*nz] = (nx-1)*nz + jj
-            v[(nx-1)*2*nz:nx*2*nz] = vd
+            j[(nx - 1) * 2 * nz:nx * 2 * nz] = (nx - 1) * nz + jj
+            v[(nx - 1) * 2 * nz:nx * 2 * nz] = vd
 
             Dx = csr_matrix((v, (i, j)))
 
-            jj = np.vstack((np.hstack((0, np.arange(nz-1))),
-                            np.hstack((np.arange(1, nz), nz-1)))).T
+            jj = np.vstack((np.hstack((0, np.arange(nz - 1))),
+                            np.hstack((np.arange(1, nz), nz - 1)))).T
             jj = jj.flatten()
-            vd = idz*np.hstack((np.array([-1, 1]),
-                                np.tile(np.array([-0.5, 0.5]), (nz-2,)), np.array([-1, 1])))
+            vd = idz * np.hstack((np.array([-1, 1]),
+                                  np.tile(np.array([-0.5, 0.5]), (nz - 2,)), np.array([-1, 1])))
 
             for n in range(nx):
-                j[n*2*nz:(n+1)*2*nz] = n*nz + jj
-                v[n*2*nz:(n+1)*2*nz] = vd
+                j[n * 2 * nz:(n + 1) * 2 * nz] = n * nz + jj
+                v[n * 2 * nz:(n + 1) * 2 * nz] = vd
 
             Dz = csr_matrix((v, (i, j)))
         else:  # 2nd order
@@ -548,37 +548,37 @@ class Grid2D(Grid):
             # centered operator is (u_{i-1} - 2u_i + u_{i+1})/dx^2
             # backward operator is (u_{i-2} - 2u_{i-1} + u_i)/dx^2
 
-            idx2 = 1/(dx*dx)
-            idz2 = 1/(dz*dz)
+            idx2 = 1 / (dx * dx)
+            idz2 = 1 / (dz * dz)
 
-            i = np.kron(np.arange(nx*nz), np.ones((3,)))
-            j = np.zeros((nz * nx * 3,))
-            v = np.zeros((nz * nx * 3,))
+            i = np.kron(np.arange(nx * nz), np.ones((3, )))
+            j = np.zeros((nz * nx * 3, ))
+            v = np.zeros((nz * nx * 3, ))
 
-            jj = np.vstack((np.arange(nz), nz+np.arange(nz), 2*nz+np.arange(nz))).T
+            jj = np.vstack((np.arange(nz), nz + np.arange(nz), 2 * nz + np.arange(nz))).T
             jj = jj.flatten()
-            j[:3*nz] = jj
-            vd = idx2*np.tile(np.array([1.0, -2.0, 1.0]), (nz,))
-            v[:3*nz] = vd
+            j[:3 * nz] = jj
+            vd = idx2 * np.tile(np.array([1.0, -2.0, 1.0]), (nz, ))
+            v[:3 * nz] = vd
 
-            for n in range(1, nx-1):
-                j[n*3*nz:(n+1)*3*nz] = (n-1)*nz + jj
-                v[n*3*nz:(n+1)*3*nz] = vd
+            for n in range(1, nx - 1):
+                j[n * 3 * nz:(n + 1) * 3 * nz] = (n - 1) * nz + jj
+                v[n * 3 * nz:(n + 1) * 3 * nz] = vd
 
-            j[(nx-1)*3*nz:nx*3*nz] = (nx-3)*nz + jj
-            v[(nx-1)*3*nz:nx*3*nz] = vd
+            j[(nx - 1) * 3 * nz:nx * 3 * nz] = (nx - 3) * nz + jj
+            v[(nx - 1) * 3 * nz:nx * 3 * nz] = vd
 
             Dx = csr_matrix((v, (i, j)))
 
-            jj = np.vstack((np.hstack((0, np.arange(nz-2),    nz-3)),
-                            np.hstack((1, np.arange(1, nz-1), nz-2)),
-                            np.hstack((2, np.arange(2, nz),   nz-1)))).T
+            jj = np.vstack((np.hstack((0, np.arange(nz - 2), nz - 3)),
+                            np.hstack((1, np.arange(1, nz - 1), nz - 2)),
+                            np.hstack((2, np.arange(2, nz), nz - 1)))).T
             jj = jj.flatten()
-            vd = vd*idz2/idx2
+            vd = vd * idz2 / idx2
 
             for n in range(nx):
-                j[n*3*nz:(n+1)*3*nz] = n*nz + jj
-                v[n*3*nz:(n+1)*3*nz] = vd
+                j[n * 3 * nz:(n + 1) * 3 * nz] = n * nz + jj
+                v[n * 3 * nz:(n + 1) * 3 * nz] = vd
 
             Dz = csr_matrix((v, (i, j)))
 
@@ -598,16 +598,16 @@ class Grid2D(Grid):
             G: covariance matrix in spectral domain
         """
         small = 1.0e-6
-        Nx = 2*self.grx.size
-        Nz = 2*self.grz.size
+        Nx = 2 * self.grx.size
+        Nz = 2 * self.grz.size
 
-        Nx2 = Nx/2
-        Nz2 = Nz/2
+        Nx2 = Nx / 2
+        Nz2 = Nz / 2
 
-        x = self.dx * np.hstack((np.arange(Nx2), np.arange(-Nx2+1, 1)))
-        z = self.dz * np.hstack((np.arange(Nz2), np.arange(-Nz2+1, 1)))
+        x = self.dx * np.hstack((np.arange(Nx2), np.arange(-Nx2 + 1, 1)))
+        z = self.dz * np.hstack((np.arange(Nz2), np.arange(-Nz2 + 1, 1)))
 
-        x = np.kron(x, np.ones((Nz,)))
+        x = np.kron(x, np.ones((Nz, )))
         z = np.kron(z, np.ones((1, Nx)).T).flatten()
 
         d = 0
@@ -618,21 +618,21 @@ class Grid2D(Grid):
         mk = True
         while mk:
             mk = False
-            if np.min(K[0,:]) > small:
+            if np.min(K[0, :]) > small:
                 # Enlarge grid to make sure that covariance falls to zero
-                Nz = 2*Nz
+                Nz = 2 * Nz
                 mk = True
 
-            if np.min(K[:,0]) > small:
-                Nx = 2*Nx
+            if np.min(K[:, 0]) > small:
+                Nx = 2 * Nx
                 mk = True
 
             if mk:
-                Nx2 = Nx/2
-                Nz2 = Nz/2
+                Nx2 = Nx / 2
+                Nz2 = Nz / 2
 
-                x = self.dx * np.hstack((np.arange(Nx2), np.arange(-Nx2+1, 1)))
-                z = self.dz * np.hstack((np.arange(Nz2), np.arange(-Nz2+1, 1)))
+                x = self.dx * np.hstack((np.arange(Nx2), np.arange(-Nx2 + 1, 1)))
+                z = self.dz * np.hstack((np.arange(Nz2), np.arange(-Nz2 + 1, 1)))
 
                 x = np.kron(x, np.ones((Nz,)))
                 z = np.kron(z, np.ones((1, Nx)).T).flatten()
@@ -656,10 +656,10 @@ class Grid2D(Grid):
         """
         Nx, Nz = G.shape
         U = np.fft.fft2(np.random.randn(G.shape[0], G.shape[1]))
-        Z = np.real(np.fft.ifft2(G*U))
+        Z = np.real(np.fft.ifft2(G * U))
 
-        return Z[int(round((Nx+2)/2)):(int(round((Nx+2)/2))+self.grx.size-1),
-                 int(round((Nz+2)/2)):(int(round((Nz+2)/2))+self.grz.size-1)]
+        return Z[int(round((Nx + 2) / 2)):(int(round((Nx + 2) / 2)) + self.grx.size - 1),
+                 int(round((Nz + 2) / 2)):(int(round((Nz + 2) / 2)) + self.grz.size - 1)]
 
     def toXdmf(self, field, fieldname, filename):
         """
@@ -670,10 +670,10 @@ class Grid2D(Grid):
             fieldname: name to be assinged to the data (string)
             filename: name of xdmf file (string)
         """
-        nx = self.grx.size-1
-        nz = self.grz.size-1
-        ox = self.grx[0] + self.dx/2
-        oz = self.grz[0] + self.dz/2
+        nx = self.grx.size - 1
+        nz = self.grz.size - 1
+        ox = self.grx[0] + self.dx / 2
+        oz = self.grz[0] + self.dz / 2
 
         f = open(filename, 'w')
 
@@ -683,18 +683,18 @@ class Grid2D(Grid):
         f.write(' <Domain>\n')
         f.write('   <Grid Name="Structured Grid" GridType="Uniform">\n')
         f.write('     <Topology TopologyType="2DCORECTMesh" NumberOfElements="' +
-                repr(nz+1)+' '+repr(nx+1)+'"/>\n')
+                repr(nz + 1) + ' ' + repr(nx + 1) + '"/>\n')
         f.write('     <Geometry GeometryType="ORIGIN_DXDY">\n')
         f.write('       <DataItem Dimensions="2 " NumberType="Float" Precision="4" Format="XML">\n')
-        f.write('          '+repr(oz)+' '+repr(ox)+'\n')
+        f.write('          ' + repr(oz) + ' ' + repr(ox) + '\n')
         f.write('       </DataItem>\n')
         f.write('       <DataItem Dimensions="2 " NumberType="Float" Precision="4" Format="XML">\n')
-        f.write('        '+repr(self.dz)+' '+repr(self.dx)+'\n')
+        f.write('        ' + repr(self.dz) + ' ' + repr(self.dx) + '\n')
         f.write('       </DataItem>\n')
         f.write('     </Geometry>\n')
-        f.write('     <Attribute Name="'+fieldname+'" AttributeType="Scalar" Center="Cell">\n')
-        f.write('       <DataItem Dimensions="'+repr(nz)+' '+repr(nx) +
-                '" NumberType="Float" Precision="4" Format="HDF">'+filename+'.h5:/'+fieldname+'</DataItem>\n')
+        f.write('     <Attribute Name="' + fieldname + '" AttributeType="Scalar" Center="Cell">\n')
+        f.write('       <DataItem Dimensions="' + repr(nz) + ' ' + repr(nx) +
+                '" NumberType="Float" Precision="4" Format="HDF">' + filename + '.h5:/' + fieldname + '</DataItem>\n')
         f.write('     </Attribute>\n')
         f.write('   </Grid>\n')
         f.write(' </Domain>\n')
@@ -702,7 +702,7 @@ class Grid2D(Grid):
 
         f.close()
 
-        h5f = h5py.File(filename+'.h5', 'w')
+        h5f = h5py.File(filename + '.h5', 'w')
         h5f.create_dataset(fieldname, data=field.reshape((nx, nz)).T.astype(np.float32))
         h5f.close()
 
@@ -729,8 +729,6 @@ class Grid3D(Grid):
         self.borehole_x0 = 1
         self.x0 = np.array([])
         self.type = None
-
-
 
 
 if __name__ == '__main__':
@@ -768,22 +766,22 @@ if __name__ == '__main__':
                        [9.8, 0.0, 0.2],
                        [9.8, 0.0, 3.2],
                        [9.8, 0.0, 6.2]])
-        t0 = np.zeros([6,])
+        t0 = np.zeros([6, ])
 
         tt1, L1, rays1 = grid.raytrace(slowness, Tx, Rx, t0)
         tt1b, L1b = grid.raytrace(slowness, Tx, Rx, t0)
         tt2, L2, rays2 = grid.raytrace(slowness, Tx, Rx)
 
-        d = np.sqrt(np.sum((Tx-Rx)**2, axis=1))
+        d = np.sqrt(np.sum((Tx - Rx)**2, axis=1))
 
-        print(d-tt1)
-        print(d-tt1b)
+        print(d - tt1)
+        print(d - tt1b)
 
-        print(d-tt2)
-        tt2b = L2*slowness
-        print(d-tt2b)
+        print(d - tt2)
+        tt2b = L2 * slowness
+        print(d - tt2b)
 
-        dL = L1-L1b
+        dL = L1 - L1b
         print(dL == 0)
 
         plt.matshow(L1.toarray())
@@ -794,15 +792,15 @@ if __name__ == '__main__':
         grid.Rx = Rx
 
         Lsr = grid.getForwardStraightRays()
-        ttsr = Lsr*slowness
+        ttsr = Lsr * slowness
 
-        print(d-ttsr)
+        print(d - ttsr)
 
         Lsr2 = grid.getForwardStraightRays(aniso=True)
-        slowness2 = np.ones((2*nc,))
-        ttsr2 = np.sqrt((Lsr2[:,:nc]*slowness2[:nc])**2 + (Lsr2[:,nc:]*slowness2[nc:])**2)
+        slowness2 = np.ones((2 * nc, ))
+        ttsr2 = np.sqrt((Lsr2[:, :nc] * slowness2[:nc])**2 + (Lsr2[:, nc:] * slowness2[nc:])**2)
 
-        print(d-ttsr2)
+        print(d - ttsr2)
 
         plt.matshow(Lsr.toarray())
 
@@ -817,7 +815,7 @@ if __name__ == '__main__':
         nc = grid.getNumberOfCells()
         slowness = np.ones((nc,))
         slowness = slowness.reshape((20, 30))
-        slowness[:,:10] = 0.5
+        slowness[:, :10] = 0.5
 
         plt.matshow(slowness.T)
         plt.show()
@@ -828,13 +826,13 @@ if __name__ == '__main__':
         z = np.arange(1, 15)
 
         Tx = np.vstack((np.ones(z.size), np.zeros(z.size), z)).T
-        Rx = np.vstack((9+np.ones(z.size), np.zeros(z.size), z)).T
+        Rx = np.vstack((9 + np.ones(z.size), np.zeros(z.size), z)).T
 
         grid.Tx = Tx
         grid.Rx = Rx
 
         Lsr = grid.getForwardStraightRays()
-        ttsr = Lsr*s
+        ttsr = Lsr * s
 
         print(ttsr)
 
@@ -865,9 +863,9 @@ if __name__ == '__main__':
 
         import numpy.random
         x = numpy.random.rand(100, 3)
-        x[:,0] *= 30
-        x[:,1] *= 25
-        x[:,2] -= 0.5
+        x[:, 0] *= 30
+        x[:, 1] *= 25
+        x[:, 2] -= 0.5
 
         x0, a = Grid.lsplane(x)
 
@@ -876,8 +874,8 @@ if __name__ == '__main__':
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        ax.scatter(xs=x[:,0],  ys=x[:,1],  zs=x[:,2],  c='r')
-        ax.scatter(xs=xp[:,0], ys=xp[:,1], zs=xp[:,2], c='b')
+        ax.scatter(xs=x[:, 0], ys=x[:, 1], zs=x[:, 2], c='r')
+        ax.scatter(xs=xp[:, 0], ys=xp[:, 1], zs=xp[:, 2], c='b')
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
         ax.set_zlabel('Z Label')
@@ -895,9 +893,9 @@ if __name__ == '__main__':
         plane1.x0 = x0
 
         x = numpy.random.rand(100, 3)
-        x[:,0] *= 30
-        x[:,1] *= 25
-        x[:,2] -= 0.25
+        x[:, 0] *= 30
+        x[:, 1] *= 25
+        x[:, 2] -= 0.25
 
         x0, a = Grid.lsplane(x)
         plane2 = Plane()
@@ -908,17 +906,17 @@ if __name__ == '__main__':
 
         xp, np_plane = Grid.proj_planes(x, planes)
 
-        origin = np.array([np.min(xp[:,0]), np.min(xp[:,1]), 0])
-        az = 30*3.14159/180
-        dip = -45*3.14159/180
+        origin = np.array([np.min(xp[:, 0]), np.min(xp[:, 1]), 0])
+        az = 30 * 3.14159 / 180
+        dip = -45 * 3.14159 / 180
 
         xd = Grid.transl_rotat(xp, origin, az, dip)
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        ax.scatter(xs=xd[:,0], ys=xd[:,1], zs=xd[:,2], c='r')
-        ax.scatter(xs=xp[:,0], ys=xp[:,1], zs=xp[:,2], c='b')
+        ax.scatter(xs=xd[:, 0], ys=xd[:, 1], zs=xd[:, 2], c='r')
+        ax.scatter(xs=xp[:, 0], ys=xp[:, 1], zs=xp[:, 2], c='b')
         ax.set_xlabel('X Label')
         ax.set_ylabel('Y Label')
         ax.set_zlabel('Z Label')
@@ -930,8 +928,8 @@ if __name__ == '__main__':
     if testDeriv:
         grx = np.linspace(0, 3, num=8)
         grz = np.linspace(0, 6, num=9)
-        nx = len(grx)-1
-        nz = len(grz)-1
+        nx = len(grx) - 1
+        nz = len(grz) - 1
 
         grid = Grid2D(grx, grz)
 
@@ -947,8 +945,8 @@ if __name__ == '__main__':
         s[27] = 2
         s[-1] = 2
 
-        dsx = Dx*s
-        dsz = Dz*s
+        dsx = Dx * s
+        dsz = Dz * s
 
         plt.matshow(s.reshape((nx, nz)).T)
         plt.title('s')
@@ -975,8 +973,8 @@ if __name__ == '__main__':
         plt.title('Dx O2')
         plt.show()
 
-        dsx = Dx*s
-        dsz = Dz*s
+        dsx = Dx * s
+        dsz = Dz * s
 
         plt.matshow(dsx.reshape((nx, nz)).T)
         plt.title('dsx O2')
@@ -995,8 +993,8 @@ if __name__ == '__main__':
     if testFFTMA:
         grx = np.linspace(0, 3, num=50)
         grz = np.linspace(0, 6, num=100)
-        nx = len(grx)-1
-        nz = len(grz)-1
+        nx = len(grx) - 1
+        nz = len(grz) - 1
 
         grid = Grid2D(grx, grz)
 
@@ -1022,7 +1020,7 @@ if __name__ == '__main__':
         z = np.arange(1, 15)
 
         Tx = np.vstack((np.ones(z.size), np.zeros(z.size), z)).T
-        Rx = np.vstack((9+np.ones(z.size), np.zeros(z.size), z)).T
+        Rx = np.vstack((9 + np.ones(z.size), np.zeros(z.size), z)).T
 
         grid.Tx = Tx
         grid.Rx = Rx
@@ -1030,12 +1028,12 @@ if __name__ == '__main__':
         nc = grid.getNumberOfCells()
         slowness = np.ones((nc,))
         slowness = slowness.reshape((20, 30))
-        slowness[:,:10] = 0.5
+        slowness[:, :10] = 0.5
 
         s = slowness.flatten()
 
         Lsr = grid.getForwardStraightRays()
-        ttsr = Lsr*s
+        ttsr = Lsr * s
 
         with open('/tmp/data.pickle', 'wb') as f:
             # Pickle the 'data' dictionary using the highest protocol available.
@@ -1049,7 +1047,7 @@ if __name__ == '__main__':
             grid = pickle.load(f)
 
         Lsr1 = grid.getForwardStraightRays()
-        ttsr1 = Lsr1*s
+        ttsr1 = Lsr1 * s
 
         tt1, L1, rays1 = grid.raytrace(s, Tx, Rx)
 
@@ -1065,7 +1063,7 @@ if __name__ == '__main__':
             grid = pickle.load(f)
 
         Lsr2 = grid.getForwardStraightRays()
-        ttsr2 = Lsr2*s
+        ttsr2 = Lsr2 * s
 
         tt2, L2, rays2 = grid.raytrace(s, Tx, Rx)
 
