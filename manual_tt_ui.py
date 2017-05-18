@@ -186,7 +186,7 @@ class ManualttUI(QtWidgets.QFrame):
         item = chooseMOG(current_module, str(current_module.engine.url).replace('sqlite:///', ''))
         if item is not None:
             data_manager.load(current_module)
-            self.mogs = data_manager.get(current_module, Mog)
+            self.mogs = current_module.session.query(Mog).all()
             self.mog = item
 #             if self.mog.useAirShots == 1:
 #                 self.air = sfile['air']

@@ -128,7 +128,7 @@ class ManualAmpUI(QtWidgets.QFrame):
 
         item = chooseMOG(current_module, str(current_module.engine.url).replace('sqlite:///', ''))
         if item is not None:
-            self.mogs = data_manager.get(current_module, Mog)
+            self.mogs = current_module.session.query(Mog).all()
             self.mog = item
             self.update_control_center()
 

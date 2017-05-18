@@ -32,7 +32,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationTool
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d
-from spectrum import arburg
+# from spectrum import arburg
 
 from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
@@ -427,8 +427,8 @@ class MOGUI(QtWidgets.QWidget):
                 #     mog.TxCosDir[ind, 3] = l[n,3]
 
             # TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
-            Tx = database.session.query(Borehole).all()[i].name[iTx]
-            Rx = database.session.query(Borehole).all()[i].name[iRx]
+            Tx = database.session.query(Borehole).all()[i.row()].name[iTx]
+            Rx = database.session.query(Borehole).all()[i.row()].name[iRx]
             mog.Tx = Tx
             mog.Rx = Rx
             mog.data.Tx_x = np.ones(mog.data.ntrace)
@@ -2286,7 +2286,7 @@ class PruneFig(FigureCanvasQTAgg):
     def plot_prune(self, mog, round_factor):
         self.ax.cla()
 
-        false_Rx_ind = np.nonzero(not mog.in_Rx_vect)
+        false_Rx_ind = np.nonzero(not mog.in_Rx_vect)  # TODO: false_Rx_ind = np.nonzero(mog.in_Rx_vect == False)
         false_Tx_ind = np.nonzero(not mog.in_Tx_vect)
 
         Tx_zs = np.unique(mog.data.Tx_z)

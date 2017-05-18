@@ -30,15 +30,27 @@ from model import Model
 from utils import Base
 
 
-def create_data_management(module):
+# Functions from 'data_manager' require a module as first parameter. This
+# is a way of allowing the coexistence of multiple instances of session
+# throughout the program (one per module). Moreover, the SQLAlchemy objects
+# existing as attributes, they are persistent.
 
-    module.engine = create_engine("sqlite:///:memory:")
-    module.Session = sessionmaker(bind=module.engine)
-    module.session = module.Session()
-    Base.metadata.create_all(module.engine)
+
+def create_data_management(module):
+    """
+    Initiate a module's SQLAlchemy objects.
+    """
+
+    module.engine = create_engine("sqlite:///:memory:")  # 'engine' interacts with the file
+    module.Session = sessionmaker(bind=module.engine)    # 'Session' acts as a factory for upcoming sessions; the features of 'Session' aren't exploited
+    module.session = module.Session()                    # the objects are stored in 'session' and can be manipulated from there
+    Base.metadata.create_all(module.engine)              # this creates the mapping for a specific engine
 
 
 def load(module, file):
+    """
+    Safely closes the current file opened in a module and opens a new file.
+    """
 
     try:
         module.session.close()
@@ -49,7 +61,7 @@ def load(module, file):
         module.session = module.Session()
         Base.metadata.create_all(module.engine)
 
-        get_many(module)  # initiate the session's objects
+        get_many(module)  # initiate the session's objects, guarantees they exist within 'session'
 
     except AttributeError:
         create_data_management(module)
@@ -57,9 +69,13 @@ def load(module, file):
 
 
 def save_as(module, file):
+    """
+    Closes the current file, safely transfers its items to a new file and overwrites the selected file.
+    To simply save a 'session' within the current file, the 'session.commit()' method is preferred.
+    """
 
     try:
-        items = get_many(module)
+        items = get_many(module)  # temporarily stores the saved items
 
         module.session.close()
         module.engine.dispose()
@@ -69,10 +85,10 @@ def save_as(module, file):
         module.Session.configure(bind=module.engine)
         module.session = module.Session()
 
-        for item in get_many(module):
+        for item in get_many(module):  # overwrites the selected file
             module.session.delete(item)
 
-        items = [module.session.merge(item) for item in items]
+        items = [module.session.merge(item) for item in items]  # conforms the items to the new session
         module.session.add_all(items)
 
         module.session.commit()
@@ -82,26 +98,11 @@ def save_as(module, file):
         save_as(module, file)
 
 
-def get(module, item, Id=None):
-
-    # item as class
-
-    if Id is None:
-        return module.session.query(item).all()
-
-    if Id is int:
-        return module.session.query(item).filter(item.name == Id)
-
-    if Id is list:
-        return [module.session.query(item).filter(item.name == i) for i in Id]
-
-    else:
-        raise TypeError
-
-
 def get_many(module, *classes):
-
-    # also loads items into current session
+    """
+    Get all or multiple classes stored within a session. Also guarantees these
+    items are loaded into the session.
+    """
 
     items = []
 
@@ -110,12 +111,15 @@ def get_many(module, *classes):
 
     for item in classes:
 
-        items += get(module, item)
+        items += module.session.query(item).all()
 
     return items
 
 
 def delete(module, item):
+    """
+    Deletes an item, even if the item was just added (i.e. not committed).
+    """
 
     from sqlalchemy import inspect
     if inspect(item).persistent:
@@ -140,26 +144,12 @@ if __name__ == '__main__':
         print(item.name, inspect(item).persistent)
 
 
+# Gets the current module, so that it can be sent as a parameter.
 # import sys
 # current_module = sys.modules[__name__]
 
-# def save(items):
-#
-#     # receives a single list of objects or a list of lists and saves it
-#
-#     if type(items[0]) is list:
-#
-#         for item in items:
 
-#             session.bulk_save_objects(item)
-#
-#     else:
-#
-#         session.bulk_save_objects(items)
-#
-#     session.commit()
-
-# Tests bank
+# Test bank
 #                     from sqlalchemy import inspect
 #                     from sqlalchemy.engine import reflection
 #                     from sqlalchemy.orm.session import sessionmaker

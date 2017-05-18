@@ -29,23 +29,23 @@ import dis
 import numpy as np
 import scipy.signal
 
-from sqlalchemy.ext.declarative import declarative_base
-Base = declarative_base()  # Base must be present in the child-most module in order not to cause inter-dependencies
+from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
+Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
 
 
-def Hook(Type, value, traceback):
+def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
     initial_ctx = traceback.tb_next
     while initial_ctx.tb_next is not None:
         initial_ctx = initial_ctx.tb_next
     sys.__excepthook__(Type, value, traceback)
 
 
-sys.excepthook = Hook  # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
+sys.excepthook = Hook
 
 
 def nargout():
     """
-    Return how many values the caller is expecting
+    Returns how many values the caller is expecting
 
     taken from
     http://stackoverflow.com/questions/16488872/python-check-for-the-number-of-output-arguments-a-function-is-called-with
