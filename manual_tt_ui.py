@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
@@ -37,12 +38,7 @@ class ManualttUI(QtWidgets.QFrame):
         super(ManualttUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
 #        self.openmain = OpenMainData(self)
-        self.mogs = []
-        self.air = []
-#        self.boreholes = []
-#        self.models = []
-        self.filename = ''
-        self.mog = 0
+        self.mog = 0 #TODO: -> None
         self.initUI()
 
         # Signals of communication between Upper and Lower Figures
@@ -166,22 +162,6 @@ class ManualttUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText(str(to_pick))
         self.update_control_center()
 
-#     def check_save(self):
-#         if self.save_checkbox.isChecked():
-#             self.intermediate_saves()
-# 
-#     def intermediate_saves(self):
-#         num_done = np.not_equal(self.mog.tt_done, 0)
-#         num_done = sum(num_done.astype(int))
-#         if num_done % 50 == 0:
-# #            save_file = open(self.filename, 'wb')
-# #            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-#             sfile = shelve.open(self.filename)
-#             sfile['mogs'] = self.mogs
-#             if self.mog.useAirShots == 1:
-#                 sfile['air'] = self.air
-#             sfile.close()
-
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
@@ -200,7 +180,7 @@ class ManualttUI(QtWidgets.QFrame):
                                                 ,buttons=QtWidgets.QMessageBox.Ok)
                                                 
     def openfile(self):
-        item = chooseMOG(current_module, str(current_module.engine.url()))
+        item = chooseMOG(current_module, str(current_module.engine.url).replace('sqlite:///', ''))
         if item != None:
             data_manager.load(current_module)
             self.mogs = data_manager.get(current_module, Mog)
@@ -1327,7 +1307,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     manual_ui = ManualttUI()
-    manual_ui.filename = 'test_constraints'
     #manual_ui.update_control_center()
     #manual_ui.update_a_and_t_edits()
     #manual_ui.upperFig.plot_amplitude()

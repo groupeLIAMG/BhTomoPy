@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -17,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import sys
 import re
 import unicodedata

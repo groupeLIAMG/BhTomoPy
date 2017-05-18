@@ -4,7 +4,8 @@ Created on Mon Aug 29 08:09:12 2016
 
 @author: giroux
 
-Copyright 2016 Bernard Giroux
+Copyright 2017 Bernard Giroux, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -21,6 +22,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 from PyQt5 import QtWidgets, QtCore
 import os
 import data_manager

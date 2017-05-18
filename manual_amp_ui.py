@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
@@ -109,15 +110,6 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText(str(to_pick))
         self.update_control_center()
 
-#     def intermediate_saves(self):
-#         if float(self.Tnum_Edit.text()) % 50 == 0:
-#             sfile = shelve.open(self.filename)
-#             sfile['mogs'] = self.mogs
-#             sfile.close()
-# #            save_file = open(self.filename, 'wb')
-# #            pickle.dump((self.boreholes, self.mogs, self.air, self.models), save_file)
-# #            print('saved')
-
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
@@ -135,7 +127,7 @@ class ManualAmpUI(QtWidgets.QFrame):
 
     def openfile(self):
         
-        item = chooseMOG(current_module, str(current_module.engine.url()))
+        item = chooseMOG(current_module, str(current_module.engine.url).replace('sqlite:///', ''))
         if item != None:
             self.mogs = data_manager.get(current_module, Mog)
             self.mog = item
@@ -866,7 +858,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     manual_ui = ManualAmpUI()
-    manual_ui.filename = 'test_constraints'
 #    manual_ui.update_control_center()
 #    manual_ui.update_settings_edits()
     manual_ui.showMaximized()

@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-
 """
 Created on Tue Jun 21 20:55:29 2016
 
 @author: giroux
 
-Copyright 2016 Bernard Giroux
+Copyright 2017 Bernard Giroux, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
-This program is free software: you can redistribute it and/or modify
+This file is part of BhTomoPy.
+
+BhTomoPy is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
@@ -20,6 +22,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 from collections import namedtuple
 from enum import IntEnum
 import sys

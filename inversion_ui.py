@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -26,12 +27,16 @@ import matplotlib as mpl
 from model import Model
 import scipy as spy
 from scipy.sparse import linalg
-import shelve
 from mpl_toolkits.axes_grid1 import make_axes_locatable # @UnresolvedImport
 from scipy import interpolate
 from inversion import invLSQR, InvLSQRParams
 from utils import set_tick_arrangement
-from utils_ui import chooseModel
+from mog import Mog, AirShots
+# from utils_ui import chooseModel
+
+current_module = sys.modules[__name__]
+import data_manager
+data_manager.create_data_management(current_module)
 
 class InversionUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
@@ -40,23 +45,17 @@ class InversionUI(QtWidgets.QFrame):
 #        self.openmain = OpenMainData(self)
         self.lsqrParams = InvLSQRParams()
         self.tomo = None
-        self.mogs = []
-        self.models = []
-        self.air = []
         self.prev_inv = []
-        self.filename = ''
         self.model_ind = ''
         self.initUI()
         self.initinvUI()
 
     def savefile(self):
         if self.model_ind == '':
-            # If theres no selected model
+            # If there's no selected model
             return
         if self.tomo is None:
-            sfile = shelve.open(self.filename)
-            sfile['models'] = self.models
-            sfile.close()
+            current_module.session.commit()
             return
         if self.algo_combo.currentText() == 'LSQR Solver':
             cov = '-LSQR'
@@ -70,40 +69,34 @@ class InversionUI(QtWidgets.QFrame):
                                                         text= 'tomo (insert date) {} {}'.format(dType, cov))
         if ok:
             inv_res_info = (inversion_name, self.tomo, self.lsqrParams)
-            self.models[self.model_ind].inv_res.append(inv_res_info)
-            print(self.models[self.model_ind].inv_res)
+            current_module.session.query(Model).all()[self.model_ind].inv_res.append(inv_res_info)
+            print(current_module.session.query(Model).all()[self.model_ind].inv_res)
 
-        sfile = shelve.open(self.filename)
-        sfile['models'] = self.models
-        sfile.close()
+        current_module.session.commit()
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                       buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        models, model = chooseModel(self.filename) #TODO: refactoring
-        if models:
-            self.filename = None
-            sfile = shelve.open(self.filename)
-            self.models = sfile['models']
-            self.mogs = sfile['mogs']
-            self.air = sfile['air']
-            sfile.close()
-            
-            self.model_ind = None
-            self.inv_frame.setHidden(True)
-            self.gv = Gridviewer(self.models[self.model_ind].grid, self)
-            self.global_grid.addWidget(self.gv, 1, 1, 7, 2)
-            self.update_data()
-            self.update_grid()
-            self.update_previous()
+#         models, model = chooseModel(self.filename) #TODO: Is this necessary?
+#         if model:
+        
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+        data_manager.load(current_module, filename)
+        
+        self.model_ind = None
+        self.inv_frame.setHidden(True)
+        self.gv = Gridviewer(current_module.session.query(Model).all()[self.model_ind].grid, self)
+        self.global_grid.addWidget(self.gv, 1, 1, 7, 2)
+        self.update_data()
+        self.update_grid()
+        self.update_previous()
 
-        
-        
+
     def update_previous(self):
         self.prev_inversion_combo.clear()
         self.prev_inv.clear()
-        if len(self.models[self.model_ind].inv_res) != 0:
-            for result in self.models[self.model_ind].inv_res:
+        if current_module.session.query(Model).count() != 0:
+            for result in current_module.session.query(Model).all()[self.model_ind].inv_res:
 
                 # result[0] == name
                 # result[1] == tomo
@@ -113,12 +106,12 @@ class InversionUI(QtWidgets.QFrame):
                 self.prev_inv.append(result)
 
     def update_data(self):
-        for mog in self.models[self.model_ind].mogs:
+        for mog in current_module.session.query(Model).all()[self.model_ind].mogs:
             self.mog_list.addItem(mog.name)
         self.mog_list.setCurrentRow(0)
 
     def update_grid(self):
-        model = self.models[self.model_ind]
+        model = current_module.session.query(Model).all()[self.model_ind]
         if np.all(model.grid.grx == 0) or np.all(model.grid.grx == 0):
             QtWidgets.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion",
                                       buttons=QtWidgets.QMessageBox.Ok)
@@ -170,7 +163,7 @@ class InversionUI(QtWidgets.QFrame):
 
 
     def doInv(self):
-        model = self.models[self.model_ind]
+        model = current_module.session.query(Model).all()[self.model_ind]
         if self.model_ind == '':
             QtWidgets.QMessageBox.warning(self, 'Warning', "First, load a model in order to do Inversion"
                                                     , buttons=QtWidgets.QMessageBox.Ok)
@@ -181,7 +174,7 @@ class InversionUI(QtWidgets.QFrame):
 
         elif self.T_and_A_combo.currentText() == 'Traveltime':
             self.lsqrParams.tomoAtt = 0
-            data, idata = Model.getModelData(model, self.air, self.lsqrParams.selectedMogs, 'tt')
+            data, idata = Model.getModelData(model, current_module.session.query(AirShots).all(), self.lsqrParams.selectedMogs, 'tt')
             data = np.concatenate((model.grid.Tx[idata, :], model.grid.Rx[idata, :], data, model.grid.TxCosDir[idata, :], model.grid.RxCosDir[idata, :]), axis=1)
 
         #TODO: Faire les autres cas du self.T_and_A_combo
@@ -246,7 +239,7 @@ class InversionUI(QtWidgets.QFrame):
 
     def load_prev(self):
         n = self.prev_inversion_combo.currentIndex()
-        results = self.models[self.model_ind].inv_res[n]
+        results = current_module.session.query(Model).all()[self.model_ind].inv_res[n]
         name = results[0]
         tomo = results[1]
         params = results[2]
@@ -268,7 +261,7 @@ class InversionUI(QtWidgets.QFrame):
 
     def delete_prev(self):
         n = self.prev_inversion_combo.currentIndex()
-        del self.models[self.model_ind].inv_res[n]
+        del current_module.session.query(Model).all()[self.model_ind].inv_res[n]
         self.update_previous()
 
     def initinvUI(self):
@@ -467,7 +460,7 @@ class InversionUI(QtWidgets.QFrame):
             self.repaint()
 
     def update_Tx_elev(self):
-        mog = self.mogs[self.mog_list.selectedIndexes()[0].row()]
+        mog = current_module.session.query(Mog).all()[self.mog_list.selectedIndexes()[0].row()]
         n = int(self.trace_num_edit.text()) - 1
         elev = np.unique(mog.data.Tx_z)[n]
 
@@ -939,7 +932,6 @@ class InversionUI(QtWidgets.QFrame):
 #        self.load_file(filename)
 #
 #    def load_file(self, filename):
-#        self.inv.filename = filename
 #        rname = filename.split('/')
 #        rname = rname[-1]
 #        if '.pickle' in rname:
@@ -1428,7 +1420,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     inv_ui = InversionUI()
-    inv_ui.filename = 'test_constraints'
 #    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
 #    inv_ui.openmain.load_file('test_constraints_backup.p')
 #    inv_ui.openmain.ok()

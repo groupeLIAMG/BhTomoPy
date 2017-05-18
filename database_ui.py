@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -17,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 from borehole_ui import BoreholeUI
@@ -30,6 +32,7 @@ import time
 import os
 import database
 import data_manager
+
 data_manager.create_data_management(database)
 
 class DatabaseUI(QtWidgets.QWidget):
@@ -44,7 +47,6 @@ class DatabaseUI(QtWidgets.QWidget):
         self.mergemog = MergeMog(self.mog)
         self.initUI()
         self.action_list = []
-        self.filename = ''
         self.name = ''
 
         # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
@@ -118,9 +120,6 @@ class DatabaseUI(QtWidgets.QWidget):
         translation = qr.topLeft()
 
         self.move(translation)
-        
-        if self.filename != '':
-            self.load_file(self.filename)
 
     def openfile(self):
 
@@ -133,8 +132,6 @@ class DatabaseUI(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.",buttons=QtWidgets.QMessageBox.Ok)
 
     def load_file(self, filename):
-        self.filename = filename
-        
         data_manager.load(database, filename)
         
         try:
@@ -166,8 +163,8 @@ class DatabaseUI(QtWidgets.QWidget):
     def savefile(self):
 
         try:
-    
-            if not self.filename:
+            
+            if str(database.engine.url) == 'sqlite:///:memory:':
                 self.saveasfile()
                 return
 
@@ -191,9 +188,7 @@ class DatabaseUI(QtWidgets.QWidget):
                                                      self.name, filter= 'Database (*.db)', )[0]
                                                      
         if filename:
-            if filename != self.filename:
-                self.filename = filename
-                
+            if filename != str(database.engine.url).replace('sqlite:///', ''):
                 data_manager.save_as(database, filename)
                 
                 self.update_database_info(os.path.basename(filename))
@@ -309,7 +304,6 @@ if __name__ == '__main__':
     Database_ui.show()
 
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-#     Database_ui.filename = 'Database.db'
     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')

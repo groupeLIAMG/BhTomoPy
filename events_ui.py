@@ -1,5 +1,5 @@
 '''
-Created on 31 août 2016
+Created on august 31st, 2016
 
 @author: giroux
 '''

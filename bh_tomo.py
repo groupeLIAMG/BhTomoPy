@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -18,24 +18,23 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import sys
 from PyQt5 import QtGui, QtCore, QtWidgets
 from database_ui import DatabaseUI
 from manual_tt_ui import ManualttUI
+from manual_tt_ui import session as manual_tt_ui_session
 from covar_ui import CovarUI
 from inversion_ui import InversionUI
 from interp_ui import InterpretationUI
 from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
+from manual_amp_ui import session as manual_amp_ui_session
 import os
 
 import database
-
-from borehole import Borehole # imports required by create_all
-from model import Model
-from mog import Mog, AirShots
-import database_ui
-database.Base.metadata.create_all(database.engine)
+import data_manager
+data_manager.create_data_management(database)
 
 class BhTomoPy(QtWidgets.QWidget):
 
@@ -67,12 +66,7 @@ class BhTomoPy(QtWidgets.QWidget):
         # Allows loading databases from the main
         self.current_db.setText(os.path.basename(filename))
         
-        self.database.filename = filename
-        self.manual_tt.filename = filename
-        self.manual_amp.filename = filename
-        self.inv.filename = filename
-        
-        database_ui.DatabaseUI.load_file(filename)
+        self.database.load_file(filename)
 
     def show(self):
         super(BhTomoPy, self).show()

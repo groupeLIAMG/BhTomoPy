@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -25,4 +25,3 @@ class Database(object):
         self.db_Mog_list = []
         self.db_Borehole_list = []
         self.db_model_list = []
-
