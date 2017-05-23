@@ -23,18 +23,12 @@ import sys
 from PyQt5 import QtGui, QtCore, QtWidgets
 from database_ui import DatabaseUI
 from manual_tt_ui import ManualttUI
-from manual_tt_ui import session as manual_tt_ui_session
 from covar_ui import CovarUI
 from inversion_ui import InversionUI
 from interp_ui import InterpretationUI
 from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
-from manual_amp_ui import session as manual_amp_ui_session
 import os
-
-import database
-import data_manager
-data_manager.create_data_management(database)
 
 
 class BhTomoPy(QtWidgets.QWidget):
@@ -42,6 +36,7 @@ class BhTomoPy(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(BhTomoPy, self).__init__()
         self.setWindowTitle("BhTomoPy")
+        self.filename = ""
 
         self.database = DatabaseUI()
         self.manual_tt = ManualttUI()
@@ -65,9 +60,8 @@ class BhTomoPy(QtWidgets.QWidget):
 
     def loaddb(self, filename):
         # Allows loading databases from the main
+        self.filename = filename
         self.current_db.setText(os.path.basename(filename))
-
-        self.database.load_file(filename)
 
     def show(self):
         super(BhTomoPy, self).show()

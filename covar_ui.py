@@ -21,6 +21,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
+import covar
+import data_manager
+
+data_manager.create_data_management(covar)
 
 
 class CovarUI(QtWidgets.QFrame):
@@ -30,7 +34,7 @@ class CovarUI(QtWidgets.QFrame):
         self.initUI()
 
     def initUI(self):
-        # --- color for the labels --- #
+        # --- Color for the labels --- #
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
 
@@ -250,6 +254,9 @@ class CovarUI(QtWidgets.QFrame):
         master_grid.setColumnStretch(3, 100)
 
         self.setLayout(master_grid)
+        
+
+
 
 
 if __name__ == '__main__':

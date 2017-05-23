@@ -32,8 +32,8 @@ from utils import Base
 
 # Functions from 'data_manager' require a module as first parameter. This
 # is a way of allowing the coexistence of multiple instances of session
-# throughout the program (one per module). Moreover, the SQLAlchemy objects
-# existing as attributes, they are persistent.
+# throughout the program (one per module). Moreover, because the SQLAlchemy
+# objects exist as attributes, they are permanent.
 
 
 def create_data_management(module):
@@ -88,7 +88,7 @@ def save_as(module, file):
         for item in get_many(module):  # overwrites the selected file
             module.session.delete(item)
 
-        items = [module.session.merge(item) for item in items]  # conforms the items to the new session
+        items = [module.session.merge(item) for item in items]  # conforms the stored items to the new session
         module.session.add_all(items)
 
         module.session.commit()
