@@ -20,11 +20,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import sys
+import os
 from PyQt5 import QtGui, QtWidgets, QtCore
 import covar
 import data_manager
-
-data_manager.create_data_management(covar)
+import database
 
 
 class CovarUI(QtWidgets.QFrame):
@@ -32,6 +32,77 @@ class CovarUI(QtWidgets.QFrame):
         super(CovarUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Covariance")
         self.initUI()
+
+    def show(self):
+        super(CovarUI, self).show()
+
+        # Gets initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Shows it at the center of the screen
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+
+        # Moves the window's center at the center of the screen
+        qr.moveCenter(cp)
+
+        # Then moves it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
+
+#         self.update_widgets()
+
+    def openfile(self):
+
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+
+        if filename:
+            if filename[-3:] != '.db':
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
+            else:
+                try:
+                    data_manager.load(database, filename)
+#                     self.update_widgets()
+
+                except Exception as e:
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
+                                                  buttons=QtWidgets.QMessageBox.Ok)
+
+    def savefile(self):
+
+        try:
+            if str(database.engine.url) == 'sqlite:///:memory:':
+                self.saveasfile()
+                return
+
+            database.session.commit()
+
+            try:
+                self.model.gridui.update_model_grid()
+            except:
+                print("Warning : 'update_model_grid' skipped [database_ui 1]")
+
+            self.update_log("Database was saved successfully")
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                              buttons=QtWidgets.QMessageBox.Ok)
+
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved : " + str(e),
+                                          buttons=QtWidgets.QMessageBox.Ok)
+
+    def saveasfile(self):
+        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
+                                                         filter='Database (*.db)', )[0]
+
+        if filename:
+            if filename != str(database.engine.url).replace('sqlite:///', ''):
+                data_manager.save_as(database, filename)
+
+                self.update_database_info(os.path.basename(filename))
+                self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
+
+            else:
+                database.session.commit()
 
     def initUI(self):
         # --- Color for the labels --- #
@@ -50,25 +121,46 @@ class CovarUI(QtWidgets.QFrame):
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
         # ------- Widgets Creation ------- #
+
+        # --- Menu Actions --- #
+        openAction = QtWidgets.QAction('Open', self)
+        openAction.setShortcut('Ctrl+O')
+        openAction.triggered.connect(self.openfile)
+
+        saveAction = QtWidgets.QAction('Save', self)
+        saveAction.setShortcut('Ctrl+S')
+        saveAction.triggered.connect(self.savefile)
+
+        saveasAction = QtWidgets.QAction('Save as', self)
+        saveasAction.setShortcut('Ctrl+A')
+        saveasAction.triggered.connect(self.saveasfile)
+
+        # --- Menubar --- #
+        self.menu = QtWidgets.QMenuBar()
+        filemenu = self.menu.addMenu('&File')
+        filemenu.addAction(openAction)
+        filemenu.addAction(saveAction)
+        filemenu.addAction(saveasAction)
+
         # --- Buttons Set --- #
         btn_Show_Stats = QtWidgets.QPushButton("Show Stats")
         btn_Add_Struct = QtWidgets.QPushButton("Add Structure")
         btn_Rem_Struct = QtWidgets.QPushButton("Remove Structure")
-        btn_compute = QtWidgets.QPushButton("Compute")
-        btn_GO = QtWidgets.QPushButton("GO")
+        btn_compute    = QtWidgets.QPushButton("Compute")
+        btn_GO         = QtWidgets.QPushButton("GO")
 
         # --- Label --- #
-        cells_Label = MyQLabel("Cells", ha='center')
-        cells_Labeli = MyQLabel("Cells", ha='center')
-        rays_label = MyQLabel("Rays", ha='center')
+        cells_Label      = MyQLabel("Cells", ha='center')
+        cells_Labeli     = MyQLabel("Cells", ha='center')
+        rays_label       = MyQLabel("Rays", ha='center')
 
-        curv_rays_label = MyQLabel("Curved Rays", ha='right')
-        X_label = MyQLabel("X", ha='center')
-        Y_label = MyQLabel("Y", ha='center')
-        Z_label = MyQLabel("Y", ha='center')
-        Xi_label = MyQLabel("X", ha='center')
-        Yi_label = MyQLabel("Y", ha='center')
-        Zi_label = MyQLabel("Z", ha='center')
+        curv_rays_label  = MyQLabel("Curved Rays", ha='right')
+        X_label          = MyQLabel("X", ha='center')
+        Y_label          = MyQLabel("Y", ha='center')
+        Z_label          = MyQLabel("Y", ha='center')
+        Xi_label         = MyQLabel("X", ha='center')
+        Yi_label         = MyQLabel("Y", ha='center')
+        Zi_label         = MyQLabel("Z", ha='center')
         self.X_min_label = MyQLabel("0", ha='center')
         self.Y_min_label = MyQLabel("0", ha='center')
         self.Z_min_label = MyQLabel("0", ha='center')
@@ -76,15 +168,15 @@ class CovarUI(QtWidgets.QFrame):
         self.Y_max_label = MyQLabel("0", ha='center')
         self.Z_max_label = MyQLabel("0", ha='center')
 
-        Min_label = MyQLabel("Min", ha='right')
-        Max_label = MyQLabel("Max", ha='right')
-        step_label = MyQLabel("Step :", ha='center')
-        slowness_label = MyQLabel("Slowness", ha='right')
+        Min_label        = MyQLabel("Min", ha='right')
+        Max_label        = MyQLabel("Max", ha='right')
+        step_label       = MyQLabel("Step :", ha='center')
+        slowness_label   = MyQLabel("Slowness", ha='right')
         traveltime_label = MyQLabel("Traveltime", ha='right')
-        separ_label = MyQLabel("|", ha='center')
-        bin_label = MyQLabel("Bin Length", ha='right')
-        bin_frac_label = MyQLabel("Fraction of Bins", ha='right')
-        Iter_label = MyQLabel("Number of Iterations", ha='right')
+        separ_label      = MyQLabel("|", ha='center')
+        bin_label        = MyQLabel("Bin Length", ha='right')
+        bin_frac_label   = MyQLabel("Fraction of Bins", ha='right')
+        Iter_label       = MyQLabel("Number of Iterations", ha='right')
 
         self.X_min_label.setPalette(palette)
         self.Y_min_label.setPalette(palette)
@@ -92,31 +184,32 @@ class CovarUI(QtWidgets.QFrame):
         self.X_max_label.setPalette(palette)
         self.Y_max_label.setPalette(palette)
         self.Z_max_label.setPalette(palette)
-        cells_Label.setPalette(palette)
-        cells_Labeli.setPalette(palette)
-        rays_label.setPalette(palette)
+        cells_Label     .setPalette(palette)
+        cells_Labeli    .setPalette(palette)
+        rays_label      .setPalette(palette)
+
         # --- Edits --- #
-        cells_Edit = QtWidgets.QLineEdit()
+        velocity_Edit  = QtWidgets.QLineEdit()
         step_X_Edit = QtWidgets.QLineEdit()
         step_X_Edit.setFixedWidth(50)
         step_Y_Edit = QtWidgets.QLineEdit()
         step_Y_Edit.setFixedWidth(50)
         step_Z_Edit = QtWidgets.QLineEdit()
         step_Z_Edit.setFixedWidth(50)
-        slowness_Edit = QtWidgets.QLineEdit('0')
+        slowness_Edit   = QtWidgets.QLineEdit('0')
         traveltime_Edit = QtWidgets.QLineEdit('0')
-        bin_Edit = QtWidgets.QLineEdit('50')
-        bin_frac_Edit = QtWidgets.QLineEdit('0.25')
-        Iter_Edit = QtWidgets.QLineEdit('5')
+        bin_Edit        = QtWidgets.QLineEdit('50')
+        bin_frac_Edit   = QtWidgets.QLineEdit('0.25')
+        Iter_Edit       = QtWidgets.QLineEdit('5')
 
         # --- Checkboxes --- #
-        Upper_limit_checkbox = QtWidgets.QCheckBox("Upper Limit - Apparent Velocity")
-        ellip_veloc_checkbox = QtWidgets.QCheckBox("Elliptical Velocity Anisotropy")
+        Upper_limit_checkbox        = QtWidgets.QCheckBox("Upper Limit - Apparent Velocity")
+        ellip_veloc_checkbox        = QtWidgets.QCheckBox("Elliptical Velocity Anisotropy")
         tilted_ellip_veloc_checkbox = QtWidgets.QCheckBox("Tilted Elliptical Velocity Anisotropy")
-        include_checkbox = QtWidgets.QCheckBox("Include Experimental Variance")
-        slowness_checkbox = QtWidgets.QCheckBox()
-        traveltime_checkbox = QtWidgets.QCheckBox()
-        auto_update_checkbox = QtWidgets.QCheckBox("Auto Update")
+        include_checkbox            = QtWidgets.QCheckBox("Include Experimental Variance")
+        slowness_checkbox           = QtWidgets.QCheckBox()
+        traveltime_checkbox         = QtWidgets.QCheckBox()
+        auto_update_checkbox        = QtWidgets.QCheckBox("Auto Update")
 
         # --- Text Edits --- #
         futur_Graph1 = QtWidgets.QTextEdit()
@@ -124,17 +217,55 @@ class CovarUI(QtWidgets.QFrame):
         futur_Graph2 = QtWidgets.QTextEdit()
         futur_Graph2.setReadOnly(True)
 
-        # --- combobox --- #
-        T_and_A_combo = QtWidgets.QComboBox()
+        # --- Comboboxes --- #
+        T_and_A_combo      = QtWidgets.QComboBox()
         T_and_A_combo.addItem("Traveltime")
         T_and_A_combo.addItem("Amplitude - Peak-to-Peak")
         T_and_A_combo.addItem("Amplitude - Centroid Frequency")
-        curv_rays_combo = QtWidgets.QComboBox()
+        curv_rays_combo    = QtWidgets.QComboBox()
         covar_struct_combo = QtWidgets.QComboBox()
         covar_struct_combo.addItem("Structure no 1")
 
         # --- List --- #
-        self.ray_list = QtWidgets.QListWidget()
+        self.models_list = QtWidgets.QListWidget()
+
+        # ------- Actions ------- #
+
+        # --- Buttons --- #
+
+        btn_Show_Stats.clicked.connect(covar._)
+        btn_Add_Struct.clicked.connect(covar._)
+        btn_Rem_Struct.clicked.connect(covar._)
+        btn_compute   .clicked.connect(covar._)
+        btn_GO        .clicked.connect(covar._)
+
+        # --- Edits --- #
+
+        velocity_Edit  .editingFinished.connect(covar._)
+        step_X_Edit    .editingFinished.connect(covar._)
+        step_Y_Edit    .editingFinished.connect(covar._)
+        step_Z_Edit    .editingFinished.connect(covar._)
+        slowness_Edit  .editingFinished.connect(covar._)
+        traveltime_Edit.editingFinished.connect(covar._)
+        bin_Edit       .editingFinished.connect(covar._)
+        bin_frac_Edit  .editingFinished.connect(covar._)
+        Iter_Edit      .editingFinished.connect(covar._)
+
+        # --- Checkboxes --- #
+
+        Upper_limit_checkbox       .stateChanged.connect(covar._)
+        ellip_veloc_checkbox       .stateChanged.connect(covar._)
+        tilted_ellip_veloc_checkbox.stateChanged.connect(covar._)
+        include_checkbox           .stateChanged.connect(covar._)
+        slowness_checkbox          .stateChanged.connect(covar._)
+        traveltime_checkbox        .stateChanged.connect(covar._)
+        auto_update_checkbox       .stateChanged.connect(covar._)
+
+        # --- Comboboxes --- #
+
+        T_and_A_combo     .currentIndexChanged.connect(covar._)
+        curv_rays_combo   .currentIndexChanged.connect(covar._)
+        covar_struct_combo.currentIndexChanged.connect(covar._)
 
         # ------- SubWidgets ------- #
         # --- Curved Rays SubWidget --- #
@@ -182,9 +313,9 @@ class CovarUI(QtWidgets.QFrame):
         data_grid = QtWidgets.QGridLayout()
         data_grid.addWidget(cells_Label, 0, 0)
         data_grid.addWidget(rays_label, 1, 0)
-        data_grid.addWidget(self.ray_list, 2, 0, 3, 1)
+        data_grid.addWidget(self.models_list, 2, 0, 3, 1)
         data_grid.addWidget(Upper_limit_checkbox, 0, 1)
-        data_grid.addWidget(cells_Edit, 0, 2)
+        data_grid.addWidget(velocity_Edit, 0, 2)
         data_grid.addWidget(ellip_veloc_checkbox, 1, 1)
         data_grid.addWidget(tilted_ellip_veloc_checkbox, 2, 1)
         data_grid.addWidget(include_checkbox, 3, 1)
@@ -242,7 +373,7 @@ class CovarUI(QtWidgets.QFrame):
         Adjust_Model_grid.setColumnStretch(4, 100)
         Adjust_Model_groupbox.setLayout(Adjust_Model_grid)
 
-        # ------- master Grid Disposition ------- #
+        # ------- Master Grid Disposition ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(futur_Graph1, 0, 0, 2, 3)
         master_grid.addWidget(futur_Graph2, 2, 0, 2, 3)
@@ -254,9 +385,6 @@ class CovarUI(QtWidgets.QFrame):
         master_grid.setColumnStretch(3, 100)
 
         self.setLayout(master_grid)
-        
-
-
 
 
 if __name__ == '__main__':

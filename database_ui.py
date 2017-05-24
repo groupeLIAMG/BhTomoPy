@@ -30,8 +30,6 @@ import os
 import database
 import data_manager
 
-data_manager.create_data_management(database)
-
 
 class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -45,7 +43,6 @@ class DatabaseUI(QtWidgets.QWidget):
         self.mergemog = MergeMog(self.mog)
         self.initUI()
         self.action_list = []
-        self.name = ''
 
         # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
         # modules in order to update them
@@ -100,40 +97,7 @@ class DatabaseUI(QtWidgets.QWidget):
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
 
-    def show(self):
-        super(DatabaseUI, self).show()
-
-        # Gets initial geometry of the widget:
-        qr = self.frameGeometry()
-
-        # Shows it at the center of the screen
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
-
-        # Moves the window's center at the center of the screen
-        qr.moveCenter(cp)
-
-        # Then moves it at the top left
-        translation = qr.topLeft()
-
-        self.move(translation)
-
-    def openfile(self):
-
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-
-        if filename:
-            if filename[-3:] == '.db':
-                self.load_file(filename)
-            else:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
-
-    def load_file(self, filename):
-        data_manager.load(database, filename)
-
-        try:
-
-            self.update_database_info(os.path.basename(filename))
-            self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
+    def update_widgets(self):
 
             self.bh.update_List_Widget()
             self.bh.bh_list.setCurrentRow(0)
@@ -151,15 +115,47 @@ class DatabaseUI(QtWidgets.QWidget):
             self.model.update_model_list()
             self.model.update_model_mog_list()
 
-        except Exception as e:
-            self.update_log("Error: Database was not recognised")
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
-                                          buttons=QtWidgets.QMessageBox.Ok)
+    def show(self):
+        super(DatabaseUI, self).show()
+
+        # Gets initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Shows it at the center of the screen
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+
+        # Moves the window's center at the center of the screen
+        qr.moveCenter(cp)
+
+        # Then moves it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
+
+        self.update_widgets()
+
+    def openfile(self):
+
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+
+        if filename:
+            if filename[-3:] != '.db':
+                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
+            else:
+                try:
+                    data_manager.load(database, filename)
+                    self.update_database_info(os.path.basename(filename))
+                    self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
+                    self.update_widgets()
+
+                except Exception as e:
+                    self.update_log("Error: Database was not recognised")
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
+                                                  buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
         try:
-
             if str(database.engine.url) == 'sqlite:///:memory:':
                 self.saveasfile()
                 return
@@ -181,7 +177,7 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def saveasfile(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
-                                                         self.name, filter='Database (*.db)', )[0]
+                                                         filter='Database (*.db)', )[0]
 
         if filename:
             if filename != str(database.engine.url).replace('sqlite:///', ''):
@@ -192,13 +188,6 @@ class DatabaseUI(QtWidgets.QWidget):
 
             else:
                 database.session.commit()
-
-    def editname(self):  # FIXME
-        new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name')
-
-        if new_name != '':
-            self.name = new_name
-            self.info.live_database_label.setText(str(new_name))
 
     def initUI(self):
 
@@ -220,18 +209,12 @@ class DatabaseUI(QtWidgets.QWidget):
         saveasAction.setShortcut('Ctrl+A')
         saveasAction.triggered.connect(self.saveasfile)
 
-        editnameAction = QtWidgets.QAction('Edit database name', self)
-        editnameAction.triggered.connect(self.editname)
-
         # --- Menubar --- #
         self.menu = QtWidgets.QMenuBar()
         filemenu = self.menu.addMenu('&File')
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
         filemenu.addAction(saveasAction)
-
-        editmenu = self.menu.addMenu('&Edit')
-        editmenu.addAction(editnameAction)
 
         # --- GroupBoxes --- #
         # - Boreholes GroupBox - #
@@ -294,6 +277,8 @@ class MyLogWidget(QtWidgets.QTextEdit):
 
 if __name__ == '__main__':
 
+    data_manager.create_data_management(database)
+
     app = QtWidgets.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
@@ -309,6 +294,5 @@ if __name__ == '__main__':
 #     Database_ui.mog.plot_zop()
 
 #     Database_ui.saveasfile()
-    Database_ui.load_file(':memory:')
 
     sys.exit(app.exec_())

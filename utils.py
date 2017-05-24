@@ -35,7 +35,7 @@ Base = declarative_base()                                # Must be present in th
 
 def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
     initial_ctx = traceback.tb_next
-    while initial_ctx.tb_next is not None:
+    while initial_ctx is not None:
         initial_ctx = initial_ctx.tb_next
     sys.__excepthook__(Type, value, traceback)
 

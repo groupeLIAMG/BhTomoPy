@@ -33,6 +33,10 @@ from scipy import linalg
 import pyfftw.interfaces.numpy_fft as np_fft
 
 
+def _():
+    pass
+
+
 class Covariance(object):
     """
     Base class for Covariance models

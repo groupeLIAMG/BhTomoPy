@@ -1304,7 +1304,7 @@ class MOGUI(QtWidgets.QWidget):
         # - CheckBoxes Actions -#
         self.filter_check.stateChanged.connect(self.plot_spectra)
 
-        # - elevation SubWidget -#
+        # - Elevation SubWidget -#
         sub_elev_widget = QtWidgets.QWidget()
         sub_elev_grid = QtWidgets.QGridLayout()
         sub_elev_grid.addWidget(Tx_elev_label, 0, 0)

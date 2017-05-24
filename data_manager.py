@@ -38,7 +38,7 @@ from utils import Base
 
 def create_data_management(module):
     """
-    Initiate a module's SQLAlchemy objects.
+    Initiate a module's SQLAlchemy attributes.
     """
 
     module.engine = create_engine("sqlite:///:memory:")  # 'engine' interacts with the file
@@ -118,7 +118,7 @@ def get_many(module, *classes):
 
 def delete(module, item):
     """
-    Deletes an item, even if the item was just added (i.e. not committed).
+    Deletes an item, even if the item was just added (i.e. not committed, pending).
     """
 
     from sqlalchemy import inspect

@@ -30,6 +30,10 @@ from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
 import os
 
+import data_manager
+import database
+data_manager.create_data_management(database)
+
 
 class BhTomoPy(QtWidgets.QWidget):
 
@@ -60,7 +64,7 @@ class BhTomoPy(QtWidgets.QWidget):
 
     def loaddb(self, filename):
         # Allows loading databases from the main
-        self.filename = filename
+        data_manager.load(database, filename)
         self.current_db.setText(os.path.basename(filename))
 
     def show(self):
