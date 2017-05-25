@@ -43,7 +43,7 @@ class Model(Base):
         self.grid       = None  # Model's grid
         self.tt_covar   = None  # Model's Traveltime covariance model
         self.amp_covar  = None  # Model's Amplitude covariance model
-        self.inv_res    = []  # Results of inversion
+        self.inv_res    = []    # Results of inversion
         self.tlinv_res  = None  # Time-lapse inversion results
 
     @staticmethod

@@ -33,10 +33,6 @@ from scipy import linalg
 import pyfftw.interfaces.numpy_fft as np_fft
 
 
-def _():
-    pass
-
-
 class Covariance(object):
     """
     Base class for Covariance models
@@ -702,7 +698,6 @@ def nscore(data, w1=0, w2=0, dmin=np.nan, dmax=np.nan, doPlot=False):
     OUTPUT
         data_ns : data after transformation
         o_nscore: data needed to do inverse transform
-
     """
     d = data.copy()
 
@@ -819,7 +814,6 @@ def inscore(data, o_nscore, doPlot=False):
 
 def variof1(x, icode=1, nt=None):
     """
-
     @Article{marcotte96,
       Title                    = {Fast variogram computation with FFT},
       Author                   = {Marcotte, Denis},
