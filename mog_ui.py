@@ -45,12 +45,7 @@ current_module = sys.modules[__name__]
 data_manager.create_data_management(current_module)
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Multi Offset Gather User Interface (MOGUI) Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
-class MOGUI(QtWidgets.QWidget):
+class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface (MOGUI)
 
     mogInfoSignal  = QtCore.pyqtSignal(int)
     ntraceSignal   = QtCore.pyqtSignal(int)
@@ -68,6 +63,7 @@ class MOGUI(QtWidgets.QWidget):
 
         if filename:
             self.load_file_MOG(filename)
+            self.update_edits()
 
     def load_file_MOG(self, filename):
         # Conditions to get the path of the file itself in order to execute it
@@ -141,10 +137,10 @@ class MOGUI(QtWidgets.QWidget):
 
                 elif mog.Rx.name == database.session.query(Borehole).all()[i].name:
                     self.Rx_combo.setCurrentIndex(i)
-            tot_traces = 0
-            for mog in database.session.query(Mog).all():
-                tot_traces += mog.data.ntrace
-            self.ntraceSignal.emit(tot_traces)
+        tot_traces = 0
+        for mog in database.session.query(Mog).all():
+            tot_traces += mog.data.ntrace
+        self.ntraceSignal.emit(tot_traces)
 
     updateHandlerMog = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
 
@@ -190,6 +186,7 @@ class MOGUI(QtWidgets.QWidget):
             self.moglogSignal.emit("MOG {} has been deleted".format(database.session.query(Mog).all()[int(i.row())].name))
             data_manager.delete(database, database.session.query(Mog).all()[int(i.row())])
         self.update_List_Widget()
+        self.update_edits()
 
     def rename(self):
         ind = self.MOG_list.selectedIndexes()
@@ -199,6 +196,7 @@ class MOGUI(QtWidgets.QWidget):
                 self.moglogSignal.emit("MOG {} is now {}".format(database.session.query(Mog).all()[int(i.row())].name, new_name))
                 database.session.query(Mog).all()[int(i.row())].name = new_name
         self.update_List_Widget()
+        self.update_edits()
 
     def use_air(self):
         ind = self.MOG_list.currentRow()
@@ -1551,11 +1549,6 @@ class MOGUI(QtWidgets.QWidget):
         self.setLayout(master_grid)
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       MyQLabel Class for easy Label Alignment
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class MyQLabel(QtWidgets.QLabel):
     def __init__(self, label, ha='left', parent=None):
         super(MyQLabel, self).__init__(label, parent)
@@ -1567,11 +1560,6 @@ class MyQLabel(QtWidgets.QLabel):
             self.setAlignment(QtCore.Qt.AlignLeft)
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Raw Data Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class RawDataFig(FigureCanvasQTAgg):
 
     def __init__(self):
@@ -1599,11 +1587,6 @@ class RawDataFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Spectra Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class SpectraFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor='white')
@@ -1752,12 +1735,7 @@ class SpectraFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Zero Offset Profile (ZOP) Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
-class ZOPFig(FigureCanvasQTAgg):
+class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
     def __init__(self, ui):
         fig = mpl.figure.Figure(facecolor='white')
         super(ZOPFig, self).__init__(fig)
@@ -1866,11 +1844,6 @@ class ZOPFig(FigureCanvasQTAgg):
         return tt, in_plus, in_minus, vapp
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       ZOP Rays Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class ZOPRaysFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
@@ -1936,11 +1909,6 @@ class ZOPRaysFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Traveltime Statistics Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class StatsttFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
@@ -2015,12 +1983,7 @@ class StatsttFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Apparent Velocity Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
-class VAppFig(FigureCanvasQTAgg):
+class VAppFig(FigureCanvasQTAgg):  # Apparent Velocity Figure
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(VAppFig, self).__init__(fig)
@@ -2088,11 +2051,6 @@ class VAppFig(FigureCanvasQTAgg):
         return x0, a
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Amplitude Statistics Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class StatsAmpFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
@@ -2143,11 +2101,6 @@ class StatsAmpFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Ray Coverage Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class RayCoverageFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
@@ -2269,11 +2222,6 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Prune Figure Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class PruneFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
@@ -2322,11 +2270,6 @@ class PruneFig(FigureCanvasQTAgg):
         self.draw()
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Merge MOG Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class MergeMog(QtWidgets.QWidget):
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
@@ -2503,11 +2446,6 @@ class MergeMog(QtWidgets.QWidget):
         self.setLayout(master_grid)
 
 
-# -----------------------------------------------------------------------------------------------------------------------
-#
-#                       Delta T MOG Class
-#
-# -----------------------------------------------------------------------------------------------------------------------
 class DeltaTMOG(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DeltaTMOG, self).__init__()

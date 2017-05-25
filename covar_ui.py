@@ -188,7 +188,7 @@ class CovarUI(QtWidgets.QFrame):
         self.update_adjust()
         self.parameters_displayed_update()
 
-    def compute(self):
+    def compute(self):  # TODO progress bar
         pass
 
     def show_stats(self):

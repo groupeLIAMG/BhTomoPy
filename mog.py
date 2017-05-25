@@ -70,7 +70,10 @@ class MogData(object):
 
         self.readRAD(basename)
         self.readRD3(basename)
-        self.readTLF(basename)
+        try:
+            self.readTLF(basename)
+        except IOError as e:
+            print(str(e) + ' [mog err1]')
 
         self.TxOffset = 0
         self.RxOffset = 0
