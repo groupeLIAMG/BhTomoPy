@@ -112,6 +112,8 @@ class CovarUI(QtWidgets.QFrame):
 
     def parameters_displayed_update(self):
 
+        self.Sub_widget.setDisabled(True)
+
         self.slowness_widget.setHidden(True)
         self.xi_widget.setHidden(True)
         self.tilt_widget.setHidden(True)
@@ -127,7 +129,9 @@ class CovarUI(QtWidgets.QFrame):
         self.tilt_Edit.setHidden(True)
         self.tilt_checkbox.setHidden(True)
 
-        if True:  # database.session.query(Model).first() is not None:
+        if database.session.query(Model).first() is not None:
+
+            self.Sub_widget.setDisabled(False)
 
             if True:  # 2D
                 self.slowness_widget.setHidden(False)
@@ -160,8 +164,11 @@ class CovarUI(QtWidgets.QFrame):
             self.ellip_veloc_checkbox.setCheckState(False)
             self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
+    previousText = ''  # Enables checking if an edit's text has been modified
+    currentText = ''
+
     def auto_update(self):
-        if self.auto_update_checkbox.checkState():
+        if self.auto_update_checkbox.checkState() and self.previousText != self.currentText:
             pass
             # compute
 
@@ -650,21 +657,21 @@ class CovarUI(QtWidgets.QFrame):
 
         # --- Subgrid --- #
 
-        Sub_widget = QtWidgets.QWidget()
+        self.Sub_widget = QtWidgets.QWidget()
         Sub_grid        = QtWidgets.QGridLayout()
         Sub_grid.addWidget(data_groupbox, 0, 0)
         Sub_grid.addWidget(Grid_groupbox, 1, 0)
         Sub_grid.addWidget(covar_groupbox, 2, 0)
         Sub_grid.addWidget(Adjust_Model_groupbox, 3, 0)
         Sub_grid.setContentsMargins(0, 0, 0, 0)
-        Sub_widget.setLayout(Sub_grid)
+        self.Sub_widget.setLayout(Sub_grid)
 
         # ------- Master Grid Disposition ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 4)
         master_grid.addWidget(futur_Graph1, 1, 0, 2, 3)
         master_grid.addWidget(futur_Graph2, 3, 0, 2, 3)
-        master_grid.addWidget(Sub_widget, 1, 3, 4, 1)
+        master_grid.addWidget(self.Sub_widget, 1, 3, 4, 1)
         master_grid.setContentsMargins(0, 0, 0, 0)
         master_grid.setColumnStretch(1, 1)
         master_grid.setColumnStretch(3, 0)
@@ -678,7 +685,7 @@ class CovarUI(QtWidgets.QFrame):
         Param_groupbox       .setFixedHeight(275)
         Nug_groupbox         .setFixedHeight(100)
         Adjust_Model_groupbox.setFixedHeight(100)
-        Sub_widget           .setFixedWidth(500)
+        self.Sub_widget      .setFixedWidth(500)
 
         for item in [slowness_value_label, xi_value_label, tilt_value_label, slowness_3D_value_label,
                      slowness_fix_label, xi_fix_label, tilt_fix_label, slowness_3D_fix_label]:
@@ -714,6 +721,7 @@ class CovarUI(QtWidgets.QFrame):
 if __name__ == '__main__':
 
     data_manager.create_data_management(database)
+    data_manager.load(database, 'database.db')
 
     app = QtWidgets.QApplication(sys.argv)
 
