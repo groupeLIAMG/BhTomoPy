@@ -28,7 +28,7 @@ from info_ui import InfoUI
 import time
 import os
 import database
-import data_manager
+import database
 
 
 class DatabaseUI(QtWidgets.QWidget):
@@ -143,7 +143,7 @@ class DatabaseUI(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
             else:
                 try:
-                    data_manager.load(database, filename)
+                    database.load(database, filename)
                     self.update_database_info(os.path.basename(filename))
                     self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
                     self.update_widgets()
@@ -181,7 +181,7 @@ class DatabaseUI(QtWidgets.QWidget):
 
         if filename:
             if filename != str(database.engine.url).replace('sqlite:///', ''):
-                data_manager.save_as(database, filename)
+                database.save_as(database, filename)
 
                 self.update_database_info(os.path.basename(filename))
                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
@@ -277,7 +277,7 @@ class MyLogWidget(QtWidgets.QTextEdit):
 
 if __name__ == '__main__':
 
-    data_manager.create_data_management(database)
+    database.create_data_management(database)
 
     app = QtWidgets.QApplication(sys.argv)
 

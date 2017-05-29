@@ -32,7 +32,7 @@ from mog import Mog
 from grid import Grid, Grid2D
 from events_ui import GridEdited
 import database
-import data_manager
+import database
 
 
 class ModelUI(QtWidgets.QWidget):
@@ -63,7 +63,7 @@ class ModelUI(QtWidgets.QWidget):
         ind = self.model_list.selectedIndexes()
         for i in ind:
             self.modellogSignal.emit("Model {} has been deleted successfully".format(database.session.query(Model).all()[int(i.row())].name))
-            data_manager.delete(database, database.session.query(Model).all()[int(i.row())])
+            database.delete(database, database.session.query(Model).all()[int(i.row())])
         self.update_model_list()
         self.model_mog_list.clear()
 

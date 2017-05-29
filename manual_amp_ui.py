@@ -30,9 +30,9 @@ import scipy as spy
 from scipy import signal
 from mog import Mog
 
-import data_manager
+import database
 current_module = sys.modules[__name__]
-data_manager.create_data_management(current_module)
+database.create_data_management(current_module)
 
 
 class ManualAmpUI(QtWidgets.QFrame):

@@ -34,9 +34,9 @@ from utils import set_tick_arrangement
 from mog import Mog, AirShots
 # from utils_ui import chooseModel
 
-import data_manager
+import database
 current_module = sys.modules[__name__]
-data_manager.create_data_management(current_module)
+database.create_data_management(current_module)
 
 
 class InversionUI(QtWidgets.QFrame):
@@ -82,7 +82,7 @@ class InversionUI(QtWidgets.QFrame):
         # if model:
 
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-        data_manager.load(current_module, filename)
+        database.load(current_module, filename)
 
         self.model_ind = None
         self.inv_frame.setHidden(True)

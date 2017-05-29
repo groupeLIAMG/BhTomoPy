@@ -24,7 +24,7 @@ import os
 from PyQt5 import QtGui, QtWidgets, QtCore
 from model import Model
 import covar
-import data_manager
+import database
 import database
 import utils_ui
 
@@ -67,7 +67,7 @@ class CovarUI(QtWidgets.QFrame):
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
             else:
                 try:
-                    data_manager.load(database, filename)
+                    database.load(database, filename)
                     self.update_widgets()
 
                 except Exception as e:
@@ -102,7 +102,7 @@ class CovarUI(QtWidgets.QFrame):
 
         if filename:
             if filename != str(database.engine.url).replace('sqlite:///', ''):
-                data_manager.save_as(database, filename)
+                database.save_as(database, filename)
 
                 self.update_database_info(os.path.basename(filename))
                 self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
@@ -720,8 +720,8 @@ class CovarUI(QtWidgets.QFrame):
 
 if __name__ == '__main__':
 
-    data_manager.create_data_management(database)
-    data_manager.load(database, 'database.db')
+    database.create_data_management(database)
+    database.load(database, 'database.db')
 
     app = QtWidgets.QApplication(sys.argv)
 

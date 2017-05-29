@@ -28,9 +28,9 @@ from mog import Mog
 
 from utils_ui import chooseMOG
 
-import data_manager
+import database
 current_module = sys.modules[__name__]
-data_manager.create_data_management(current_module)
+database.create_data_management(current_module)
 
 
 class ManualttUI(QtWidgets.QFrame):
@@ -185,7 +185,7 @@ class ManualttUI(QtWidgets.QFrame):
     def openfile(self):
         item = chooseMOG(current_module, str(current_module.engine.url).replace('sqlite:///', ''))
         if item is not None:
-            data_manager.load(current_module)
+            database.load(current_module)
             self.mogs = current_module.session.query(Mog).all()
             self.mog = item
 #             if self.mog.useAirShots == 1:

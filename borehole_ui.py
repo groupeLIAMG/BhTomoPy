@@ -22,14 +22,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import sys
 from PyQt5 import QtCore, QtWidgets
 from borehole import Borehole
-from database import Database
 import numpy as np
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
 import time
 import database
-import data_manager
 # from logging import exception
 
 
@@ -43,7 +41,6 @@ class BoreholeUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Borehole")
-        self.db = Database()
         self.initUI()
 
     def import_bhole(self):
@@ -138,7 +135,7 @@ class BoreholeUI(QtWidgets.QWidget):
         ind = self.bh_list.selectedIndexes()
 
         for i in ind:
-            data_manager.delete(database, database.session.query(Borehole).all()[int(i.row())])
+            database.delete(database, database.session.query(Borehole).all()[int(i.row())])
             self.bhlogSignal.emit("{} has been deleted".format(database.session.query(Borehole).all()[int(i.row())].name))
 
         self.update_List_Widget()

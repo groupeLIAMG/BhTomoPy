@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from PyQt5 import QtWidgets, QtCore
 import os
-import data_manager
+import database
 from mog import Mog
 from model import Model
 
@@ -72,7 +72,7 @@ def chooseMOG(module, filename=None):
         if filename:
             if filename.find('.db') != -1:
 
-                data_manager.load(module, filename)
+                database.load(module, filename)
                 l0.setText(os.path.basename(filename))
                 load_mogs(filename)
 
@@ -160,7 +160,7 @@ def chooseModel(module, filename=None):
         if filename:
             if filename.find('.db') != -1:
 
-                data_manager.load(module, filename)
+                database.load(module, filename)
                 l0.setText(os.path.basename(filename))
                 load_models(module, filename)
 

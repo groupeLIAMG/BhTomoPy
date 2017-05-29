@@ -40,9 +40,9 @@ from utils_ui import chooseMOG
 import database
 from borehole import Borehole
 
-import data_manager
+import database
 current_module = sys.modules[__name__]
-data_manager.create_data_management(current_module)
+database.create_data_management(current_module)
 
 
 class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface (MOGUI)
@@ -184,7 +184,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface (MOGUI)
 
         for i in ind:
             self.moglogSignal.emit("MOG {} has been deleted".format(database.session.query(Mog).all()[int(i.row())].name))
-            data_manager.delete(database, database.session.query(Mog).all()[int(i.row())])
+            database.delete(database, database.session.query(Mog).all()[int(i.row())])
         self.update_List_Widget()
         self.update_edits()
 
@@ -2385,8 +2385,8 @@ class MergeMog(QtWidgets.QWidget):
                     " {} and {} have been merged and erased to create {}".format(merging_mog.name,
                                                                                  refMog.name,
                                                                                  newName))
-                data_manager.delete(database, refMog)
-                data_manager.delete(database, merging_mog)
+                database.delete(database, refMog)
+                database.delete(database, merging_mog)
                 self.mog.update_List_Widget()
                 self.close()
 
