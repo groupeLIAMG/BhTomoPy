@@ -36,7 +36,7 @@ class BoreholeUI(QtWidgets.QWidget):
     # ------- Signals ------- #
     bhlogSignal = QtCore.pyqtSignal(str)
     bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the information to update the Tx and Rx comboboxes in MogUI
-    bhInfoSignal = QtCore.pyqtSignal(int)     # this signal sends the information to update the number of borholes in infoUI
+    bhInfoSignal = QtCore.pyqtSignal(int)     # this signal sends the information to update the number of boreholes in infoUI
 
     def __init__(self, parent=None):
         super(BoreholeUI, self).__init__()
@@ -45,8 +45,7 @@ class BoreholeUI(QtWidgets.QWidget):
 
     def import_bhole(self):
         """
-        This method opens a QFileDialog, takes the name that the user has selected, updates the borehole's informations
-        and then shows its name in the bh_list
+        This method opens a QFileDialog, takes the name that the user has selected and updates the borehole's informations
         """
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import Borehole')[0]
         try:
@@ -97,7 +96,7 @@ class BoreholeUI(QtWidgets.QWidget):
         for bh in database.session.query(Borehole).all():
             self.bh_list.addItem(bh.name)
         self.bhInfoSignal.emit(len(self.bh_list))
-        self.bhUpdateSignal.emit(database.session.query(Borehole).all())
+        self.bhUpdateSignal.emit(database.session.query(Borehole).all())  # TODO rework
 
     def update_List_Edits(self):
         """
@@ -221,7 +220,7 @@ class BoreholeUI(QtWidgets.QWidget):
                 bh = database.session.query(Borehole).all()[i.row()]
                 cont = np.loadtxt(filename)
 
-                acont.x, acont.y, acont.z, c = bh.project(bh.fdata, cont[:, 0])  # @UnusedVariable
+                acont.x, acont.y, acont.z, _ = bh.project(bh.fdata, cont[:, 0])
 
                 acont.x = acont.x.flatten()
                 acont.y = acont.y.flatten()
@@ -254,7 +253,7 @@ class BoreholeUI(QtWidgets.QWidget):
                 bh = database.session.query(Borehole).all()[i.row()]
                 cont = np.loadtxt(filename)
 
-                scont.x, scont.y, scont.z, c = bh.project(bh.fdata, cont[:, 0])
+                scont.x, scont.y, scont.z, _ = bh.project(bh.fdata, cont[:, 0])
 
                 scont.x = scont.x.flatten()
                 scont.y = scont.y.flatten()
@@ -395,7 +394,7 @@ class BoreholeFig(FigureCanvasQTAgg):
 
     def __init__(self):
         """
-        Here we create a 3d figure in which we will plot the Borehole instances' trajectory (i.e. their respective fdata)
+        Here we create a 3D figure in which we will plot the Borehole instances' trajectory (i.e. their respective fdata)
         """
 
         fig_width, fig_height = 6, 8
