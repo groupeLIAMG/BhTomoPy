@@ -28,7 +28,6 @@ from info_ui import InfoUI
 import time
 import os
 import database
-import database
 
 
 class DatabaseUI(QtWidgets.QWidget):

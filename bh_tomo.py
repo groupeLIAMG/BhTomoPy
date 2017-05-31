@@ -31,7 +31,6 @@ from manual_amp_ui import ManualAmpUI
 import os
 
 import database
-import database
 database.create_data_management(database)
 
 

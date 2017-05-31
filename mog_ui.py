@@ -37,7 +37,6 @@ from mpl_toolkits.mplot3d import axes3d
 from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
 from utils_ui import chooseMOG
-import database
 from borehole import Borehole
 
 import database
@@ -45,7 +44,7 @@ current_module = sys.modules[__name__]
 database.create_data_management(current_module)
 
 
-class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface (MOGUI)
+class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
     mogInfoSignal  = QtCore.pyqtSignal(int)
     ntraceSignal   = QtCore.pyqtSignal(int)

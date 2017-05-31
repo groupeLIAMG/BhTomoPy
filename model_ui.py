@@ -32,7 +32,6 @@ from mog import Mog
 from grid import Grid, Grid2D
 from events_ui import GridEdited
 import database
-import database
 
 
 class ModelUI(QtWidgets.QWidget):
