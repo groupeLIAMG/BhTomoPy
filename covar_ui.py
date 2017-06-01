@@ -56,8 +56,8 @@ class CovarUI(QtWidgets.QFrame):
 
         self.move(translation)
 
-        self.set_current_model()
         self.update_data()
+        self.set_current_model()
         self.update_model()
         self.update_adjust()
         self.parameters_displayed_update()
@@ -72,14 +72,13 @@ class CovarUI(QtWidgets.QFrame):
             else:
                 try:
                     database.load(database, filename)
-                    self.model = None
                     self.update_data()
                     self.update_model()
                     self.update_parameters()
 
                 except Exception as e:
-                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
-                                                  buttons=QtWidgets.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] +
+                                                  "...' File may be empty or corrupted.", buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
@@ -102,14 +101,15 @@ class CovarUI(QtWidgets.QFrame):
                                                          filter='Database (*.db)', )[0]
 
         if filename:
-            if filename != str(database.engine.url).replace('sqlite:///', ''):
-                return database.save_as(database, filename)
+            if 'sqlite:///' + filename != str(database.engine.url):
+                database.save_as(database, filename)
+                return 'ok'
 
             else:
                 database.session.commit()
                 return 'ok'
 
-    updateHandler = False  # selected model may seldom modified twice. 'updateHandler' prevents it from firing twice.
+    updateHandler = False  # selected model may seldom modified twice. 'updateHandler' prevents functions from firing more than once.
 
     def set_current_model(self):  # substitutes SQLAlchemy weak referencing for a strong referencing
         if self.updateHandler:
@@ -117,7 +117,7 @@ class CovarUI(QtWidgets.QFrame):
 
         print('Trying...')
         self.updateHandler = True
-        if self.model:
+        if self.model is not None:
             print(self.model.name)
             ok = save_warning()
             if ok == 1:
@@ -126,6 +126,7 @@ class CovarUI(QtWidgets.QFrame):
                 ok = self.saveasfile()
             if ok:
                 self.model = self.current_model()
+                self.updateHandler = False
             else:
                 for i in range(self.models_list.count()):
                     print(self.models_list.item(i).text(), self.model.name)
@@ -223,6 +224,7 @@ class CovarUI(QtWidgets.QFrame):
             # compute
 
     def update_data(self):
+        self.model = None
         self.models_list.clear()
         self.models_list.addItems([item.name for item in database.session.query(Model).all()])
 
@@ -307,6 +309,9 @@ class CovarUI(QtWidgets.QFrame):
 
     def adjust(self):
         pass
+
+    def test(self):
+        self.models_list.setCurrentRow(0)
 
     def initUI(self):
         # --- Color for the labels --- #
@@ -476,8 +481,8 @@ class CovarUI(QtWidgets.QFrame):
         self.covar_struct_combo.currentIndexChanged.connect(self.parameters_displayed_update)
 
         # --- List --- #
-        self.models_list.currentItemChanged.connect(self.update_model)
-        self.models_list.currentItemChanged.connect(self.parameters_displayed_update)
+        self.models_list.itemSelectionChanged.connect(self.update_model)
+        self.models_list.itemSelectionChanged.connect(self.parameters_displayed_update)
 
         # ------- SubWidgets ------- #
         # --- Curved Rays SubWidget --- #
@@ -895,19 +900,22 @@ def save_warning():
 
     b0 = QtWidgets.QPushButton("Save", d)
     b1 = QtWidgets.QPushButton("Save as", d)
-    b2 = QtWidgets.QPushButton("Cancel", d)
+    b2 = QtWidgets.QPushButton("Discard changes", d)
+    b3 = QtWidgets.QPushButton("Cancel", d)
 
     l0.move(10, 10)
     b0.setMinimumWidth(b0.width())
     b1.setMinimumWidth(b0.width())
     b2.setMinimumWidth(b0.width())
+    b3.setMinimumWidth(b0.width())
     b0.move(15, 40)
     b1.move(15 + b0.minimumWidth(), 40)
     b2.move(15 + 2 * b0.minimumWidth(), 40)
-    l0.setMinimumWidth(10 + 3 * b1.minimumWidth())
-    d.setMaximumWidth(10 * 3 + b0.width() * 3)
+    b3.move(15 + 3 * b0.minimumWidth(), 40)
+    l0.setMinimumWidth(10 + 4 * b1.minimumWidth())
+    d.setMaximumWidth(10 * 3 + b0.width() * 4)
     d.setMaximumHeight(10 * 2 + b0.height() * 2)
-    d.setMinimumWidth(10 * 3 + b0.width() * 3)
+    d.setMinimumWidth(10 * 3 + b0.width() * 4)
     d.setMinimumHeight(10 * 2 + b0.height() * 2)
 
     l0.setText("You must save your database before proceeding.")
@@ -923,13 +931,18 @@ def save_warning():
         nonlocal d
         d.done(2)
 
+    def no_save():
+        nonlocal d
+        d.done(3)
+
     def cancel():
         nonlocal d
         d.done(0)
 
-    b0.clicked.connect(save_as)
-    b1.clicked.connect(save)
-    b2.clicked.connect(cancel)
+    b0.clicked.connect(save)
+    b1.clicked.connect(save_as)
+    b2.clicked.connect(no_save)
+    b3.clicked.connect(cancel)
 
     return d.exec_()
 
