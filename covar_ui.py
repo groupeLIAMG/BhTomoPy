@@ -784,16 +784,28 @@ class CovarUI(QtWidgets.QFrame):
         Sub_grid.setContentsMargins(0, 0, 0, 0)
         self.Sub_widget.setLayout(Sub_grid)
 
+        # --- Scroll bar --- #
+
+        self.scrollbar_widget = QtWidgets.QWidget()
+        self.scrollbar_grid   = QtWidgets.QGridLayout()
+        self.scrollbar_grid.addWidget(futur_Graph1, 0, 0, 2, 3)
+        self.scrollbar_grid.addWidget(futur_Graph2, 2, 0, 2, 3)
+        self.scrollbar_grid.addWidget(self.Sub_widget, 0, 3, 4, 1)
+        self.scrollbar_grid.setContentsMargins(0, 0, 0, 0)
+        self.scrollbar_grid.setColumnStretch(1, 1)
+        self.scrollbar_grid.setColumnStretch(3, 0)
+        self.scrollbar_grid.setColumnMinimumWidth(0, 600)
+        self.scrollbar_widget.setLayout(self.scrollbar_grid)
+
+        self.scrollbar = QtWidgets.QScrollArea()
+        self.scrollbar.setWidget(self.scrollbar_widget)
+        self.scrollbar.setWidgetResizable(True)
+
         # ------- Master Grid Disposition ------- #
         master_grid = QtWidgets.QGridLayout()
-        master_grid.addWidget(self.menu, 0, 0, 1, 4)
-        master_grid.addWidget(futur_Graph1, 1, 0, 2, 3)
-        master_grid.addWidget(futur_Graph2, 3, 0, 2, 3)
-        master_grid.addWidget(self.Sub_widget, 1, 3, 4, 1)
+        master_grid.addWidget(self.menu, 0, 0)
+        master_grid.addWidget(self.scrollbar, 1, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
-        master_grid.setColumnStretch(1, 1)
-        master_grid.setColumnStretch(3, 0)
-        master_grid.setColumnMinimumWidth(0, 600)
         self.setLayout(master_grid)
 
         # ------- Actions ------- #
@@ -813,6 +825,23 @@ class CovarUI(QtWidgets.QFrame):
         Nug_groupbox         .setFixedHeight(Nug_groupbox.sizeHint().height())
         Adjust_Model_groupbox.setFixedHeight(Adjust_Model_groupbox.sizeHint().height())
         self.Sub_widget      .setFixedWidth(500)
+
+        screen_resolution = QtWidgets.QApplication.desktop().screenGeometry()
+        width, height = screen_resolution.width(), screen_resolution.height()
+
+        desired_min_height = (data_groupbox.sizeHint().height() + Grid_groupbox.sizeHint().height() +
+                              Param_groupbox.sizeHint().height() + Nug_groupbox.sizeHint().height() +
+                              Nug_groupbox.sizeHint().height())
+        desired_min_width  = 500 * 2.5
+
+        if desired_min_height > 4 / 5 * height:
+            desired_min_height = 4 / 5 * height
+
+        if desired_min_width > 4 / 5 * width:
+            desired_min_width = 4 / 5 * width
+
+        self.scrollbar.setMinimumWidth(desired_min_width)
+        self.scrollbar.setMinimumHeight(desired_min_height)
 
         for item in (labels_2D_grid, slowness_grid, xi_grid, tilt_grid):
             for i in range(0, 7):
