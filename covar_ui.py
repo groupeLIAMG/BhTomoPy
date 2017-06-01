@@ -56,7 +56,7 @@ class CovarUI(QtWidgets.QFrame):
 
         self.move(translation)
 
-        self.update_data()
+        self.reset_data()
         self.set_current_model()
         self.update_model()
         self.update_adjust()
@@ -72,9 +72,9 @@ class CovarUI(QtWidgets.QFrame):
             else:
                 try:
                     database.load(database, filename)
-                    self.update_data()
+                    self.reset_data()
                     self.update_model()
-                    self.update_parameters()
+                    self.parameters_displayed_update()
 
                 except Exception as e:
                     QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] +
@@ -115,10 +115,8 @@ class CovarUI(QtWidgets.QFrame):
         if self.updateHandler:
             return
 
-        print('Trying...')
         self.updateHandler = True
         if self.model is not None:
-            print(self.model.name)
             ok = save_warning()
             if ok == 1:
                 ok = self.savefile()
@@ -129,7 +127,6 @@ class CovarUI(QtWidgets.QFrame):
                 self.updateHandler = False
             else:
                 for i in range(self.models_list.count()):
-                    print(self.models_list.item(i).text(), self.model.name)
                     if self.models_list.item(i).text() == self.model.name:
                         self.models_list.setCurrentRow(i)
                         self.updateHandler = False
@@ -210,6 +207,14 @@ class CovarUI(QtWidgets.QFrame):
                     else:
                         self.slowness_3D_widget.setHidden(False)
 
+                else:
+                    self.ellip_veloc_checkbox.setCheckState(False)
+                    self.tilted_ellip_veloc_checkbox.setCheckState(False)
+
+            else:
+                self.ellip_veloc_checkbox.setCheckState(False)
+                self.tilted_ellip_veloc_checkbox.setCheckState(False)
+
             self.update_parameters()
 
         else:
@@ -223,10 +228,12 @@ class CovarUI(QtWidgets.QFrame):
             pass
             # compute
 
-    def update_data(self):
+    def reset_data(self):
+        self.updateHandler = True
         self.model = None
         self.models_list.clear()
         self.models_list.addItems([item.name for item in database.session.query(Model).all()])
+        self.updateHandler = False
 
     def update_model(self):
         self.btn_Rem_Struct.setDisabled(True)
@@ -234,15 +241,16 @@ class CovarUI(QtWidgets.QFrame):
         self.covar_struct_combo.clear()
         if self.models_list.currentItem():
             self.set_current_model()
-            current_list = self.model.tt_covar
-            if current_list:
-                self.covar_struct_combo.addItems([item.name for item in current_list])
-                self.covar_struct_combo.setCurrentIndex(0)
-                current_struct = current_list[0]
-                self.update_parameters(current_struct)
-                self.update_nugget(current_struct)
-                self.btn_Rem_Struct.setDisabled(False)
-                self.btn_Ren_Struct.setDisabled(False)
+            if self.model:
+                current_list = self.model.tt_covar
+                if current_list:
+                    self.covar_struct_combo.addItems([item.name for item in current_list])
+                    self.covar_struct_combo.setCurrentIndex(0)
+                    current_struct = current_list[0]
+                    self.update_parameters(current_struct)
+                    self.update_nugget(current_struct)
+                    self.btn_Rem_Struct.setDisabled(False)
+                    self.btn_Ren_Struct.setDisabled(False)
 
     def update_parameters(self, structure=None):
         pass
@@ -291,7 +299,7 @@ class CovarUI(QtWidgets.QFrame):
                 QtWidgets.QMessageBox.warning(self, "Warning", "Could not rename structure: a structure already has this name.")
                 return
             self.model.tt_covar[self.covar_struct_combo.currentIndex()].name = new_name
-        self.update_model()
+            self.covar_struct_combo.setItemText(self.covar_struct_combo.currentIndex(), new_name)
 
     def duplicate_verif(self, string=None, recursion=1):
 
