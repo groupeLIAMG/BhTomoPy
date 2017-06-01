@@ -28,6 +28,7 @@ from info_ui import InfoUI
 import time
 import os
 import database
+import utils_ui
 
 
 class DatabaseUI(QtWidgets.QWidget):
@@ -114,6 +115,9 @@ class DatabaseUI(QtWidgets.QWidget):
             self.model.update_model_list()
             self.model.update_model_mog_list()
 
+            if str(database.engine.url) != 'sqlite:///:memory:':
+                self.update_database_info(database.short_url(database))
+
     def show(self):
         super(DatabaseUI, self).show()
 
@@ -135,22 +139,23 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def openfile(self):
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+        if utils_ui.save_warning(database):
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
 
-        if filename:
-            if filename[-3:] != '.db':
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
-            else:
-                try:
-                    database.load(database, filename)
-                    self.update_database_info(os.path.basename(filename))
-                    self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
-                    self.update_widgets()
+            if filename:
+                if filename[-3:] != '.db':
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
+                else:
+                    try:
+                        database.load(database, filename)
+                        self.update_database_info(os.path.basename(filename))
+                        self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
+                        self.update_widgets()
 
-                except Exception as e:
-                    self.update_log("Error: Database was not recognised")
-                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
-                                                  buttons=QtWidgets.QMessageBox.Ok)
+                    except Exception as e:
+                        self.update_log("Error: Database was not recognised")
+                        QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
+                                                      buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
 
@@ -179,7 +184,7 @@ class DatabaseUI(QtWidgets.QWidget):
                                                          filter='Database (*.db)', )[0]
 
         if filename:
-            if filename != str(database.engine.url).replace('sqlite:///', ''):
+            if filename != database.long_url(database):
                 database.save_as(database, filename)
 
                 self.update_database_info(os.path.basename(filename))

@@ -134,11 +134,11 @@ class BoreholeUI(QtWidgets.QWidget):
         ind = self.bh_list.selectedIndexes()
 
         for i in ind:
-            database.delete(database, database.session.query(Borehole).all()[int(i.row())])
-            self.bhlogSignal.emit("{} has been deleted".format(database.session.query(Borehole).all()[int(i.row())].name))
+            self.bhlogSignal.emit("{} has been deleted".format(database.session.query(Borehole).all()[i.row()].name))
+            database.delete(database, database.session.query(Borehole).all()[i.row()])
 
-        self.update_List_Widget()
-        self.update_List_Edits()
+            self.update_List_Widget()
+            self.update_List_Edits()
 
     updateHandler = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandler' prevents that.
 

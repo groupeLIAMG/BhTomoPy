@@ -30,7 +30,6 @@ class SemiAutottUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Semi Automatic Traveltime Picking")
-        self.openmain = OpenMainData(self)
         self.initUI()
 
     def initUI(self):
@@ -54,10 +53,10 @@ class SemiAutottUI(QtWidgets.QWidget):
         self.percent_label              = MyQLabel((''), ha='center')
         Bin_label                       = MyQLabel(('Bin width [°]'), ha='center')
         self.bin_value_label            = MyQLabel(('0'), ha='center')
-        sn_threshold_process_label       = MyQLabel(('S/N threshold - 1st Cycle processing'), ha='right')
-        threshold_label                  = MyQLabel(('Selection threshold, 1st Cycle'), ha='right')
+        sn_threshold_process_label      = MyQLabel(('S/N threshold - 1st Cycle processing'), ha='right')
+        threshold_label                 = MyQLabel(('Selection threshold, 1st Cycle'), ha='right')
         weight_label                    = MyQLabel(('Weight - Traces 1st Cycle'), ha='right')
-        sn_threshold_freq_label          = MyQLabel(('S/N threshold - Dom freq scaling'), ha='right')
+        sn_threshold_freq_label         = MyQLabel(('S/N threshold - Dom freq scaling'), ha='right')
         Dom_freq_min_label              = MyQLabel(('Dom freq - acceptable min freq'), ha='right')
         Dom_freq_max_label              = MyQLabel(('Dom freq - acceptable max freq'), ha='right')
         iteration_label                 = MyQLabel(('Iteration No'), ha='center')
@@ -77,10 +76,10 @@ class SemiAutottUI(QtWidgets.QWidget):
         self.Rx_Zmin_edit               = QtWidgets.QLineEdit()
         self.Rx_Zmax_edit               = QtWidgets.QLineEdit()
         self.bin_width_edit             = QtWidgets.QLineEdit()
-        self.sn_threshold_process_edit   = QtWidgets.QLineEdit()
-        self.threshold_edit              = QtWidgets.QLineEdit()
+        self.sn_threshold_process_edit  = QtWidgets.QLineEdit()
+        self.threshold_edit             = QtWidgets.QLineEdit()
         self.weight_edit                = QtWidgets.QLineEdit()
-        self.sn_threshold_freq_edit      = QtWidgets.QLineEdit()
+        self.sn_threshold_freq_edit     = QtWidgets.QLineEdit()
         self.Dom_freq_min_edit          = QtWidgets.QLineEdit()
         self.Dom_freq_max_edit          = QtWidgets.QLineEdit()
         self.t_min_edit                 = QtWidgets.QLineEdit()
@@ -123,7 +122,7 @@ class SemiAutottUI(QtWidgets.QWidget):
 
         chooseAction = QtWidgets.QAction('Choose MOG', self)
         chooseAction.setShortcut('Ctrl+O')
-        chooseAction.triggered.connect(self.openmain.show)
+#         chooseAction.triggered.connect(self.openmain.show)
 
         reiniAction = QtWidgets.QAction('Reinitialize', self)
 
@@ -137,7 +136,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         pointAction = QtWidgets.QAction('Point the average Trace', self)
         pointAction.setShortcut('Ctrl+P')
 
-        prevAction  = QtWidgets.QAction(' Previous Group', self)
+        prevAction  = QtWidgets.QAction('Previous Group', self)
         prevAction.setShortcut('Ctrl+P')
 
         nextAction  = QtWidgets.QAction('Next Group', self)
@@ -315,73 +314,6 @@ class Fig(FigureCanvasQTAgg):
         ax2 = self.figure.add_axes([0.08, 0.06, 0.85, 0.3])
         ax1.yaxis.set_ticks_position('left')
         ax1.set_axisbelow(True)
-
-
-class OpenMainData(QtWidgets.QWidget):
-    def __init__(self, tt, parent=None):
-        super(OpenMainData, self).__init__()
-        self.setWindowTitle("Choose Data")
-        self.database_list = []
-        self.tt = tt
-        self.initUI()
-
-    def openfile(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-
-        self.load_file(filename)
-
-    def load_file(self, filename):
-
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
-
-        boreholes, self.tt.mogs, self.tt.air, models = pickle.load(file)
-
-        self.database_edit.setText(rname)
-        for mog in self.tt.mogs:
-            self.mog_combo.addItem(mog.name)
-
-    def cancel(self):
-        self.close()
-
-    def ok(self):
-        self.tt.update_control_center()
-        self.close()
-
-    def initUI(self):
-
-        # -------  Widgets -------- #
-        # --- Edit --- #
-        self.database_edit = QtWidgets.QLineEdit()
-        # - Edit Action - #
-        self.database_edit.setReadOnly(True)
-        # --- Buttons --- #
-        self.btn_database = QtWidgets.QPushButton('Choose Database')
-        self.btn_ok = QtWidgets.QPushButton('Ok')
-        self.btn_cancel = QtWidgets.QPushButton('Cancel')
-
-        # - Buttons' Actions - #
-        self.btn_cancel.clicked.connect(self.cancel)
-        self.btn_database.clicked.connect(self.openfile)
-        self.btn_ok.clicked.connect(self.ok)
-
-        # --- Combobox --- #
-        self.mog_combo = QtWidgets.QComboBox()
-
-        master_grid = QtWidgets.QGridLayout()
-        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
-        master_grid.addWidget(self.btn_ok, 3, 0)
-        master_grid.addWidget(self.btn_cancel, 3, 1)
-        self.setLayout(master_grid)
 
 
 # --- Class for alignment --- #

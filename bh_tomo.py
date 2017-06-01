@@ -28,6 +28,7 @@ from inversion_ui import InversionUI
 from interp_ui import InterpretationUI
 from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
+from utils_ui import save_warning
 import os
 
 import database
@@ -39,7 +40,6 @@ class BhTomoPy(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(BhTomoPy, self).__init__()
         self.setWindowTitle("BhTomoPy")
-        self.filename = ""
 
         self.database = DatabaseUI()
         self.manual_tt = ManualttUI()
@@ -87,6 +87,13 @@ class BhTomoPy(QtWidgets.QWidget):
         self.__h1 = self.size().height()
         self.__h2 = self.tt_tool.size().height() + self.tl_tool.size().height()
 
+    def hide(self):
+        self.setHidden(True)
+
+    def unhide(self):
+        self.setHidden(False)
+        self.current_db.setText(database.short_url(database))
+
     def initUI(self):
 
         # ------- Widgets ------- #
@@ -132,6 +139,14 @@ class BhTomoPy(QtWidgets.QWidget):
         btn_Inversion.clicked.connect(self.inv.show)
         btn_Interpretation.clicked.connect(self.interp.show)
         btn_Manual_Amplitude_Picking.clicked.connect(self.manual_amp.showMaximized)
+
+        for item in (btn_Database, btn_Manual_Traveltime_Picking, btn_Semi_Automatic_Traveltime_Picking,
+                     btn_Cov_Mod, btn_Inversion, btn_Interpretation, btn_Manual_Amplitude_Picking):
+            item.clicked.connect(self.hide)
+
+        for item in (self.database, self.manual_tt, self.semi_tt, self.covar, self.inv, self.interp, self.manual_amp):
+            item.closeEvent = self.one_form_at_a_time(database)  # overwrites the forms' closing event for a custom one
+            # TODO: some forms may be linked to different data management modules (i.e. not database)
 
         # --- Image --- #
         pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
@@ -231,6 +246,27 @@ class BhTomoPy(QtWidgets.QWidget):
         # shrink or expand height to fit the toolbox
         h = self.__h1 + x - self.__h2
         self.setFixedHeight(h)
+
+    def one_form_at_a_time(self, module=None):
+        # creates a custom handler for the closing of a form so that only one form to be open at a time and
+        # that the current loaded information can be saved. 'module' refers to the data management module
+        # the form is linked to.
+
+        if module:
+            def handler(event):
+                ok = save_warning(module)
+                if ok:
+                    self.unhide()
+                    event.accept()
+                else:
+                    event.ignore()
+
+        else:
+            def handler(event):
+                self.unhide()
+                event.accept()
+
+        return handler
 
 
 class MyQToolBox(QtWidgets.QWidget):

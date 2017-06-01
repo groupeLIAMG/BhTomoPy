@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -124,6 +126,14 @@ def delete(module, item):
         module.session.delete(item)
     else:
         module.session.expunge(item)
+
+
+def long_url(module):
+    return str(module.engine.url)[10:]
+
+
+def short_url(module):
+    return os.path.basename(long_url(module))
 
 
 if __name__ == '__main__':

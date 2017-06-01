@@ -24,6 +24,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 from model import Model
 import covar
 import database
+import utils_ui
 
 import unicodedata
 xi    = unicodedata.lookup("GREEK SMALL LETTER XI")
@@ -33,6 +34,7 @@ theta = unicodedata.lookup("GREEK SMALL LETTER THETA")
 class CovarUI(QtWidgets.QFrame):
 
     model = None  # current model
+    updateHandler = False  # selected model may seldom modified twice. 'updateHandler' prevents functions from firing more than once.
 
     def __init__(self, parent=None):
         super(CovarUI, self).__init__()
@@ -64,52 +66,28 @@ class CovarUI(QtWidgets.QFrame):
 
     def openfile(self):
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+        if utils_ui.save_warning(database):
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
 
-        if filename:
-            if filename[-3:] != '.db':
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
-            else:
-                try:
-                    database.load(database, filename)
-                    self.reset_data()
-                    self.update_model()
-                    self.parameters_displayed_update()
+            if filename:
+                    if filename[-3:] != '.db':
+                        QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
+                    else:
+                        try:
+                            database.load(database, filename)
+                            self.reset_data()
+                            self.update_model()
+                            self.parameters_displayed_update()
 
-                except Exception as e:
-                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] +
-                                                  "...' File may be empty or corrupted.", buttons=QtWidgets.QMessageBox.Ok)
+                        except Exception as e:
+                            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] +
+                                                          "...' File may be empty or corrupted.", buttons=QtWidgets.QMessageBox.Ok)
 
     def savefile(self):
-
-        try:
-            if str(database.engine.url) == 'sqlite:///:memory:':
-                self.saveasfile()
-                return
-
-            database.session.commit()
-            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                              buttons=QtWidgets.QMessageBox.Ok)
-            return 'ok'
-
-        except Exception as e:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved : " + str(e),
-                                          buttons=QtWidgets.QMessageBox.Ok)
+        return utils_ui.savefile(database)
 
     def saveasfile(self):
-        filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
-                                                         filter='Database (*.db)', )[0]
-
-        if filename:
-            if 'sqlite:///' + filename != str(database.engine.url):
-                database.save_as(database, filename)
-                return 'ok'
-
-            else:
-                database.session.commit()
-                return 'ok'
-
-    updateHandler = False  # selected model may seldom modified twice. 'updateHandler' prevents functions from firing more than once.
+        return utils_ui.saveasfile(database)
 
     def set_current_model(self):  # substitutes SQLAlchemy weak referencing for a strong referencing
         if self.updateHandler:
@@ -117,12 +95,7 @@ class CovarUI(QtWidgets.QFrame):
 
         self.updateHandler = True
         if self.model is not None:
-            ok = save_warning()
-            if ok == 1:
-                ok = self.savefile()
-            elif ok == 2:
-                ok = self.saveasfile()
-            if ok:
+            if utils_ui.save_warning(database):
                 self.model = self.current_model()
                 self.updateHandler = False
             else:
@@ -897,62 +870,6 @@ class CovarUI(QtWidgets.QFrame):
 #                      slowness_3D_range_Z_checkbox, slowness_3D_theta_X_checkbox, slowness_3D_theta_Y_checkbox,
 #                      slowness_3D_theta_Z_checkbox, slowness_3D_sill_checkbox):
 #             item.setFixedWidth(slowness_fix_label.sizeHint().width())
-
-
-def save_warning():
-    d = QtWidgets.QDialog()
-
-    l0 = QtWidgets.QLabel(parent=d)
-    l0.setAlignment(QtCore.Qt.AlignCenter)
-    l0.setStyleSheet('background-color: white')
-
-    b0 = QtWidgets.QPushButton("Save", d)
-    b1 = QtWidgets.QPushButton("Save as", d)
-    b2 = QtWidgets.QPushButton("Discard changes", d)
-    b3 = QtWidgets.QPushButton("Cancel", d)
-
-    l0.move(10, 10)
-    b0.setMinimumWidth(b0.width())
-    b1.setMinimumWidth(b0.width())
-    b2.setMinimumWidth(b0.width())
-    b3.setMinimumWidth(b0.width())
-    b0.move(15, 40)
-    b1.move(15 + b0.minimumWidth(), 40)
-    b2.move(15 + 2 * b0.minimumWidth(), 40)
-    b3.move(15 + 3 * b0.minimumWidth(), 40)
-    l0.setMinimumWidth(10 + 4 * b1.minimumWidth())
-    d.setMaximumWidth(10 * 3 + b0.width() * 4)
-    d.setMaximumHeight(10 * 2 + b0.height() * 2)
-    d.setMinimumWidth(10 * 3 + b0.width() * 4)
-    d.setMinimumHeight(10 * 2 + b0.height() * 2)
-
-    l0.setText("You must save your database before proceeding.")
-
-    d.setWindowTitle("Warning")
-    d.setWindowModality(QtCore.Qt.ApplicationModal)
-
-    def save():
-        nonlocal d
-        d.done(1)
-
-    def save_as():
-        nonlocal d
-        d.done(2)
-
-    def no_save():
-        nonlocal d
-        d.done(3)
-
-    def cancel():
-        nonlocal d
-        d.done(0)
-
-    b0.clicked.connect(save)
-    b1.clicked.connect(save_as)
-    b2.clicked.connect(no_save)
-    b3.clicked.connect(cancel)
-
-    return d.exec_()
 
 
 class MyLineEdit(QtWidgets.QLineEdit):  # allows veryfying if an edit's text has been modified

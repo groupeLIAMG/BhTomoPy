@@ -41,7 +41,6 @@ class ManualAmpUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(ManualAmpUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
-#        self.openmain = OpenMainData(self)
         self.mogs = []
 #        self.air = []
 #        self.boreholes = []
@@ -126,7 +125,7 @@ class ManualAmpUI(QtWidgets.QFrame):
 
     def openfile(self):
 
-        item = chooseMOG(current_module, str(current_module.engine.url).replace('sqlite:///', ''))
+        item = chooseMOG(current_module, database.long_url(current_module))
         if item is not None:
             self.mogs = current_module.session.query(Mog).all()
             self.mog = item
@@ -456,78 +455,6 @@ class ManualAmpUI(QtWidgets.QFrame):
         else:
             self.sender().setFlat(True)
             self.lowerFig.isTracingOn = True
-
-# class OpenMainData(QtWidgets.QWidget):
-#    def __init__(self, ui, parent=None):
-#        super(OpenMainData, self).__init__()
-#        self.setWindowTitle("Choose Data")
-#        self.database_list = []
-#        self.ui = ui
-#        self.initUI()
-#
-#    def openfile(self):
-#        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-#
-#        self.load_file(filename)
-#
-#    def load_file(self, filename):
-#        self.ui.filename = filename
-#        rname = filename.split('/')
-#        rname = rname[-1]
-#        if '.p' in rname:
-#            rname = rname[:-2]
-#        if '.pkl' in rname:
-#            rname = rname[:-4]
-#        if '.pickle' in rname:
-#            rname = rname[:-7]
-#        file = open(filename, 'rb')
-#
-#        self.ui.boreholes, self.ui.mogs, self.ui.air, self.ui.models = pickle.load(file)
-#
-#        self.database_edit.setText(rname)
-#        for mog in self.ui.mogs:
-#
-#            self.mog_combo.addItem(mog.name)
-#
-#
-#    def cancel(self):
-#        self.close()
-#
-#    def ok(self):
-#        self.ui.update_control_center()
-#
-#        self.close()
-#
-#    def initUI(self):
-#
-#        # -------  Widgets -------- #
-#        # --- Edit --- #
-#        self.database_edit = QtWidgets.QLineEdit()
-#        #- Edit Action -#
-#        self.database_edit.setReadOnly(True)
-#        # --- Buttons --- #
-#        self.btn_database = QtWidgets.QPushButton('Choose Database')
-#        self.btn_ok = QtWidgets.QPushButton('Ok')
-#        self.btn_cancel = QtWidgets.QPushButton('Cancel')
-#
-#        #- Buttons' Actions -#
-#        self.btn_cancel.clicked.connect(self.cancel)
-#        self.btn_database.clicked.connect(self.openfile)
-#        self.btn_ok.clicked.connect(self.ok)
-#
-#        # --- Combobox --- #
-#        self.mog_combo = QtWidgets.QComboBox()
-#
-#        #- Combobox's Action -#
-#        self.mog_combo.activated.connect(self.ui.update_control_center)
-#
-#        master_grid = QtWidgets.QGridLayout()
-#        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-#        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-#        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
-#        master_grid.addWidget(self.btn_ok, 3, 0)
-#        master_grid.addWidget(self.btn_cancel, 3 ,1)
-#        self.setLayout(master_grid)
 
 
 class UpperFig(FigureCanvasQTAgg):

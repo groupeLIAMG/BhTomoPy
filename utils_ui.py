@@ -204,3 +204,102 @@ def chooseModel(module, filename=None):
         model_no = b3.currentIndex()
         if model_no != -1:
             return module.session.query(Model).filter(Model.name == str(b3.currentText())).first()
+
+
+def save_warning(module):
+    d = QtWidgets.QDialog()
+
+    l0 = QtWidgets.QLabel(parent=d)
+    l0.setAlignment(QtCore.Qt.AlignCenter)
+    l0.setStyleSheet('background-color: white')
+
+    b0 = QtWidgets.QPushButton("Save", d)
+    b1 = QtWidgets.QPushButton("Save as", d)
+    b2 = QtWidgets.QPushButton("Discard changes", d)
+    b3 = QtWidgets.QPushButton("Cancel", d)
+
+    l0.move(10, 10)
+    b0.setMinimumWidth(b0.width())
+    b1.setMinimumWidth(b0.width())
+    b2.setMinimumWidth(b0.width())
+    b3.setMinimumWidth(b0.width())
+    b0.move(15, 40)
+    b1.move(15 + b0.minimumWidth(), 40)
+    b2.move(15 + 2 * b0.minimumWidth(), 40)
+    b3.move(15 + 3 * b0.minimumWidth(), 40)
+    l0.setMinimumWidth(10 + 4 * b1.minimumWidth())
+    d.setMaximumWidth(10 * 3 + b0.width() * 4)
+    d.setMaximumHeight(10 * 2 + b0.height() * 2)
+    d.setMinimumWidth(10 * 3 + b0.width() * 4)
+    d.setMinimumHeight(10 * 2 + b0.height() * 2)
+
+    l0.setText("You must save your database before proceeding.")
+
+    d.setWindowTitle("Warning")
+    d.setWindowModality(QtCore.Qt.ApplicationModal)
+
+    def save():
+        nonlocal d
+        d.done(1)
+
+    def save_as():
+        nonlocal d
+        d.done(2)
+
+    def no_save():
+        nonlocal d
+        d.done(3)
+
+    def cancel():
+        nonlocal d
+        d.done(0)
+
+    b0.clicked.connect(save)
+    b1.clicked.connect(save_as)
+    b2.clicked.connect(no_save)
+    b3.clicked.connect(cancel)
+
+    ok = d.exec_()
+    if ok == 0:
+        ok = False
+    elif ok == 1:
+        ok = savefile(module)
+    elif ok == 2:
+        ok = saveasfile(module)
+    elif ok == 3:
+        ok = True
+
+    return ok  # returns False if action has to be reverted. Returns True otherwise.
+
+
+def savefile(module):
+
+    try:
+        if str(module.engine.url) == 'sqlite:///:memory:':
+            return saveasfile(module)
+
+        module.session.commit()
+        QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
+                                          buttons=QtWidgets.QMessageBox.Ok)
+        return True
+
+    except Exception as e:
+        QtWidgets.QMessageBox.warning(None, 'Warning', "Database could not be saved : " + str(e),
+                                      buttons=QtWidgets.QMessageBox.Ok)
+
+    return False
+
+
+def saveasfile(module):
+    filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Database as ...', filter='Database (*.db)', )[0]
+
+    if filename:
+        if filename != database.long_url(module):
+            database.save_as(module, filename)
+            return True
+
+        else:
+            module.session.commit()
+            return True
+
+    return False

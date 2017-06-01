@@ -43,7 +43,6 @@ class InversionUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(InversionUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Inversion")
-#        self.openmain = OpenMainData(self)
         self.lsqrParams = InvLSQRParams()
         self.tomo = None
         self.prev_inv = []
@@ -910,80 +909,6 @@ class InversionUI(QtWidgets.QFrame):
         master_grid.addWidget(global_widget, 1, 0)
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
-
-# class OpenMainData(QtWidgets.QWidget):
-#    def __init__(self, inv, parent=None):
-#        super(OpenMainData, self).__init__()
-#        self.setWindowTitle("Choose Data")
-#        self.database_list = []
-#        self.inv = inv
-#        self.initUI()
-#
-#    def openfile(self):
-#        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-#
-#        self.load_file(filename)
-#
-#    def load_file(self, filename):
-#        rname = filename.split('/')
-#        rname = rname[-1]
-#        if '.pickle' in rname:
-#            rname = rname[:-7]
-#        if '.pkl' in rname:
-#            rname = rname[:-4]
-#        if '.p' in rname:
-#            rname = rname[:-2]
-#        file = open(filename, 'rb')
-#
-#        self.inv.boreholes, self.inv.mogs, self.inv.air, self.inv.models = pickle.load(file)
-#
-#        self.database_edit.setText(rname)
-#        for model in self.inv.models:
-#            self.model_combo.addItem(model.name)
-#
-#    def cancel(self):
-#        self.close()
-#
-#    def ok(self):
-#        self.inv.model_ind = self.model_combo.currentIndex()
-#        self.inv.inv_frame.setHidden(True)
-#        self.inv.gv = Gridviewer(self.inv.models[self.inv.model_ind].grid, self.inv)
-#        self.inv.global_grid.addWidget(self.inv.gv, 1, 1, 7, 2)
-#        self.inv.update_data()
-#        self.inv.update_grid()
-#        self.inv.update_previous()
-#        self.close()
-#
-#    def initUI(self):
-#
-#        # -------  Widgets -------- #
-#        # --- Edit --- #
-#        self.database_edit = QtWidgets.QLineEdit()
-#
-#        #- Edit Action -#
-#        self.database_edit.setReadOnly(True)
-#
-#        # --- Buttons --- #
-#        self.btn_database = QtWidgets.QPushButton('Choose Database')
-#        self.btn_ok = QtWidgets.QPushButton('Ok')
-#        self.btn_cancel = QtWidgets.QPushButton('Cancel')
-#
-#        #- Buttons' Actions -#
-#        self.btn_cancel.clicked.connect(self.cancel)
-#        self.btn_database.clicked.connect(self.openfile)
-#        self.btn_ok.clicked.connect(self.ok)
-#
-#        # --- Combobox --- #
-#        self.model_combo = QtWidgets.QComboBox()
-#
-#        #- Combobox's Action -#
-#        master_grid = QtWidgets.QGridLayout()
-#        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-#        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-#        master_grid.addWidget(self.model_combo, 2, 0, 1, 2)
-#        master_grid.addWidget(self.btn_ok, 3, 0)
-#        master_grid.addWidget(self.btn_cancel, 3 ,1)
-#        self.setLayout(master_grid)
 
 
 class InvFig(FigureCanvasQTAgg):
