@@ -25,6 +25,7 @@ from model import Model
 import covar
 import database
 import utils_ui
+import grid
 
 import unicodedata
 xi    = unicodedata.lookup("GREEK SMALL LETTER XI")
@@ -34,7 +35,7 @@ theta = unicodedata.lookup("GREEK SMALL LETTER THETA")
 class CovarUI(QtWidgets.QFrame):
 
     model = None  # current model
-    updateHandler = False  # selected model may seldom modified twice. 'updateHandler' prevents functions from firing more than once.
+    updateHandler = False  # selected model may seldom be modified twice. 'updateHandler' prevents functions from firing more than once.
 
     def __init__(self, parent=None):
         super(CovarUI, self).__init__()
@@ -113,6 +114,15 @@ class CovarUI(QtWidgets.QFrame):
         if self.models_list.currentItem():
             return database.session.query(Model).filter(Model.name == self.models_list.currentItem().text()).first()
 
+    def current_covar(self):
+
+        if self.T_and_A_combo.currentIndex() == 0:
+            covar = self.model.tt_covar
+        else:
+            covar = self.model.amp_covar
+
+        return covar
+
     def parameters_displayed_update(self):
         if self.updateHandler:
             return
@@ -148,42 +158,45 @@ class CovarUI(QtWidgets.QFrame):
 
             if self.model:
 
-                self.covar_struct_combo.setDisabled(False)
-                self.btn_Add_Struct.setDisabled(False)
+                if True:  # self.model.grid is not None:
+                    self.covar_struct_combo.setDisabled(False)
+                    self.btn_Add_Struct.setDisabled(False)
 
-                if self.model.tt_covar:
-                    self.btn_Rem_Struct.setDisabled(False)
-                    self.btn_Ren_Struct.setDisabled(False)
-                    if True:  # self.model.is3D:
-                        self.labels_2D_widget.setHidden(False)
-                        self.slowness_widget.setHidden(False)
-                        self.ellip_veloc_checkbox.setDisabled(False)
+                    if self.current_covar():
+                        self.btn_Rem_Struct.setDisabled(False)
+                        self.btn_Ren_Struct.setDisabled(False)
+                        if True:  # type(self.model.grid) == grid.Grid2D:
+                            self.labels_2D_widget.setHidden(False)
+                            self.slowness_widget.setHidden(False)
+                            self.ellip_veloc_checkbox.setDisabled(False)
 
-                        if self.ellip_veloc_checkbox.checkState():
-                            self.xi_widget.setHidden(False)
-                            self.tilted_ellip_veloc_checkbox.setDisabled(False)
+                            if self.ellip_veloc_checkbox.checkState():
+                                self.xi_widget.setHidden(False)
+                                self.tilted_ellip_veloc_checkbox.setDisabled(False)
 
-                            self.xi_label.setHidden(False)
-                            self.xi_Edit.setHidden(False)
-                            self.xi_checkbox.setHidden(False)
+                                self.xi_label.setHidden(False)
+                                self.xi_Edit.setHidden(False)
+                                self.xi_checkbox.setHidden(False)
 
-                            if self.tilted_ellip_veloc_checkbox.checkState():
-                                self.tilt_widget.setHidden(False)
+                                if self.tilted_ellip_veloc_checkbox.checkState():
+                                    self.tilt_widget.setHidden(False)
 
-                                self.tilt_label.setHidden(False)
-                                self.tilt_Edit.setHidden(False)
-                                self.tilt_checkbox.setHidden(False)
+                                    self.tilt_label.setHidden(False)
+                                    self.tilt_Edit.setHidden(False)
+                                    self.tilt_checkbox.setHidden(False)
 
-                        else:
-                            self.tilted_ellip_veloc_checkbox.setCheckState(False)
+                            else:
+                                self.tilted_ellip_veloc_checkbox.setCheckState(False)
+
+                        elif type(self.model.grid) == grid.Grid3D:
+                            self.slowness_3D_widget.setHidden(False)
 
                     else:
-                        self.slowness_3D_widget.setHidden(False)
+                        self.ellip_veloc_checkbox.setCheckState(False)
+                        self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
                 else:
-                    self.ellip_veloc_checkbox.setCheckState(False)
-                    self.tilted_ellip_veloc_checkbox.setCheckState(False)
-
+                    QtWidgets.QMessageBox.warning(self, "Warning", "This model has no grid.")
             else:
                 self.ellip_veloc_checkbox.setCheckState(False)
                 self.tilted_ellip_veloc_checkbox.setCheckState(False)
@@ -198,8 +211,7 @@ class CovarUI(QtWidgets.QFrame):
 
     def auto_update(self):
         if self.auto_update_checkbox.checkState():
-            pass
-            # compute
+            pass  # compute
 
     def reset_data(self):
         self.updateHandler = True
@@ -215,7 +227,7 @@ class CovarUI(QtWidgets.QFrame):
         if self.models_list.currentItem():
             self.set_current_model()
             if self.model:
-                current_list = self.model.tt_covar
+                current_list = self.current_covar()
                 if current_list:
                     self.covar_struct_combo.addItems([item.name for item in current_list])
                     self.covar_struct_combo.setCurrentIndex(0)
@@ -244,8 +256,8 @@ class CovarUI(QtWidgets.QFrame):
         r = [0, 0]
         a = [0]
         s = 0
-        new = covar.Covariance(self.duplicate_verif(), r, a, s)
-        self.model.tt_covar.append(new)
+        new = covar.Covariance(utils_ui.duplicate_new_name('New model', self.structures_list()), r, a, s)
+        self.current_covar().append(new)
         count = self.covar_struct_combo.count()
         self.covar_struct_combo.addItem(new.name)
         self.covar_struct_combo.setCurrentIndex(count)
@@ -255,7 +267,7 @@ class CovarUI(QtWidgets.QFrame):
     def del_struct(self):
         index = self.covar_struct_combo.currentIndex()
         self.covar_struct_combo.removeItem(index)
-        del self.model.tt_covar[index]
+        del self.current_covar()[index]
         count = self.covar_struct_combo.count()
         if count != 0:
             if index == count:
@@ -263,36 +275,48 @@ class CovarUI(QtWidgets.QFrame):
             else:
                 self.covar_struct_combo.setCurrentIndex(index)
         self.parameters_displayed_update()
-#         self.update_parameters(self.model.tt_covar[self.covar_struct_combo.currentIndex()])
+#         self.update_parameters(self.current_covar()[self.covar_struct_combo.currentIndex()])
 
     def ren_struct(self):
         new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'New structure name :')
         if ok:
-            if self.duplicate_verif(new_name) != new_name:
-                QtWidgets.QMessageBox.warning(self, "Warning", "Could not rename structure: a structure already has this name.")
+            if utils_ui.duplicate_verif(new_name, self.structures_list()):
                 return
-            self.model.tt_covar[self.covar_struct_combo.currentIndex()].name = new_name
+            self.current_covar()[self.covar_struct_combo.currentIndex()].name = new_name
             self.covar_struct_combo.setItemText(self.covar_struct_combo.currentIndex(), new_name)
 
-    def duplicate_verif(self, string=None, recursion=1):
-
-        if not string:
-            string = "New model"
-
-        for i in range(self.covar_struct_combo.count()):
-            if self.covar_struct_combo.itemText(i) == string:
-                if recursion > 1:
-                    string = string[:-2]
-                string = self.duplicate_verif(string + ' ' + str(recursion), recursion + 1)
-                return string
-
-        return string
+    def structures_list(self):
+        return [self.covar_struct_combo.itemText(i) for i in range(self.covar_struct_combo.count())]
 
     def adjust(self):
         pass
 
-    def test(self):
-        self.models_list.setCurrentRow(0)
+    def fix_verif(self):
+        if True:  # type(self.model.grid) == grid.Grid2D:
+            items = [self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox,
+                     self.slowness_theta_X_checkbox, self.slowness_sill_checkbox,
+                     self.slowness_checkbox, self.traveltime_checkbox]
+            if self.ellip_veloc_checkbox.checkState():
+                items += [self.xi_range_X_checkbox, self.xi_range_Z_checkbox,
+                          self.xi_theta_X_checkbox, self.xi_sill_checkbox,
+                          self.xi_checkbox]
+                if self.tilted_ellip_veloc_checkbox.checkState():
+                    items += [self.tilt_range_X_checkbox, self.tilt_range_Z_checkbox,
+                              self.tilt_theta_X_checkbox, self.tilt_sill_checkbox,
+                              self.tilt_checkbox]
+
+        elif type(self.model.grid) == grid.Grid3D:
+            items = [self.slowness_3D_range_X_checkbox, self.slowness_3D_range_Y_checkbox, self.slowness_3D_range_Z_checkbox,
+                     self.slowness_3D_theta_X_checkbox, self.slowness_3D_theta_Y_checkbox, self.slowness_3D_theta_Z_checkbox,
+                     self.slowness_3D_sill_checkbox]
+
+        if False in [item.checkState() for item in items]:
+            self.btn_GO.setEnabled(True)
+
+        else:
+            self.btn_GO.setEnabled(False)
+            QtWidgets.QMessageBox.warning(self, "Warning",
+                                          "In order to adjust the model, at least one 'Fix' checkbox must be left unchecked.")
 
     def initUI(self):
         # --- Color for the labels --- #
@@ -450,11 +474,9 @@ class CovarUI(QtWidgets.QFrame):
         self.Upper_limit_checkbox       .stateChanged.connect(self.auto_update)
         self.ellip_veloc_checkbox       .stateChanged.connect(self.parameters_displayed_update)
         self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.parameters_displayed_update)
+        self.ellip_veloc_checkbox       .stateChanged.connect(self.auto_update)
+        self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.auto_update)
         self.include_checkbox           .stateChanged.connect(self.auto_update)
-#         self.slowness_checkbox          .stateChanged.connect(self.auto_update)
-#         self.traveltime_checkbox        .stateChanged.connect(self.auto_update)
-#         self.xi_checkbox                .stateChanged.connect(self.auto_update)
-#         self.tilt_checkbox              .stateChanged.connect(self.auto_update)
 
         # --- Comboboxes --- #
         self.T_and_A_combo     .currentIndexChanged.connect(self.auto_update)
@@ -557,10 +579,10 @@ class CovarUI(QtWidgets.QFrame):
         slowness_range_Z_edit     = MyLineEdit('0.0')
         slowness_theta_X_edit     = MyLineEdit('0.0')
         slowness_sill_edit        = MyLineEdit('0.0')
-        slowness_range_X_checkbox = QtWidgets.QCheckBox()
-        slowness_range_Z_checkbox = QtWidgets.QCheckBox()
-        slowness_theta_X_checkbox = QtWidgets.QCheckBox()
-        slowness_sill_checkbox    = QtWidgets.QCheckBox()
+        self.slowness_range_X_checkbox = QtWidgets.QCheckBox()
+        self.slowness_range_Z_checkbox = QtWidgets.QCheckBox()
+        self.slowness_theta_X_checkbox = QtWidgets.QCheckBox()
+        self.slowness_sill_checkbox    = QtWidgets.QCheckBox()
 
         self.slowness_widget      = QtWidgets.QWidget()
         slowness_grid             = QtWidgets.QGridLayout()
@@ -572,10 +594,10 @@ class CovarUI(QtWidgets.QFrame):
         slowness_grid.addWidget(slowness_range_Z_edit, 4, 0)
         slowness_grid.addWidget(slowness_theta_X_edit, 5, 0)
         slowness_grid.addWidget(slowness_sill_edit, 6, 0)
-        slowness_grid.addWidget(slowness_range_X_checkbox, 3, 1)
-        slowness_grid.addWidget(slowness_range_Z_checkbox, 4, 1)
-        slowness_grid.addWidget(slowness_theta_X_checkbox, 5, 1)
-        slowness_grid.addWidget(slowness_sill_checkbox, 6, 1)
+        slowness_grid.addWidget(self.slowness_range_X_checkbox, 3, 1)
+        slowness_grid.addWidget(self.slowness_range_Z_checkbox, 4, 1)
+        slowness_grid.addWidget(self.slowness_theta_X_checkbox, 5, 1)
+        slowness_grid.addWidget(self.slowness_sill_checkbox, 6, 1)
         slowness_grid.setContentsMargins(0, 0, 0, 0)
         self.slowness_widget.setLayout(slowness_grid)
 
@@ -588,10 +610,10 @@ class CovarUI(QtWidgets.QFrame):
         xi_range_Z_edit     = MyLineEdit('0.0')
         xi_theta_X_edit     = MyLineEdit('0.0')
         xi_sill_edit        = MyLineEdit('0.0')
-        xi_range_X_checkbox = QtWidgets.QCheckBox()
-        xi_range_Z_checkbox = QtWidgets.QCheckBox()
-        xi_theta_X_checkbox = QtWidgets.QCheckBox()
-        xi_sill_checkbox    = QtWidgets.QCheckBox()
+        self.xi_range_X_checkbox = QtWidgets.QCheckBox()
+        self.xi_range_Z_checkbox = QtWidgets.QCheckBox()
+        self.xi_theta_X_checkbox = QtWidgets.QCheckBox()
+        self.xi_sill_checkbox    = QtWidgets.QCheckBox()
 
         self.xi_widget      = QtWidgets.QWidget()
         xi_grid             = QtWidgets.QGridLayout()
@@ -603,10 +625,10 @@ class CovarUI(QtWidgets.QFrame):
         xi_grid.addWidget(xi_range_Z_edit, 4, 0)
         xi_grid.addWidget(xi_theta_X_edit, 5, 0)
         xi_grid.addWidget(xi_sill_edit, 6, 0)
-        xi_grid.addWidget(xi_range_X_checkbox, 3, 1)
-        xi_grid.addWidget(xi_range_Z_checkbox, 4, 1)
-        xi_grid.addWidget(xi_theta_X_checkbox, 5, 1)
-        xi_grid.addWidget(xi_sill_checkbox, 6, 1)
+        xi_grid.addWidget(self.xi_range_X_checkbox, 3, 1)
+        xi_grid.addWidget(self.xi_range_Z_checkbox, 4, 1)
+        xi_grid.addWidget(self.xi_theta_X_checkbox, 5, 1)
+        xi_grid.addWidget(self.xi_sill_checkbox, 6, 1)
         xi_grid.setContentsMargins(0, 0, 0, 0)
         self.xi_widget.setLayout(xi_grid)
 
@@ -619,10 +641,10 @@ class CovarUI(QtWidgets.QFrame):
         tilt_range_Z_edit     = MyLineEdit('0.0')
         tilt_theta_X_edit     = MyLineEdit('0.0')
         tilt_sill_edit        = MyLineEdit('0.0')
-        tilt_range_X_checkbox = QtWidgets.QCheckBox()
-        tilt_range_Z_checkbox = QtWidgets.QCheckBox()
-        tilt_theta_X_checkbox = QtWidgets.QCheckBox()
-        tilt_sill_checkbox    = QtWidgets.QCheckBox()
+        self.tilt_range_X_checkbox = QtWidgets.QCheckBox()
+        self.tilt_range_Z_checkbox = QtWidgets.QCheckBox()
+        self.tilt_theta_X_checkbox = QtWidgets.QCheckBox()
+        self.tilt_sill_checkbox    = QtWidgets.QCheckBox()
 
         self.tilt_widget      = QtWidgets.QWidget()
         tilt_grid             = QtWidgets.QGridLayout()
@@ -634,10 +656,10 @@ class CovarUI(QtWidgets.QFrame):
         tilt_grid.addWidget(tilt_range_Z_edit, 4, 0)
         tilt_grid.addWidget(tilt_theta_X_edit, 5, 0)
         tilt_grid.addWidget(tilt_sill_edit, 6, 0)
-        tilt_grid.addWidget(tilt_range_X_checkbox, 3, 1)
-        tilt_grid.addWidget(tilt_range_Z_checkbox, 4, 1)
-        tilt_grid.addWidget(tilt_theta_X_checkbox, 5, 1)
-        tilt_grid.addWidget(tilt_sill_checkbox, 6, 1)
+        tilt_grid.addWidget(self.tilt_range_X_checkbox, 3, 1)
+        tilt_grid.addWidget(self.tilt_range_Z_checkbox, 4, 1)
+        tilt_grid.addWidget(self.tilt_theta_X_checkbox, 5, 1)
+        tilt_grid.addWidget(self.tilt_sill_checkbox, 6, 1)
         tilt_grid.setContentsMargins(0, 0, 0, 0)
         self.tilt_widget.setLayout(tilt_grid)
 
@@ -661,13 +683,13 @@ class CovarUI(QtWidgets.QFrame):
         slowness_3D_theta_Y_edit     = MyLineEdit('0.0')
         slowness_3D_theta_Z_edit     = MyLineEdit('0.0')
         slowness_3D_sill_edit        = MyLineEdit('0.0')
-        slowness_3D_range_X_checkbox = QtWidgets.QCheckBox()
-        slowness_3D_range_Y_checkbox = QtWidgets.QCheckBox()
-        slowness_3D_range_Z_checkbox = QtWidgets.QCheckBox()
-        slowness_3D_theta_X_checkbox = QtWidgets.QCheckBox()
-        slowness_3D_theta_Y_checkbox = QtWidgets.QCheckBox()
-        slowness_3D_theta_Z_checkbox = QtWidgets.QCheckBox()
-        slowness_3D_sill_checkbox    = QtWidgets.QCheckBox()
+        self.slowness_3D_range_X_checkbox = QtWidgets.QCheckBox()
+        self.slowness_3D_range_Y_checkbox = QtWidgets.QCheckBox()
+        self.slowness_3D_range_Z_checkbox = QtWidgets.QCheckBox()
+        self.slowness_3D_theta_X_checkbox = QtWidgets.QCheckBox()
+        self.slowness_3D_theta_Y_checkbox = QtWidgets.QCheckBox()
+        self.slowness_3D_theta_Z_checkbox = QtWidgets.QCheckBox()
+        self.slowness_3D_sill_checkbox    = QtWidgets.QCheckBox()
 
         self.slowness_3D_widget      = QtWidgets.QWidget()
         slowness_3D_grid             = QtWidgets.QGridLayout()
@@ -689,13 +711,13 @@ class CovarUI(QtWidgets.QFrame):
         slowness_3D_grid.addWidget(slowness_3D_theta_Y_edit, 7, 1)
         slowness_3D_grid.addWidget(slowness_3D_theta_Z_edit, 8, 1)
         slowness_3D_grid.addWidget(slowness_3D_sill_edit, 9, 1)
-        slowness_3D_grid.addWidget(slowness_3D_range_X_checkbox, 3, 2)
-        slowness_3D_grid.addWidget(slowness_3D_range_Y_checkbox, 4, 2)
-        slowness_3D_grid.addWidget(slowness_3D_range_Z_checkbox, 5, 2)
-        slowness_3D_grid.addWidget(slowness_3D_theta_X_checkbox, 6, 2)
-        slowness_3D_grid.addWidget(slowness_3D_theta_Y_checkbox, 7, 2)
-        slowness_3D_grid.addWidget(slowness_3D_theta_Z_checkbox, 8, 2)
-        slowness_3D_grid.addWidget(slowness_3D_sill_checkbox, 9, 2)
+        slowness_3D_grid.addWidget(self.slowness_3D_range_X_checkbox, 3, 2)
+        slowness_3D_grid.addWidget(self.slowness_3D_range_Y_checkbox, 4, 2)
+        slowness_3D_grid.addWidget(self.slowness_3D_range_Z_checkbox, 5, 2)
+        slowness_3D_grid.addWidget(self.slowness_3D_theta_X_checkbox, 6, 2)
+        slowness_3D_grid.addWidget(self.slowness_3D_theta_Y_checkbox, 7, 2)
+        slowness_3D_grid.addWidget(self.slowness_3D_theta_Z_checkbox, 8, 2)
+        slowness_3D_grid.addWidget(self.slowness_3D_sill_checkbox, 9, 2)
         slowness_3D_grid.setContentsMargins(0, 0, 0, 0)
         self.slowness_3D_widget.setLayout(slowness_3D_grid)
 
@@ -783,9 +805,7 @@ class CovarUI(QtWidgets.QFrame):
         self.scrollbar_grid.setColumnMinimumWidth(0, 600)
         self.scrollbar_widget.setLayout(self.scrollbar_grid)
 
-        self.scrollbar = QtWidgets.QScrollArea()
-        self.scrollbar.setWidget(self.scrollbar_widget)
-        self.scrollbar.setWidgetResizable(True)
+        self.scrollbar = utils_ui.auto_create_scrollbar(self.scrollbar_widget)
 
         # ------- Master Grid Disposition ------- #
         master_grid = QtWidgets.QGridLayout()
@@ -803,6 +823,23 @@ class CovarUI(QtWidgets.QFrame):
                      slowness_3D_theta_X_edit, slowness_3D_theta_Y_edit, slowness_3D_theta_Z_edit, slowness_3D_sill_edit):
             item.textModified.connect(self.auto_update)
 
+        for item in (self.T_and_A_combo, self.curv_rays_combo, self.curv_rays_combo):
+            item.currentIndexChanged.connect(self.auto_update)
+
+        self.models_list.itemSelectionChanged.connect(self.auto_update)
+
+        for item in (self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox,
+                     self.slowness_theta_X_checkbox, self.slowness_sill_checkbox,
+                     self.xi_range_X_checkbox, self.xi_range_Z_checkbox,
+                     self.xi_theta_X_checkbox, self.xi_sill_checkbox,
+                     self.tilt_range_X_checkbox, self.tilt_range_Z_checkbox,
+                     self.tilt_theta_X_checkbox, self.tilt_sill_checkbox,
+                     self.slowness_3D_range_X_checkbox, self.slowness_3D_range_Y_checkbox, self.slowness_3D_range_Z_checkbox,
+                     self.slowness_3D_theta_X_checkbox, self.slowness_3D_theta_Y_checkbox, self.slowness_3D_theta_Z_checkbox,
+                     self.slowness_3D_sill_checkbox,
+                     self.slowness_checkbox, self.traveltime_checkbox, self.xi_checkbox, self.tilt_checkbox):
+            item.clicked.connect(self.fix_verif)
+
         # ------- Sizes ------- #
         self.menu            .setFixedHeight(self.menu.sizeHint().height())
         data_groupbox        .setFixedHeight(data_groupbox.sizeHint().height())
@@ -811,23 +848,6 @@ class CovarUI(QtWidgets.QFrame):
         Nug_groupbox         .setFixedHeight(Nug_groupbox.sizeHint().height())
         Adjust_Model_groupbox.setFixedHeight(Adjust_Model_groupbox.sizeHint().height())
         self.Sub_widget      .setFixedWidth(500)
-
-        screen_resolution = QtWidgets.QApplication.desktop().screenGeometry()
-        width, height = screen_resolution.width(), screen_resolution.height()
-
-        desired_min_height = (data_groupbox.sizeHint().height() + Grid_groupbox.sizeHint().height() +
-                              Param_groupbox.sizeHint().height() + Nug_groupbox.sizeHint().height() +
-                              Nug_groupbox.sizeHint().height())
-        desired_min_width  = 500 * 2.5
-
-        if desired_min_height > 4 / 5 * height:
-            desired_min_height = 4 / 5 * height
-
-        if desired_min_width > 4 / 5 * width:
-            desired_min_width = 4 / 5 * width
-
-        self.scrollbar.setMinimumWidth(desired_min_width)
-        self.scrollbar.setMinimumHeight(desired_min_height)
 
         for item in (labels_2D_grid, slowness_grid, xi_grid, tilt_grid):
             for i in range(0, 7):
@@ -860,15 +880,15 @@ class CovarUI(QtWidgets.QFrame):
 #                      slowness_3D_theta_X_edit, slowness_3D_theta_Y_edit, slowness_3D_theta_Z_edit, slowness_3D_sill_edit):
 #             item.setFixedWidth(110 - slowness_fix_label.sizeHint().width())
 
-#         for item in (slowness_fix_label, slowness_range_X_checkbox, slowness_range_Z_checkbox,
-#                      slowness_theta_X_checkbox, slowness_sill_checkbox,
-#                      xi_fix_label, xi_range_X_checkbox, xi_range_Z_checkbox,
-#                      xi_theta_X_checkbox, xi_sill_checkbox,
-#                      tilt_fix_label, tilt_range_X_checkbox, tilt_range_Z_checkbox,
-#                      tilt_theta_X_checkbox, tilt_sill_checkbox,
-#                      slowness_3D_fix_label, slowness_3D_range_X_checkbox, slowness_3D_range_Y_checkbox,
-#                      slowness_3D_range_Z_checkbox, slowness_3D_theta_X_checkbox, slowness_3D_theta_Y_checkbox,
-#                      slowness_3D_theta_Z_checkbox, slowness_3D_sill_checkbox):
+#         for item in (slowness_fix_label, self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox,
+#                      self.slowness_theta_X_checkbox, self.slowness_sill_checkbox,
+#                      xi_fix_label, self.xi_range_X_checkbox, self.xi_range_Z_checkbox,
+#                      self.xi_theta_X_checkbox, self.xi_sill_checkbox,
+#                      tilt_fix_label, self.tilt_range_X_checkbox, self.tilt_range_Z_checkbox,
+#                      self.tilt_theta_X_checkbox, self.tilt_sill_checkbox,
+#                      slowness_3D_fix_label, self.slowness_3D_range_X_checkbox, self.slowness_3D_range_Y_checkbox,
+#                      self.slowness_3D_range_Z_checkbox, self.slowness_3D_theta_X_checkbox, self.slowness_3D_theta_Y_checkbox,
+#                      self.slowness_3D_theta_Z_checkbox, self.slowness_3D_sill_checkbox):
 #             item.setFixedWidth(slowness_fix_label.sizeHint().width())
 
 

@@ -137,7 +137,7 @@ class DatabaseUI(QtWidgets.QWidget):
 
         self.update_widgets()
 
-    def openfile(self):
+    def openfile(self):  # TODO: On Windows, access to folders containing special characters fails. May be due to the fact that Windows doesn't use Unicode.
 
         if utils_ui.save_warning(database):
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
@@ -257,10 +257,14 @@ class DatabaseUI(QtWidgets.QWidget):
         sub_big_grid.setColumnStretch(2, 1)
         sub_big_widget.setLayout(sub_big_grid)
 
+        # - Scroll bar - #
+
+        scrollbar = utils_ui.auto_create_scrollbar(sub_big_widget)
+
         # --- Grid --- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
-        master_grid.addWidget(sub_big_widget, 1, 0, 1, 3)
+        master_grid.addWidget(scrollbar, 1, 0, 1, 3)
         master_grid.addWidget(self.log, 2, 0, 2, 3)
         master_grid.setContentsMargins(0, 0, 0, 0)
         master_grid.setVerticalSpacing(5)

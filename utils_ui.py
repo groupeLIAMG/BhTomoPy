@@ -303,3 +303,87 @@ def saveasfile(module):
             return True
 
     return False
+
+
+def auto_create_scrollbar(widget):
+    """
+    Adds a scrollbar to a widget. The scrollbar appears IF NEEDED. The returned scrollbar
+    object is the one that must then be manipulated (i.e. not the sent widget).
+    """
+    scrollbar = QtWidgets.QScrollArea()
+    scrollbar.setWidget(widget)
+    scrollbar.setWidgetResizable(True)
+
+    desired_min_height = widget.sizeHint().height()
+    desired_min_width = widget.sizeHint().width()
+
+    screen_resolution = QtWidgets.QApplication.desktop().screenGeometry()
+    width, height = screen_resolution.width(), screen_resolution.height()
+
+    if desired_min_height > 4 / 5 * height:  # sets a threshold that limits the size of the widget. 4 / 5 is an arbitrary
+        desired_min_height = 4 / 5 * height  # number accounting for the menu bar and the scroll bar.
+
+    if desired_min_width > 4 / 5 * width:
+        desired_min_width = 4 / 5 * width
+
+    scrollbar.setMinimumWidth(desired_min_width)
+    scrollbar.setMinimumHeight(desired_min_height)
+
+    return scrollbar
+
+
+# def duplicate_verif(self, string, item_lenght, string_list, retrieve=False, recursion=1):
+#
+#     if not string:
+#         QtWidgets.QMessageBox.warning(self, "Warning", "Could not rename structure: field must not be empty.")
+#         return
+#
+#     flag = False
+#
+#     for i in range(item_lenght):
+#         if string_list[i] == string:
+#             if recursion != 1:
+#                 string = string[:-2]
+#             if retrieve:
+#                 string = duplicate_verif(string + ' ' + str(recursion), string_list, True, recursion + 1)
+#             flag = True
+#             break
+#
+#     if retrieve:
+#         return string
+#     else:
+#         QtWidgets.QMessageBox.warning(self, "Warning", "Could not rename structure: a structure already has this name.")
+#         return False
+
+
+def duplicate_verif(string, string_list):
+    """
+    Returns wether or not there is a duplicate in a list with some additional feedback.
+    """
+    if not string:
+        QtWidgets.QMessageBox.warning(None, "Warning", "Could not rename: field must not be empty.")
+        return True
+
+    if string in string_list:
+        QtWidgets.QMessageBox.warning(None, "Warning", "Could not rename: this name already exists.")
+        return True
+
+    return False
+
+
+def duplicate_new_name(string, string_list):
+    """
+    Verifies if a string has a duplicate in a list and returns a new string in such cases.
+    """
+    if not string:
+        raise ValueError
+
+    recursion = 1
+
+    while string in string_list:
+        if recursion != 1:
+            string = string[:-2]
+        string += ' ' + str(recursion)
+        recursion += 1
+
+    return string
