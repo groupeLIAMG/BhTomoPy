@@ -165,6 +165,7 @@ class DatabaseUI(QtWidgets.QWidget):
                 return
 
             database.session.commit()
+            database.modified = False
 
             try:
                 self.model.gridui.update_model_grid()
@@ -192,6 +193,7 @@ class DatabaseUI(QtWidgets.QWidget):
 
             else:
                 database.session.commit()
+                database.modified = False
 
     def initUI(self):
 
@@ -298,6 +300,8 @@ if __name__ == '__main__':
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
     Database_ui.model.load_model("t0302's model")
+    Database_ui.model.load_model("test")
+    Database_ui.model.load_model("test2")
 #     Database_ui.mog.plot_spectra()
 #     Database_ui.mog.plot_zop()
 

@@ -37,14 +37,13 @@ class Covariance(object):
     """
     Base class for Covariance models
     """
-    def __init__(self, name, r, a, s):
+    def __init__(self, r, a, s):
         """
         Parameters
             r : ranges
             a : angles
             s : coefficient matrix of the coregionalization model
         """
-        self.name = name
         self.range = r
         self.angle = a
         self.sill = s

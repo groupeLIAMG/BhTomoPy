@@ -207,69 +207,74 @@ def chooseModel(module, filename=None):
 
 
 def save_warning(module):
-    d = QtWidgets.QDialog()
+    if module.modified:  # if any data has been modified, warn the user. Otherwise, proceed.
+        d = QtWidgets.QDialog()
 
-    l0 = QtWidgets.QLabel(parent=d)
-    l0.setAlignment(QtCore.Qt.AlignCenter)
-    l0.setStyleSheet('background-color: white')
+        l0 = QtWidgets.QLabel(parent=d)
+        l0.setAlignment(QtCore.Qt.AlignCenter)
+        l0.setStyleSheet('background-color: white')
 
-    b0 = QtWidgets.QPushButton("Save", d)
-    b1 = QtWidgets.QPushButton("Save as", d)
-    b2 = QtWidgets.QPushButton("Discard changes", d)
-    b3 = QtWidgets.QPushButton("Cancel", d)
+        b0 = QtWidgets.QPushButton("Save", d)
+        b1 = QtWidgets.QPushButton("Save as", d)
+        b2 = QtWidgets.QPushButton("Discard changes", d)
+        b3 = QtWidgets.QPushButton("Cancel", d)
 
-    l0.move(10, 10)
-    b0.setMinimumWidth(b0.width())
-    b1.setMinimumWidth(b0.width())
-    b2.setMinimumWidth(b0.width())
-    b3.setMinimumWidth(b0.width())
-    b0.move(15, 40)
-    b1.move(15 + b0.minimumWidth(), 40)
-    b2.move(15 + 2 * b0.minimumWidth(), 40)
-    b3.move(15 + 3 * b0.minimumWidth(), 40)
-    l0.setMinimumWidth(10 + 4 * b1.minimumWidth())
-    d.setMaximumWidth(10 * 3 + b0.width() * 4)
-    d.setMaximumHeight(10 * 2 + b0.height() * 2)
-    d.setMinimumWidth(10 * 3 + b0.width() * 4)
-    d.setMinimumHeight(10 * 2 + b0.height() * 2)
+        l0.move(10, 10)
+        b0.setMinimumWidth(b2.sizeHint().width())
+        b1.setMinimumWidth(b2.sizeHint().width())
+        b2.setMinimumWidth(b2.sizeHint().width())
+        b3.setMinimumWidth(b2.sizeHint().width())
+        b0.move(15, 40)
+        b1.move(15 + b2.minimumWidth(), 40)
+        b2.move(15 + 2 * b2.minimumWidth(), 40)
+        b3.move(15 + 3 * b2.minimumWidth(), 40)
+        l0.setMinimumWidth(10 + 4 * b2.minimumWidth())
+        d.setMaximumWidth(10 * 3 + b2.width() * 4)
+        d.setMaximumHeight(10 * 2 + b2.height() * 2)
+        d.setMinimumWidth(10 * 3 + b2.width() * 4)
+        d.setMinimumHeight(10 * 2 + b2.height() * 2)
 
-    l0.setText("You must save your database before proceeding.")
+        l0.setText("You must save your database before proceeding.")
 
-    d.setWindowTitle("Warning")
-    d.setWindowModality(QtCore.Qt.ApplicationModal)
+        d.setWindowTitle("Warning")
+        d.setWindowModality(QtCore.Qt.ApplicationModal)
 
-    def save():
-        nonlocal d
-        d.done(1)
+        def save():
+            nonlocal d
+            d.done(1)
 
-    def save_as():
-        nonlocal d
-        d.done(2)
+        def save_as():
+            nonlocal d
+            d.done(2)
 
-    def no_save():
-        nonlocal d
-        d.done(3)
+        def no_save():
+            nonlocal d
+            d.done(3)
 
-    def cancel():
-        nonlocal d
-        d.done(0)
+        def cancel():
+            nonlocal d
+            d.done(0)
 
-    b0.clicked.connect(save)
-    b1.clicked.connect(save_as)
-    b2.clicked.connect(no_save)
-    b3.clicked.connect(cancel)
+        b0.clicked.connect(save)
+        b1.clicked.connect(save_as)
+        b2.clicked.connect(no_save)
+        b3.clicked.connect(cancel)
 
-    ok = d.exec_()
-    if ok == 0:
-        ok = False
-    elif ok == 1:
-        ok = savefile(module)
-    elif ok == 2:
-        ok = saveasfile(module)
-    elif ok == 3:
-        ok = True
+        ok = d.exec_()
+        if ok == 0:
+            ok = False
+        elif ok == 1:
+            ok = savefile(module)
+        elif ok == 2:
+            ok = saveasfile(module)
+        elif ok == 3:
+            module.modified = False
+            ok = True
 
-    return ok  # returns False if action has to be reverted. Returns True otherwise.
+        return ok  # returns False if action has to be reverted. Returns True otherwise.
+
+    else:
+        return True
 
 
 def savefile(module):
@@ -281,6 +286,7 @@ def savefile(module):
         module.session.commit()
         QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
+        module.modified = False
         return True
 
     except Exception as e:
@@ -296,10 +302,12 @@ def saveasfile(module):
     if filename:
         if filename != database.long_url(module):
             database.save_as(module, filename)
+            module.modified = False
             return True
 
         else:
             module.session.commit()
+            module.modified = False
             return True
 
     return False
@@ -330,30 +338,6 @@ def auto_create_scrollbar(widget):
     scrollbar.setMinimumHeight(desired_min_height)
 
     return scrollbar
-
-
-# def duplicate_verif(self, string, item_lenght, string_list, retrieve=False, recursion=1):
-#
-#     if not string:
-#         QtWidgets.QMessageBox.warning(self, "Warning", "Could not rename structure: field must not be empty.")
-#         return
-#
-#     flag = False
-#
-#     for i in range(item_lenght):
-#         if string_list[i] == string:
-#             if recursion != 1:
-#                 string = string[:-2]
-#             if retrieve:
-#                 string = duplicate_verif(string + ' ' + str(recursion), string_list, True, recursion + 1)
-#             flag = True
-#             break
-#
-#     if retrieve:
-#         return string
-#     else:
-#         QtWidgets.QMessageBox.warning(self, "Warning", "Could not rename structure: a structure already has this name.")
-#         return False
 
 
 def duplicate_verif(string, string_list):

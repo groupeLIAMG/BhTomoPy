@@ -21,25 +21,25 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
 from sqlalchemy import Column, String, PickleType
-from utils import Base
+from utils import Base, mog_model  # , borehole_model
+from sqlalchemy.orm import relationship
 
 
 class Model(Base):
 
     __tablename__ = "Model"
     name       = Column(String, primary_key=True)  # Model's name
-    mogs       = Column(PickleType)    # List of mogs contained in the model
-    boreholes  = Column(PickleType)    # List of boreholes contained in the model
     grid       = Column(PickleType)    # Model's grid
     tt_covar   = Column(PickleType)    # Model's Traveltime covariance model
     amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
     inv_res    = Column(PickleType)    # Results of inversion
     tlinv_res  = Column(PickleType)    # Time-lapse inversion results
 
+    mogs = relationship("Mog", secondary=mog_model)
+#     boreholes = relationship("Borehole", secondary=borehole_model)
+
     def __init__(self, name=''):
         self.name       = name  # Model's name
-        self.mogs       = []    # List of mogs contained in the model
-        self.boreholes  = []    # List of boreholes contained in the model
         self.grid       = None  # Model's grid
         self.tt_covar   = []    # Model's Traveltime covariance model
         self.amp_covar  = []    # Model's Amplitude covariance model

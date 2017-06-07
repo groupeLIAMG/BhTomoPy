@@ -92,7 +92,10 @@ class BhTomoPy(QtWidgets.QWidget):
 
     def unhide(self):
         self.setHidden(False)
-        self.current_db.setText(database.short_url(database))
+        url = database.short_url(database)
+        if url == ":memory:":
+            url = ''
+        self.current_db.setText(url)
 
     def initUI(self):
 
@@ -248,7 +251,7 @@ class BhTomoPy(QtWidgets.QWidget):
         self.setFixedHeight(h)
 
     def one_form_at_a_time(self, module=None):
-        # creates a custom handler for the closing of a form so that only one form to be open at a time and
+        # creates a custom handler for the closing of a form so that only one form can be open at a time and
         # that the current loaded information can be saved. 'module' refers to the data management module
         # the form is linked to.
 

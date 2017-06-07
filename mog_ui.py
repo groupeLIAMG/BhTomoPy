@@ -115,21 +115,21 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.Correction_Factor_edit.setText(str(mog.user_fac_dt))
             self.Multiplication_Factor_edit.setText(str(mog.f_et))
             self.Date_edit.setText(mog.date)
-            if mog.av != '' and mog.ap != '':
-                self.Air_Shot_Before_edit.setText(self.air[mog.av].name[:-4])
-                self.Air_Shot_After_edit.setText(self.air[mog.ap].name[:-4])
+            if mog.av is not None and mog.ap is not None:
+                self.Air_Shot_Before_edit.setText(mog.av[0].name[:-4])
+                self.Air_Shot_After_edit.setText(mog.ap[0].name[:-4])
             else:
                 self.Air_Shot_Before_edit.setText('')
                 self.Air_Shot_After_edit.setText('')
 
-            if mog.useAirShots == 1:
+            if mog.useAirShots:
                 self.Air_shots_checkbox.setChecked(True)
 
-            elif mog.useAirShots == 0:
+            else:
                 self.Air_shots_checkbox.setChecked(False)
 
             for i in range(database.session.query(Borehole).count()):
-                if mog.Tx == 1 and mog.Rx == 1:
+                if mog.Tx is None or mog.Rx is None:
                     pass
                 elif mog.Tx.name == database.session.query(Borehole).all()[i].name:
                     self.Tx_combo.setCurrentIndex(i)
@@ -213,7 +213,6 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')[0]
 
         if not filename:
-            # security for an empty filename
             return
         else:
             # We get the selected index f MOG_list to then be able to get the mog instance from MOGS
@@ -226,7 +225,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 rname = filename.split('/')
                 rname = rname[-1]
 
-                for n in range(len(self.air)):
+                for n in range(database.session.query(AirShots).count()):
                     # then we verify if we've already applied the airshots
                     if str(basename) in str(self.air[n].name):
                         # then we associate the index of the air shot to the selected mog
@@ -397,8 +396,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
     def updateCoords(self):
         ind = self.MOG_list.selectedIndexes()
-        iTx = self.Tx_combo.currentIndex()
-        iRx = self.Rx_combo.currentIndex()
+        Tx_name = self.Tx_combo.currentText()
+        Rx_name = self.Rx_combo.currentText()
         for i in ind:
             mog = database.session.query(Mog).all()[i.row()]
 
@@ -424,8 +423,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 #     mog.TxCosDir[ind, 3] = l[n,3]
 
             # TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
-            Tx = database.session.query(Borehole).all()[i.row()].name[iTx]
-            Rx = database.session.query(Borehole).all()[i.row()].name[iRx]
+            Tx = database.session.query(Borehole).filter(Borehole.name == Tx_name).first()
+            Rx = database.session.query(Borehole).filter(Borehole.name == Rx_name).first()
             mog.Tx = Tx
             mog.Rx = Rx
             mog.data.Tx_x = np.ones(mog.data.ntrace)
@@ -457,7 +456,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             elif self.Type_combo.currentText() == 'VSP/VRP':
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
 
-            if iTx == iRx:
+            if Tx_name == Rx_name:
                 QtWidgets.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
                                                   buttons=QtWidgets.QMessageBox.Ok)
 

@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import numpy as np
-from sqlalchemy import Column, Integer, String, Float, PickleType, Boolean, SmallInteger
+from sqlalchemy import Column, String, Float, PickleType, Boolean, SmallInteger, ForeignKey
 from utils import Base
 from sqlalchemy import orm
 
@@ -142,7 +142,7 @@ class MogData(object):
             self.antennas = self.antennas + "  - Ramac"
 
         file.close()
-#         print(self.nptsptrc)    # these prints will be deleted
+#         print(self.nptsptrc)
 #         print(self.timec)
 #         print(self.synthetique)
 #         print(self.rnomfreq)
@@ -234,10 +234,6 @@ class Mog(Base):
     name                     = Column(String, primary_key=True)
     pruneParams              = Column(PickleType)
     data                     = Column(PickleType)          # Instance of MogData
-    av                       = Column(String)
-    ap                       = Column(String)
-    Tx                       = Column(Integer)
-    Rx                       = Column(Integer)
     tau_params               = Column(PickleType)
     fw                       = Column(PickleType)
     f_et                     = Column(Float)
@@ -249,14 +245,19 @@ class Mog(Base):
     TxCosDir                 = Column(PickleType)
     RxCosDir                 = Column(PickleType)
 
+    Tx_name = Column(String, ForeignKey('Borehole.name'))
+    Tx = orm.relationship("Borehole", foreign_keys=Tx_name)
+    Rx_name = Column(String, ForeignKey('Borehole.name'))
+    Rx = orm.relationship("Borehole", foreign_keys=Rx_name)
+    av_name = Column(String, ForeignKey('Airshots.name'))
+    av = orm.relationship("AirShots", foreign_keys=av_name)
+    ap_name = Column(String, ForeignKey('Airshots.name'))
+    ap = orm.relationship("AirShots", foreign_keys=ap_name)
+
     def __init__(self, name='', data=MogData()):
         self.pruneParams               = PruneParams()
         self.name                      = name
         self.data                      = data          # Instance of MogData
-        self.av                        = ''
-        self.ap                        = ''
-        self.Tx                        = 1
-        self.Rx                        = 1
         self.tau_params                = np.array([])
         self.fw                        = np.array([])
         self.f_et                      = 1

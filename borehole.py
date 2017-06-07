@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 from sqlalchemy import Column, Float, String, PickleType
 from utils import Base
+from sqlalchemy.orm import relationship
 
 
 class Borehole(Base):
@@ -30,7 +31,7 @@ class Borehole(Base):
     """
 
     __tablename__ = "Borehole"
-    name      = Column(String, primary_key=True)           # name of the borehole(BH)
+    name      = Column(String, primary_key=True)           # name of the borehole (BH)
     X         = Column(Float)            # X, Y and Z: the BH's top cartesian coordinates
     Y         = Column(Float)
     Z         = Column(Float)

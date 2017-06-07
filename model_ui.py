@@ -37,7 +37,7 @@ import database
 class ModelUI(QtWidgets.QWidget):
     # ------- Signals Emitted ------- #
     modelInfoSignal = QtCore.pyqtSignal(int)
-    modellogSignal = QtCore.pyqtSignal(str)
+    modellogSignal  = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super(ModelUI, self).__init__()
@@ -49,22 +49,36 @@ class ModelUI(QtWidgets.QWidget):
         name, ok = QtWidgets.QInputDialog.getText(self, "Model creation", 'Model name')
         if ok:
             self.load_model(name)
+            database.modified = True
 
     def load_model(self, name):
         model = Model(name)
         database.session.add(model)
-        database.session.query(Model).all().append(model)
         self.model_list.setCurrentRow(0)
         self.modellogSignal.emit("Model {} has been added successfully".format(name))
         self.update_model_list()
+        database.modified = True
 
     def del_model(self):
-        ind = self.model_list.selectedIndexes()
-        for i in ind:
-            self.modellogSignal.emit("Model {} has been deleted successfully".format(database.session.query(Model).all()[int(i.row())].name))
-            database.delete(database, database.session.query(Model).all()[int(i.row())])
+        model = self.current_model()
+        if model is not None:
+            self.modellogSignal.emit("Model {} has been deleted successfully".format(model.name))
+            database.delete(database, self.current_model())
         self.update_model_list()
         self.model_mog_list.clear()
+        database.modified = True
+
+    def current_model(self):
+
+        model = self.model_list.currentItem()
+        if model:
+            return database.session.query(Model).filter(Model.name == model.text()).first()
+
+    def current_mog(self):
+
+        mog = self.model_mog_list.currentIndex().row()
+        if mog != -1:
+            return self.current_model().mogs[mog]
 
     def update_mog_combo(self):
         self.chooseMog = ChooseModelMOG(self)
@@ -82,53 +96,45 @@ class ModelUI(QtWidgets.QWidget):
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def remove_mog(self):
-        ind1 = self.model_list.selectedIndexes()
-        ind2 = self.model_mog_list.selectedIndexes()
-        for i in ind1:
-            for j in ind2:
-                del database.session.query(Model).all()[int(j.row())].mogs[int(i.row())]
-                self.update_model_mog_list()
-                self.update_models_boreholes()
+        model = self.current_model()
+        mog = self.current_mog()
+        if model is not None and mog is not None:
+            model.mogs.remove(mog)
+            self.update_model_mog_list()
+            database.modified = True
 
     def update_model_mog_list(self):
         self.model_mog_list.clear()
         n = self.model_list.currentIndex().row()
-        if n > -1:
-            for mog in database.session.query(Model).all()[n].mogs:
+        if n != -1:
+            for mog in self.current_model().mogs:
                 self.model_mog_list.addItem(mog.name)
 
     def update_model_list(self):
         self.model_list.clear()
         for model in database.session.query(Model).all():
             self.model_list.addItem(model.name)
-        self.modelInfoSignal.emit(len(self.model_list))  # we send the information to DatabaseUI
+        self.modelInfoSignal.emit(len(self.model_list))  # sends the information to DatabaseUI
         self.model_list.setCurrentRow(0)
 
-    def update_models_boreholes(self):
-        n = self.model_list.currentRow()
-        database.session.query(Model).all()[n].boreholes.clear()
-
-        for mog in database.session.query(Model).all()[n].mogs:
-            if mog.Tx not in database.session.query(Model).all()[n].boreholes:
-                database.session.query(Model).all()[n].boreholes.append(mog.Tx)
-            if mog.Rx not in database.session.query(Model).all()[n].boreholes:
-                database.session.query(Model).all()[n].boreholes.append(mog.Rx)
-
     def create_grid(self):
-        no = self.model_list.currentRow()
-        if no in range(database.session.query(Model).count()):
-            g, ok = self.gridEditor(no)
+        model = self.current_model()
+        if model is not None and model.mogs:
+            g, ok = self.gridEditor(model)
             if g is not None and ok == 1:
-                database.session.query(Model).all()[no].grid = g
+                model.grid = g
+                database.modified = True
 
     def edit_grid(self):
-        no = self.model_list.currentRow()
-        if no in range(database.session.query(Model).count()):
-            g, ok = self.gridEditor(no, database.session.query(Model).all()[no].grid)
+        model = self.current_model()
+        if model is not None:
+            g, ok = self.gridEditor(model, model.grid)
             if g is not None and ok == 1:
-                database.session.query(Model).all()[no].grid = g
+                model.grid = g
+                database.modified = True
 
-    def gridEditor(self, no, grid=None):
+    def gridEditor(self, model, grid=None):
+
         g = None
         if grid is not None:
             g = grid
@@ -136,7 +142,7 @@ class ModelUI(QtWidgets.QWidget):
         else:
             previousGrid = None
 
-        nBH = len(database.session.query(Model).all()[no].boreholes)
+        nBH = len(model_boreholes(model))
 
         data = self.prepare_grid_data()
         if g is None:
@@ -177,7 +183,7 @@ class ModelUI(QtWidgets.QWidget):
 
         def plot_boreholes():
             view = bhfig_combo.currentText()
-            bhsFig.plot_boreholes(database.session.query(Model).all()[no].mogs, view)
+            bhsFig.plot_boreholes(model.mogs, view)
 
         def update_grid_info(mogs, grid):
             ndata = 0
@@ -256,7 +262,7 @@ class ModelUI(QtWidgets.QWidget):
         d.setLayout(master_grid)
 
         plot_boreholes()
-        update_grid_info(database.session.query(Model).all()[no].mogs, g)
+        update_grid_info(model.mogs, g)
 
         d.setWindowModality(QtCore.Qt.ApplicationModal)
         isOk = d.exec_()
@@ -268,9 +274,7 @@ class ModelUI(QtWidgets.QWidget):
         if no not in range(database.session.query(Model).count()):
             return None
 
-        mogs = database.session.query(Model).all()[no].mogs
-        print(mogs)
-        print(database.session.query(Model).all()[no].name)
+        mogs = self.current_model().mogs
         mog = mogs[0]
 
         data = GridData()
@@ -281,14 +285,14 @@ class ModelUI(QtWidgets.QWidget):
         data.TxCosDir = mog.TxCosDir
         data.RxCosDir = mog.RxCosDir
 
-        data.boreholes = database.session.query(Model).all()[no].boreholes
+        data.boreholes = model_boreholes(self.current_model())
 
         if len(mogs) > 1:
             for n in range(1, len(mogs)):
 
                 mog = mogs[n]
-                tmp_Txyz = np.array([data.Tx_x, data.Tx_y, data.Tx_z]).T
-                tmp_Rxyz = np.array([data.Rx_x, data.Rx_y, data.Rx_z]).T
+                tmp_Txyz = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
+                tmp_Rxyz = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
 
                 data.in_vect = np.concatenate((data.in_vect, mog.in_vect.T), axis=0)
                 data.Tx = np.concatenate((data.Tx, tmp_Txyz), axis=0)
@@ -312,16 +316,18 @@ class ModelUI(QtWidgets.QWidget):
         btn_Add_MOG                      = QtWidgets.QPushButton("Add MOG")
         btn_Remove_MOG                   = QtWidgets.QPushButton("Remove MOG")
         # --- Buttons Actions --- #
-        btn_Add_Model.clicked.connect(self.add_model)
+        btn_Add_Model   .clicked.connect(self.add_model)
         btn_Remove_Model.clicked.connect(self.del_model)
-        btn_Remove_MOG.clicked.connect(self.remove_mog)
-        btn_Add_MOG.clicked.connect(self.add_mog)
-        btn_Create_Grid.clicked.connect(self.create_grid)
-        btn_Edit_Grid.clicked.connect(self.edit_grid)
+        btn_Remove_MOG  .clicked.connect(self.remove_mog)
+        btn_Add_MOG     .clicked.connect(self.add_mog)
+        btn_Create_Grid .clicked.connect(self.create_grid)
+        btn_Edit_Grid   .clicked.connect(self.edit_grid)
 
         # --- Lists --- #
         self.model_mog_list              = QtWidgets.QListWidget()
         self.model_list                  = QtWidgets.QListWidget()
+        # --- Lists Actions --- #
+        self.model_list.currentItemChanged.connect(self.update_model_mog_list)
 
         # --- Sub Widgets --- #
         # --- Models Sub Widget --- #
@@ -366,15 +372,16 @@ class ChooseModelMOG(QtWidgets.QWidget):
         self.initUI()
 
     def add_mog(self):
-        n = self.model.model_list.currentIndex().row()
-        ind = self.mog_combo.currentIndex()
-        self.load_mog(ind, n)
+        model = self.model.model_list.currentItem().text()
+        mog = self.mog_combo.currentText()
+        self.load_mog(mog, model)
 
-    def load_mog(self, ind, n):
-        self.model.model_mog_list.addItem(self.model.mog.MOGs[ind].name)
-        self.model.models[n].mogs.append(self.model.mog.MOGs[ind])
-        self.model.update_models_boreholes()
-        self.model.modellogSignal.emit("{} has been added to {}'s MOGs".format(self.model.mog.MOGs[ind].name, self.model.models[n].name))
+    def load_mog(self, mog, model):
+        self.model.model_mog_list.addItem(mog)
+        mog = database.session.query(Mog).filter(Mog.name == mog).first()
+        model = database.session.query(Model).filter(Model.name == model).first()
+        model.mogs.append(mog)
+        self.model.modellogSignal.emit("{} has been added to {}'s MOGs".format(mog.name, model.name))
 
     def initUI(self):
         # ------- Widgets ------- #
@@ -527,6 +534,7 @@ class Grid2DUI(QtWidgets.QWidget):
         uRx = np.sort(tmpRx, axis=0)
 
         data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0))
+#         data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0))
         # self.data.x0 : Centroid of the data = point on the best-fit plane
         # self.data.a  : Direction cosines of the normal to the best-fit plane
         if data.a[2] < 0:
@@ -1041,6 +1049,20 @@ class MyQLabel(QtWidgets.QLabel):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
+
+
+def model_boreholes(model):
+
+    boreholes = []
+
+    for mog in model.mogs:
+        if mog.Tx and mog.Rx:  # TODO add a warning?
+            if mog.Tx not in boreholes:  # guarantees there is no duplicate
+                boreholes.append(mog.Tx)
+            if mog.Rx not in boreholes:
+                boreholes.append(mog.Rx)
+
+    return boreholes
 
 
 if __name__ == '__main__':

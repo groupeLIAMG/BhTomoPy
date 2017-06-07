@@ -45,6 +45,7 @@ def create_data_management(module):
     module.Session = sessionmaker(bind=module.engine)    # 'Session' acts as a factory for upcoming sessions; the features of 'Session' aren't exploited
     module.session = module.Session()                    # the objects are stored in 'session' and can be manipulated from there
     Base.metadata.create_all(module.engine)              # this creates the mapping for a specific engine
+    module.modified = False                              # 'modified' keeps track of wether or not data has been modified since last save
 
 
 def load(module, file):
@@ -60,6 +61,7 @@ def load(module, file):
         module.Session = sessionmaker(bind=module.engine)
         module.session = module.Session()
         Base.metadata.create_all(module.engine)
+        module.modified = False
 
         get_many(module)  # initiate the session's objects, guarantees they exist within 'session'
 
@@ -68,13 +70,27 @@ def load(module, file):
         load(module, file)
 
 
+def verify_mapping(module):
+    """
+    By referencing the items' relationships once, they don't get deleted by the closing of the
+    current session (by the means of module.session.close() and module.engine.dispose()).
+    """
+
+    for item in module.session.query(Model).all():
+        (item.mogs, item.boreholes)
+    for item in module.session.query(Mog).all():
+        (item.Tx, item.Rx, item.av, item.ap)
+
+
 def save_as(module, file):
     """
     Closes the current file, safely transfers its items to a new file and overwrites the selected file.
-    To simply save a 'session' within the current file, the 'session.commit()' method is preferred.
+    To simply save a 'session' within the current file, the 'session.commit()' method is preferable.
     """
 
     try:
+        strong_referencing = get_many(module)  # @UnusedVariable  # Guarantees the objects and their relationships survive the transfer
+        verify_mapping(module)                                    # Referencing the attributes seems to guarantee the referencing's effectiveness
         items = get_many(module)  # temporarily stores the saved items
 
         module.session.close()
@@ -92,6 +108,7 @@ def save_as(module, file):
         module.session.add_all(items)
 
         module.session.commit()
+        module.modified = False
 
     except AttributeError:
         create_data_management(module)
@@ -126,6 +143,7 @@ def delete(module, item):
         module.session.delete(item)
     else:
         module.session.expunge(item)
+    module.modified = True
 
 
 def long_url(module):
