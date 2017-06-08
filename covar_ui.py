@@ -31,7 +31,8 @@ import grid
 class CovarUI(QtWidgets.QFrame):
 
     model = None  # current model
-    updateHandler = False  # selected model may seldom be modified twice. 'updateHandler' prevents functions from firing more than once. TODO: using a QValidator might solve this issue.
+    temp_grid = None
+    updateHandler = False  # selected model may seldom be modified twice. 'updateHandler' prevents functions from firing more than once. TODO: use a QValidator instead.
 
     def __init__(self, parent=None):
         super(CovarUI, self).__init__()
@@ -128,25 +129,33 @@ class CovarUI(QtWidgets.QFrame):
 
         self.Sub_widget.setDisabled(True)
 
-        self.labels_2D_widget.setHidden(True)
-        self.slowness_widget.setHidden(True)
-        self.xi_widget.setHidden(True)
-        self.tilt_widget.setHidden(True)
-        self.slowness_3D_widget.setHidden(True)
-        self.ellip_veloc_checkbox.setDisabled(True)
+        self.labels_2D_widget           .setHidden(True)
+        self.slowness_widget            .setHidden(True)
+        self.xi_widget                  .setHidden(True)
+        self.tilt_widget                .setHidden(True)
+        self.slowness_3D_widget         .setHidden(True)
+        self.ellip_veloc_checkbox       .setDisabled(True)
         self.tilted_ellip_veloc_checkbox.setDisabled(True)
 
         self.covar_struct_combo.setDisabled(True)
-        self.btn_Add_Struct.setDisabled(True)
-        self.btn_Rem_Struct.setDisabled(True)
+        self.btn_Add_Struct    .setDisabled(True)
+        self.btn_Rem_Struct    .setDisabled(True)
 
-        self.xi_label.setHidden(True)
-        self.xi_Edit.setHidden(True)
+        self.xi_label   .setHidden(True)
+        self.xi_Edit    .setHidden(True)
         self.xi_checkbox.setHidden(True)
 
-        self.tilt_label.setHidden(True)
-        self.tilt_Edit.setHidden(True)
+        self.tilt_label   .setHidden(True)
+        self.tilt_Edit    .setHidden(True)
         self.tilt_checkbox.setHidden(True)
+
+        self.Nug_groupbox        .setDisabled(True)
+        self.auto_update_checkbox.setDisabled(True)
+        self.btn_compute         .setDisabled(True)
+
+        self.Grid_groupbox.setDisabled(True)
+
+        self.Adjust_Model_groupbox.setDisabled(True)
 
         if database.session.query(Model).first() is not None:
 
@@ -156,57 +165,63 @@ class CovarUI(QtWidgets.QFrame):
 
                 if self.model.grid is not None:
                     self.covar_struct_combo.setDisabled(False)
-                    self.btn_Add_Struct.setDisabled(False)
+                    self.btn_Add_Struct    .setDisabled(False)
+                    self.Grid_groupbox     .setDisabled(False)
 
                     if self.current_covar():
-                        self.btn_Rem_Struct.setDisabled(False)
-                        if type(self.model.grid) == grid.Grid2D:
-                            self.labels_2D_widget.setHidden(False)
-                            self.slowness_widget.setHidden(False)
+                        self.btn_Rem_Struct       .setDisabled(False)
+                        self.Nug_groupbox         .setDisabled(False)
+                        self.auto_update_checkbox .setDisabled(False)
+                        self.btn_compute          .setDisabled(False)
+                        self.Adjust_Model_groupbox.setDisabled(False)
+
+                        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                            self.labels_2D_widget    .setHidden(False)
+                            self.slowness_widget     .setHidden(False)
                             self.ellip_veloc_checkbox.setDisabled(False)
 
                             if self.ellip_veloc_checkbox.checkState():
-                                self.xi_widget.setHidden(False)
+                                self.xi_widget                  .setHidden(False)
                                 self.tilted_ellip_veloc_checkbox.setDisabled(False)
 
-                                self.xi_label.setHidden(False)
-                                self.xi_Edit.setHidden(False)
+                                self.xi_label   .setHidden(False)
+                                self.xi_Edit    .setHidden(False)
                                 self.xi_checkbox.setHidden(False)
 
                                 if self.tilted_ellip_veloc_checkbox.checkState():
                                     self.tilt_widget.setHidden(False)
 
-                                    self.tilt_label.setHidden(False)
-                                    self.tilt_Edit.setHidden(False)
+                                    self.tilt_label   .setHidden(False)
+                                    self.tilt_Edit    .setHidden(False)
                                     self.tilt_checkbox.setHidden(False)
 
                             else:
                                 self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
-                        elif type(self.model.grid) == grid.Grid3D:
+                        elif self.model.grid.type == '3D':
                             self.slowness_3D_widget.setHidden(False)
 
                     else:
-                        self.ellip_veloc_checkbox.setCheckState(False)
+                        self.ellip_veloc_checkbox       .setCheckState(False)
                         self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
                 else:
                     QtWidgets.QMessageBox.warning(self, "Warning", "This model has no grid.")
             else:
-                self.ellip_veloc_checkbox.setCheckState(False)
+                self.ellip_veloc_checkbox       .setCheckState(False)
                 self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
             self.update_parameters()
 
         else:
-            self.ellip_veloc_checkbox.setCheckState(False)
+            self.ellip_veloc_checkbox       .setCheckState(False)
             self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
         self.updateHandler = False
 
     def auto_update(self):
         if self.auto_update_checkbox.checkState():
-            pass  # compute
+            self.compute()
 
     def reset_data(self):
         self.updateHandler = True
@@ -214,26 +229,64 @@ class CovarUI(QtWidgets.QFrame):
         self.models_list.clear()
         self.models_list.addItems([item.name for item in database.session.query(Model).all()])
         self.updateHandler = False
+        self.reset_grid()
 
     def update_model(self):
         self.btn_Rem_Struct.setDisabled(True)
         self.covar_struct_combo.clear()
         if self.models_list.currentItem():
             self.set_current_model()
-            if self.model:
-                current_list = self.current_covar()
-                if current_list:
-                    self.covar_struct_combo.addItems(["Structure no " + str(i + 1) for i in range(len(current_list))])
-                    self.covar_struct_combo.setCurrentIndex(0)
-                    current_struct = current_list[0]
-                    self.update_parameters(current_struct)
-                    self.update_nugget(current_struct)
-                    self.btn_Rem_Struct.setDisabled(False)
+            if self.model is not None:
+                if self.model.grid is not None:
+                    current_list = self.current_covar()
+                    if current_list:
+                        self.covar_struct_combo.addItems(["Structure no " + str(i + 1) for i in range(len(current_list))])
+                        self.covar_struct_combo.setCurrentIndex(0)
+                        current_struct = current_list[0]
+                        self.update_parameters(current_struct)
+                        self.btn_Rem_Struct.setDisabled(False)
+                    if self.temp_grid is None:
+                        self.cells_no_label.setText(str(self.model.grid.getNumberOfCells()))
+                        self.rays_no_label.setText('0')  # TODO
+                        self.reset_grid()
+                else:
+                    self.cells_no_label.setText('0')
+                    self.rays_no_label.setText('0')
+                    self.reset_grid()
+
+    def update_grid(self):
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+            self.temp_grid = grid.Grid2D()
+        elif self.model.grid.type == '3D':
+            self.temp_grid = grid.Grid3D()  # TODO
+        else:
+            self.temp_grid = None
+
+    def reset_grid(self):
+        if self.model.grid is None:
+            self.X_min_label.setText('0')
+            self.Y_min_label.setText('0')
+            self.Z_min_label.setText('0')
+            self.X_max_label.setText('0')
+            self.Y_max_label.setText('0')
+            self.Z_max_label.setText('0')
+            self.step_X_Edit.setText('')
+            self.step_Y_Edit.setText('')
+            self.step_Z_Edit.setText('')
+            self.temp_grid = None
+        else:
+            self.X_min_label.setText('0')
+            self.Y_min_label.setText('0')
+            self.Z_min_label.setText('0')
+            self.X_max_label.setText('0')
+            self.Y_max_label.setText('0')
+            self.Z_max_label.setText('0')
+            self.step_X_Edit.setText('')
+            self.step_Y_Edit.setText('')
+            self.step_Z_Edit.setText('')
+            self.update_grid()
 
     def update_parameters(self, structure=None):
-        pass
-
-    def update_nugget(self, structure):
         pass
 
     def update_adjust(self):
@@ -246,10 +299,7 @@ class CovarUI(QtWidgets.QFrame):
         pass
 
     def add_struct(self):
-        r = [0, 0]
-        a = [0]
-        s = 0
-        new = covar.Covariance(r, a, s)
+        new = covar.Covariances(self.model.grid.type)
         self.current_covar().append(new)
         count = self.covar_struct_combo.count()
         self.covar_struct_combo.addItem('Structure no ' + str(count + 1))
@@ -277,7 +327,7 @@ class CovarUI(QtWidgets.QFrame):
         pass
 
     def fix_verif(self):
-        if type(self.model.grid) == grid.Grid2D:
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
             items = [self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox,
                      self.slowness_theta_X_checkbox, self.slowness_sill_checkbox,
                      self.slowness_checkbox, self.traveltime_checkbox]
@@ -290,7 +340,7 @@ class CovarUI(QtWidgets.QFrame):
                               self.tilt_theta_X_checkbox, self.tilt_sill_checkbox,
                               self.tilt_checkbox]
 
-        elif type(self.model.grid) == grid.Grid3D:
+        elif self.model.grid.type == '3D':
             items = [self.slowness_3D_range_X_checkbox, self.slowness_3D_range_Y_checkbox, self.slowness_3D_range_Z_checkbox,
                      self.slowness_3D_theta_X_checkbox, self.slowness_3D_theta_Y_checkbox, self.slowness_3D_theta_Z_checkbox,
                      self.slowness_3D_sill_checkbox]
@@ -358,9 +408,12 @@ class CovarUI(QtWidgets.QFrame):
         self.btn_GO         = QtWidgets.QPushButton("GO")
 
         # --- Labels --- #
-        cells_Label      = MyQLabel("Cells", ha='center')
-        cells_Labeli     = MyQLabel("Cells", ha='center')
-        rays_label       = MyQLabel("Rays", ha='center')
+        cells_Label          = MyQLabel("Cells", ha='left')
+        cells_Labeli         = MyQLabel("Cells", ha='left')
+        rays_label           = MyQLabel("Rays", ha='left')
+        self.cells_no_label  = MyQLabel("0", ha='right')
+        self.cells_no_labeli = MyQLabel("0", ha='right')
+        self.rays_no_label   = MyQLabel("0", ha='right')
 
         curv_rays_label  = MyQLabel("Curved Rays", ha='right')
         X_label          = MyQLabel("X", ha='center')
@@ -387,15 +440,18 @@ class CovarUI(QtWidgets.QFrame):
         bin_frac_label        = MyQLabel("Fraction of Bins", ha='right')
         Iter_label            = MyQLabel("Number of Iterations", ha='right')
 
-        self.X_min_label.setPalette(palette)
-        self.Y_min_label.setPalette(palette)
-        self.Z_min_label.setPalette(palette)
-        self.X_max_label.setPalette(palette)
-        self.Y_max_label.setPalette(palette)
-        self.Z_max_label.setPalette(palette)
-        cells_Label     .setPalette(palette)
-        cells_Labeli    .setPalette(palette)
-        rays_label      .setPalette(palette)
+        self.X_min_label    .setPalette(palette)
+        self.Y_min_label    .setPalette(palette)
+        self.Z_min_label    .setPalette(palette)
+        self.X_max_label    .setPalette(palette)
+        self.Y_max_label    .setPalette(palette)
+        self.Z_max_label    .setPalette(palette)
+        self.cells_no_label .setPalette(palette)
+        cells_Label         .setPalette(palette)
+        self.cells_no_labeli.setPalette(palette)
+        cells_Labeli        .setPalette(palette)
+        self.rays_no_label  .setPalette(palette)
+        rays_label          .setPalette(palette)
 
         # --- Edits --- #
         self.velocity_Edit = MyLineEdit()
@@ -451,8 +507,11 @@ class CovarUI(QtWidgets.QFrame):
 
         # --- Edits --- #
         self.velocity_Edit  .textModified.connect(self.auto_update)
+#         self.step_X_Edit    .textModified.connect(self.auto_update)
         self.step_X_Edit    .textModified.connect(self.auto_update)
+#         self.step_Y_Edit    .textModified.connect(self.auto_update)
         self.step_Y_Edit    .textModified.connect(self.auto_update)
+#         self.step_Z_Edit    .textModified.connect(self.auto_update)
         self.step_Z_Edit    .textModified.connect(self.auto_update)
         self.slowness_Edit  .textModified.connect(self.auto_update)
         self.traveltime_Edit.textModified.connect(self.auto_update)
@@ -472,6 +531,7 @@ class CovarUI(QtWidgets.QFrame):
         self.include_checkbox           .stateChanged.connect(self.auto_update)
 
         # --- Comboboxes --- #
+        self.T_and_A_combo     .currentIndexChanged.connect(self.update_model)
         self.T_and_A_combo     .currentIndexChanged.connect(self.auto_update)
         self.curv_rays_combo   .currentIndexChanged.connect(self.auto_update)
         self.covar_struct_combo.currentIndexChanged.connect(self.parameters_displayed_update)
@@ -507,6 +567,12 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Grid_Coord_Widget.setLayout(Sub_Grid_Coord_grid)
 
         # --- Step SubWidget --- #
+        cells_no_widget = QtWidgets.QWidget()
+        cells_no_grid   = QtWidgets.QGridLayout()
+        cells_no_grid.addWidget(self.cells_no_labeli, 0, 0)
+        cells_no_grid.addWidget(cells_Labeli, 0, 1)
+        cells_no_widget.setLayout(cells_no_grid)
+
         Sub_Step_Widget = QtWidgets.QWidget()
         Sub_Step_Grid = QtWidgets.QGridLayout()
         Sub_Step_Grid.addWidget(step_label, 1, 0)
@@ -516,7 +582,7 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Step_Grid.addWidget(Xi_label, 0, 1)
         Sub_Step_Grid.addWidget(Yi_label, 0, 2)
         Sub_Step_Grid.addWidget(Zi_label, 0, 3)
-        Sub_Step_Grid.addWidget(cells_Labeli, 2, 2)
+        Sub_Step_Grid.addWidget(cells_no_widget, 2, 1, 1, 3)
         Sub_Step_Grid.setHorizontalSpacing(0)
         Sub_Step_Widget.setLayout(Sub_Step_Grid)
 
@@ -524,25 +590,27 @@ class CovarUI(QtWidgets.QFrame):
         # --- Data Groupbox --- #
         data_groupbox = QtWidgets.QGroupBox("Data")
         data_grid = QtWidgets.QGridLayout()
-        data_grid.addWidget(cells_Label, 0, 0)
-        data_grid.addWidget(rays_label, 1, 0)
-        data_grid.addWidget(self.models_list, 2, 0, 3, 1)
-        data_grid.addWidget(self.Upper_limit_checkbox, 0, 1)
-        data_grid.addWidget(self.velocity_Edit, 0, 2)
-        data_grid.addWidget(self.ellip_veloc_checkbox, 1, 1)
-        data_grid.addWidget(self.tilted_ellip_veloc_checkbox, 2, 1)
-        data_grid.addWidget(self.include_checkbox, 3, 1)
-        data_grid.addWidget(self.T_and_A_combo, 4, 1)
-        data_grid.addWidget(self.btn_Show_Stats, 4, 2)
-        data_grid.addWidget(Sub_Curved_Rays_Widget, 5, 1)
+        data_grid.addWidget(self.cells_no_label, 0, 0)
+        data_grid.addWidget(cells_Label, 0, 1)
+        data_grid.addWidget(self.rays_no_label, 1, 0)
+        data_grid.addWidget(rays_label, 1, 1)
+        data_grid.addWidget(self.models_list, 2, 0, 3, 2)
+        data_grid.addWidget(self.Upper_limit_checkbox, 0, 2)
+        data_grid.addWidget(self.velocity_Edit, 0, 3)
+        data_grid.addWidget(self.ellip_veloc_checkbox, 1, 2)
+        data_grid.addWidget(self.tilted_ellip_veloc_checkbox, 2, 2)
+        data_grid.addWidget(self.include_checkbox, 3, 2)
+        data_grid.addWidget(self.T_and_A_combo, 4, 2)
+        data_grid.addWidget(self.btn_Show_Stats, 4, 3)
+        data_grid.addWidget(Sub_Curved_Rays_Widget, 5, 2)
         data_groupbox.setLayout(data_grid)
 
         # --- Grid Groupbox --- #
-        Grid_groupbox = QtWidgets.QGroupBox("Grid")
+        self.Grid_groupbox = QtWidgets.QGroupBox("Grid")
         Grid_grid = QtWidgets.QGridLayout()
         Grid_grid.addWidget(Sub_Grid_Coord_Widget, 0, 0)
         Grid_grid.addWidget(Sub_Step_Widget, 0, 1)
-        Grid_groupbox.setLayout(Grid_grid)
+        self.Grid_groupbox.setLayout(Grid_grid)
 
         # --- Parameters Groupboxes --- #
         # - Parameters items - #
@@ -564,6 +632,7 @@ class CovarUI(QtWidgets.QFrame):
         self.labels_2D_widget.setLayout(labels_2D_grid)
 
         slowness_param_edit       = QtWidgets.QLineEdit('Slowness')
+        slowness_param_edit.setReadOnly(True)
         slowness_type_combo       = QtWidgets.QComboBox()
         slowness_type_combo.addItems(types)
         slowness_value_label      = MyQLabel("Value", ha='center')
@@ -595,6 +664,7 @@ class CovarUI(QtWidgets.QFrame):
         self.slowness_widget.setLayout(slowness_grid)
 
         xi_param_edit       = QtWidgets.QLineEdit(xi)
+        xi_param_edit.setReadOnly(True)
         xi_type_combo       = QtWidgets.QComboBox()
         xi_type_combo.addItems(types)
         xi_value_label      = MyQLabel("Value", ha='center')
@@ -626,6 +696,7 @@ class CovarUI(QtWidgets.QFrame):
         self.xi_widget.setLayout(xi_grid)
 
         tilt_param_edit       = QtWidgets.QLineEdit('Tilt Angle')
+        tilt_param_edit.setReadOnly(True)
         tilt_type_combo       = QtWidgets.QComboBox()
         tilt_type_combo.addItems(types)
         tilt_value_label      = MyQLabel("Value", ha='center')
@@ -665,6 +736,7 @@ class CovarUI(QtWidgets.QFrame):
         sill_3D_label    = MyQLabel("Sill", ha='right')
 
         slowness_3D_param_edit       = QtWidgets.QLineEdit('Slowness')
+        slowness_3D_param_edit.setReadOnly(True)
         slowness_3D_type_combo       = QtWidgets.QComboBox()
         slowness_3D_type_combo.addItems(types)
         slowness_3D_value_label      = MyQLabel("Value", ha='center')
@@ -732,7 +804,7 @@ class CovarUI(QtWidgets.QFrame):
         Param_groupbox.setLayout(Param_grid)
 
         # --- Nugget Effect Groupbox --- #
-        Nug_groupbox = QtWidgets.QGroupBox("Nugget Effect")
+        self.Nug_groupbox = QtWidgets.QGroupBox("Nugget Effect")
         Nug_grid = QtWidgets.QGridLayout()
         Nug_grid.addWidget(self.slowness_label, 0, 0)
         Nug_grid.addWidget(self.slowness_Edit, 0, 1)
@@ -746,7 +818,7 @@ class CovarUI(QtWidgets.QFrame):
         Nug_grid.addWidget(self.tilt_label, 1, 3)
         Nug_grid.addWidget(self.tilt_Edit, 1, 4)
         Nug_grid.addWidget(self.tilt_checkbox, 1, 5)
-        Nug_groupbox.setLayout(Nug_grid)
+        self.Nug_groupbox.setLayout(Nug_grid)
 
         # --- Covariance Model Groupbox --- #
         covar_groupbox = QtWidgets.QGroupBox("Covariance Model")
@@ -755,13 +827,13 @@ class CovarUI(QtWidgets.QFrame):
         covar_grid.addWidget(self.btn_Add_Struct, 0, 1)
         covar_grid.addWidget(self.btn_Rem_Struct, 0, 2)
         covar_grid.addWidget(Param_groupbox, 1, 0, 1, 3)
-        covar_grid.addWidget(Nug_groupbox, 2, 0, 1, 3)
+        covar_grid.addWidget(self.Nug_groupbox, 2, 0, 1, 3)
         covar_grid.addWidget(self.auto_update_checkbox, 3, 0, 1, 2)
         covar_grid.addWidget(self.btn_compute, 3, 2, 1, 1)
         covar_groupbox.setLayout(covar_grid)
 
         # --- Adjust Model Groupbox --- #
-        Adjust_Model_groupbox = QtWidgets.QGroupBox("Adjust Model (Simplex Method)")
+        self.Adjust_Model_groupbox = QtWidgets.QGroupBox("Adjust Model (Simplex Method)")
         Adjust_Model_grid = QtWidgets.QGridLayout()
         Adjust_Model_grid.addWidget(bin_label, 0, 0)
         Adjust_Model_grid.addWidget(self.bin_Edit, 0, 1)
@@ -771,16 +843,15 @@ class CovarUI(QtWidgets.QFrame):
         Adjust_Model_grid.addWidget(self.Iter_Edit, 2, 1)
         Adjust_Model_grid.addWidget(self.btn_GO, 0, 3, 3, 1)
 #         Adjust_Model_grid.setColumnStretch(4, 100)
-        Adjust_Model_groupbox.setLayout(Adjust_Model_grid)
+        self.Adjust_Model_groupbox.setLayout(Adjust_Model_grid)
 
         # --- Subgrid --- #
-
         self.Sub_widget = QtWidgets.QWidget()
         Sub_grid        = QtWidgets.QGridLayout()
         Sub_grid.addWidget(data_groupbox, 0, 0)
-        Sub_grid.addWidget(Grid_groupbox, 1, 0)
+        Sub_grid.addWidget(self.Grid_groupbox, 1, 0)
         Sub_grid.addWidget(covar_groupbox, 2, 0)
-        Sub_grid.addWidget(Adjust_Model_groupbox, 3, 0)
+        Sub_grid.addWidget(self.Adjust_Model_groupbox, 3, 0)
         Sub_grid.setContentsMargins(0, 0, 0, 0)
         self.Sub_widget.setLayout(Sub_grid)
 
@@ -833,13 +904,13 @@ class CovarUI(QtWidgets.QFrame):
             item.clicked.connect(self.fix_verif)
 
         # ------- Sizes ------- #
-        self.menu            .setFixedHeight(self.menu.sizeHint().height())
-        data_groupbox        .setFixedHeight(data_groupbox.sizeHint().height())
-        Grid_groupbox        .setFixedHeight(Grid_groupbox.sizeHint().height())
-        Param_groupbox       .setFixedHeight(Param_groupbox.sizeHint().height())
-        Nug_groupbox         .setFixedHeight(Nug_groupbox.sizeHint().height())
-        Adjust_Model_groupbox.setFixedHeight(Adjust_Model_groupbox.sizeHint().height())
-        self.Sub_widget      .setFixedWidth(500)
+        self.menu                 .setFixedHeight(self.menu.sizeHint().height())
+        data_groupbox             .setFixedHeight(data_groupbox.sizeHint().height())
+        self.Grid_groupbox        .setFixedHeight(self.Grid_groupbox.sizeHint().height())
+        Param_groupbox            .setFixedHeight(Param_groupbox.sizeHint().height())
+        self.Nug_groupbox         .setFixedHeight(self.Nug_groupbox.sizeHint().height())
+        self.Adjust_Model_groupbox.setFixedHeight(self.Adjust_Model_groupbox.sizeHint().height())
+        self.Sub_widget           .setFixedWidth(500)
 
         for item in (labels_2D_grid, slowness_grid, xi_grid, tilt_grid):
             for i in range(0, 7):
@@ -874,8 +945,7 @@ class MyLineEdit(QtWidgets.QLineEdit):  # allows veryfying if an edit's text has
 if __name__ == '__main__':
 
     database.create_data_management(database)
-#     database.load(database, 'database.db')
-    database.load(database, 'db.db')
+    database.load(database, 'database.db')
 
     app = QtWidgets.QApplication(sys.argv)
 

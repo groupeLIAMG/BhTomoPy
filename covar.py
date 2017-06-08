@@ -295,6 +295,10 @@ class Covariances(object):
         self.type     = Type
         self.slowness = []
         if type == '2D':
+            r = [0, 0]
+            a = [0]
+            s = 0
+            self.slowness.append(Covariance(r, a, s))
             self.xi   = []
             self.tilt = []
 
