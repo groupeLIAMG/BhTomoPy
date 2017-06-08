@@ -289,6 +289,16 @@ class CovarianceModels(IntEnum):
         return CovarianceSpherical(np.array([4.0, 4.0, 4.0]), np.array([0.0, 0.0, 0.0]), 1.0)
 
 
+class Covariances(object):
+
+    def __init__(self, Type):
+        self.type     = Type
+        self.slowness = []
+        if type == '2D':
+            self.xi   = []
+            self.tilt = []
+
+
 def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
     """
     Translation of cokri matlab function from D. Marcotte (adapted

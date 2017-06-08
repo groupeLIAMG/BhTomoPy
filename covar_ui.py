@@ -154,13 +154,13 @@ class CovarUI(QtWidgets.QFrame):
 
             if self.model:
 
-                if True:  # self.model.grid is not None:
+                if self.model.grid is not None:
                     self.covar_struct_combo.setDisabled(False)
                     self.btn_Add_Struct.setDisabled(False)
 
                     if self.current_covar():
                         self.btn_Rem_Struct.setDisabled(False)
-                        if True:  # type(self.model.grid) == grid.Grid2D:
+                        if type(self.model.grid) == grid.Grid2D:
                             self.labels_2D_widget.setHidden(False)
                             self.slowness_widget.setHidden(False)
                             self.ellip_veloc_checkbox.setDisabled(False)
@@ -277,7 +277,7 @@ class CovarUI(QtWidgets.QFrame):
         pass
 
     def fix_verif(self):
-        if True:  # type(self.model.grid) == grid.Grid2D:
+        if type(self.model.grid) == grid.Grid2D:
             items = [self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox,
                      self.slowness_theta_X_checkbox, self.slowness_sill_checkbox,
                      self.slowness_checkbox, self.traveltime_checkbox]

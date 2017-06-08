@@ -127,7 +127,7 @@ class ModelUI(QtWidgets.QWidget):
 
     def edit_grid(self):
         model = self.current_model()
-        if model is not None:
+        if model is not None and model.mogs:
             g, ok = self.gridEditor(model, model.grid)
             if g is not None and ok == 1:
                 model.grid = g
@@ -157,9 +157,9 @@ class ModelUI(QtWidgets.QWidget):
 
         else:
             gtype = g.type
-            if gtype is '2D':
+            if gtype == '2D':
                 gtmp, data = Grid2DUI.build_grid(data)
-            elif gtype is '2D+':
+            elif gtype == '2D+':
                 # TODO
                 pass
 
@@ -239,9 +239,9 @@ class ModelUI(QtWidgets.QWidget):
 
         # --- Grid UI --- #
 
-        if gtype is '2D':
+        if gtype == '2D':
             gUI = Grid2DUI(data, g, gridinfo)  # gridinfo used as parent to propagate GridEdited events
-        elif gtype is '2D+':
+        elif gtype == '2D+':
             # TODO:
             pass
         else:
@@ -533,7 +533,7 @@ class Grid2DUI(QtWidgets.QWidget):
         uTx = np.sort(tmpTx, axis=0)
         uRx = np.sort(tmpRx, axis=0)
 
-        data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0))
+        data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0), 2)
 #         data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0))
         # self.data.x0 : Centroid of the data = point on the best-fit plane
         # self.data.a  : Direction cosines of the normal to the best-fit plane
@@ -759,8 +759,8 @@ class BoreholesFig(FigureCanvasQTAgg):
 
         for n in range(len(mogs)):
             mog = mogs[n]
-            false_Rx_ind = np.nonzero(not mog.in_Rx_vect)
-            false_Tx_ind = np.nonzero(not mog.in_Tx_vect)
+            false_Rx_ind = np.nonzero(not mog.in_Rx_vect.all())  # Verify boolean value
+            false_Tx_ind = np.nonzero(not mog.in_Tx_vect.all())  # Verify boolean value
 
             Tx_zs = np.unique(mog.data.Tx_z)
             Rx_zs = np.unique(mog.data.Rx_z)

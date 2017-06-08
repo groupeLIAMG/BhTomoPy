@@ -102,21 +102,19 @@ class BoreholeUI(QtWidgets.QWidget):
         """
         Updates the coordinates edits information with the attributes of the Borehole class instance
         """
-        ind = self.bh_list.selectedIndexes()
-        if ind:
-            for i in ind:
-                bh = database.session.query(Borehole).all()[i.row()]
-                self.X_edit.setText(str(bh.X))
-                self.Y_edit.setText(str(bh.Y))
-                self.Z_edit.setText(str(bh.Z))
-                self.Xmax_edit.setText(str(bh.Xmax))
-                self.Ymax_edit.setText(str(bh.Ymax))
-                self.Zmax_edit.setText(str(bh.Zmax))
-                self.Z_surf_edit.setText(str(bh.Z_surf))
-                if bh.Z_water is None:
-                    self.Z_water_edit.setText('')
-                else:
-                    self.Z_water_edit.setText(str(bh.Z_water))
+        bh = self.current_borehole()
+        if bh:
+            self.X_edit.setText(str(bh.X))
+            self.Y_edit.setText(str(bh.Y))
+            self.Z_edit.setText(str(bh.Z))
+            self.Xmax_edit.setText(str(bh.Xmax))
+            self.Ymax_edit.setText(str(bh.Ymax))
+            self.Zmax_edit.setText(str(bh.Zmax))
+            self.Z_surf_edit.setText(str(bh.Z_surf))
+            if bh.Z_water is None:
+                self.Z_water_edit.setText('')
+            else:
+                self.Z_water_edit.setText(str(bh.Z_water))
         else:
             self.X_edit.setText('0.0')
             self.Y_edit.setText('0.0')
@@ -127,15 +125,20 @@ class BoreholeUI(QtWidgets.QWidget):
             self.Z_surf_edit.setText('0.0')
             self.Z_water_edit.setText('')
 
+    def current_borehole(self):
+
+        borehole = self.bh_list.currentItem()
+        if borehole is not None:
+            return database.session.query(Borehole).filter(Borehole.name == borehole.text()).first()
+
     def del_bhole(self):
         """
         Deletes a borehole instance from boreholes
         """
-        ind = self.bh_list.selectedIndexes()
-
-        for i in ind:
-            self.bhlogSignal.emit("{} has been deleted".format(database.session.query(Borehole).all()[i.row()].name))
-            database.delete(database, database.session.query(Borehole).all()[i.row()])
+        item = self.current_borehole()
+        if item:
+            self.bhlogSignal.emit("{} has been deleted".format(item.name))
+            database.delete(database, item)
 
             self.update_List_Widget()
             self.update_List_Edits()
@@ -170,9 +173,9 @@ class BoreholeUI(QtWidgets.QWidget):
 
         self.updateHandler = False
 
-        ind = self.bh_list.selectedIndexes()
-        for i in ind:
-            bh                = database.session.query(Borehole).all()[i.row()]
+        item = self.current_borehole()
+        if item:
+            bh                = item
             bh.X              = float(self.X_edit.text())
             bh.Y              = float(self.Y_edit.text())
             bh.Z              = float(self.Z_edit.text())
@@ -209,15 +212,15 @@ class BoreholeUI(QtWidgets.QWidget):
         with the project method and then associate an exactitude value (covariance) to each of them if it is given in the *.con file.
         We then associate the Cont instance to the borehole's acont attribute
         """
-        ind = self.bh_list.selectedIndexes()
+        item = self.current_borehole()
         acont = Cont()
-        for i in ind:
+        if item:
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
             rname = filename.split('/')
             rname = rname[-1]
             rname = rname[:-4]
             if ".con" in filename:
-                bh = database.session.query(Borehole).all()[i.row()]
+                bh = item
                 cont = np.loadtxt(filename)
 
                 acont.x, acont.y, acont.z, _ = bh.project(bh.fdata, cont[:, 0])
@@ -236,21 +239,19 @@ class BoreholeUI(QtWidgets.QWidget):
                 self.bhlogSignal.emit("{} Attenuation Constraints have been applied to Borehole {} ".format(rname, bh.name))
             else:
                 self.bhlogSignal.emit("Error: the file's extension must be *.con")
-                break
 
     def slowness_constraints(self):
         """
         Practically the same method as attenuation_constraints but reversed
         """
-        ind = self.bh_list.selectedIndexes()
+        bh = self.current_borehole()
         scont = Cont()
-        for i in ind:
+        if bh:
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
             rname = filename.split('/')
             rname = rname[-1]
             rname = rname[:-4]
             if ".con" in filename:
-                bh = database.session.query(Borehole).all()[i.row()]
                 cont = np.loadtxt(filename)
 
                 scont.x, scont.y, scont.z, _ = bh.project(bh.fdata, cont[:, 0])
@@ -270,7 +271,6 @@ class BoreholeUI(QtWidgets.QWidget):
                 self.bhlogSignal.emit("{} Slowness Constraints have been applied to Borehole {} ".format(rname, bh.name))
             else:
                 self.bhlogSignal.emit("Error: the file's extension must be *.con")
-                break
 
     def initUI(self):
 

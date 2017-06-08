@@ -100,9 +100,9 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         """
         updates the info either in the MOG's edits or in the info's labels
         """
-        ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            mog = database.session.query(Mog).all()[i.row()]
+        item = self.MOG_list.currentItem()
+        if item:
+            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
 
             self.Rx_Offset_edit.clear()
             self.Tx_Offset_edit.clear()
@@ -130,7 +130,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
             for i in range(database.session.query(Borehole).count()):
                 if mog.Tx is None or mog.Rx is None:
-                    pass
+                    if mog.Tx is None:
+                        self.Tx_combo.setCurrentIndex(-1)
+                    if mog.Rx is None:
+                        self.Rx_combo.setCurrentIndex(-1)
                 elif mog.Tx.name == database.session.query(Borehole).all()[i].name:
                     self.Tx_combo.setCurrentIndex(i)
 
@@ -853,6 +856,12 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.color_scale_edit.setText('7000')
         elif self.color_scale_combo.currentText() == 'High':
             self.color_scale_edit.setText('700')
+
+    def current_mog(self):
+
+        mog = self.MOG_list.currentItem()
+        if mog:
+            return database.session.query(Mog).filter(Mog.name == mog.text()).first()
 
     def initUI(self):
 

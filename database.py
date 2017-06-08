@@ -77,9 +77,9 @@ def verify_mapping(module):
     """
 
     for item in module.session.query(Model).all():
-        (item.mogs, item.boreholes)
+        item.mogs
     for item in module.session.query(Mog).all():
-        (item.Tx, item.Rx, item.av, item.ap)
+        item.Tx, item.Rx, item.av, item.ap
 
 
 def save_as(module, file):

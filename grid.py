@@ -91,7 +91,7 @@ class Grid(object):
         return self.grz[1] - self.grz[0]
 
     @staticmethod
-    def lsplane(X):
+    def lsplane(X, nout):
         """
         Least-squares plane (orthogonal distance regression) to a cloud of points
         Usages:
@@ -109,8 +109,6 @@ class Grid(object):
 
         translation of the matlab function lsplane.m by I M Smith
         """
-
-        nout = nargout()
 
         m = X.shape[0]
         if m < 3:
