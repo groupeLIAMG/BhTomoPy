@@ -4,7 +4,7 @@ Created on Tue Jun 21 20:55:29 2016
 
 @author: giroux
 
-Copyright 2017 Bernard Giroux, Jérome Simon
+Copyright 2017 Bernard Giroux, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -287,6 +287,35 @@ class CovarianceModels(IntEnum):
     @staticmethod
     def detDefault3D():
         return CovarianceSpherical(np.array([4.0, 4.0, 4.0]), np.array([0.0, 0.0, 0.0]), 1.0)
+
+    @staticmethod
+    def change_type(covariance, ctype):
+        if covariance.type == 10 or ctype == 10:
+            raise ValueError('Unsupported operation.')
+        else:
+            covariance.type = ctype
+            if ctype == 0:
+                covariance._compute = CovarianceCubic._compute
+            elif ctype == 1:
+                covariance._compute = CovarianceSpherical._compute
+            elif ctype == 2:
+                covariance._compute = CovarianceGaussian._compute
+            elif ctype == 3:
+                covariance._compute = CovarianceExponential._compute
+            elif ctype == 4:
+                covariance._compute = CovarianceLinear._compute
+            elif ctype == 5:
+                covariance._compute = CovarianceThinPlate._compute
+            elif ctype == 6:
+                covariance._compute = CovarianceGravimetric._compute
+            elif ctype == 7:
+                covariance._compute = CovarianceMagnetic._compute
+            elif ctype == 8:
+                covariance._compute = CovarianceHoleEffectSine._compute
+            elif ctype == 9:
+                covariance._compute = CovarianceHoleEffectCosine._compute
+            else:
+                raise ValueError('Undefined covariance model.')
 
 
 class Structure(object):

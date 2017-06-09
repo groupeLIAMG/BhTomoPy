@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -45,7 +45,7 @@ def create_data_management(module):
     module.Session = sessionmaker(bind=module.engine)    # 'Session' acts as a factory for upcoming sessions; the features of 'Session' aren't exploited
     module.session = module.Session()                    # the objects are stored in 'session' and can be manipulated from there
     Base.metadata.create_all(module.engine)              # this creates the mapping for a specific engine
-    module.modified = False                              # 'modified' keeps track of wether or not data has been modified since last save
+    module.modified = False                              # 'modified' keeps track of whether or not data has been modified since last save
 
 
 def load(module, file):
@@ -177,6 +177,10 @@ if __name__ == '__main__':
 # Gets the current module, so that it can be sent as a parameter.
 # import sys
 # current_module = sys.modules[__name__]
+
+
+#         from sqlalchemy.orm.attributes import flag_modified
+#         flag_modified(module.session.query(Model).all()[0], 'tt_covar')
 
 
 # Test bank

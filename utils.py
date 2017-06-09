@@ -4,7 +4,7 @@ Created on Tue Jun 21 20:55:29 2016
 
 @author: giroux
 
-Copyright 2017 Bernard Giroux, Jérome Simon
+Copyright 2017 Bernard Giroux, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.

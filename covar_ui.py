@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -26,6 +26,7 @@ import covar
 import database
 import utils_ui
 import grid
+from sqlalchemy.orm.attributes import flag_modified
 
 
 class CovarUI(QtWidgets.QFrame):
@@ -58,7 +59,6 @@ class CovarUI(QtWidgets.QFrame):
 
         self.reset_data()
         self.update_model()
-        self.update_adjust()
         self.parameters_displayed_update()
         self.update_velocity_display()
 
@@ -116,11 +116,27 @@ class CovarUI(QtWidgets.QFrame):
         if self.model is not None:
 
             if self.T_and_A_combo.currentIndex() == 0:
-                covar = self.model.tt_covar
+                covariance = self.model.tt_covar
             else:
-                covar = self.model.amp_covar
+                covariance = self.model.amp_covar
 
-            return covar
+            return covariance
+
+    def current_struct(self):
+
+        ind = self.covar_struct_combo.currentIndex()
+
+        if ind != -1:
+            return self.current_covar()[ind]
+
+    def flag_modified_covar(self):
+
+        if self.model is not None:
+
+            if self.T_and_A_combo.currentIndex() == 0:
+                flag_modified(self.model, 'tt_covar')
+            else:
+                flag_modified(self.model, 'amp_covar')
 
     def parameters_displayed_update(self):
 
@@ -285,7 +301,7 @@ class CovarUI(QtWidgets.QFrame):
             self.temp_grid = None
         else:
             self.new_grid()
-#             self.X_min_label.setText('0')  # the grid's
+#             self.X_min_label.setText('0')  # the grid's TODO
 #             self.Y_min_label.setText('0')
 #             self.Z_min_label.setText('0')
 #             self.X_max_label.setText('0')
@@ -295,15 +311,17 @@ class CovarUI(QtWidgets.QFrame):
 #             self.step_Y_edit.setText('')
 #             self.step_Z_edit.setText('')
 
+    def update_grid(self):
+        pass
+
     def update_parameters(self):
 
-        ind = self.covar_struct_combo.currentIndex()
+        struct = self.current_struct()
 
-        if ind != -1:
-
-            struct = self.current_covar()[ind]
+        if struct is not None:
 
             if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                self.slowness_type_combo  .setCurrentIndex(struct.slowness.type)
                 self.slowness_range_X_edit.setText(str(struct.slowness.range[0]))
                 self.slowness_range_Z_edit.setText(str(struct.slowness.range[1]))
                 self.slowness_theta_X_edit.setText(str(struct.slowness.angle[0]))
@@ -314,6 +332,7 @@ class CovarUI(QtWidgets.QFrame):
                 if self.ellip_veloc_checkbox.checkState():
                     if struct.xi is None:
                         struct.xi = covar.CovarianceModels.detDefault2D()
+                    self.xi_type_combo  .setCurrentIndex(struct.xi.type)
                     self.xi_range_X_edit.setText(str(struct.xi.range[0]))
                     self.xi_range_Z_edit.setText(str(struct.xi.range[1]))
                     self.xi_theta_X_edit.setText(str(struct.xi.angle[0]))
@@ -323,6 +342,7 @@ class CovarUI(QtWidgets.QFrame):
                     if self.tilted_ellip_veloc_checkbox.checkState():
                         if struct.tilt is None:
                             struct.tilt = covar.CovarianceModels.detDefault2D()
+                        self.tilt_type_combo  .setCurrentIndex(struct.tilt.type)
                         self.tilt_range_X_edit.setText(str(struct.tilt.range[0]))
                         self.tilt_range_Z_edit.setText(str(struct.tilt.range[1]))
                         self.tilt_theta_X_edit.setText(str(struct.tilt.angle[0]))
@@ -330,6 +350,7 @@ class CovarUI(QtWidgets.QFrame):
                         self.tilt_edit        .setText(str(struct.nugget[3]))
 
             elif self.model.grid.type == '3D':
+                self.slowness_3D_type_combo  .setCurrentIndex(struct.slowness.type)
                 self.slowness_3D_range_X_edit.setText(str(struct.slowness.range[0]))
                 self.slowness_3D_range_Y_edit.setText(str(struct.slowness.range[1]))
                 self.slowness_3D_range_Z_edit.setText(str(struct.slowness.range[2]))
@@ -342,11 +363,9 @@ class CovarUI(QtWidgets.QFrame):
 
     def apply_parameters_changes(self):
 
-        ind = self.covar_struct_combo.currentIndex()
+        struct = self.current_struct()
 
-        if ind != -1:
-
-            struct = self.current_covar()[ind]
+        if struct is not None:
 
             if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
                 struct.slowness.range[0] = self.slowness_range_X_edit.text()
@@ -384,11 +403,28 @@ class CovarUI(QtWidgets.QFrame):
                 struct.slowness.sill     = self.slowness_3D_sill_edit   .text()
                 struct.nugget[0]         = self.slowness_edit           .text()
                 struct.nugget[1]         = self.traveltime_edit         .text()
-        # Also modify Use attributes (e.g. use_ellip, ...) on model
+        self.flag_modified_covar()
         database.modified = True
 
-    def update_adjust(self):
-        pass
+    def change_covar_type_slowness(self, ctype):
+        covar.CovarianceModels.change_type(self.current_struct().slowness, ctype)
+        self.flag_modified_covar()
+        database.modified = True
+
+    def change_covar_type_xi(self, ctype):
+        covar.CovarianceModels.change_type(self.current_struct().xi, ctype)
+        self.flag_modified_covar()
+        database.modified = True
+
+    def change_covar_type_tilt(self, ctype):
+        covar.CovarianceModels.change_type(self.current_struct().tilt, ctype)
+        self.flag_modified_covar()
+        database.modified = True
+
+    def change_covar_type_slowness_3D(self, ctype):
+        covar.CovarianceModels.change_type(self.current_struct().slowness, ctype)
+        self.flag_modified_covar()
+        database.modified = True
 
     def compute(self):  # TODO progress bar
         pass
@@ -405,6 +441,7 @@ class CovarUI(QtWidgets.QFrame):
         self.covar_struct_combo.setCurrentIndex(count)
         self.parameters_displayed_update()
         self.update_parameters()
+        self.flag_modified_covar()
         database.modified = True
 
     def del_struct(self):
@@ -420,6 +457,7 @@ class CovarUI(QtWidgets.QFrame):
                 self.covar_struct_combo.setCurrentIndex(index)
         self.parameters_displayed_update()
         self.update_parameters()
+        self.flag_modified_covar()
         database.modified = True
 
     def adjust(self):
@@ -695,8 +733,8 @@ class CovarUI(QtWidgets.QFrame):
         slowness_param_edit       = QtWidgets.QLineEdit('Slowness')
         slowness_param_edit.setReadOnly(True)
         slowness_param_edit.setAlignment(QtCore.Qt.AlignCenter)
-        slowness_type_combo       = QtWidgets.QComboBox()
-        slowness_type_combo.addItems(types)
+        self.slowness_type_combo       = QtWidgets.QComboBox()
+        self.slowness_type_combo.addItems(types)
         slowness_value_label      = MyQLabel("Value", ha='center')
         slowness_fix_label        = MyQLabel("Fix", ha='center')
         self.slowness_range_X_edit     = MyLineEdit('4.0')
@@ -711,7 +749,7 @@ class CovarUI(QtWidgets.QFrame):
         self.slowness_widget      = QtWidgets.QWidget()
         slowness_grid             = QtWidgets.QGridLayout()
         slowness_grid.addWidget(slowness_param_edit, 0, 0, 1, 2)
-        slowness_grid.addWidget(slowness_type_combo, 1, 0, 1, 2)
+        slowness_grid.addWidget(self.slowness_type_combo, 1, 0, 1, 2)
         slowness_grid.addWidget(slowness_value_label, 2, 0)
         slowness_grid.addWidget(slowness_fix_label, 2, 1)
         slowness_grid.addWidget(self.slowness_range_X_edit, 3, 0)
@@ -728,8 +766,8 @@ class CovarUI(QtWidgets.QFrame):
         xi_param_edit       = QtWidgets.QLineEdit(xi)
         xi_param_edit.setReadOnly(True)
         xi_param_edit.setAlignment(QtCore.Qt.AlignCenter)
-        xi_type_combo       = QtWidgets.QComboBox()
-        xi_type_combo.addItems(types)
+        self.xi_type_combo       = QtWidgets.QComboBox()
+        self.xi_type_combo.addItems(types)
         xi_value_label      = MyQLabel("Value", ha='center')
         xi_fix_label        = MyQLabel("Fix", ha='center')
         self.xi_range_X_edit     = MyLineEdit('4.0')
@@ -744,7 +782,7 @@ class CovarUI(QtWidgets.QFrame):
         self.xi_widget      = QtWidgets.QWidget()
         xi_grid             = QtWidgets.QGridLayout()
         xi_grid.addWidget(xi_param_edit, 0, 0, 1, 2)
-        xi_grid.addWidget(xi_type_combo, 1, 0, 1, 2)
+        xi_grid.addWidget(self.xi_type_combo, 1, 0, 1, 2)
         xi_grid.addWidget(xi_value_label, 2, 0)
         xi_grid.addWidget(xi_fix_label, 2, 1)
         xi_grid.addWidget(self.xi_range_X_edit, 3, 0)
@@ -761,8 +799,8 @@ class CovarUI(QtWidgets.QFrame):
         tilt_param_edit       = QtWidgets.QLineEdit('Tilt Angle')
         tilt_param_edit.setReadOnly(True)
         tilt_param_edit.setAlignment(QtCore.Qt.AlignCenter)
-        tilt_type_combo       = QtWidgets.QComboBox()
-        tilt_type_combo.addItems(types)
+        self.tilt_type_combo       = QtWidgets.QComboBox()
+        self.tilt_type_combo.addItems(types)
         tilt_value_label      = MyQLabel("Value", ha='center')
         tilt_fix_label        = MyQLabel("Fix", ha='center')
         self.tilt_range_X_edit     = MyLineEdit('4.0')
@@ -777,7 +815,7 @@ class CovarUI(QtWidgets.QFrame):
         self.tilt_widget      = QtWidgets.QWidget()
         tilt_grid             = QtWidgets.QGridLayout()
         tilt_grid.addWidget(tilt_param_edit, 0, 0, 1, 2)
-        tilt_grid.addWidget(tilt_type_combo, 1, 0, 1, 2)
+        tilt_grid.addWidget(self.tilt_type_combo, 1, 0, 1, 2)
         tilt_grid.addWidget(tilt_value_label, 2, 0)
         tilt_grid.addWidget(tilt_fix_label, 2, 1)
         tilt_grid.addWidget(self.tilt_range_X_edit, 3, 0)
@@ -802,8 +840,8 @@ class CovarUI(QtWidgets.QFrame):
         slowness_3D_param_edit       = QtWidgets.QLineEdit('Slowness')
         slowness_3D_param_edit.setReadOnly(True)
         slowness_3D_param_edit.setAlignment(QtCore.Qt.AlignCenter)
-        slowness_3D_type_combo       = QtWidgets.QComboBox()
-        slowness_3D_type_combo.addItems(types)
+        self.slowness_3D_type_combo       = QtWidgets.QComboBox()
+        self.slowness_3D_type_combo.addItems(types)
         slowness_3D_value_label      = MyQLabel("Value", ha='center')
         slowness_3D_fix_label        = MyQLabel("Fix", ha='center')
         self.slowness_3D_range_X_edit     = MyLineEdit('4.0')
@@ -824,7 +862,7 @@ class CovarUI(QtWidgets.QFrame):
         self.slowness_3D_widget      = QtWidgets.QWidget()
         slowness_3D_grid             = QtWidgets.QGridLayout()
         slowness_3D_grid.addWidget(slowness_3D_param_edit, 0, 1, 2, 1)
-        slowness_3D_grid.addWidget(slowness_3D_type_combo, 1, 1, 2, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_type_combo, 1, 1, 2, 1)
         slowness_3D_grid.addWidget(slowness_3D_value_label, 2, 1)
         slowness_3D_grid.addWidget(slowness_3D_fix_label, 2, 2)
         slowness_3D_grid.addWidget(range_X_3D_label, 3, 0)
@@ -949,21 +987,6 @@ class CovarUI(QtWidgets.QFrame):
         self.btn_compute   .clicked.connect(self.compute)
         self.btn_GO        .clicked.connect(self.adjust)
 
-        self.velocity_edit  .textModified.connect(self.auto_update)
-#         self.step_X_edit    .textModified.connect(self.auto_update)
-        self.step_X_edit    .textModified.connect(self.auto_update)
-#         self.step_Y_edit    .textModified.connect(self.auto_update)
-        self.step_Y_edit    .textModified.connect(self.auto_update)
-#         self.step_Z_edit    .textModified.connect(self.auto_update)
-        self.step_Z_edit    .textModified.connect(self.auto_update)
-        self.slowness_edit  .textModified.connect(self.auto_update)
-        self.traveltime_edit.textModified.connect(self.auto_update)
-        self.xi_edit        .textModified.connect(self.auto_update)
-        self.tilt_edit      .textModified.connect(self.auto_update)
-        self.bin_edit       .textModified.connect(self.auto_update)
-        self.bin_frac_edit  .textModified.connect(self.auto_update)
-        self.Iter_edit      .textModified.connect(self.auto_update)
-
         self.Upper_limit_checkbox       .stateChanged.connect(self.auto_update)
         self.Upper_limit_checkbox       .stateChanged.connect(self.update_velocity_display)
         self.ellip_veloc_checkbox       .stateChanged.connect(self.parameters_displayed_update)
@@ -975,21 +998,17 @@ class CovarUI(QtWidgets.QFrame):
         self.T_and_A_combo     .currentIndexChanged.connect(self.update_structures)
         self.covar_struct_combo.currentIndexChanged.connect(self.parameters_displayed_update)
 
+        self.slowness_type_combo   .currentIndexChanged.connect(self.change_covar_type_slowness)
+        self.xi_type_combo         .currentIndexChanged.connect(self.change_covar_type_xi)
+        self.tilt_type_combo       .currentIndexChanged.connect(self.change_covar_type_tilt)
+        self.slowness_3D_type_combo.currentIndexChanged.connect(self.change_covar_type_slowness_3D)
+
         self.models_list.itemSelectionChanged.connect(self.update_model)
         self.models_list.itemSelectionChanged.connect(self.parameters_displayed_update)
 
-        for item in (self.slowness_range_X_edit, self.slowness_range_Z_edit, self.slowness_theta_X_edit, self.slowness_sill_edit,
-                     self.xi_range_X_edit, self.xi_range_Z_edit, self.xi_theta_X_edit, self.xi_sill_edit,
-                     self.tilt_range_X_edit, self.tilt_range_Z_edit, self.tilt_theta_X_edit, self.tilt_sill_edit,
-                     self.slowness_3D_range_X_edit, self.slowness_3D_range_Y_edit, self.slowness_3D_range_Z_edit,
-                     self.slowness_3D_theta_X_edit, self.slowness_3D_theta_Y_edit, self.slowness_3D_theta_Z_edit,
-                     self.slowness_3D_sill_edit):
-            item.textModified.connect(self.auto_update)
-
-        for item in (self.T_and_A_combo, self.curv_rays_combo, self.curv_rays_combo):
-            item.currentIndexChanged.connect(self.auto_update)
-
-        self.models_list.itemSelectionChanged.connect(self.auto_update)
+        self.step_X_edit.textModified.connect(self.update_grid)
+        self.step_Y_edit.textModified.connect(self.update_grid)
+        self.step_Z_edit.textModified.connect(self.update_grid)
 
         for item in (self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox,
                      self.slowness_theta_X_checkbox, self.slowness_sill_checkbox,
@@ -1014,6 +1033,24 @@ class CovarUI(QtWidgets.QFrame):
                      self.slowness_3D_sill_edit,
                      self.slowness_edit, self.traveltime_edit, self.xi_edit, self.tilt_edit):
             item.textModified.connect(self.apply_parameters_changes)
+
+        for item in (self.velocity_edit, self.step_X_edit, self.step_Y_edit, self.step_Z_edit,
+                     self.slowness_edit, self.traveltime_edit, self.xi_edit, self.tilt_edit,
+                     self.bin_edit, self.bin_frac_edit, self.Iter_edit):
+            item.textModified.connect(self.auto_update)
+
+        for item in (self.slowness_range_X_edit, self.slowness_range_Z_edit, self.slowness_theta_X_edit, self.slowness_sill_edit,
+                     self.xi_range_X_edit, self.xi_range_Z_edit, self.xi_theta_X_edit, self.xi_sill_edit,
+                     self.tilt_range_X_edit, self.tilt_range_Z_edit, self.tilt_theta_X_edit, self.tilt_sill_edit,
+                     self.slowness_3D_range_X_edit, self.slowness_3D_range_Y_edit, self.slowness_3D_range_Z_edit,
+                     self.slowness_3D_theta_X_edit, self.slowness_3D_theta_Y_edit, self.slowness_3D_theta_Z_edit,
+                     self.slowness_3D_sill_edit):
+            item.textModified.connect(self.auto_update)
+
+        for item in (self.T_and_A_combo, self.curv_rays_combo, self.curv_rays_combo):
+            item.currentIndexChanged.connect(self.auto_update)
+
+        self.models_list.itemSelectionChanged.connect(self.auto_update)
 
         # ------- Sizes ------- #
         self.menu                 .setFixedHeight(self.menu.sizeHint().height())

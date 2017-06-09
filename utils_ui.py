@@ -4,7 +4,7 @@ Created on Mon Aug 29 08:09:12 2016
 
 @author: giroux
 
-Copyright 2017 Bernard Giroux, Jérome Simon
+Copyright 2017 Bernard Giroux, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -282,11 +282,7 @@ def savefile(module):
         if str(module.engine.url) == 'sqlite:///:memory:':
             return saveasfile(module)
 
-        print(module.session.query(Model).all()[0].tt_covar)
-        module.session.flush()
-        print(module.session.query(Model).all()[0].tt_covar)
         module.session.commit()
-        print(module.session.query(Model).all()[0].tt_covar)
         QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
         module.modified = False

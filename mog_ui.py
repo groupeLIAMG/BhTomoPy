@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -144,7 +144,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             tot_traces += mog.data.ntrace
         self.ntraceSignal.emit(tot_traces)
 
-    updateHandlerMog = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerPrune' prevents that.
+    updateHandlerMog = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandlerMog' prevents that.
 
     def update_mog_info(self):
 

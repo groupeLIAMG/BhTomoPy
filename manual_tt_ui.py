@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jérome Simon
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
 email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
@@ -20,7 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from sqlalchemy import Column, String, PickleType
+from sqlalchemy import Column, String, PickleType, Boolean
 from utils import Base, mog_model  # , borehole_model
 from sqlalchemy.orm import relationship
 
@@ -34,17 +34,21 @@ class Model(Base):
     amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
     inv_res    = Column(PickleType)    # Results of inversion
     tlinv_res  = Column(PickleType)    # Time-lapse inversion results
+    use_ellipt = Column(Boolean)
+    use_tilted = Column(Boolean)
 
     mogs = relationship("Mog", secondary=mog_model)
 #     boreholes = relationship("Borehole", secondary=borehole_model)
 
     def __init__(self, name=''):
-        self.name       = name  # Model's name
-        self.grid       = None  # Model's grid
-        self.tt_covar   = []    # Model's Traveltime covariance model
-        self.amp_covar  = []    # Model's Amplitude covariance model
-        self.inv_res    = []    # Results of inversion
-        self.tlinv_res  = None  # Time-lapse inversion results
+        self.name       = name   # Model's name
+        self.grid       = None   # Model's grid
+        self.tt_covar   = []     # Model's Traveltime covariance model
+        self.amp_covar  = []     # Model's Amplitude covariance model
+        self.inv_res    = []     # Results of inversion
+        self.tlinv_res  = None   # Time-lapse inversion results
+        self.use_ellipt = False  # Whether or not the model uses anisotropy
+        self.use_tilted = False  # Whether or not the model uses tilted anisotropy
 
     @staticmethod
     def getModelData(model, air, selected_mogs, type1, type2=''):
