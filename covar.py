@@ -289,18 +289,19 @@ class CovarianceModels(IntEnum):
         return CovarianceSpherical(np.array([4.0, 4.0, 4.0]), np.array([0.0, 0.0, 0.0]), 1.0)
 
 
-class Covariances(object):
+class Structure(object):
 
-    def __init__(self, Type):
-        self.type     = Type
-        self.slowness = []
-        if type == '2D':
-            r = [0, 0]
-            a = [0]
-            s = 0
-            self.slowness.append(Covariance(r, a, s))
-            self.xi   = []
-            self.tilt = []
+    def __init__(self, dim_type):
+        if dim_type == '2D' or dim_type == '2D+':
+            self.slowness = CovarianceModels.detDefault2D()
+            self.xi       = None
+            self.tilt     = None
+            self.nugget   = [0.0, 0.0, 0.0, 0.0]  # [slowness, traveltime, xi, tilt]
+        elif dim_type == '3D':
+            self.slowness = CovarianceModels.detDefault3D()
+            self.nugget   = [0.0, 0.0]  # [slowness, traveltime]
+        else:
+            raise TypeError
 
 
 def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):

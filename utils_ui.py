@@ -212,7 +212,6 @@ def save_warning(module):
 
         l0 = QtWidgets.QLabel(parent=d)
         l0.setAlignment(QtCore.Qt.AlignCenter)
-        l0.setStyleSheet('background-color: white')
 
         b0 = QtWidgets.QPushButton("Save", d)
         b1 = QtWidgets.QPushButton("Save as", d)
@@ -220,15 +219,15 @@ def save_warning(module):
         b3 = QtWidgets.QPushButton("Cancel", d)
 
         l0.move(10, 10)
-        b0.setMinimumWidth(b2.sizeHint().width())
-        b1.setMinimumWidth(b2.sizeHint().width())
-        b2.setMinimumWidth(b2.sizeHint().width())
-        b3.setMinimumWidth(b2.sizeHint().width())
+        b0.setMinimumWidth(b2.width())
+        b1.setMinimumWidth(b2.width())
+        b2.setMinimumWidth(b2.width())
+        b3.setMinimumWidth(b2.width())
         b0.move(15, 40)
-        b1.move(15 + b2.minimumWidth(), 40)
-        b2.move(15 + 2 * b2.minimumWidth(), 40)
-        b3.move(15 + 3 * b2.minimumWidth(), 40)
-        l0.setMinimumWidth(10 + 4 * b2.minimumWidth())
+        b1.move(15 + b2.width(), 40)
+        b2.move(15 + 2 * b2.width(), 40)
+        b3.move(15 + 3 * b2.width(), 40)
+        l0.setMinimumWidth(10 + 4 * b2.width())
         d.setMaximumWidth(10 * 3 + b2.width() * 4)
         d.setMaximumHeight(10 * 2 + b2.height() * 2)
         d.setMinimumWidth(10 * 3 + b2.width() * 4)
@@ -283,7 +282,11 @@ def savefile(module):
         if str(module.engine.url) == 'sqlite:///:memory:':
             return saveasfile(module)
 
+        print(module.session.query(Model).all()[0].tt_covar)
+        module.session.flush()
+        print(module.session.query(Model).all()[0].tt_covar)
         module.session.commit()
+        print(module.session.query(Model).all()[0].tt_covar)
         QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
         module.modified = False
@@ -300,13 +303,15 @@ def saveasfile(module):
     filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Database as ...', filter='Database (*.db)', )[0]
 
     if filename:
-        if filename != database.long_url(module):
+        if os.path.basename(filename) != database.long_url(module):
             database.save_as(module, filename)
             module.modified = False
             return True
 
         else:
             module.session.commit()
+            QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
+                                              buttons=QtWidgets.QMessageBox.Ok)
             module.modified = False
             return True
 

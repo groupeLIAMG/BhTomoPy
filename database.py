@@ -77,7 +77,7 @@ def verify_mapping(module):
     """
 
     for item in module.session.query(Model).all():
-        item.mogs
+        item.mogs, item.tt_covar
     for item in module.session.query(Mog).all():
         item.Tx, item.Rx, item.av, item.ap
 
@@ -90,7 +90,7 @@ def save_as(module, file):
 
     try:
         strong_referencing = get_many(module)  # @UnusedVariable  # Guarantees the objects and their relationships survive the transfer
-        verify_mapping(module)                                    # Referencing the attributes seems to guarantee the referencing's effectiveness
+        verify_mapping(module)                                    # Referencing the attributes seems to guarantee the strong referencing's effectiveness
         items = get_many(module)  # temporarily stores the saved items
 
         module.session.close()
@@ -144,6 +144,10 @@ def delete(module, item):
     else:
         module.session.expunge(item)
     module.modified = True
+
+
+def airshots_cleanup(module):
+    pass
 
 
 def long_url(module):

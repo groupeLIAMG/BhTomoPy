@@ -57,7 +57,6 @@ class CovarUI(QtWidgets.QFrame):
         self.move(translation)
 
         self.reset_data()
-        self.set_current_model()
         self.update_model()
         self.update_adjust()
         self.parameters_displayed_update()
@@ -114,14 +113,17 @@ class CovarUI(QtWidgets.QFrame):
 
     def current_covar(self):
 
-        if self.T_and_A_combo.currentIndex() == 0:
-            covar = self.model.tt_covar
-        else:
-            covar = self.model.amp_covar
+        if self.model is not None:
 
-        return covar
+            if self.T_and_A_combo.currentIndex() == 0:
+                covar = self.model.tt_covar
+            else:
+                covar = self.model.amp_covar
+
+            return covar
 
     def parameters_displayed_update(self):
+
         if self.updateHandler:
             return
 
@@ -142,11 +144,11 @@ class CovarUI(QtWidgets.QFrame):
         self.btn_Rem_Struct    .setDisabled(True)
 
         self.xi_label   .setHidden(True)
-        self.xi_Edit    .setHidden(True)
+        self.xi_edit    .setHidden(True)
         self.xi_checkbox.setHidden(True)
 
         self.tilt_label   .setHidden(True)
-        self.tilt_Edit    .setHidden(True)
+        self.tilt_edit    .setHidden(True)
         self.tilt_checkbox.setHidden(True)
 
         self.Nug_groupbox        .setDisabled(True)
@@ -185,14 +187,14 @@ class CovarUI(QtWidgets.QFrame):
                                 self.tilted_ellip_veloc_checkbox.setDisabled(False)
 
                                 self.xi_label   .setHidden(False)
-                                self.xi_Edit    .setHidden(False)
+                                self.xi_edit    .setHidden(False)
                                 self.xi_checkbox.setHidden(False)
 
                                 if self.tilted_ellip_veloc_checkbox.checkState():
                                     self.tilt_widget.setHidden(False)
 
                                     self.tilt_label   .setHidden(False)
-                                    self.tilt_Edit    .setHidden(False)
+                                    self.tilt_edit    .setHidden(False)
                                     self.tilt_checkbox.setHidden(False)
 
                             else:
@@ -238,13 +240,7 @@ class CovarUI(QtWidgets.QFrame):
             self.set_current_model()
             if self.model is not None:
                 if self.model.grid is not None:
-                    current_list = self.current_covar()
-                    if current_list:
-                        self.covar_struct_combo.addItems(["Structure no " + str(i + 1) for i in range(len(current_list))])
-                        self.covar_struct_combo.setCurrentIndex(0)
-                        current_struct = current_list[0]
-                        self.update_parameters(current_struct)
-                        self.btn_Rem_Struct.setDisabled(False)
+                    self.update_structures()
                     if self.temp_grid is None:
                         self.cells_no_label.setText(str(self.model.grid.getNumberOfCells()))
                         self.rays_no_label.setText('0')  # TODO
@@ -253,8 +249,21 @@ class CovarUI(QtWidgets.QFrame):
                     self.cells_no_label.setText('0')
                     self.rays_no_label.setText('0')
                     self.reset_grid()
+            else:
+                self.reset_grid()
+        else:
+            self.reset_grid()
 
-    def update_grid(self):
+    def update_structures(self):
+        self.covar_struct_combo.clear()
+        current_list = self.current_covar()
+        if current_list:
+            self.covar_struct_combo.addItems(["Structure no " + str(i + 1) for i in range(len(current_list))])
+            self.covar_struct_combo.setCurrentIndex(0)
+            self.update_parameters()
+            self.btn_Rem_Struct.setDisabled(False)
+
+    def new_grid(self):
         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
             self.temp_grid = grid.Grid2D()
         elif self.model.grid.type == '3D':
@@ -263,49 +272,139 @@ class CovarUI(QtWidgets.QFrame):
             self.temp_grid = None
 
     def reset_grid(self):
-        if self.model.grid is None:
+        if self.model is None or self.model.grid is None:
             self.X_min_label.setText('0')
             self.Y_min_label.setText('0')
             self.Z_min_label.setText('0')
             self.X_max_label.setText('0')
             self.Y_max_label.setText('0')
             self.Z_max_label.setText('0')
-            self.step_X_Edit.setText('')
-            self.step_Y_Edit.setText('')
-            self.step_Z_Edit.setText('')
+            self.step_X_edit.setText('')
+            self.step_Y_edit.setText('')
+            self.step_Z_edit.setText('')
             self.temp_grid = None
         else:
-            self.X_min_label.setText('0')
-            self.Y_min_label.setText('0')
-            self.Z_min_label.setText('0')
-            self.X_max_label.setText('0')
-            self.Y_max_label.setText('0')
-            self.Z_max_label.setText('0')
-            self.step_X_Edit.setText('')
-            self.step_Y_Edit.setText('')
-            self.step_Z_Edit.setText('')
-            self.update_grid()
+            self.new_grid()
+#             self.X_min_label.setText('0')  # the grid's
+#             self.Y_min_label.setText('0')
+#             self.Z_min_label.setText('0')
+#             self.X_max_label.setText('0')
+#             self.Y_max_label.setText('0')
+#             self.Z_max_label.setText('0')
+#             self.step_X_edit.setText('')
+#             self.step_Y_edit.setText('')
+#             self.step_Z_edit.setText('')
 
-    def update_parameters(self, structure=None):
-        pass
+    def update_parameters(self):
+
+        ind = self.covar_struct_combo.currentIndex()
+
+        if ind != -1:
+
+            struct = self.current_covar()[ind]
+
+            if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                self.slowness_range_X_edit.setText(str(struct.slowness.range[0]))
+                self.slowness_range_Z_edit.setText(str(struct.slowness.range[1]))
+                self.slowness_theta_X_edit.setText(str(struct.slowness.angle[0]))
+                self.slowness_sill_edit   .setText(str(struct.slowness.sill))
+                self.slowness_edit        .setText(str(struct.nugget[0]))
+                self.traveltime_edit      .setText(str(struct.nugget[1]))
+
+                if self.ellip_veloc_checkbox.checkState():
+                    if struct.xi is None:
+                        struct.xi = covar.CovarianceModels.detDefault2D()
+                    self.xi_range_X_edit.setText(str(struct.xi.range[0]))
+                    self.xi_range_Z_edit.setText(str(struct.xi.range[1]))
+                    self.xi_theta_X_edit.setText(str(struct.xi.angle[0]))
+                    self.xi_sill_edit   .setText(str(struct.xi.sill))
+                    self.xi_edit        .setText(str(struct.nugget[2]))
+
+                    if self.tilted_ellip_veloc_checkbox.checkState():
+                        if struct.tilt is None:
+                            struct.tilt = covar.CovarianceModels.detDefault2D()
+                        self.tilt_range_X_edit.setText(str(struct.tilt.range[0]))
+                        self.tilt_range_Z_edit.setText(str(struct.tilt.range[1]))
+                        self.tilt_theta_X_edit.setText(str(struct.tilt.angle[0]))
+                        self.tilt_sill_edit   .setText(str(struct.tilt.sill))
+                        self.tilt_edit        .setText(str(struct.nugget[3]))
+
+            elif self.model.grid.type == '3D':
+                self.slowness_3D_range_X_edit.setText(str(struct.slowness.range[0]))
+                self.slowness_3D_range_Y_edit.setText(str(struct.slowness.range[1]))
+                self.slowness_3D_range_Z_edit.setText(str(struct.slowness.range[2]))
+                self.slowness_3D_theta_X_edit.setText(str(struct.slowness.angle[0]))
+                self.slowness_3D_theta_Y_edit.setText(str(struct.slowness.angle[1]))
+                self.slowness_3D_theta_Z_edit.setText(str(struct.slowness.angle[2]))
+                self.slowness_3D_sill_edit   .setText(str(struct.slowness.sill))
+                self.slowness_edit           .setText(str(struct.nugget[0]))
+                self.traveltime_edit         .setText(str(struct.nugget[1]))
+
+    def apply_parameters_changes(self):
+
+        ind = self.covar_struct_combo.currentIndex()
+
+        if ind != -1:
+
+            struct = self.current_covar()[ind]
+
+            if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                struct.slowness.range[0] = self.slowness_range_X_edit.text()
+                struct.slowness.range[1] = self.slowness_range_Z_edit.text()
+                struct.slowness.angle[0] = self.slowness_theta_X_edit.text()
+                struct.slowness.sill     = self.slowness_sill_edit   .text()
+                struct.nugget[0]         = self.slowness_edit        .text()
+                struct.nugget[1]         = self.traveltime_edit      .text()
+
+                if self.ellip_veloc_checkbox.checkState():
+                    if struct.xi is None:
+                        struct.xi = covar.CovarianceModels.detDefault2D()
+                    struct.xi.range[0] = self.xi_range_X_edit.text()
+                    struct.xi.range[1] = self.xi_range_Z_edit.text()
+                    struct.xi.angle[0] = self.xi_theta_X_edit.text()
+                    struct.xi.sill     = self.xi_sill_edit   .text()
+                    struct.nugget[2]   = self.xi_edit        .text()
+
+                    if self.tilted_ellip_veloc_checkbox.checkState():
+                        if struct.tilt is None:
+                            struct.tilt = covar.CovarianceModels.detDefault2D()
+                        struct.tilt.range[0] = self.tilt_range_X_edit.text()
+                        struct.tilt.range[1] = self.tilt_range_Z_edit.text()
+                        struct.tilt.angle[0] = self.tilt_theta_X_edit.text()
+                        struct.tilt.sill     = self.tilt_sill_edit   .text()
+                        struct.nugget[3]     = self.tilt_edit        .text()
+
+            elif self.model.grid.type == '3D':
+                struct.slowness.range[0] = self.slowness_3D_range_X_edit.text()
+                struct.slowness.range[1] = self.slowness_3D_range_Y_edit.text()
+                struct.slowness.range[2] = self.slowness_3D_range_Z_edit.text()
+                struct.slowness.angle[0] = self.slowness_3D_theta_X_edit.text()
+                struct.slowness.angle[1] = self.slowness_3D_theta_Y_edit.text()
+                struct.slowness.angle[2] = self.slowness_3D_theta_Z_edit.text()
+                struct.slowness.sill     = self.slowness_3D_sill_edit   .text()
+                struct.nugget[0]         = self.slowness_edit           .text()
+                struct.nugget[1]         = self.traveltime_edit         .text()
+        # Also modify Use attributes (e.g. use_ellip, ...) on model
+        database.modified = True
 
     def update_adjust(self):
         pass
 
     def compute(self):  # TODO progress bar
         pass
+        # compute
 
     def show_stats(self):
         pass
 
     def add_struct(self):
-        new = covar.Covariances(self.model.grid.type)
+        new = covar.Structure(self.model.grid.type)
         self.current_covar().append(new)
         count = self.covar_struct_combo.count()
         self.covar_struct_combo.addItem('Structure no ' + str(count + 1))
         self.covar_struct_combo.setCurrentIndex(count)
         self.parameters_displayed_update()
-#         self.update_parameters(new)
+        self.update_parameters()
         database.modified = True
 
     def del_struct(self):
@@ -320,7 +419,7 @@ class CovarUI(QtWidgets.QFrame):
             else:
                 self.covar_struct_combo.setCurrentIndex(index)
         self.parameters_displayed_update()
-#         self.update_parameters(self.current_covar()[self.covar_struct_combo.currentIndex()])
+        self.update_parameters()
         database.modified = True
 
     def adjust(self):
@@ -355,7 +454,12 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_velocity_display(self):
 
-        self.velocity_Edit.setEnabled(self.Upper_limit_checkbox.checkState())
+        flag = self.Upper_limit_checkbox.checkState()
+        self.velocity_edit.setEnabled(flag)
+        if flag:
+            self.velocity_edit.setText('0.15')  # TODO model's value instead of default
+        else:
+            self.velocity_edit.setText('')
 
     def initUI(self):
 
@@ -454,20 +558,20 @@ class CovarUI(QtWidgets.QFrame):
         rays_label          .setPalette(palette)
 
         # --- Edits --- #
-        self.velocity_Edit = MyLineEdit()
-        self.step_X_Edit = MyLineEdit()
-        self.step_X_Edit.setFixedWidth(50)
-        self.step_Y_Edit = MyLineEdit()
-        self.step_Y_Edit.setFixedWidth(50)
-        self.step_Z_Edit = MyLineEdit()
-        self.step_Z_Edit.setFixedWidth(50)
-        self.slowness_Edit   = MyLineEdit('0')
-        self.traveltime_Edit = MyLineEdit('0')
-        self.xi_Edit         = MyLineEdit('0')
-        self.tilt_Edit       = MyLineEdit('0')
-        self.bin_Edit        = MyLineEdit('50')
-        self.bin_frac_Edit   = MyLineEdit('0.25')
-        self.Iter_Edit       = MyLineEdit('5')
+        self.velocity_edit = MyLineEdit()
+        self.step_X_edit = MyLineEdit()
+        self.step_X_edit.setFixedWidth(50)
+        self.step_Y_edit = MyLineEdit()
+        self.step_Y_edit.setFixedWidth(50)
+        self.step_Z_edit = MyLineEdit()
+        self.step_Z_edit.setFixedWidth(50)
+        self.slowness_edit   = MyLineEdit('0.0')
+        self.traveltime_edit = MyLineEdit('0.0')
+        self.xi_edit         = MyLineEdit('0.0')
+        self.tilt_edit       = MyLineEdit('0.0')
+        self.bin_edit        = MyLineEdit('50')
+        self.bin_frac_edit   = MyLineEdit('0.25')
+        self.Iter_edit       = MyLineEdit('5')
 
         # --- Checkboxes --- #
         self.Upper_limit_checkbox        = QtWidgets.QCheckBox("Upper Limit - Apparent Velocity")
@@ -496,49 +600,6 @@ class CovarUI(QtWidgets.QFrame):
 
         # --- List --- #
         self.models_list = QtWidgets.QListWidget()
-
-        # ------- Actions ------- #
-        # --- Buttons --- #
-        self.btn_Show_Stats.clicked.connect(self.show_stats)
-        self.btn_Add_Struct.clicked.connect(self.add_struct)
-        self.btn_Rem_Struct.clicked.connect(self.del_struct)
-        self.btn_compute   .clicked.connect(self.compute)
-        self.btn_GO        .clicked.connect(self.adjust)
-
-        # --- Edits --- #
-        self.velocity_Edit  .textModified.connect(self.auto_update)
-#         self.step_X_Edit    .textModified.connect(self.auto_update)
-        self.step_X_Edit    .textModified.connect(self.auto_update)
-#         self.step_Y_Edit    .textModified.connect(self.auto_update)
-        self.step_Y_Edit    .textModified.connect(self.auto_update)
-#         self.step_Z_Edit    .textModified.connect(self.auto_update)
-        self.step_Z_Edit    .textModified.connect(self.auto_update)
-        self.slowness_Edit  .textModified.connect(self.auto_update)
-        self.traveltime_Edit.textModified.connect(self.auto_update)
-        self.xi_Edit        .textModified.connect(self.auto_update)
-        self.tilt_Edit      .textModified.connect(self.auto_update)
-        self.bin_Edit       .textModified.connect(self.auto_update)
-        self.bin_frac_Edit  .textModified.connect(self.auto_update)
-        self.Iter_Edit      .textModified.connect(self.auto_update)
-
-        # --- Checkboxes --- #
-        self.Upper_limit_checkbox       .stateChanged.connect(self.auto_update)
-        self.Upper_limit_checkbox       .stateChanged.connect(self.update_velocity_display)
-        self.ellip_veloc_checkbox       .stateChanged.connect(self.parameters_displayed_update)
-        self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.parameters_displayed_update)
-        self.ellip_veloc_checkbox       .stateChanged.connect(self.auto_update)
-        self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.auto_update)
-        self.include_checkbox           .stateChanged.connect(self.auto_update)
-
-        # --- Comboboxes --- #
-        self.T_and_A_combo     .currentIndexChanged.connect(self.update_model)
-        self.T_and_A_combo     .currentIndexChanged.connect(self.auto_update)
-        self.curv_rays_combo   .currentIndexChanged.connect(self.auto_update)
-        self.covar_struct_combo.currentIndexChanged.connect(self.parameters_displayed_update)
-
-        # --- List --- #
-        self.models_list.itemSelectionChanged.connect(self.update_model)
-        self.models_list.itemSelectionChanged.connect(self.parameters_displayed_update)
 
         # ------- SubWidgets ------- #
         # --- Curved Rays SubWidget --- #
@@ -576,9 +637,9 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Step_Widget = QtWidgets.QWidget()
         Sub_Step_Grid = QtWidgets.QGridLayout()
         Sub_Step_Grid.addWidget(step_label, 1, 0)
-        Sub_Step_Grid.addWidget(self.step_X_Edit, 1, 1)
-        Sub_Step_Grid.addWidget(self.step_Y_Edit, 1, 2)
-        Sub_Step_Grid.addWidget(self.step_Z_Edit, 1, 3)
+        Sub_Step_Grid.addWidget(self.step_X_edit, 1, 1)
+        Sub_Step_Grid.addWidget(self.step_Y_edit, 1, 2)
+        Sub_Step_Grid.addWidget(self.step_Z_edit, 1, 3)
         Sub_Step_Grid.addWidget(Xi_label, 0, 1)
         Sub_Step_Grid.addWidget(Yi_label, 0, 2)
         Sub_Step_Grid.addWidget(Zi_label, 0, 3)
@@ -596,7 +657,7 @@ class CovarUI(QtWidgets.QFrame):
         data_grid.addWidget(rays_label, 1, 1)
         data_grid.addWidget(self.models_list, 2, 0, 3, 2)
         data_grid.addWidget(self.Upper_limit_checkbox, 0, 2)
-        data_grid.addWidget(self.velocity_Edit, 0, 3)
+        data_grid.addWidget(self.velocity_edit, 0, 3)
         data_grid.addWidget(self.ellip_veloc_checkbox, 1, 2)
         data_grid.addWidget(self.tilted_ellip_veloc_checkbox, 2, 2)
         data_grid.addWidget(self.include_checkbox, 3, 2)
@@ -633,14 +694,15 @@ class CovarUI(QtWidgets.QFrame):
 
         slowness_param_edit       = QtWidgets.QLineEdit('Slowness')
         slowness_param_edit.setReadOnly(True)
+        slowness_param_edit.setAlignment(QtCore.Qt.AlignCenter)
         slowness_type_combo       = QtWidgets.QComboBox()
         slowness_type_combo.addItems(types)
         slowness_value_label      = MyQLabel("Value", ha='center')
         slowness_fix_label        = MyQLabel("Fix", ha='center')
-        slowness_range_X_edit     = MyLineEdit('0.0')
-        slowness_range_Z_edit     = MyLineEdit('0.0')
-        slowness_theta_X_edit     = MyLineEdit('0.0')
-        slowness_sill_edit        = MyLineEdit('0.0')
+        self.slowness_range_X_edit     = MyLineEdit('4.0')
+        self.slowness_range_Z_edit     = MyLineEdit('4.0')
+        self.slowness_theta_X_edit     = MyLineEdit('0.0')
+        self.slowness_sill_edit        = MyLineEdit('1.0')
         self.slowness_range_X_checkbox = QtWidgets.QCheckBox()
         self.slowness_range_Z_checkbox = QtWidgets.QCheckBox()
         self.slowness_theta_X_checkbox = QtWidgets.QCheckBox()
@@ -652,10 +714,10 @@ class CovarUI(QtWidgets.QFrame):
         slowness_grid.addWidget(slowness_type_combo, 1, 0, 1, 2)
         slowness_grid.addWidget(slowness_value_label, 2, 0)
         slowness_grid.addWidget(slowness_fix_label, 2, 1)
-        slowness_grid.addWidget(slowness_range_X_edit, 3, 0)
-        slowness_grid.addWidget(slowness_range_Z_edit, 4, 0)
-        slowness_grid.addWidget(slowness_theta_X_edit, 5, 0)
-        slowness_grid.addWidget(slowness_sill_edit, 6, 0)
+        slowness_grid.addWidget(self.slowness_range_X_edit, 3, 0)
+        slowness_grid.addWidget(self.slowness_range_Z_edit, 4, 0)
+        slowness_grid.addWidget(self.slowness_theta_X_edit, 5, 0)
+        slowness_grid.addWidget(self.slowness_sill_edit, 6, 0)
         slowness_grid.addWidget(self.slowness_range_X_checkbox, 3, 1)
         slowness_grid.addWidget(self.slowness_range_Z_checkbox, 4, 1)
         slowness_grid.addWidget(self.slowness_theta_X_checkbox, 5, 1)
@@ -665,14 +727,15 @@ class CovarUI(QtWidgets.QFrame):
 
         xi_param_edit       = QtWidgets.QLineEdit(xi)
         xi_param_edit.setReadOnly(True)
+        xi_param_edit.setAlignment(QtCore.Qt.AlignCenter)
         xi_type_combo       = QtWidgets.QComboBox()
         xi_type_combo.addItems(types)
         xi_value_label      = MyQLabel("Value", ha='center')
         xi_fix_label        = MyQLabel("Fix", ha='center')
-        xi_range_X_edit     = MyLineEdit('0.0')
-        xi_range_Z_edit     = MyLineEdit('0.0')
-        xi_theta_X_edit     = MyLineEdit('0.0')
-        xi_sill_edit        = MyLineEdit('0.0')
+        self.xi_range_X_edit     = MyLineEdit('4.0')
+        self.xi_range_Z_edit     = MyLineEdit('4.0')
+        self.xi_theta_X_edit     = MyLineEdit('0.0')
+        self.xi_sill_edit        = MyLineEdit('1.0')
         self.xi_range_X_checkbox = QtWidgets.QCheckBox()
         self.xi_range_Z_checkbox = QtWidgets.QCheckBox()
         self.xi_theta_X_checkbox = QtWidgets.QCheckBox()
@@ -684,10 +747,10 @@ class CovarUI(QtWidgets.QFrame):
         xi_grid.addWidget(xi_type_combo, 1, 0, 1, 2)
         xi_grid.addWidget(xi_value_label, 2, 0)
         xi_grid.addWidget(xi_fix_label, 2, 1)
-        xi_grid.addWidget(xi_range_X_edit, 3, 0)
-        xi_grid.addWidget(xi_range_Z_edit, 4, 0)
-        xi_grid.addWidget(xi_theta_X_edit, 5, 0)
-        xi_grid.addWidget(xi_sill_edit, 6, 0)
+        xi_grid.addWidget(self.xi_range_X_edit, 3, 0)
+        xi_grid.addWidget(self.xi_range_Z_edit, 4, 0)
+        xi_grid.addWidget(self.xi_theta_X_edit, 5, 0)
+        xi_grid.addWidget(self.xi_sill_edit, 6, 0)
         xi_grid.addWidget(self.xi_range_X_checkbox, 3, 1)
         xi_grid.addWidget(self.xi_range_Z_checkbox, 4, 1)
         xi_grid.addWidget(self.xi_theta_X_checkbox, 5, 1)
@@ -697,14 +760,15 @@ class CovarUI(QtWidgets.QFrame):
 
         tilt_param_edit       = QtWidgets.QLineEdit('Tilt Angle')
         tilt_param_edit.setReadOnly(True)
+        tilt_param_edit.setAlignment(QtCore.Qt.AlignCenter)
         tilt_type_combo       = QtWidgets.QComboBox()
         tilt_type_combo.addItems(types)
         tilt_value_label      = MyQLabel("Value", ha='center')
         tilt_fix_label        = MyQLabel("Fix", ha='center')
-        tilt_range_X_edit     = MyLineEdit('0.0')
-        tilt_range_Z_edit     = MyLineEdit('0.0')
-        tilt_theta_X_edit     = MyLineEdit('0.0')
-        tilt_sill_edit        = MyLineEdit('0.0')
+        self.tilt_range_X_edit     = MyLineEdit('4.0')
+        self.tilt_range_Z_edit     = MyLineEdit('4.0')
+        self.tilt_theta_X_edit     = MyLineEdit('0.0')
+        self.tilt_sill_edit        = MyLineEdit('1.0')
         self.tilt_range_X_checkbox = QtWidgets.QCheckBox()
         self.tilt_range_Z_checkbox = QtWidgets.QCheckBox()
         self.tilt_theta_X_checkbox = QtWidgets.QCheckBox()
@@ -716,10 +780,10 @@ class CovarUI(QtWidgets.QFrame):
         tilt_grid.addWidget(tilt_type_combo, 1, 0, 1, 2)
         tilt_grid.addWidget(tilt_value_label, 2, 0)
         tilt_grid.addWidget(tilt_fix_label, 2, 1)
-        tilt_grid.addWidget(tilt_range_X_edit, 3, 0)
-        tilt_grid.addWidget(tilt_range_Z_edit, 4, 0)
-        tilt_grid.addWidget(tilt_theta_X_edit, 5, 0)
-        tilt_grid.addWidget(tilt_sill_edit, 6, 0)
+        tilt_grid.addWidget(self.tilt_range_X_edit, 3, 0)
+        tilt_grid.addWidget(self.tilt_range_Z_edit, 4, 0)
+        tilt_grid.addWidget(self.tilt_theta_X_edit, 5, 0)
+        tilt_grid.addWidget(self.tilt_sill_edit, 6, 0)
         tilt_grid.addWidget(self.tilt_range_X_checkbox, 3, 1)
         tilt_grid.addWidget(self.tilt_range_Z_checkbox, 4, 1)
         tilt_grid.addWidget(self.tilt_theta_X_checkbox, 5, 1)
@@ -737,17 +801,18 @@ class CovarUI(QtWidgets.QFrame):
 
         slowness_3D_param_edit       = QtWidgets.QLineEdit('Slowness')
         slowness_3D_param_edit.setReadOnly(True)
+        slowness_3D_param_edit.setAlignment(QtCore.Qt.AlignCenter)
         slowness_3D_type_combo       = QtWidgets.QComboBox()
         slowness_3D_type_combo.addItems(types)
         slowness_3D_value_label      = MyQLabel("Value", ha='center')
         slowness_3D_fix_label        = MyQLabel("Fix", ha='center')
-        slowness_3D_range_X_edit     = MyLineEdit('0.0')
-        slowness_3D_range_Y_edit     = MyLineEdit('0.0')
-        slowness_3D_range_Z_edit     = MyLineEdit('0.0')
-        slowness_3D_theta_X_edit     = MyLineEdit('0.0')
-        slowness_3D_theta_Y_edit     = MyLineEdit('0.0')
-        slowness_3D_theta_Z_edit     = MyLineEdit('0.0')
-        slowness_3D_sill_edit        = MyLineEdit('0.0')
+        self.slowness_3D_range_X_edit     = MyLineEdit('4.0')
+        self.slowness_3D_range_Y_edit     = MyLineEdit('4.0')
+        self.slowness_3D_range_Z_edit     = MyLineEdit('4.0')
+        self.slowness_3D_theta_X_edit     = MyLineEdit('0.0')
+        self.slowness_3D_theta_Y_edit     = MyLineEdit('0.0')
+        self.slowness_3D_theta_Z_edit     = MyLineEdit('0.0')
+        self.slowness_3D_sill_edit        = MyLineEdit('1.0')
         self.slowness_3D_range_X_checkbox = QtWidgets.QCheckBox()
         self.slowness_3D_range_Y_checkbox = QtWidgets.QCheckBox()
         self.slowness_3D_range_Z_checkbox = QtWidgets.QCheckBox()
@@ -769,13 +834,13 @@ class CovarUI(QtWidgets.QFrame):
         slowness_3D_grid.addWidget(theta_Y_3D_label, 7, 0)
         slowness_3D_grid.addWidget(theta_Z_3D_label, 8, 0)
         slowness_3D_grid.addWidget(sill_3D_label, 9, 0)
-        slowness_3D_grid.addWidget(slowness_3D_range_X_edit, 3, 1)
-        slowness_3D_grid.addWidget(slowness_3D_range_Y_edit, 4, 1)
-        slowness_3D_grid.addWidget(slowness_3D_range_Z_edit, 5, 1)
-        slowness_3D_grid.addWidget(slowness_3D_theta_X_edit, 6, 1)
-        slowness_3D_grid.addWidget(slowness_3D_theta_Y_edit, 7, 1)
-        slowness_3D_grid.addWidget(slowness_3D_theta_Z_edit, 8, 1)
-        slowness_3D_grid.addWidget(slowness_3D_sill_edit, 9, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_range_X_edit, 3, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_range_Y_edit, 4, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_range_Z_edit, 5, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_theta_X_edit, 6, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_theta_Y_edit, 7, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_theta_Z_edit, 8, 1)
+        slowness_3D_grid.addWidget(self.slowness_3D_sill_edit, 9, 1)
         slowness_3D_grid.addWidget(self.slowness_3D_range_X_checkbox, 3, 2)
         slowness_3D_grid.addWidget(self.slowness_3D_range_Y_checkbox, 4, 2)
         slowness_3D_grid.addWidget(self.slowness_3D_range_Z_checkbox, 5, 2)
@@ -807,16 +872,16 @@ class CovarUI(QtWidgets.QFrame):
         self.Nug_groupbox = QtWidgets.QGroupBox("Nugget Effect")
         Nug_grid = QtWidgets.QGridLayout()
         Nug_grid.addWidget(self.slowness_label, 0, 0)
-        Nug_grid.addWidget(self.slowness_Edit, 0, 1)
+        Nug_grid.addWidget(self.slowness_edit, 0, 1)
         Nug_grid.addWidget(self.slowness_checkbox, 0, 2)
         Nug_grid.addWidget(self.traveltime_label, 0, 3)
-        Nug_grid.addWidget(self.traveltime_Edit, 0, 4)
+        Nug_grid.addWidget(self.traveltime_edit, 0, 4)
         Nug_grid.addWidget(self.traveltime_checkbox, 0, 5)
         Nug_grid.addWidget(self.xi_label, 1, 0)
-        Nug_grid.addWidget(self.xi_Edit, 1, 1)
+        Nug_grid.addWidget(self.xi_edit, 1, 1)
         Nug_grid.addWidget(self.xi_checkbox, 1, 2)
         Nug_grid.addWidget(self.tilt_label, 1, 3)
-        Nug_grid.addWidget(self.tilt_Edit, 1, 4)
+        Nug_grid.addWidget(self.tilt_edit, 1, 4)
         Nug_grid.addWidget(self.tilt_checkbox, 1, 5)
         self.Nug_groupbox.setLayout(Nug_grid)
 
@@ -836,11 +901,11 @@ class CovarUI(QtWidgets.QFrame):
         self.Adjust_Model_groupbox = QtWidgets.QGroupBox("Adjust Model (Simplex Method)")
         Adjust_Model_grid = QtWidgets.QGridLayout()
         Adjust_Model_grid.addWidget(bin_label, 0, 0)
-        Adjust_Model_grid.addWidget(self.bin_Edit, 0, 1)
+        Adjust_Model_grid.addWidget(self.bin_edit, 0, 1)
         Adjust_Model_grid.addWidget(bin_frac_label, 1, 0)
-        Adjust_Model_grid.addWidget(self.bin_frac_Edit, 1, 1)
+        Adjust_Model_grid.addWidget(self.bin_frac_edit, 1, 1)
         Adjust_Model_grid.addWidget(Iter_label, 2, 0)
-        Adjust_Model_grid.addWidget(self.Iter_Edit, 2, 1)
+        Adjust_Model_grid.addWidget(self.Iter_edit, 2, 1)
         Adjust_Model_grid.addWidget(self.btn_GO, 0, 3, 3, 1)
 #         Adjust_Model_grid.setColumnStretch(4, 100)
         self.Adjust_Model_groupbox.setLayout(Adjust_Model_grid)
@@ -878,12 +943,47 @@ class CovarUI(QtWidgets.QFrame):
         self.setLayout(master_grid)
 
         # ------- Actions ------- #
+        self.btn_Show_Stats.clicked.connect(self.show_stats)
+        self.btn_Add_Struct.clicked.connect(self.add_struct)
+        self.btn_Rem_Struct.clicked.connect(self.del_struct)
+        self.btn_compute   .clicked.connect(self.compute)
+        self.btn_GO        .clicked.connect(self.adjust)
 
-        for item in (slowness_range_X_edit, slowness_range_Z_edit, slowness_theta_X_edit, slowness_sill_edit,
-                     xi_range_X_edit, xi_range_Z_edit, xi_theta_X_edit, xi_sill_edit,
-                     tilt_range_X_edit, tilt_range_Z_edit, tilt_theta_X_edit, tilt_sill_edit,
-                     slowness_3D_range_X_edit, slowness_3D_range_Y_edit, slowness_3D_range_Z_edit,
-                     slowness_3D_theta_X_edit, slowness_3D_theta_Y_edit, slowness_3D_theta_Z_edit, slowness_3D_sill_edit):
+        self.velocity_edit  .textModified.connect(self.auto_update)
+#         self.step_X_edit    .textModified.connect(self.auto_update)
+        self.step_X_edit    .textModified.connect(self.auto_update)
+#         self.step_Y_edit    .textModified.connect(self.auto_update)
+        self.step_Y_edit    .textModified.connect(self.auto_update)
+#         self.step_Z_edit    .textModified.connect(self.auto_update)
+        self.step_Z_edit    .textModified.connect(self.auto_update)
+        self.slowness_edit  .textModified.connect(self.auto_update)
+        self.traveltime_edit.textModified.connect(self.auto_update)
+        self.xi_edit        .textModified.connect(self.auto_update)
+        self.tilt_edit      .textModified.connect(self.auto_update)
+        self.bin_edit       .textModified.connect(self.auto_update)
+        self.bin_frac_edit  .textModified.connect(self.auto_update)
+        self.Iter_edit      .textModified.connect(self.auto_update)
+
+        self.Upper_limit_checkbox       .stateChanged.connect(self.auto_update)
+        self.Upper_limit_checkbox       .stateChanged.connect(self.update_velocity_display)
+        self.ellip_veloc_checkbox       .stateChanged.connect(self.parameters_displayed_update)
+        self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.parameters_displayed_update)
+        self.ellip_veloc_checkbox       .stateChanged.connect(self.auto_update)
+        self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.auto_update)
+        self.include_checkbox           .stateChanged.connect(self.auto_update)
+
+        self.T_and_A_combo     .currentIndexChanged.connect(self.update_structures)
+        self.covar_struct_combo.currentIndexChanged.connect(self.parameters_displayed_update)
+
+        self.models_list.itemSelectionChanged.connect(self.update_model)
+        self.models_list.itemSelectionChanged.connect(self.parameters_displayed_update)
+
+        for item in (self.slowness_range_X_edit, self.slowness_range_Z_edit, self.slowness_theta_X_edit, self.slowness_sill_edit,
+                     self.xi_range_X_edit, self.xi_range_Z_edit, self.xi_theta_X_edit, self.xi_sill_edit,
+                     self.tilt_range_X_edit, self.tilt_range_Z_edit, self.tilt_theta_X_edit, self.tilt_sill_edit,
+                     self.slowness_3D_range_X_edit, self.slowness_3D_range_Y_edit, self.slowness_3D_range_Z_edit,
+                     self.slowness_3D_theta_X_edit, self.slowness_3D_theta_Y_edit, self.slowness_3D_theta_Z_edit,
+                     self.slowness_3D_sill_edit):
             item.textModified.connect(self.auto_update)
 
         for item in (self.T_and_A_combo, self.curv_rays_combo, self.curv_rays_combo):
@@ -902,6 +1002,18 @@ class CovarUI(QtWidgets.QFrame):
                      self.slowness_3D_sill_checkbox,
                      self.slowness_checkbox, self.traveltime_checkbox, self.xi_checkbox, self.tilt_checkbox):
             item.clicked.connect(self.fix_verif)
+
+        for item in (self.slowness_range_X_edit, self.slowness_range_Z_edit,
+                     self.slowness_theta_X_edit, self.slowness_sill_edit,
+                     self.xi_range_X_edit, self.xi_range_Z_edit,
+                     self.xi_theta_X_edit, self.xi_sill_edit,
+                     self.tilt_range_X_edit, self.tilt_range_Z_edit,
+                     self.tilt_theta_X_edit, self.tilt_sill_edit,
+                     self.slowness_3D_range_X_edit, self.slowness_3D_range_Y_edit, self.slowness_3D_range_Z_edit,
+                     self.slowness_3D_theta_X_edit, self.slowness_3D_theta_Y_edit, self.slowness_3D_theta_Z_edit,
+                     self.slowness_3D_sill_edit,
+                     self.slowness_edit, self.traveltime_edit, self.xi_edit, self.tilt_edit):
+            item.textModified.connect(self.apply_parameters_changes)
 
         # ------- Sizes ------- #
         self.menu                 .setFixedHeight(self.menu.sizeHint().height())
