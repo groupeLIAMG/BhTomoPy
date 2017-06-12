@@ -157,9 +157,9 @@ class BoreholeUI(QtWidgets.QWidget):
 
         exp = re.compile("^-?[0-9]+([\.,][0-9]+)?$")  # float number, with or without decimals, and allowing negatives
 
-        for item in [self.X_edit, self.Y_edit, self.Z_edit,
+        for item in (self.X_edit, self.Y_edit, self.Z_edit,
                      self.Xmax_edit, self.Ymax_edit, self.Zmax_edit,
-                     self.Z_surf_edit, self.Z_water_edit]:
+                     self.Z_surf_edit, self.Z_water_edit):
 
             if item.text() != '' and not exp.match(item.text()):
                 self.bhlogSignal.emit("Error: Some edited information is incorrect.")

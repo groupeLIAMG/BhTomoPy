@@ -155,8 +155,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$")  # float number, with or without decimals, and allowing negatives
 
-        for item in [self.Nominal_Frequency_edit, self.Rx_Offset_edit, self.Tx_Offset_edit,
-                     self.Correction_Factor_edit, self.Multiplication_Factor_edit]:
+        for item in (self.Nominal_Frequency_edit, self.Rx_Offset_edit, self.Tx_Offset_edit,
+                     self.Correction_Factor_edit, self.Multiplication_Factor_edit):
 
             if item.text() != '' and not expFloat.match(item.text()):
                 self.moglogSignal.emit("Error: Some edited information is incorrect.")
@@ -633,9 +633,9 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         expFloat = re.compile("^-?[0-9]+([\.,][0-9]+)?$")  # float number, with or without decimals, and allowing negatives
         expInt   = re.compile("^[0-9]+$")                  # positive integer
 
-        for item in [self.min_elev_edit, self.max_elev_edit,
+        for item in (self.min_elev_edit, self.max_elev_edit,
                      self.round_fac_edit, self.thresh_edit,
-                     self.min_ang_edit, self.max_ang_edit]:
+                     self.min_ang_edit, self.max_ang_edit):
 
             if item.text() != '' and not expFloat.match(item.text()):
                 item.setFocus()
@@ -646,7 +646,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
             item.setText(item.text().replace(',', '.'))
 
-        for item in [self.skip_Rx_edit, self.skip_Tx_edit]:
+        for item in (self.skip_Rx_edit, self.skip_Tx_edit):
 
             if item.text() != '' and not expInt.match(item.text()):
                 item.setFocus()
@@ -2067,7 +2067,7 @@ class StatsAmpFig(FigureCanvasQTAgg):
 
     def initFig(self):
 
-        # horizontal configruation
+        # horizontal configuration
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
         self.ax3 = self.figure.add_axes([0.7, 0.1, 0.2, 0.25])
@@ -2304,11 +2304,11 @@ class MergeMog(QtWidgets.QWidget):
                 test2 = False
                 test3 = False
 
-                if len(ref_mog.av) == 0 and len(mog.av) == 0:
+                if ref_mog.av is None and mog.av is None:
                     test2 = True
                 elif ref_mog.av == mog.av:
                     test2 = True
-                if len(ref_mog.ap) == 0 and len(mog.ap) == 0:
+                if ref_mog.ap is None and mog.ap is None:
                     test3 = True
                 elif ref_mog.ap == mog.ap:
                     test3 = True

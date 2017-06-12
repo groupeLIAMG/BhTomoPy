@@ -86,6 +86,10 @@ def save_as(module, file):
     """
     Closes the current file, safely transfers its items to a new file and overwrites the selected file.
     To simply save a 'session' within the current file, the 'session.commit()' method is preferable.
+    Watch out, though, the session may not be wary of changes caused by methods such as *.append. In such
+    cases, to commit properly, one must flag the attribute as modified. This can be achieved with the
+    sqlalchemy.orm.attributes.flag_modified method, which takes an mapped object as first parameter and
+    the attribute's name (a string) as second parameter.
     """
 
     try:
@@ -179,8 +183,8 @@ if __name__ == '__main__':
 # current_module = sys.modules[__name__]
 
 
-#         from sqlalchemy.orm.attributes import flag_modified
-#         flag_modified(module.session.query(Model).all()[0], 'tt_covar')
+# from sqlalchemy.orm.attributes import flag_modified
+# flag_modified(module.session.query(Model).all()[0], 'tt_covar')
 
 
 # Test bank

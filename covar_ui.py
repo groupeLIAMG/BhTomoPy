@@ -28,6 +28,13 @@ import utils_ui
 import grid
 from sqlalchemy.orm.attributes import flag_modified
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+# from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
+
 
 class CovarUI(QtWidgets.QFrame):
 
@@ -326,8 +333,8 @@ class CovarUI(QtWidgets.QFrame):
                 self.slowness_range_Z_edit.setText(str(struct.slowness.range[1]))
                 self.slowness_theta_X_edit.setText(str(struct.slowness.angle[0]))
                 self.slowness_sill_edit   .setText(str(struct.slowness.sill))
-                self.slowness_edit        .setText(str(struct.nugget[0]))
-                self.traveltime_edit      .setText(str(struct.nugget[1]))
+                self.slowness_edit        .setText(str(struct.nugget_slowness))
+                self.traveltime_edit      .setText(str(struct.nugget_traveltime))
 
                 if self.ellip_veloc_checkbox.checkState():
                     if struct.xi is None:
@@ -337,7 +344,7 @@ class CovarUI(QtWidgets.QFrame):
                     self.xi_range_Z_edit.setText(str(struct.xi.range[1]))
                     self.xi_theta_X_edit.setText(str(struct.xi.angle[0]))
                     self.xi_sill_edit   .setText(str(struct.xi.sill))
-                    self.xi_edit        .setText(str(struct.nugget[2]))
+                    self.xi_edit        .setText(str(struct.nugget_xi))
 
                     if self.tilted_ellip_veloc_checkbox.checkState():
                         if struct.tilt is None:
@@ -347,7 +354,7 @@ class CovarUI(QtWidgets.QFrame):
                         self.tilt_range_Z_edit.setText(str(struct.tilt.range[1]))
                         self.tilt_theta_X_edit.setText(str(struct.tilt.angle[0]))
                         self.tilt_sill_edit   .setText(str(struct.tilt.sill))
-                        self.tilt_edit        .setText(str(struct.nugget[3]))
+                        self.tilt_edit        .setText(str(struct.nugget_tilt))
 
             elif self.model.grid.type == '3D':
                 self.slowness_3D_type_combo  .setCurrentIndex(struct.slowness.type)
@@ -358,8 +365,8 @@ class CovarUI(QtWidgets.QFrame):
                 self.slowness_3D_theta_Y_edit.setText(str(struct.slowness.angle[1]))
                 self.slowness_3D_theta_Z_edit.setText(str(struct.slowness.angle[2]))
                 self.slowness_3D_sill_edit   .setText(str(struct.slowness.sill))
-                self.slowness_edit           .setText(str(struct.nugget[0]))
-                self.traveltime_edit         .setText(str(struct.nugget[1]))
+                self.slowness_edit           .setText(str(struct.nugget_slowness))
+                self.traveltime_edit         .setText(str(struct.nugget_traveltime))
 
     def apply_parameters_changes(self):
 
@@ -372,8 +379,8 @@ class CovarUI(QtWidgets.QFrame):
                 struct.slowness.range[1] = self.slowness_range_Z_edit.text()
                 struct.slowness.angle[0] = self.slowness_theta_X_edit.text()
                 struct.slowness.sill     = self.slowness_sill_edit   .text()
-                struct.nugget[0]         = self.slowness_edit        .text()
-                struct.nugget[1]         = self.traveltime_edit      .text()
+                struct.nugget_slowness   = self.slowness_edit        .text()
+                struct.nugget_traveltime = self.traveltime_edit      .text()
 
                 if self.ellip_veloc_checkbox.checkState():
                     if struct.xi is None:
@@ -382,7 +389,7 @@ class CovarUI(QtWidgets.QFrame):
                     struct.xi.range[1] = self.xi_range_Z_edit.text()
                     struct.xi.angle[0] = self.xi_theta_X_edit.text()
                     struct.xi.sill     = self.xi_sill_edit   .text()
-                    struct.nugget[2]   = self.xi_edit        .text()
+                    struct.nugget_xi   = self.xi_edit        .text()
 
                     if self.tilted_ellip_veloc_checkbox.checkState():
                         if struct.tilt is None:
@@ -391,7 +398,7 @@ class CovarUI(QtWidgets.QFrame):
                         struct.tilt.range[1] = self.tilt_range_Z_edit.text()
                         struct.tilt.angle[0] = self.tilt_theta_X_edit.text()
                         struct.tilt.sill     = self.tilt_sill_edit   .text()
-                        struct.nugget[3]     = self.tilt_edit        .text()
+                        struct.nugget_tilt   = self.tilt_edit        .text()
 
             elif self.model.grid.type == '3D':
                 struct.slowness.range[0] = self.slowness_3D_range_X_edit.text()
@@ -401,8 +408,8 @@ class CovarUI(QtWidgets.QFrame):
                 struct.slowness.angle[1] = self.slowness_3D_theta_Y_edit.text()
                 struct.slowness.angle[2] = self.slowness_3D_theta_Z_edit.text()
                 struct.slowness.sill     = self.slowness_3D_sill_edit   .text()
-                struct.nugget[0]         = self.slowness_edit           .text()
-                struct.nugget[1]         = self.traveltime_edit         .text()
+                struct.nugget_slowness   = self.slowness_edit           .text()
+                struct.nugget_traveltime = self.traveltime_edit         .text()
         self.flag_modified_covar()
         database.modified = True
 
@@ -431,7 +438,8 @@ class CovarUI(QtWidgets.QFrame):
         # compute
 
     def show_stats(self):
-        pass
+        if self.model is not None:
+            self.statistics_form.show()
 
     def add_struct(self):
         new = covar.Structure(self.model.grid.type)
@@ -519,6 +527,21 @@ class CovarUI(QtWidgets.QFrame):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
+
+        class MyLineEdit(QtWidgets.QLineEdit):  # allows veryfying if an edit's text has been modified
+            textModified = QtCore.pyqtSignal(str, str)  # (before, after)
+
+            def __init__(self, contents='', parent=None):
+                super(MyLineEdit, self).__init__(contents, parent)
+                self.editingFinished.connect(self.checkText)
+                self.textChanged.connect(lambda: self.checkText())
+                self.returnPressed.connect(lambda: self.checkText(True))
+                self._before = contents
+
+            def checkText(self, _return=False):
+                if (not self.hasFocus() or _return) and self._before != self.text():
+                    self._before = self.text()
+                    self.textModified.emit(self._before, self.text())
 
         # ------- Widgets Creation ------- #
 
@@ -623,10 +646,8 @@ class CovarUI(QtWidgets.QFrame):
         self.auto_update_checkbox        = QtWidgets.QCheckBox("Auto Update")
 
         # --- Text Edits --- #
-        futur_Graph1 = QtWidgets.QTextEdit()
-        futur_Graph1.setReadOnly(True)
-        futur_Graph2 = QtWidgets.QTextEdit()
-        futur_Graph2.setReadOnly(True)
+        self.covariance_fig = CovarianceFig(self)
+        self.comparison_fig = ComparisonFig(self)
 
         # --- Comboboxes --- #
         self.T_and_A_combo      = QtWidgets.QComboBox()
@@ -962,8 +983,8 @@ class CovarUI(QtWidgets.QFrame):
 
         self.scrollbar_widget = QtWidgets.QWidget()
         self.scrollbar_grid   = QtWidgets.QGridLayout()
-        self.scrollbar_grid.addWidget(futur_Graph1, 0, 0, 2, 3)
-        self.scrollbar_grid.addWidget(futur_Graph2, 2, 0, 2, 3)
+        self.scrollbar_grid.addWidget(self.covariance_fig, 0, 0, 2, 3)
+        self.scrollbar_grid.addWidget(self.comparison_fig, 2, 0, 2, 3)
         self.scrollbar_grid.addWidget(self.Sub_widget, 0, 3, 4, 1)
         self.scrollbar_grid.setContentsMargins(0, 0, 0, 0)
         self.scrollbar_grid.setColumnStretch(1, 1)
@@ -1074,21 +1095,83 @@ class CovarUI(QtWidgets.QFrame):
                      range_X_label, range_Z_label, theta_X_label, sill_label):
             item.setFixedHeight(25)
 
+        # --- Statistics Form --- #
 
-class MyLineEdit(QtWidgets.QLineEdit):  # allows veryfying if an edit's text has been modified
-    textModified = QtCore.pyqtSignal(str, str)  # (before, after)
+        self.statistics_fig = StatisticsFig(self)
+        self.statistics_form = QtWidgets.QWidget()
+        statistics_grid = QtWidgets.QGridLayout()
+        statistics_grid.addWidget(self.statistics_fig)
+        self.statistics_form.setLayout(statistics_grid)
+        self.statistics_form.setMinimumSize(1.2 * self.statistics_form.sizeHint().height(),
+                                            1.2 * self.statistics_form.sizeHint().width())
 
-    def __init__(self, contents='', parent=None):
-        super(MyLineEdit, self).__init__(contents, parent)
-        self.editingFinished.connect(self.checkText)
-        self.textChanged.connect(lambda: self.checkText())
-        self.returnPressed.connect(lambda: self.checkText(True))
-        self._before = contents
 
-    def checkText(self, _return=False):
-        if (not self.hasFocus() or _return) and self._before != self.text():
-            self._before = self.text()
-            self.textModified.emit(self._before, self.text())
+class StatisticsFig(FigureCanvasQTAgg):
+    def __init__(self, parent=None):
+        fig = mpl.figure.Figure()
+        super(StatisticsFig, self).__init__(fig)
+        self.initFig()
+        self.plot(1, None)
+
+    def initFig(self):
+        self.ax1 = self.figure.add_axes([0.1, 0.7, 0.85, 0.2])
+        self.ax2 = self.figure.add_axes([0.1, 0.4, 0.85, 0.2])
+        self.ax3 = self.figure.add_axes([0.1, 0.1, 0.85, 0.2])
+        mpl.axes.Axes.set_xlabel(self.ax2, "Straight Ray Length")
+        mpl.axes.Axes.set_xlabel(self.ax3, "Straight Ray Angle")
+
+        plt.hist(self.ax1)
+
+    def plot(self, data_type, model):
+        s = data(:,1) / np.sum(L, 2)
+        if data_type == 0:
+            s = 1 / s
+            data_name = "App. Velocity"
+        else:
+            data_name = "App. Attenuation"
+        s0 = np.mean(s)
+        vs = np.var(s)
+        Tx = model.grid.Tx(idata, :)
+        Rx = model.grid.Rx(idata, :)
+        hyp = np.sqrt(np.sum((Tx - Rx)**2, 2))
+        dz = Tx - Rx
+        theta = 180 / np.pi * np.arcsin(dz / hyp)
+        self.ax1  # hist(s, 30)
+        self.ax2  # plot(hyp, s, '+')
+        self.ax3  # plot(theta, s, '+')
+        mpl.axes.Axes.set_title(self.ax1, "{}: {} $\pm$ {}".format(data_name, str(s0)[:3], str(vs)[:3]))
+        mpl.axes.Axes.set_ylabel(self.ax2, data_name)
+        mpl.axes.Axes.set_ylabel(self.ax3, data_name)
+
+
+class CovarianceFig(FigureCanvasQTAgg):
+    def __init__(self, parent=None):
+        fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
+        super(CovarianceFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.1, 0.15, 0.85, 0.8])
+        mpl.axes.Axes.set_ylabel(self.ax, "Covariance")
+        mpl.axes.Axes.set_xlabel(self.ax, "Bin Number")
+
+    def plot(self, item):
+        pass
+
+
+class ComparisonFig(FigureCanvasQTAgg):
+    def __init__(self, parent=None):
+        fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
+        super(ComparisonFig, self).__init__(fig)
+        self.initFig()
+
+    def initFig(self):
+        self.ax = self.figure.add_axes([0.1, 0.15, 0.85, 0.8])
+        mpl.axes.Axes.set_ylabel(self.ax, "Model Covariance")
+        mpl.axes.Axes.set_xlabel(self.ax, "Experimental Covariance")
+
+    def plot(self, item):
+        pass
 
 
 if __name__ == '__main__':

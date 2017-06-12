@@ -323,14 +323,19 @@ class Structure(object):
     def __init__(self, dim_type):
         if dim_type == '2D' or dim_type == '2D+':
             self.slowness = CovarianceModels.detDefault2D()
-            self.xi       = None
-            self.tilt     = None
-            self.nugget   = [0.0, 0.0, 0.0, 0.0]  # [slowness, traveltime, xi, tilt]
         elif dim_type == '3D':
             self.slowness = CovarianceModels.detDefault3D()
-            self.nugget   = [0.0, 0.0]  # [slowness, traveltime]
         else:
             raise TypeError
+        self.xi                = None
+        self.tilt              = None
+        self.nugget_slowness   = 0.0
+        self.nugget_traveltime = 0.0
+        self.nugget_xi         = 0.0
+        self.nugget_tilt       = 0.0
+        self.use_c0            = False
+        self.use_xi            = False
+        self.use_tilt          = False
 
 
 def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
