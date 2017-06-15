@@ -288,35 +288,6 @@ class CovarianceModels(IntEnum):
     def detDefault3D():
         return CovarianceSpherical(np.array([4.0, 4.0, 4.0]), np.array([0.0, 0.0, 0.0]), 1.0)
 
-    @staticmethod
-    def change_type(covariance, ctype):
-        if covariance.type == 10 or ctype == 10:
-            raise ValueError('Unsupported operation.')
-        else:
-            covariance.type = ctype
-            if ctype == 0:
-                covariance._compute = CovarianceCubic._compute
-            elif ctype == 1:
-                covariance._compute = CovarianceSpherical._compute
-            elif ctype == 2:
-                covariance._compute = CovarianceGaussian._compute
-            elif ctype == 3:
-                covariance._compute = CovarianceExponential._compute
-            elif ctype == 4:
-                covariance._compute = CovarianceLinear._compute
-            elif ctype == 5:
-                covariance._compute = CovarianceThinPlate._compute
-            elif ctype == 6:
-                covariance._compute = CovarianceGravimetric._compute
-            elif ctype == 7:
-                covariance._compute = CovarianceMagnetic._compute
-            elif ctype == 8:
-                covariance._compute = CovarianceHoleEffectSine._compute
-            elif ctype == 9:
-                covariance._compute = CovarianceHoleEffectCosine._compute
-            else:
-                raise ValueError('Undefined covariance model.')
-
 
 class Structure(object):
 
@@ -1021,6 +992,73 @@ def _poletocart(pole):
     x[:, 1] = np.cos(pole[:, 1]) * np.cos(pole[:, 0])
     x[:, 2] = -np.sin(pole[:, 1])
     return x
+
+
+def computeJ(L, e):
+
+    nt = np.size(L, 1)
+    np_ = np.size(L, 2) / 2
+
+    J = L**2
+    Js = J[:, 1:np_] + J[:, (np_ + 1):] * np.kron(np.ones(nt, 1), (e[(np_ + 1):]**2).T)  # l_x^2 + l_z^2 * xi^2
+    Js = np.sqrt(Js)  # equals to t / s_x
+
+    Jxi = J[:, (np_ + 1):] * np.kron(np.ones(nt, 1), (e[1:np_]).T) * np.kron(np.ones(nt, 1), (e[(np_ + 1):]).T)
+
+    ind = Js != 0
+    Jxi[ind] = Jxi[ind] / Js[ind]
+
+    J = np.array([Js, Jxi])
+    return J
+
+
+def computeJ2(L, e):
+
+    nt = np.size(L, 1)
+    np_ = np.size(L, 2) / 2
+
+    n = len(e) / 3
+
+    if np_ != n:
+        raise ValueError("Error (computeJ2) - L et e sizes not compatible")
+
+    s = (e[1:n]).T
+    xi = (e[(n + 1):(2 * n)]).T
+    theta = (e[(2 * n + 1):(3 * n)]).T
+
+    co = np.cos(theta)
+    si = np.sin(theta)
+
+    tmp = (L[:, 1:np_] * np.kron(np.ones(nt, 1), co) + L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), si))**2
+    tmp = (tmp + np.kron(np.ones(nt, 1), xi**2) *
+           (L[:, 1:np_] * np.kron(np.ones(nt, 1), si) - L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), co))**2)
+    Js = np.sqrt(tmp)
+
+    tmp = (L[:, 1:np_] * np.kron(np.ones(nt, 1), si) - L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), co))**2
+    Jxi = np.kron(np.ones(nt, 1), s) * np.kron(np.ones(nt, 1), xi) * tmp
+
+    ind = Js != 0
+    Jxi[ind] = Jxi[ind] / Js[ind]
+
+    tmp = L[:, 1:np_]**2 - L[:, (np_ + 1):]**2
+    tmp = tmp * np.kron(np.ones(nt, 1), np.sin(2 * theta))
+    tmp = tmp - 2 * L[:, 1:np_] * L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), np.cos(2 * theta))
+    Jtheta = np.kron(np.ones(nt, 1), s) * np.kron(np.ones(nt, 1), (xi**2 - 1)) * tmp
+
+    Jtheta[ind] = Jtheta[ind] / Js[ind]
+
+    J = np.array([Js, Jxi, Jtheta])
+    return J
+
+
+def moy_bloc(xy, lclas):
+
+    k = np.floor(len(xy) / lclas)
+
+    m = np.mean(np.reshape(xy[1:k * lclas], lclas, k))
+    m[k] = np.mean(xy[(k - 1) * lclas + 1:])
+
+    return m
 
 
 if __name__ == '__main__':

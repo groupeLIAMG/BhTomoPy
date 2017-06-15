@@ -28,7 +28,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from mpl_toolkits.mplot3d import axes3d
 import time
 import database
-# from logging import exception
+
+from sqlalchemy.orm.attributes import flag_modified
 
 
 class BoreholeUI(QtWidgets.QWidget):
@@ -72,6 +73,7 @@ class BoreholeUI(QtWidgets.QWidget):
         self.bh_list.setCurrentRow(database.session.query(Borehole).count() - 1)
         self.update_List_Edits()
         self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
+        database.modified = True
 
     def add_bhole(self):
         """
@@ -86,6 +88,7 @@ class BoreholeUI(QtWidgets.QWidget):
             self.bh_list.setCurrentRow(database.session.query(Borehole).count() - 1)
             self.update_List_Edits()
             self.bhlogSignal.emit("{} borehole has been added successfully".format(name))
+            database.modified = True
 
     def update_List_Widget(self):
         """
@@ -143,6 +146,8 @@ class BoreholeUI(QtWidgets.QWidget):
             self.update_List_Widget()
             self.update_List_Edits()
 
+            database.modified = True
+
     updateHandler = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandler' prevents that.
 
     def update_bhole_data(self):
@@ -187,12 +192,14 @@ class BoreholeUI(QtWidgets.QWidget):
                 bh.Z_water    = None
             else:
                 bh.Z_water    = float(self.Z_water_edit.text())
-            bh.fdata[0, 0]     = bh.X
-            bh.fdata[0, 1]     = bh.Y
-            bh.fdata[0, 2]     = bh.Z
-            bh.fdata[-1, 0]    = bh.Xmax
-            bh.fdata[-1, 1]    = bh.Ymax
-            bh.fdata[-1, 2]    = bh.Zmax
+            bh.fdata[0, 0]  = bh.X
+            bh.fdata[0, 1]  = bh.Y
+            bh.fdata[0, 2]  = bh.Z
+            bh.fdata[-1, 0] = bh.Xmax
+            bh.fdata[-1, 1] = bh.Ymax
+            bh.fdata[-1, 2] = bh.Zmax
+            flag_modified(bh, 'fdata')
+            database.modified = True
 
     def plot(self):
         """
@@ -213,8 +220,8 @@ class BoreholeUI(QtWidgets.QWidget):
         We then associate the Cont instance to the borehole's acont attribute
         """
         item = self.current_borehole()
-        acont = Cont()
         if item:
+            acont = Cont()
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
             rname = filename.split('/')
             rname = rname[-1]
@@ -237,6 +244,7 @@ class BoreholeUI(QtWidgets.QWidget):
 
                 bh.acont = acont
                 self.bhlogSignal.emit("{} Attenuation Constraints have been applied to Borehole {} ".format(rname, bh.name))
+                database.modified = True
             else:
                 self.bhlogSignal.emit("Error: the file's extension must be *.con")
 
@@ -269,6 +277,7 @@ class BoreholeUI(QtWidgets.QWidget):
 
                 bh.scont = scont
                 self.bhlogSignal.emit("{} Slowness Constraints have been applied to Borehole {} ".format(rname, bh.name))
+                database.modified = True
             else:
                 self.bhlogSignal.emit("Error: the file's extension must be *.con")
 

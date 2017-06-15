@@ -142,7 +142,7 @@ class ModelUI(QtWidgets.QWidget):
         else:
             previousGrid = None
 
-        nBH = len(model_boreholes(model))
+        nBH = len(database.model_boreholes(model))
 
         data = self.prepare_grid_data()
         if g is None:
@@ -285,7 +285,7 @@ class ModelUI(QtWidgets.QWidget):
         data.TxCosDir = mog.TxCosDir
         data.RxCosDir = mog.RxCosDir
 
-        data.boreholes = model_boreholes(self.current_model())
+        data.boreholes = database.model_boreholes(self.current_model())
 
         if len(mogs) > 1:
             for n in range(1, len(mogs)):
@@ -381,6 +381,7 @@ class ChooseModelMOG(QtWidgets.QWidget):
         mog = database.session.query(Mog).filter(Mog.name == mog).first()
         model = database.session.query(Model).filter(Model.name == model).first()
         model.mogs.append(mog)
+        database.modified = True
         self.model.modellogSignal.emit("{} has been added to {}'s MOGs".format(mog.name, model.name))
 
     def initUI(self):
@@ -860,7 +861,7 @@ class GridViewFig(FigureCanvasQTAgg):
                     self.ax.set_xlim([-pad_x_minus, np.abs(Tx_ys[0] - Rx_ys[0]) + pad_x_plus])
                     self.ax.set_xticks(np.arange(-pad_x_minus, np.abs((Tx_ys[0] - Rx_ys[0])) + pad_x_plus, x_cell_size), minor=True)
 
-                if not flip:
+                else:
                     self.ax.plot(-np.abs((Tx_ys[0] - Rx_ys[0])) * np.ones(len(Rx_zs)), -Rx_zs, '*', c='b')
                     self.ax.set_xlim([-pad_x_minus - np.abs((Tx_ys[0] - Rx_ys[0])), pad_x_plus])
                     self.ax.set_xticks(np.arange(-pad_x_minus - (Tx_ys[0] - Rx_ys[0]), pad_x_plus, x_cell_size), minor=True)
@@ -873,7 +874,7 @@ class GridViewFig(FigureCanvasQTAgg):
                     self.ax.set_xlim([-pad_x_minus, np.abs((Rx_ys[0] - Tx_ys[0])) + pad_x_plus])
                     self.ax.set_xticks(np.arange(-pad_x_minus, np.abs((Rx_ys[0] - Tx_ys[0])) + pad_x_plus, x_cell_size), minor=True)
 
-                if not flip:
+                else:
                     self.ax.plot(-np.abs((Rx_ys[0] - Tx_ys[0])) * np.ones(len(Tx_zs)), -Tx_zs, 'o', c='g')
                     self.ax.set_xlim([-np.abs((Rx_ys[0] - Tx_ys[0])) - pad_x_minus, pad_x_plus])
                     self.ax.set_xticks(np.arange(-np.abs((Rx_ys[0] - Tx_ys[0])) - pad_x_minus, pad_x_plus, x_cell_size), minor=True)
@@ -1049,20 +1050,6 @@ class MyQLabel(QtWidgets.QLabel):
                     self.setAlignment(QtCore.Qt.AlignRight)
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
-
-
-def model_boreholes(model):
-
-    boreholes = []
-
-    for mog in model.mogs:
-        if mog.Tx and mog.Rx:  # TODO add a warning?
-            if mog.Tx not in boreholes:  # guarantees there is no duplicate
-                boreholes.append(mog.Tx)
-            if mog.Rx not in boreholes:
-                boreholes.append(mog.Rx)
-
-    return boreholes
 
 
 if __name__ == '__main__':

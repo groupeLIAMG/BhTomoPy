@@ -74,7 +74,7 @@ def chooseMOG(module, filename=None):
 
                 database.load(module, filename)
                 l0.setText(os.path.basename(filename))
-                load_mogs(filename)
+                load_mogs()
 
             else:
                 QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
@@ -82,24 +82,23 @@ def chooseMOG(module, filename=None):
                                               QtWidgets.QMessageBox.NoButton)
                 l0.setText('')
 
-    def load_mogs(fname):
+    def load_mogs():
         nonlocal b3
         nonlocal l0
-        nonlocal filename
+        b3.clear()
         mogs = module.session.query(Mog).all()
         if mogs:
             for mog in mogs:
                 b3.addItem(mog.name)
-            filename = fname
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS.',
                                           QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
                                           QtWidgets.QMessageBox.NoButton)
             l0.setText('')
 
-    if filename:
-        l0.setText(os.path.basename(filename))
-        load_mogs(filename)
+    if str(module.engine.url) != 'sqlite:///:memory:':
+        l0.setText(database.short_url(module))
+        load_mogs()
     else:
         l0.setText('')
 
@@ -156,39 +155,39 @@ def chooseModel(module, filename=None):
         nonlocal d
         nonlocal l0
         nonlocal b3
-        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
-        if filename:
-            if filename.find('.db') != -1:
+        if save_warning(module):
+            filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
+            if filename:
+                if filename.find('.db') != -1:
 
-                database.load(module, filename)
-                l0.setText(os.path.basename(filename))
-                load_models(module, filename)
+                    database.load(module, filename)
+                    l0.setText(os.path.basename(filename))
+                    load_models()
 
-            else:
-                QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
-                                              QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                                              QtWidgets.QMessageBox.NoButton)
-                l0.setText('')
+                else:
+                    QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
+                                                  QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
+                                                  QtWidgets.QMessageBox.NoButton)
+                    l0.setText('')
 
-    def load_models(fname):
+    def load_models():
         nonlocal b3
         nonlocal l0
-        nonlocal filename
 
+        b3.clear()
         models = module.session.query(Model).all()
         if models:
             for model in models:
                 b3.addItem(model.name)
-            filename = fname
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain Models.',
                                           QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
                                           QtWidgets.QMessageBox.NoButton)
             l0.setText('')
 
-    if filename:
-        l0.setText(os.path.basename(filename))
-        load_models(filename)
+    if str(module.engine.url) != 'sqlite:///:memory:':
+        l0.setText(database.short_url(module))
+        load_models()
     else:
         l0.setText('')
 

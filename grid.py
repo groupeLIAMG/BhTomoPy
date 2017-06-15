@@ -39,7 +39,7 @@ class Grid(object):
     Superclass for 2D and 3D grids
 
     Grids are regular, i.e. constant step size, although not restricted to
-        square or cubic cells (dx, dy and dz may differ from each other)
+    square or cubic cells (dx, dy and dz may differ from each other)
     """
 
     def __init__(self):

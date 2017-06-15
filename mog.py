@@ -414,16 +414,16 @@ class Mog(Base):
             t0 = np.zeros(np.shape(tt))
             return tt, t0
         else:
-            airBefore = air[self.av]
-            airAfter = air[self.ap]
+            airBefore = air[0]
+            airAfter  = air[1]
 
             t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
 
-        if self.av != '':
-            air[self.av].fac_dt = fac_dt_av
+        if self.av is not None:
+            self.av.fac_dt = fac_dt_av
 
-        if self.ap != '':
-            air[self.ap].fac_dt = fac_dt_ap
+        if self.ap is not None:
+            self.ap.fac_dt = fac_dt_ap
 
         if self.user_fac_dt == 0:
             if fac_dt_av != 1 and fac_dt_ap != 1:
@@ -444,12 +444,12 @@ class Mog(Base):
 class AirShots(Base):
 
     __tablename__ = "Airshots"
-    name    = Column(String, primary_key=True)
-    mog     = Column(PickleType)
-    data    = Column(PickleType)            # MogData instance
-    d_TxRx  = Column(Float)            # Distance between Tx and Rx
-    fac_dt  = Column(Float)
-    method  = Column(String)
+    name   = Column(String, primary_key=True)
+    mog    = Column(PickleType)
+    data   = Column(PickleType)            # MogData instance
+    d_TxRx = Column(PickleType)            # Distance between Tx and Rx
+    fac_dt = Column(Float)
+    method = Column(String)
 
     def __init__(self, name='', data=MogData()):
         self.mog = Mog()

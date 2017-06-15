@@ -64,29 +64,19 @@ class CovarUI(QtWidgets.QFrame):
 
         self.move(translation)
 
-        self.reset_data()
         self.update_model()
         self.parameters_displayed_update()
         self.update_velocity_display()
 
     def openfile(self):
 
-        if utils_ui.save_warning(database):
-            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-
-            if filename:
-                    if filename[-3:] != '.db':
-                        QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
-                    else:
-                        try:
-                            database.load(database, filename)
-                            self.reset_data()
-                            self.update_model()
-                            self.parameters_displayed_update()
-
-                        except Exception as e:
-                            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] +
-                                                          "...' File may be empty or corrupted.", buttons=QtWidgets.QMessageBox.Ok)
+        new_model = utils_ui.chooseModel(database)
+        if new_model is not None:
+            self.set_current_model(new_model)
+            self.mogs_list.clear()
+            self.mogs_list.addItems([item.name for item in self.model.mogs])
+            self.update_model()
+            self.parameters_displayed_update()
 
     def savefile(self):
         return utils_ui.savefile(database)
@@ -94,29 +84,17 @@ class CovarUI(QtWidgets.QFrame):
     def saveasfile(self):
         return utils_ui.saveasfile(database)
 
-    def set_current_model(self):  # substitutes SQLAlchemy weak referencing for a strong referencing
+    def set_current_model(self, model):
         if self.updateHandler:
             return
 
         self.updateHandler = True
         if self.model is not None:
             if utils_ui.save_warning(database):
-                self.model = self.current_model()
-                self.updateHandler = False
-            else:
-                for i in range(self.models_list.count()):
-                    if self.models_list.item(i).text() == self.model.name:
-                        self.models_list.setCurrentRow(i)
-                        self.updateHandler = False
-                        break
+                self.model = model
         else:
-            self.model = self.current_model()
-            self.updateHandler = False
-
-    def current_model(self):
-
-        if self.models_list.currentItem():
-            return database.session.query(Model).filter(Model.name == self.models_list.currentItem().text()).first()
+            self.model = model
+        self.updateHandler = False
 
     def current_covar(self):
 
@@ -162,6 +140,8 @@ class CovarUI(QtWidgets.QFrame):
         self.ellip_veloc_checkbox       .setDisabled(True)
         self.tilted_ellip_veloc_checkbox.setDisabled(True)
 
+        self.step_Y_edit.setDisabled(True)
+
         self.covar_struct_combo.setDisabled(True)
         self.btn_Add_Struct    .setDisabled(True)
         self.btn_Rem_Struct    .setDisabled(True)
@@ -182,59 +162,55 @@ class CovarUI(QtWidgets.QFrame):
 
         self.Adjust_Model_groupbox.setDisabled(True)
 
-        if database.session.query(Model).first() is not None:
+        if self.model is not None:
 
             self.Sub_widget.setDisabled(False)
 
-            if self.model:
+            if self.model.grid is not None:
+                self.covar_struct_combo.setDisabled(False)
+                self.btn_Add_Struct    .setDisabled(False)
+                self.Grid_groupbox     .setDisabled(False)
 
-                if self.model.grid is not None:
-                    self.covar_struct_combo.setDisabled(False)
-                    self.btn_Add_Struct    .setDisabled(False)
-                    self.Grid_groupbox     .setDisabled(False)
+                if self.current_covar():
+                    self.btn_Rem_Struct       .setDisabled(False)
+                    self.Nug_groupbox         .setDisabled(False)
+                    self.auto_update_checkbox .setDisabled(False)
+                    self.btn_compute          .setDisabled(False)
+                    self.Adjust_Model_groupbox.setDisabled(False)
 
-                    if self.current_covar():
-                        self.btn_Rem_Struct       .setDisabled(False)
-                        self.Nug_groupbox         .setDisabled(False)
-                        self.auto_update_checkbox .setDisabled(False)
-                        self.btn_compute          .setDisabled(False)
-                        self.Adjust_Model_groupbox.setDisabled(False)
+                    if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                        self.labels_2D_widget    .setHidden(False)
+                        self.slowness_widget     .setHidden(False)
+                        self.ellip_veloc_checkbox.setDisabled(False)
 
-                        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-                            self.labels_2D_widget    .setHidden(False)
-                            self.slowness_widget     .setHidden(False)
-                            self.ellip_veloc_checkbox.setDisabled(False)
+                        if self.ellip_veloc_checkbox.checkState():
+                            self.xi_widget                  .setHidden(False)
+                            self.tilted_ellip_veloc_checkbox.setDisabled(False)
 
-                            if self.ellip_veloc_checkbox.checkState():
-                                self.xi_widget                  .setHidden(False)
-                                self.tilted_ellip_veloc_checkbox.setDisabled(False)
+                            self.xi_label   .setHidden(False)
+                            self.xi_edit    .setHidden(False)
+                            self.xi_checkbox.setHidden(False)
 
-                                self.xi_label   .setHidden(False)
-                                self.xi_edit    .setHidden(False)
-                                self.xi_checkbox.setHidden(False)
+                            if self.tilted_ellip_veloc_checkbox.checkState():
+                                self.tilt_widget.setHidden(False)
 
-                                if self.tilted_ellip_veloc_checkbox.checkState():
-                                    self.tilt_widget.setHidden(False)
+                                self.tilt_label   .setHidden(False)
+                                self.tilt_edit    .setHidden(False)
+                                self.tilt_checkbox.setHidden(False)
 
-                                    self.tilt_label   .setHidden(False)
-                                    self.tilt_edit    .setHidden(False)
-                                    self.tilt_checkbox.setHidden(False)
+                        else:
+                            self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
-                            else:
-                                self.tilted_ellip_veloc_checkbox.setCheckState(False)
-
-                        elif self.model.grid.type == '3D':
-                            self.slowness_3D_widget.setHidden(False)
-
-                    else:
-                        self.ellip_veloc_checkbox       .setCheckState(False)
-                        self.tilted_ellip_veloc_checkbox.setCheckState(False)
+                    elif self.model.grid.type == '3D':
+                        self.slowness_3D_widget.setHidden(False)
+                        self.step_Y_edit       .setDisabled(False)
 
                 else:
-                    QtWidgets.QMessageBox.warning(self, "Warning", "This model has no grid.")
+                    self.ellip_veloc_checkbox       .setCheckState(False)
+                    self.tilted_ellip_veloc_checkbox.setCheckState(False)
+
             else:
-                self.ellip_veloc_checkbox       .setCheckState(False)
-                self.tilted_ellip_veloc_checkbox.setCheckState(False)
+                QtWidgets.QMessageBox.warning(self, "Warning", "This model has no grid.")
 
             self.update_parameters()
 
@@ -248,31 +224,20 @@ class CovarUI(QtWidgets.QFrame):
         if self.auto_update_checkbox.checkState():
             self.compute()
 
-    def reset_data(self):
-        self.updateHandler = True
-        self.model = None
-        self.models_list.clear()
-        self.models_list.addItems([item.name for item in database.session.query(Model).all()])
-        self.updateHandler = False
-        self.reset_grid()
-
     def update_model(self):
         self.btn_Rem_Struct.setDisabled(True)
         self.covar_struct_combo.clear()
-        if self.models_list.currentItem():
-            self.set_current_model()
-            if self.model is not None:
-                if self.model.grid is not None:
-                    self.update_structures()
-                    if self.temp_grid is None:
-                        self.cells_no_label.setText(str(self.model.grid.getNumberOfCells()))
-                        self.rays_no_label.setText('0')  # TODO
-                        self.reset_grid()
-                else:
-                    self.cells_no_label.setText('0')
-                    self.rays_no_label.setText('0')
+        if self.model is not None:
+            self.model_label.setText("Model : " + self.model.name)
+            if self.model.grid is not None:
+                self.update_structures()
+                if self.temp_grid is None:
+                    self.cells_no_label.setText(str(self.model.grid.getNumberOfCells()))
+                    self.rays_no_label.setText('0')  # TODO
                     self.reset_grid()
             else:
+                self.cells_no_label.setText('0')
+                self.rays_no_label.setText('0')
                 self.reset_grid()
         else:
             self.reset_grid()
@@ -287,39 +252,51 @@ class CovarUI(QtWidgets.QFrame):
             self.btn_Rem_Struct.setDisabled(False)
 
     def new_grid(self):
-        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            self.temp_grid = grid.Grid2D()
-        elif self.model.grid.type == '3D':
-            self.temp_grid = grid.Grid3D()  # TODO
-        else:
-            self.temp_grid = None
+        self.temp_grid = self.model.grid
+#         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+#             self.temp_grid = grid.Grid2D()
+#         elif self.model.grid.type == '3D':
+#             self.temp_grid = grid.Grid3D()  # TODO
+#         else:
+#             self.temp_grid = None
 
     def reset_grid(self):
         if self.model is None or self.model.grid is None:
             self.X_min_label.setText('0')
-            self.Y_min_label.setText('0')
-            self.Z_min_label.setText('0')
             self.X_max_label.setText('0')
+            self.Y_min_label.setText('0')
             self.Y_max_label.setText('0')
+            self.Z_min_label.setText('0')
             self.Z_max_label.setText('0')
-            self.step_X_edit.setText('')
-            self.step_Y_edit.setText('')
-            self.step_Z_edit.setText('')
+            self.step_X_edit.setText('0')
+            self.step_Y_edit.setText('0')
+            self.step_Z_edit.setText('0')
             self.temp_grid = None
         else:
             self.new_grid()
-#             self.X_min_label.setText('0')  # the grid's TODO
-#             self.Y_min_label.setText('0')
-#             self.Z_min_label.setText('0')
-#             self.X_max_label.setText('0')
-#             self.Y_max_label.setText('0')
-#             self.Z_max_label.setText('0')
-#             self.step_X_edit.setText('')
-#             self.step_Y_edit.setText('')
-#             self.step_Z_edit.setText('')
+
+            self.X_min_label.setText(str(np.amin(self.temp_grid.grx))[:6])
+            self.X_max_label.setText(str(np.amax(self.temp_grid.grx))[:6])
+            if self.temp_grid.gry:  # TODO verify
+                self.Y_min_label.setText(str(np.amin(self.temp_grid.gry))[:6])
+                self.Y_max_label.setText(str(np.amax(self.temp_grid.gry))[:6])
+            else:
+                self.Y_min_label.setText('0')
+                self.Y_max_label.setText('0')
+            self.Z_min_label.setText(str(np.amin(self.temp_grid.grz))[:6])
+            self.Z_max_label.setText(str(np.amax(self.temp_grid.grz))[:6])
+
+            self.step_X_edit.setText(str(2 * self.temp_grid.dx))  # by default, the step should be twice the size of the actual
+            self.step_Y_edit.setText(str(2 * self.temp_grid.dy))  # grid in order to make the computing less resources-expensive
+            self.step_Z_edit.setText(str(2 * self.temp_grid.dz))
 
     def update_grid(self):
         pass
+
+    def apply_grid_changes(self):
+        self.temp_grid.dx = float(self.step_X_edit.text())
+        self.temp_grid.dy = float(self.step_Y_edit.text())
+        self.temp_grid.dz = float(self.step_Z_edit.text())
 
     def update_parameters(self):
 
@@ -414,32 +391,102 @@ class CovarUI(QtWidgets.QFrame):
         database.modified = True
 
     def change_covar_type_slowness(self, ctype):
-        covar.CovarianceModels.change_type(self.current_struct().slowness, ctype)
-        self.flag_modified_covar()
-        database.modified = True
+        if not self.updateHandler:
+            cov = self.current_struct().slowness
+            self.current_struct().slowness = covar.CovarianceModels.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            self.flag_modified_covar()
+            database.modified = True
 
     def change_covar_type_xi(self, ctype):
-        covar.CovarianceModels.change_type(self.current_struct().xi, ctype)
-        self.flag_modified_covar()
-        database.modified = True
+        if not self.updateHandler:
+            cov = self.current_struct().xi
+            self.current_struct().xi = covar.CovarianceModels.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            self.flag_modified_covar()
+            database.modified = True
 
     def change_covar_type_tilt(self, ctype):
-        covar.CovarianceModels.change_type(self.current_struct().tilt, ctype)
-        self.flag_modified_covar()
-        database.modified = True
-
-    def change_covar_type_slowness_3D(self, ctype):
-        covar.CovarianceModels.change_type(self.current_struct().slowness, ctype)
-        self.flag_modified_covar()
-        database.modified = True
+        if not self.updateHandler:
+            cov = self.current_struct().tilt
+            self.current_struct().tilt = covar.CovarianceModels.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            self.flag_modified_covar()
+            database.modified = True
 
     def compute(self):  # TODO progress bar
-        pass
-        # compute
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())  # Store somewhere else?
+
+            xc = self.temp_grid.getCellCenter(dx, dz)  # Verify
+            cm = self.current_struct().slowness
+            Cm = cm.compute(xc, xc)                    # Verify
+
+            L    = self.temp_grid.getForwardStraightRays()  # Verify
+#             data, _ = Model.getModelData(self.model, air, mog_indexes, data_type)  # , vlim)
+            s0   = 'wat'
+            Cd   = 'wat'
+
+            if False:  # cm.use_xi == 1:
+                if cm.use_tilt == 1:
+                    np_ = np.size(L, 2) / 2
+                    l = np.sqrt(L[:, 1:np_]**2 + L[:, (np_ + 1):]**2)
+                    s0 = np.mean(data[:, 1] / sum(l, 2)) + np.zeros(np_, 1)
+                    xi0 = np.ones(np_, 1) + 0.001       # add 1/1000 so that J_th != 0
+                    theta0 = np.zeros(np_, 1) + 0.0044  # add a quarter of a degree so that J_th != 0
+                    J = covar.computeJ2(L, np.array([s0, xi0, theta0]))
+                    Cm = J * Cm * J.T
+                else:
+                    np_ = np.size(L, 2) / 2
+                    l = np.sqrt(L[:, 1:np_]**2 + L[:, (np_ + 1):]**2)
+                    s0 = np.mean(data[:, 1] / sum(l, 2)) + np.zeros(np_, 1)
+                    xi0 = np.ones(np_, 1)
+                    J = covar.computeJ(L, np.array([s0, xi0]))
+                    Cm = J * Cm * J.T
+            else:
+                print(L.size, Cm.size)
+                Cm = L * Cm * L.T
+
+            if cm.use_c0 == 1:
+                # use exp variance
+                c0 = data[:, 2]**2
+                Cm = Cm + cm.nugget_d * np.diag(c0)
+            else:
+                Cm = Cm + cm.nugget_d * np.eye(np.size(L, 1))
+
+            Cm, ind = np.sort(Cm[:], 1, 'descend')
+            lclas = float(self.bin_edit.text())
+            afi = 1 / float(self.bin_frac_edit.text())
+
+            gt = covar.moy_bloc(Cm, lclas)
+            ind0 = find(gt < Inf)
+            gt = gt[ind0]
+
+            g = Cd[ind]
+            g = covar.moy_bloc(g, lclas)
+            g = g[ind0]
+
+            N = np.round(len(g) / afi)
+            g = g[1:N]
+            gt = gt[1:N]
+
+            gmin = np.min(np.array([g, gt]))
+            gmax = np.max(np.array([g, gt]))
+            self.covariance_fig.plot(g, gt, 'o', np.array([gmin, gmax]), np.array([gmin, gmax]), ':')
+    #         haxes1.DataAspectRatio = [1 1 1]
+
+            n1 = range(1, len(gt) + 1)  # TODO length(gt) + 1?
+            n2 = range(1, len(g) + 1)   # TODO length(g)  + 1?
+            self.comparison_fig.plot(n2, g, '+', n1, gt, 'o')
+            legend(haxes2, 'Experimental (C_d^*)', 'Model (GC_mG^T +C_0)')
 
     def show_stats(self):
         if self.model is not None:
-            self.statistics_form.show()
+            if self.mogs_list.selectedIndexes() != []:
+                mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
+                air = (self.model.mogs[mog_indexes[0]].av, self.model.mogs[mog_indexes[0]].ap)
+                if self.T_and_A_combo.currentIndex() == 0:
+                    self.statistics_fig.plot('tt', self.model, air, mog_indexes)  # TODO send temp grid too
+                else:
+                    self.statistics_fig.plot('amp', self.model, air, mog_indexes)
+                self.statistics_form.show()
 
     def add_struct(self):
         new = covar.Structure(self.model.grid.type)
@@ -528,7 +575,7 @@ class CovarUI(QtWidgets.QFrame):
                 else:
                     self.setAlignment(QtCore.Qt.AlignLeft)
 
-        class MyLineEdit(QtWidgets.QLineEdit):  # allows veryfying if an edit's text has been modified
+        class MyLineEdit(QtWidgets.QLineEdit):  # allows verifying if an edit's text has been modified
             textModified = QtCore.pyqtSignal(str, str)  # (before, after)
 
             def __init__(self, contents='', parent=None):
@@ -573,12 +620,13 @@ class CovarUI(QtWidgets.QFrame):
         self.btn_GO         = QtWidgets.QPushButton("GO")
 
         # --- Labels --- #
-        cells_Label          = MyQLabel("Cells", ha='left')
-        cells_Labeli         = MyQLabel("Cells", ha='left')
-        rays_label           = MyQLabel("Rays", ha='left')
-        self.cells_no_label  = MyQLabel("0", ha='right')
-        self.cells_no_labeli = MyQLabel("0", ha='right')
-        self.rays_no_label   = MyQLabel("0", ha='right')
+        self.model_label      = MyQLabel("Model :", ha='left')
+        cells_label           = MyQLabel("Cells", ha='left')
+        cells_labeli          = MyQLabel("Cells", ha='left')
+        rays_label            = MyQLabel("Rays", ha='left')
+        self.cells_no_label   = MyQLabel("0", ha='right')
+        self.cells_no_labeli  = MyQLabel("0", ha='right')
+        self.rays_no_label    = MyQLabel("0", ha='right')
 
         curv_rays_label  = MyQLabel("Curved Rays", ha='right')
         X_label          = MyQLabel("X", ha='center')
@@ -612,9 +660,9 @@ class CovarUI(QtWidgets.QFrame):
         self.Y_max_label    .setPalette(palette)
         self.Z_max_label    .setPalette(palette)
         self.cells_no_label .setPalette(palette)
-        cells_Label         .setPalette(palette)
+        cells_label         .setPalette(palette)
         self.cells_no_labeli.setPalette(palette)
-        cells_Labeli        .setPalette(palette)
+        cells_labeli        .setPalette(palette)
         self.rays_no_label  .setPalette(palette)
         rays_label          .setPalette(palette)
 
@@ -645,7 +693,7 @@ class CovarUI(QtWidgets.QFrame):
         self.tilt_checkbox               = QtWidgets.QCheckBox()
         self.auto_update_checkbox        = QtWidgets.QCheckBox("Auto Update")
 
-        # --- Text Edits --- #
+        # --- Figures --- #
         self.covariance_fig = CovarianceFig(self)
         self.comparison_fig = ComparisonFig(self)
 
@@ -658,7 +706,7 @@ class CovarUI(QtWidgets.QFrame):
         self.covar_struct_combo = QtWidgets.QComboBox()
 
         # --- List --- #
-        self.models_list = QtWidgets.QListWidget()
+        self.mogs_list = QtWidgets.QListWidget()
 
         # ------- SubWidgets ------- #
         # --- Curved Rays SubWidget --- #
@@ -690,7 +738,7 @@ class CovarUI(QtWidgets.QFrame):
         cells_no_widget = QtWidgets.QWidget()
         cells_no_grid   = QtWidgets.QGridLayout()
         cells_no_grid.addWidget(self.cells_no_labeli, 0, 0)
-        cells_no_grid.addWidget(cells_Labeli, 0, 1)
+        cells_no_grid.addWidget(cells_labeli, 0, 1)
         cells_no_widget.setLayout(cells_no_grid)
 
         Sub_Step_Widget = QtWidgets.QWidget()
@@ -710,11 +758,12 @@ class CovarUI(QtWidgets.QFrame):
         # --- Data Groupbox --- #
         data_groupbox = QtWidgets.QGroupBox("Data")
         data_grid = QtWidgets.QGridLayout()
-        data_grid.addWidget(self.cells_no_label, 0, 0)
-        data_grid.addWidget(cells_Label, 0, 1)
-        data_grid.addWidget(self.rays_no_label, 1, 0)
-        data_grid.addWidget(rays_label, 1, 1)
-        data_grid.addWidget(self.models_list, 2, 0, 3, 2)
+        data_grid.addWidget(self.model_label, 0, 0, 1, 2)
+        data_grid.addWidget(self.cells_no_label, 1, 0)
+        data_grid.addWidget(cells_label, 1, 1)
+        data_grid.addWidget(self.rays_no_label, 2, 0)
+        data_grid.addWidget(rays_label, 2, 1)
+        data_grid.addWidget(self.mogs_list, 3, 0, 3, 2)
         data_grid.addWidget(self.Upper_limit_checkbox, 0, 2)
         data_grid.addWidget(self.velocity_edit, 0, 3)
         data_grid.addWidget(self.ellip_veloc_checkbox, 1, 2)
@@ -723,6 +772,7 @@ class CovarUI(QtWidgets.QFrame):
         data_grid.addWidget(self.T_and_A_combo, 4, 2)
         data_grid.addWidget(self.btn_Show_Stats, 4, 3)
         data_grid.addWidget(Sub_Curved_Rays_Widget, 5, 2)
+        self.mogs_list.setMaximumHeight(self.curv_rays_combo.sizeHint().height() * 3.6)
         data_groupbox.setLayout(data_grid)
 
         # --- Grid Groupbox --- #
@@ -822,8 +872,8 @@ class CovarUI(QtWidgets.QFrame):
         tilt_param_edit.setAlignment(QtCore.Qt.AlignCenter)
         self.tilt_type_combo       = QtWidgets.QComboBox()
         self.tilt_type_combo.addItems(types)
-        tilt_value_label      = MyQLabel("Value", ha='center')
-        tilt_fix_label        = MyQLabel("Fix", ha='center')
+        tilt_value_label           = MyQLabel("Value", ha='center')
+        tilt_fix_label             = MyQLabel("Fix", ha='center')
         self.tilt_range_X_edit     = MyLineEdit('4.0')
         self.tilt_range_Z_edit     = MyLineEdit('4.0')
         self.tilt_theta_X_edit     = MyLineEdit('0.0')
@@ -1022,10 +1072,7 @@ class CovarUI(QtWidgets.QFrame):
         self.slowness_type_combo   .currentIndexChanged.connect(self.change_covar_type_slowness)
         self.xi_type_combo         .currentIndexChanged.connect(self.change_covar_type_xi)
         self.tilt_type_combo       .currentIndexChanged.connect(self.change_covar_type_tilt)
-        self.slowness_3D_type_combo.currentIndexChanged.connect(self.change_covar_type_slowness_3D)
-
-        self.models_list.itemSelectionChanged.connect(self.update_model)
-        self.models_list.itemSelectionChanged.connect(self.parameters_displayed_update)
+        self.slowness_3D_type_combo.currentIndexChanged.connect(self.change_covar_type_slowness)
 
         self.step_X_edit.textModified.connect(self.update_grid)
         self.step_Y_edit.textModified.connect(self.update_grid)
@@ -1071,8 +1118,6 @@ class CovarUI(QtWidgets.QFrame):
         for item in (self.T_and_A_combo, self.curv_rays_combo, self.curv_rays_combo):
             item.currentIndexChanged.connect(self.auto_update)
 
-        self.models_list.itemSelectionChanged.connect(self.auto_update)
-
         # ------- Sizes ------- #
         self.menu                 .setFixedHeight(self.menu.sizeHint().height())
         data_groupbox             .setFixedHeight(data_groupbox.sizeHint().height())
@@ -1111,7 +1156,6 @@ class StatisticsFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure()
         super(StatisticsFig, self).__init__(fig)
         self.initFig()
-        self.plot(1, None)
 
     def initFig(self):
         self.ax1 = self.figure.add_axes([0.1, 0.7, 0.85, 0.2])
@@ -1120,28 +1164,34 @@ class StatisticsFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax2, "Straight Ray Length")
         mpl.axes.Axes.set_xlabel(self.ax3, "Straight Ray Angle")
 
-        plt.hist(self.ax1)
+#         plt.hist(self.ax1)
 
-    def plot(self, data_type, model):
-        s = data(:,1) / np.sum(L, 2)
-        if data_type == 0:
-            s = 1 / s
-            data_name = "App. Velocity"
-        else:
-            data_name = "App. Attenuation"
-        s0 = np.mean(s)
-        vs = np.var(s)
-        Tx = model.grid.Tx(idata, :)
-        Rx = model.grid.Rx(idata, :)
-        hyp = np.sqrt(np.sum((Tx - Rx)**2, 2))
-        dz = Tx - Rx
-        theta = 180 / np.pi * np.arcsin(dz / hyp)
-        self.ax1  # hist(s, 30)
-        self.ax2  # plot(hyp, s, '+')
-        self.ax3  # plot(theta, s, '+')
-        mpl.axes.Axes.set_title(self.ax1, "{}: {} $\pm$ {}".format(data_name, str(s0)[:3], str(vs)[:3]))
-        mpl.axes.Axes.set_ylabel(self.ax2, data_name)
-        mpl.axes.Axes.set_ylabel(self.ax3, data_name)
+    def plot(self, data_type, model, air, mog_indexes):
+        if model is not None and mog_indexes:
+            data, idata = Model.getModelData(model, air, mog_indexes, data_type)  # , vlim)
+            L = model.grid.getForwardStraightRays()
+            print(data, 2)
+            s = data[:, 0] / np.sum(L, 1)
+            if data_type == 'tt':
+                s = 1 / s
+                data_name = "App. Velocity"
+            else:
+                data_name = "App. Attenuation"
+            s0 = np.mean(s)
+            vs = np.var(s)
+            Tx = model.grid.Tx[idata, :]
+            Rx = model.grid.Rx[idata, :]
+            hyp = np.sqrt(np.sum((Tx - Rx)**2, 1))
+            dz = Tx[:, 2] - Rx[:, 2]
+            theta = 180 / np.pi * np.arcsin(dz / hyp)
+            self.ax1  # hist(s, 30)
+            self.ax2.plot(hyp, s, '+', c='b')
+            self.ax3.plot(theta, s, '+', c='b')
+            mpl.axes.Axes.set_title(self.ax1, "{}: {} $\pm$ {}".format(data_name, str(s0)[:3], str(vs)[:3]))
+            mpl.axes.Axes.set_ylabel(self.ax2, data_name)
+            mpl.axes.Axes.set_ylabel(self.ax3, data_name)
+
+            self.draw()
 
 
 class CovarianceFig(FigureCanvasQTAgg):
@@ -1155,8 +1205,9 @@ class CovarianceFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax, "Covariance")
         mpl.axes.Axes.set_xlabel(self.ax, "Bin Number")
 
-    def plot(self, item):
-        pass
+    def plot(self, g, gt, gmin, gmax):
+        self.ax.plot(g, gt, 'o', [gmin, gmax], [gmin, gmax], ':')
+        self.draw()
 
 
 class ComparisonFig(FigureCanvasQTAgg):
@@ -1170,8 +1221,9 @@ class ComparisonFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_ylabel(self.ax, "Model Covariance")
         mpl.axes.Axes.set_xlabel(self.ax, "Experimental Covariance")
 
-    def plot(self, item):
-        pass
+    def plot(self, n2, g, n1, gt):
+        self.ax.plot(n2, g, '+', n1, gt, 'o')
+        self.draw()
 
 
 if __name__ == '__main__':

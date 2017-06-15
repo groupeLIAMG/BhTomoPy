@@ -39,6 +39,8 @@ from utils import compute_SNR, data_select
 from utils_ui import chooseMOG
 from borehole import Borehole
 
+from sqlalchemy.orm.attributes import flag_modified
+
 import database
 current_module = sys.modules[__name__]
 database.create_data_management(current_module)
@@ -91,6 +93,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.update_prune_edits_info()
             self.update_prune_info()
             self.moglogSignal.emit("{} Multi Offset-Gather has been loaded successfully".format(rname))
+            database.modified = True
 
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : '" + str(e)[:42] + "...' [mog_ui 1]",
@@ -101,44 +104,45 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         updates the info either in the MOG's edits or in the info's labels
         """
         item = self.MOG_list.currentItem()
-        if item:
+        if item is not None:
             mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
 
-            self.Rx_Offset_edit.clear()
-            self.Tx_Offset_edit.clear()
-            self.Correction_Factor_edit.clear()
-            self.Multiplication_Factor_edit.clear()
-            self.Nominal_Frequency_edit.clear()
-            self.Nominal_Frequency_edit.setText(str(mog.data.rnomfreq))
-            self.Rx_Offset_edit.setText(str(mog.data.RxOffset))
-            self.Tx_Offset_edit.setText(str(mog.data.TxOffset))
-            self.Correction_Factor_edit.setText(str(mog.user_fac_dt))
-            self.Multiplication_Factor_edit.setText(str(mog.f_et))
-            self.Date_edit.setText(mog.date)
-            if mog.av is not None and mog.ap is not None:
-                self.Air_Shot_Before_edit.setText(mog.av[0].name[:-4])
-                self.Air_Shot_After_edit.setText(mog.ap[0].name[:-4])
-            else:
-                self.Air_Shot_Before_edit.setText('')
-                self.Air_Shot_After_edit.setText('')
+            if mog is not None:
+                self.Rx_Offset_edit.clear()
+                self.Tx_Offset_edit.clear()
+                self.Correction_Factor_edit.clear()
+                self.Multiplication_Factor_edit.clear()
+                self.Nominal_Frequency_edit.clear()
+                self.Nominal_Frequency_edit.setText(str(mog.data.rnomfreq))
+                self.Rx_Offset_edit.setText(str(mog.data.RxOffset))
+                self.Tx_Offset_edit.setText(str(mog.data.TxOffset))
+                self.Correction_Factor_edit.setText(str(mog.user_fac_dt))
+                self.Multiplication_Factor_edit.setText(str(mog.f_et))
+                self.Date_edit.setText(mog.data.date)
 
-            if mog.useAirShots:
-                self.Air_shots_checkbox.setChecked(True)
+                if mog.av is not None and mog.ap is not None:
+                    self.Air_Shot_Before_edit.setText(mog.av.name[:-4])
+                    self.Air_Shot_After_edit.setText(mog.ap.name[:-4])
+                else:
+                    self.Air_Shot_Before_edit.setText('')
+                    self.Air_Shot_After_edit.setText('')
 
-            else:
-                self.Air_shots_checkbox.setChecked(False)
+                if mog.useAirShots:
+                    self.Air_shots_checkbox.setChecked(True)
 
-            for i in range(database.session.query(Borehole).count()):
-                if mog.Tx is None or mog.Rx is None:
-                    if mog.Tx is None:
-                        self.Tx_combo.setCurrentIndex(-1)
-                    if mog.Rx is None:
-                        self.Rx_combo.setCurrentIndex(-1)
-                elif mog.Tx.name == database.session.query(Borehole).all()[i].name:
-                    self.Tx_combo.setCurrentIndex(i)
+                else:
+                    self.Air_shots_checkbox.setChecked(False)
 
-                elif mog.Rx.name == database.session.query(Borehole).all()[i].name:
-                    self.Rx_combo.setCurrentIndex(i)
+                if mog.Tx is None:
+                    self.Tx_combo.setCurrentIndex(-1)
+                else:
+                    self.Tx_combo.setCurrentIndex(self.Tx_combo.findText(mog.Tx.name))
+
+                if mog.Rx is None:
+                    self.Rx_combo.setCurrentIndex(-1)
+                else:
+                    self.Rx_combo.setCurrentIndex(self.Rx_combo.findText(mog.Rx.name))
+
         tot_traces = 0
         for mog in database.session.query(Mog).all():
             tot_traces += mog.data.ntrace
@@ -170,45 +174,52 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         self.updateHandlerMog = False
 
-        ind = self.MOG_list.selectedIndexes()
-        for i in ind:
-            mog = database.session.query(Mog).all()[i.row()]
+        item = self.MOG_list.currentItem()
+        if item is not None:
+            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
 
             mog.data.rnomfreq = float(self.Nominal_Frequency_edit.text())
             mog.data.RxOffset = float(self.Rx_Offset_edit.text())
             mog.data.TxOffset = float(self.Tx_Offset_edit.text())
+            mog.data.date     = self.Date_edit.text()
+            flag_modified(mog, 'data')
             mog.user_fac_dt   = float(self.Correction_Factor_edit.text())
             mog.f_et          = float(self.Multiplication_Factor_edit.text())
-            mog.date          = self.Date_edit.text()
 
     def del_MOG(self):
-        ind = self.MOG_list.selectedIndexes()
+        item = self.MOG_list.currentItem()
 
-        for i in ind:
-            self.moglogSignal.emit("MOG {} has been deleted".format(database.session.query(Mog).all()[int(i.row())].name))
-            database.delete(database, database.session.query(Mog).all()[int(i.row())])
+        if item is not None:
+            mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+            self.moglogSignal.emit("MOG {} has been deleted".format(mog_.name))
+            database.delete(database, mog_)
         self.update_List_Widget()
         self.update_edits()
+        database.modified = True
 
     def rename(self):
-        ind = self.MOG_list.selectedIndexes()
-        new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'new MOG name')
-        if ok:
-            for i in ind:
-                self.moglogSignal.emit("MOG {} is now {}".format(database.session.query(Mog).all()[int(i.row())].name, new_name))
-                database.session.query(Mog).all()[int(i.row())].name = new_name
-        self.update_List_Widget()
-        self.update_edits()
+        item = self.MOG_list.currentItem()
+        if item is not None:
+            new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'new MOG name')
+            if ok:
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                self.moglogSignal.emit("MOG {} is now {}".format(mog_.name, new_name))
+                mog_.name = new_name
+                self.update_List_Widget()
+                self.update_edits()
+                database.modified = True
 
     def use_air(self):
-        ind = self.MOG_list.currentRow()
-        mog = database.session.query(Mog).all()[ind]
+        item = self.MOG_list.currentItem()
 
-        if self.Air_shots_checkbox.isChecked():
-            mog.useAirShots = 1
+        if item is not None:
+            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
 
-        else:
-            mog.useAirShots = 0
+            if self.Air_shots_checkbox.isChecked():
+                mog.useAirShots = 1
+
+            else:
+                mog.useAirShots = 0
 
     def airBefore(self):
 
@@ -218,26 +229,23 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         if not filename:
             return
         else:
-            # We get the selected index f MOG_list to then be able to get the mog instance from MOGS
-            ind = self.MOG_list.selectedIndexes()
+            # We get the selected index of MOG_list to then be able to get the mog instance from MOGS
+            item = self.MOG_list.currentItem()
 
-            # the object ind contains all the selected indexes
-            for i in ind:
+            if item is not None:
+
                 # then we get only the real name of the file (i.e. not the path behind it)
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
 
-                for n in range(database.session.query(AirShots).count()):
-                    # then we verify if we've already applied the airshots
-                    if str(basename) in str(self.air[n].name):
-                        # then we associate the index of the air shot to the selected mog
-                        database.session.query(Mog).all()[i.row()].av = n
-                        break
+                # then we verify if we've already applied the airshots
+                airshot = database.session.query(AirShots).filter(AirShots.name == basename).first()
+                if airshot is not None:
+                    # then we associate the index of the air shot to the selected mog
+                    database.session.query(Mog).filter(Mog.name == item.text()).av = airshot
 
                 else:
-                    n = len(self.air)
-
                     # because of the fact that Airshots files are either rd3, tlf or rad, we apply the method read
                     # ramac to get the informations from these files
                     try:
@@ -261,76 +269,83 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                 self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
                         airshot_before = AirShots(str(rname))
-                        self.air.append(airshot_before)
-                        self.air[n].data = data
-                        self.air[n].tt = -1 * np.ones(data.ntrace)  # tt stands for the travel time vector
-                        self.air[n].et = -1 * np.ones(data.ntrace)  # to be defined
-                        self.air[n].tt_done = np.zeros(data.ntrace, dtype=bool)  # the tt_done is a zeros array and whenever a ray arrives, its value will be changed to one
-                        self.air[n].d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
-                        self.air[n].fac_dt = 1
-                        self.air[n].in_vect = np.ones(data.ntrace, dtype=bool)
-                        database.session.query(Mog).all()[i.row()].av = n
+                        airshot_before.data = data
+                        airshot_before.tt = -1 * np.ones(data.ntrace)  # tt stands for the travel time vector
+                        airshot_before.et = -1 * np.ones(data.ntrace)  # to be defined
+                        airshot_before.tt_done = np.zeros(data.ntrace, dtype=bool)  # the tt_done is a zeros array and whenever a ray arrives, its value will be changed to one
+                        airshot_before.d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
+                        airshot_before.fac_dt = 1
+                        airshot_before.in_vect = np.ones(data.ntrace, dtype=bool)
                         if len(distance_list) == 1:
-                            self.air[n].method = 'fixed_antenna'
+                            airshot_before.method = 'fixed_antenna'
                         else:
-                            self.air[n].method = 'walkaway'
-                        self.Air_Shot_Before_edit.setText(self.air[n].name[:-4])
+                            airshot_before.method = 'walkaway'
+                        self.Air_Shot_Before_edit.setText(airshot_before.name[:-4])
+                        database.session.add(airshot_before)
+                        database.session.query(Mog).filter(Mog.name == item.text()).first().av = airshot_before
+                        database.modified = True
 
     def airAfter(self):
         # As you can see, the airAfter method is almost the same as airBefore (refer to airBefore for any questions)
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')[0]
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot after survey')[0]
 
         if not filename:
             return
         else:
-            ind = self.MOG_list.selectedIndexes()
-            for i in ind:
+            item = self.MOG_list.currentItem()
+
+            if item is not None:
+
                 basename = filename[:-4]
                 rname = filename.split('/')
                 rname = rname[-1]
 
-                for n in range(len(self.air)):
-                    if str(basename) in str(self.air[n].name):
-                        database.session.query(Mog).all()[i.row()].ap = n
-                        break
+                airshot = database.session.query(AirShots).filter(AirShots.name == basename).first()
+                if airshot is not None:
+                    database.session.query(Mog).filter(Mog.name == item.text()).ap = airshot
 
                 else:
-                    n = len(self.air)
+                    try:
+                        data = MogData()
+                        data.readRAMAC(basename)
+                    except:
+                        self.moglogSignal.emit('Error: AirShot File must have *.rad, *.tlf or *.rd3 extension')
+                        return
 
-                    data = MogData()
-                    data.readRAMAC(basename)
+                    distance, ok = QtWidgets.QInputDialog.getText(self, 'Airshots After', 'Distance between Tx and Rx :')
 
-                    distance, ok = QtWidgets.QInputDialog.getText(self, "Distance", 'Enter distance between Tx and Rx')
                     if ok:
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
                         distance_list = [float(i) for i in distance_list]
+
                         if len(distance_list) > 1:
                             if len(distance_list) != data.ntrace:
                                 self.moglogSignal.emit('Error: Number of positions inconsistent with number of traces')
                                 return
-
-                        self.air.append(AirShots(str(rname)))
-                        self.air[n].data = data
-                        self.air[n].tt = -1 * np.ones(data.ntrace)
-                        self.air[n].et = -1 * np.ones(data.ntrace)
-                        self.air[n].tt_done = np.zeros(data.ntrace, dtype=bool)
-                        self.air[n].d_TxRx = distance_list
-                        self.air[n].fac_dt = 1
-                        self.air[n].ing = np.ones(data.ntrace, dtype=bool)
-                        database.session.query(Mog).all()[i.row()].ap = n
+                        airshot_after = AirShots(str(rname))
+                        airshot_after.data = data
+                        airshot_after.tt = -1 * np.ones(data.ntrace)
+                        airshot_after.et = -1 * np.ones(data.ntrace)
+                        airshot_after.tt_done = np.zeros(data.ntrace, dtype=bool)
+                        airshot_after.d_TxRx = distance_list
+                        airshot_after.fac_dt = 1
+                        airshot_after.in_vect = np.ones(data.ntrace, dtype=bool)
                         if len(distance_list) == 1:
-                            self.air[n].method = 'fixed_antenna'
+                            airshot_after.method = 'fixed_antenna'
                         else:
-                            self.air[n].method = 'walkaway'
-                        self.Air_Shot_After_edit.setText(self.air[n].name[:-4])
+                            airshot_after.method = 'walkaway'
+                        self.Air_Shot_After_edit.setText(airshot_after.name[:-4])
+                        database.session.add(airshot_after)
+                        database.session.query(Mog).filter(Mog.name == item.text()).first().ap = airshot_after
+                        database.modified = True
 
     def update_spectra_and_coverage_Tx_num_list(self):
-        ind = self.MOG_list.selectedIndexes()
+        item = self.MOG_list.currentItem()
         self.Tx_num_list.clear()
 
-        if ind:
-            mog = database.session.query(Mog).all()[ind[0].row()]
+        if item is not None:
+            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
             unique_Tx_z = np.unique(mog.data.Tx_z)
 
             for Tx in range(len(unique_Tx_z)):
@@ -341,18 +356,18 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.trace_num_combo.setCurrentIndex(0)
 
     def update_spectra_and_coverage_Tx_elev_value_label(self):
-        ind1 = self.MOG_list.selectedIndexes()
+        item = self.MOG_list.currentItem()
 
-        if ind1:
-            mog = database.session.query(Mog).all()[ind1[0].row()]
+        if item is not None:
+            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
             self.Tx_elev_value_label.clear()
-            ind2 = self.Tx_num_list.selectedIndexes()
-            ind3 = int(self.trace_num_edit.text())
+            ind1 = self.Tx_num_list.selectedIndexes()
+            ind2 = int(self.trace_num_edit.text())
             unique_Tx_z = np.unique(mog.data.Tx_z)[::-1]
-            for j in ind2:
-                self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[-j.row()]))
+            for i in ind1:
+                self.Tx_elev_value_label.setText(str((list(unique_Tx_z))[-i.row()]))
 
-            self.value_elev_label.setText(str((list(unique_Tx_z))[-ind3]))
+            self.value_elev_label.setText(str((list(unique_Tx_z))[-ind2]))
 
     def search_Tx_elev(self):
         if self.search_combo.currentText() == 'Search with Elevation':
@@ -360,8 +375,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 item = float(self.search_elev_edit.text())
             except:
                 pass
-            ind = self.MOG_list.selectedIndexes()
-            mog = database.session.query(Mog).all()[ind[0].row()]
+            item_ = self.MOG_list.selectedIndexes()
+            mog = database.session.query(Mog).filter(Mog.name == item_.text()).first()
             for i in range(len(mog.data.Tx_z)):
                 if mog.data.Tx_z[i] == item:
                     self.Tx_num_list.setCurrentRow(i + 1)
@@ -398,11 +413,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.Rx_combo.addItem(bh.name)
 
     def updateCoords(self):
-        ind = self.MOG_list.selectedIndexes()
-        Tx_name = self.Tx_combo.currentText()
-        Rx_name = self.Rx_combo.currentText()
-        for i in ind:
-            mog = database.session.query(Mog).all()[i.row()]
+        item = self.MOG_list.currentItem()
+        if item is not None:
+            Tx_name = self.Tx_combo.currentText()
+            Rx_name = self.Rx_combo.currentText()
+            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
 
             if 'true positions' in mog.data.comment:
 
@@ -468,10 +483,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
     def plot_rawdata(self):
         if database.session.query(Mog).count() != 0:
-            ind = self.MOG_list.selectedIndexes()
-            for i in ind:
-                self.rawdataFig.plot_raw_data(database.session.query(Mog).all()[i.row()].data)
-                self.moglogSignal.emit(" MOG {}'s Raw Data has been plotted ". format(database.session.query(Mog).all()[i.row()].name))
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                self.rawdataFig.plot_raw_data(mog_.data)
+                self.moglogSignal.emit(" MOG {}'s Raw Data has been plotted ". format(mog_.name))
                 self.rawdatamanager.showMaximized()
 
         else:
@@ -480,57 +496,62 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
     def plot_spectra(self):
         if database.session.query(Mog).count() != 0:
-            ind                 = self.MOG_list.selectedIndexes()
-            n                   = self.Tx_num_list.currentIndex().row()
-            mog                 = database.session.query(Mog).all()[ind[0].row()]
-            Fmax                = float(self.f_max_edit.text())
-            filter_state        = self.filter_check.isChecked()
-            scale               = self.snr_combo.currentText()
-            estimation_method   = self.psd_combo.currentText()
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                n                   = self.Tx_num_list.currentIndex().row()
+                mog                 = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                Fmax                = float(self.f_max_edit.text())
+                filter_state        = self.filter_check.isChecked()
+                scale               = self.snr_combo.currentText()
+                estimation_method   = self.psd_combo.currentText()
 
-            self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
-            # self.moglogSignal.emit(" MOG {}'s Spectra has been plotted ". format(mog.name))
-            self.spectramanager.showMaximized()
+                self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
+                # self.moglogSignal.emit(" MOG {}'s Spectra has been plotted ". format(mog.name))
+                self.spectramanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_zop(self):
         if database.session.query(Mog).count() != 0:
-            ind = self.MOG_list.selectedIndexes()
-            self.zopFig.plot_zop()
-            # self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ". format(database.session.query(Mog).all()[ind[0].row()].name))
-            self.zopmanager.showMaximized()
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                self.zopFig.plot_zop()
+                # mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                # self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ".format(mog_.name))
+                self.zopmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_zop_rays(self):
         if database.session.query(Mog).count() != 0:
-            ind = self.MOG_list.selectedIndexes()
-            mog = database.session.query(Mog).all()[ind[0].row()]
-            tol = float(self.tol_edit.text())
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                tol = float(self.tol_edit.text())
 
-            self.zopraysFig.plot_rays(mog, tol)
-            self.zopraysmanager.show()
+                self.zopraysFig.plot_rays(mog_, tol)
+                self.zopraysmanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_statstt(self):
         if database.session.query(Mog).count() != 0:
-            ind = self.MOG_list.selectedIndexes()
-            mog = database.session.query(Mog).all()[ind[0].row()]
-            done = (mog.tt_done.astype(int) + mog.in_vect.astype(int)) - 1
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                done = (mog_.tt_done.astype(int) + mog_.in_vect.astype(int)) - 1
 
-            if len(np.nonzero(done == 1)[0]) == 0:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Data not processed",
-                                              buttons=QtWidgets.QMessageBox.Ok)
+                if len(np.nonzero(done == 1)[0]) == 0:
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Data not processed",
+                                                  buttons=QtWidgets.QMessageBox.Ok)
 
-            else:
-                self.statsttFig.plot_stats(mog, self.air)
-                self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
-                self.statsttmanager.showMaximized()
+                else:
+                    self.statsttFig.plot_stats(mog_, database.session.query(AirShots).all())
+                    self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(mog_.name))
+                    self.statsttmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
@@ -538,40 +559,46 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
     def plot_statsamp(self):
 
         if database.session.query(Mog).count() != 0:
-            ind = self.MOG_list.selectedIndexes()
-            self.statsampFig.plot_stats(database.session.query(Mog).all()[ind[0].row()])
-            self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
-            self.statsampmanager.showMaximized()
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                self.statsampFig.plot_stats(mog_)
+                self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(mog_.name))
+                self.statsampmanager.showMaximized()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_ray_coverage(self):
+
         if database.session.query(Mog).count() != 0:
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                coverage_ind = self.trace_num_combo.currentIndex()
+                show_type = self.show_type_combo.currentText()
+                entire_state = self.entire_coverage_check.isChecked()
+                n = int(self.trace_num_edit.text()) - 1
 
-            ind = self.MOG_list.selectedIndexes()
-            coverage_ind = self.trace_num_combo.currentIndex()
-            show_type = self.show_type_combo.currentText()
-            entire_state = self.entire_coverage_check.isChecked()
-            n = int(self.trace_num_edit.text()) - 1
-
-            self.raycoverageFig.plot_ray_coverage(database.session.query(Mog).all()[ind[0].row()], n, show_type, entire_state)
-            # self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
-            self.raymanager.show()
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                self.raycoverageFig.plot_ray_coverage(mog_, n, show_type, entire_state)
+                # self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(mog_.name))
+                self.raymanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_prune(self):
         if database.session.query(Mog).count() != 0:
-            ind = self.MOG_list.selectedIndexes()
-            if database.session.query(Mog).all()[ind[0].row()].Tx != 1 and database.session.query(Mog).all()[ind[0].row()].Tx != 1:
-                self.pruneFig.plot_prune(database.session.query(Mog).all()[ind[0].row()], 0)
-                self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(database.session.query(Mog).all()[ind[0].row()].name))
-                self.prunemanager.show()
-            else:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Please select Tx and Rx for MOG",
-                                              buttons=QtWidgets.QMessageBox.Ok)
+            item = self.MOG_list.currentItem()
+            if item is not None:
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text())
+                if mog_.Tx != 1 and mog_.Tx != 1:
+                    self.pruneFig.plot_prune(mog_, 0)
+                    self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(mog_.name))
+                    self.prunemanager.show()
+                else:
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Please select Tx and Rx for MOG",
+                                                  buttons=QtWidgets.QMessageBox.Ok)
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
@@ -591,11 +618,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.plot_ray_coverage()
 
     def export_tt(self):
-        if database.session.query(Mog).all() != 0:
+        if database.session.query(Mog).count() != 0:
             filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Export tt')
             self.moglogSignal.emit('Exporting Traveltime file ...')
 
-            mog = database.session.query(Mog).all()[self.MOG_list.currentRow()]
+            mog = database.session.query(Mog).filter(Mog.name == self.MOG_list.currentItem().text()).first()
             ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
             ind = np.where(ind == 2)[0]
             export_file = open(filename, 'w')
@@ -609,7 +636,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def export_tau(self):
-        if database.session.query(Mog).all() != 0:
+        if database.session.query(Mog).count() != 0:
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Export tau')[0]
             self.moglogSignal.emit('Exporting tau file ...')
             # TODO
@@ -658,145 +685,146 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.updateHandlerPrune = False
 
         # First, we get the mog instance's informations
-        ind = self.MOG_list.selectedIndexes()
-        mog = database.session.query(Mog).all()[ind[0].row()]
+        item = self.MOG_list.currentItem()
+        if item is not None:
+            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
 
-        # List which contain the indexes of the skipped Tx and Rx
-        inRx = []
-        inTx = []
+            # List which contain the indexes of the skipped Tx and Rx
+            inRx = []
+            inTx = []
 
-        # Reinitialisation of the boolean vectors before modification
-        mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype=bool)
-        mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype=bool)
+            # Reinitialisation of the boolean vectors before modification
+            mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype=bool)
+            mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype=bool)
 
-        # Information from all the edits of the prune widget
-        new_min = float(self.min_elev_edit.text())
-        new_max = float(self.max_elev_edit.text())
-        skip_len_Rx = int(self.skip_Rx_edit.text())
-        skip_len_Tx = int(self.skip_Tx_edit.text())
-        round_factor = float(self.round_fac_edit.text())
-        use_snr = self.thresh_check.isChecked()
-        threshold_snr = float(self.thresh_edit.text())
-        ang_min = float(self.min_ang_edit.text())
-        ang_max = float(self.max_ang_edit.text())
+            # Information from all the edits of the prune widget
+            new_min = float(self.min_elev_edit.text())
+            new_max = float(self.max_elev_edit.text())
+            skip_len_Rx = int(self.skip_Rx_edit.text())
+            skip_len_Tx = int(self.skip_Tx_edit.text())
+            round_factor = float(self.round_fac_edit.text())
+            use_snr = self.thresh_check.isChecked()
+            threshold_snr = float(self.thresh_edit.text())
+            ang_min = float(self.min_ang_edit.text())
+            ang_max = float(self.max_ang_edit.text())
 
-        # -These steps are for the constraining of the Tx's ad Rx's elevation--------------------------------------------
-        # Because the truth of multiple values array is ambiguous, we have to do these steps
+            # -These steps are for the constraining of the Tx's ad Rx's elevation--------------------------------------------
+            # Because the truth of multiple values array is ambiguous, we have to do these steps
 
-        # We first create a boolean vector which will have a True value if the elevation is greater or equals the new min
-        # and will be False the other way
-        min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z), new_min)
-        min_Rx = np.greater_equal(-np.unique(np.sort(mog.data.Rx_z)), new_min)
+            # We first create a boolean vector which will have a True value if the elevation is greater or equals the new min
+            # and will be False the other way
+            min_Tx = np.greater_equal(-np.unique(mog.data.Tx_z), new_min)
+            min_Rx = np.greater_equal(-np.unique(np.sort(mog.data.Rx_z)), new_min)
 
-        # Then we create another boolean vector which will have a True value if the elevation is less or equals the new max
-        # and will be false otherwise
-        max_Tx = np.less_equal(-np.unique(mog.data.Tx_z), new_max)
-        max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max + 0.0000000001)  # À voir avec bernard
+            # Then we create another boolean vector which will have a True value if the elevation is less or equals the new max
+            # and will be false otherwise
+            max_Tx = np.less_equal(-np.unique(mog.data.Tx_z), new_max)
+            max_Rx = np.less_equal(-np.unique(np.sort(mog.data.Rx_z)), new_max + 0.0000000001)  # TODO À voir avec bernard
 
-        # Finally, we add these two boolean vectors as integer type. The subsequent vector will have values of 1 and 2,
-        # but only the 2s are of interest because they mean that the value is true, either in the min vector than the
-        # max vector.we than substract 1 to this vector and transform it to a boolean type to have the right points
-        # plotted in the pruneFig
-        mog.in_Tx_vect = (min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
-        mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
+            # Finally, we add these two boolean vectors as integer type. The subsequent vector will have values of 1 and 2,
+            # but only the 2s are of interest because they mean that the value is true, either in the min vector than the
+            # max vector.we than substract 1 to this vector and transform it to a boolean type to have the right points
+            # plotted in the pruneFig
+            mog.in_Tx_vect = (min_Tx.astype(int) + max_Tx.astype(int) - 1).astype(bool)
+            mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
 
-        # We then append a False boolean vector to fit the lenght of ntrace
-        mog.in_Tx_vect = np.append(mog.in_Tx_vect, np.ones(mog.data.ntrace - len(min_Tx), dtype=bool))
-        mog.in_Rx_vect = np.append(mog.in_Rx_vect, np.ones(mog.data.ntrace - len(min_Rx), dtype=bool))
+            # We then append a False boolean vector to fit the lenght of ntrace
+            mog.in_Tx_vect = np.append(mog.in_Tx_vect, np.ones(mog.data.ntrace - len(min_Tx), dtype=bool))
+            mog.in_Rx_vect = np.append(mog.in_Rx_vect, np.ones(mog.data.ntrace - len(min_Rx), dtype=bool))
 
-        # -These steps are for the skipping of Txs and Rxs---------------------------------------------------------------
+            # -These steps are for the skipping of Txs and Rxs---------------------------------------------------------------
 
-        # We first get the unique version of Rx_z and Tx_z
-        unique_Rx_z = np.unique(mog.data.Rx_z)
-        unique_Tx_z = np.unique(mog.data.Tx_z)
+            # We first get the unique version of Rx_z and Tx_z
+            unique_Rx_z = np.unique(mog.data.Rx_z)
+            unique_Tx_z = np.unique(mog.data.Tx_z)
 
-        # And then we apply the skip_len with proper matrix indexing
-        unique_Rx_z = unique_Rx_z[::skip_len_Rx + 1]
-        unique_Tx_z = unique_Tx_z[::skip_len_Tx + 1]
-        # Why the +1 ? its because skipping 0 would bring out an error. The initial skipping value is 1, which skips no values
+            # And then we apply the skip_len with proper matrix indexing
+            unique_Rx_z = unique_Rx_z[::skip_len_Rx + 1]
+            unique_Tx_z = unique_Tx_z[::skip_len_Tx + 1]
+            # Why the +1 ? its because skipping 0 would bring out an error. The initial skipping value is 1, which skips no values
 
-        # We then look for the indexes of the skipped values
-        for i in range(len(np.unique(mog.data.Rx_z))):
-            if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
-                inRx.append(i)
-        # And the we assing and False to the skipped points, so the plotting can be successful
-        for value in inRx:
-            mog.in_Rx_vect[value] = False
+            # We then look for the indexes of the skipped values
+            for i in range(len(np.unique(mog.data.Rx_z))):
+                if np.unique(mog.data.Rx_z)[i] not in unique_Rx_z:
+                    inRx.append(i)
+            # And the we assing and False to the skipped points, so the plotting can be successful
+            for value in inRx:
+                mog.in_Rx_vect[value] = False
 
-        # here its the same thig but for the Txs
-        for i in range(len(np.unique(mog.data.Tx_z))):
-            if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
-                inTx.append(i)
-        for value in inTx:
-            mog.in_Tx_vect[value] = False
+            # here its the same thig but for the Txs
+            for i in range(len(np.unique(mog.data.Tx_z))):
+                if np.unique(mog.data.Tx_z)[i] not in unique_Tx_z:
+                    inTx.append(i)
+            for value in inTx:
+                mog.in_Tx_vect[value] = False
 
-        # For the angular restrictions, we first calculate the X-Y distance between the Tx's and Rx's
-        dr = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 + (mog.data.Tx_y - mog.data.Rx_y)**2)
+            # For the angular restrictions, we first calculate the X-Y distance between the Tx's and Rx's
+            dr = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 + (mog.data.Tx_y - mog.data.Rx_y)**2)
 
-        # Then we call the arctan2 function from numpy which gives us the angle for every couple Tx-Rx
-        theta = np.arctan2(mog.data.Tx_z - mog.data.Rx_z, dr) * 180 / np.pi
+            # Then we call the arctan2 function from numpy which gives us the angle for every couple Tx-Rx
+            theta = np.arctan2(mog.data.Tx_z - mog.data.Rx_z, dr) * 180 / np.pi
 
-        # After finding all the angles of the Tx-Rx set, we do the same thing we did for the elevation
-        min_theta = np.greater_equal(theta, ang_min)
-        max_theta = np.less_equal(theta, ang_max)
+            # After finding all the angles of the Tx-Rx set, we do the same thing we did for the elevation
+            min_theta = np.greater_equal(theta, ang_min)
+            max_theta = np.less_equal(theta, ang_max)
 
-        intheta = (min_theta.astype(int) + max_theta.astype(int) - 1).astype(bool)
+            intheta = (min_theta.astype(int) + max_theta.astype(int) - 1).astype(bool)
 
-        # We then look for the indexes of the angle values which don't fit in the restrictions
-        false_theta = np.where(not intheta)
+            # We then look for the indexes of the angle values which don't fit in the restrictions
+            false_theta = np.where(not intheta)
 
-        # Then we associate a false value to these indexes in the in_Rx_vect so the plot will contain only the Rx points
-        # which fit the constraints values of the min_ang and max_ang edits
-        for false_index in false_theta[0]:
-            mog.in_Rx_vect[false_index] = False
+            # Then we associate a false value to these indexes in the in_Rx_vect so the plot will contain only the Rx points
+            # which fit the constraints values of the min_ang and max_ang edits
+            for false_index in false_theta[0]:
+                mog.in_Rx_vect[false_index] = False
 
-        if use_snr:
-            # TODO: Faire la fonction detrend_rad
-            SNR = compute_SNR(mog)
+            if use_snr:
+                # TODO: Faire la fonction detrend_rad
+                SNR = compute_SNR(mog)
 
-        mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1).astype(bool)
+            mog.in_vect = (mog.in_Rx_vect.astype(int) + mog.in_Tx_vect.astype(int) - 1).astype(bool)
 
-        # And then. when all of the steps have been done, we update the prune info subwidget and plot the graphic
-        self.update_prune_info()
-        self.pruneFig.plot_prune(mog, round_factor)
-        # Why wouldn't we apply the modification of the round factor in the update prune method?
-        # well it's because the update prune method modifies the boolean vector in_Tx_vect and in_Rx_vect
-        # and the applicatiomn of a round facotr modifies the data itself so we had to put it in the plotting
+            # And then. when all of the steps have been done, we update the prune info subwidget and plot the graphic
+            self.update_prune_info()
+            self.pruneFig.plot_prune(mog, round_factor)
+            # Why wouldn't we apply the modification of the round factor in the update prune method?
+            # well it's because the update prune method modifies the boolean vector in_Tx_vect and in_Rx_vect
+            # and the applicatiomn of a round facotr modifies the data itself so we had to put it in the plotting
 
     def update_prune_edits_info(self):
-        ind = self.MOG_list.selectedIndexes()
-        for i in ind:
+        item = self.MOG_list.currentItem()
+        if item is not None:
             try:
-                mog = database.session.query(Mog).all()[i.row()]
-                self.min_ang_edit.setText(str(mog.pruneParams.thetaMin))
-                self.max_ang_edit.setText(str(mog.pruneParams.thetaMax))
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                self.min_ang_edit.setText(str(mog_.pruneParams.thetaMin))
+                self.max_ang_edit.setText(str(mog_.pruneParams.thetaMax))
 
-                if min(mog.data.Tx_z) < min(mog.data.Rx_z):
-                    self.min_elev_edit.setText(str(-mog.data.Tx_z[-1]))
-                    self.max_elev_edit.setText(str(mog.data.Tx_z[0]))
+                if min(mog_.data.Tx_z) < min(mog_.data.Rx_z):
+                    self.min_elev_edit.setText(str(-mog_.data.Tx_z[-1]))
+                    self.max_elev_edit.setText(str(mog_.data.Tx_z[0]))
 
-                elif min(mog.data.Rx_z) < min(mog.data.Tx_z):
-                    self.min_elev_edit.setText(str(-max(mog.data.Rx_z)))
-                    self.max_elev_edit.setText(str(-min(mog.data.Rx_z)))
+                elif min(mog_.data.Rx_z) < min(mog_.data.Tx_z):
+                    self.min_elev_edit.setText(str(-max(mog_.data.Rx_z)))
+                    self.max_elev_edit.setText(str(-min(mog_.data.Rx_z)))
             except Exception as e:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : '" + str(e)[:42] + "...' [mog_ui 2]",
                                               buttons=QtWidgets.QMessageBox.Ok)
 
     def update_prune_info(self):
-        ind = self.MOG_list.selectedIndexes()
+        item = self.MOG_list.currentItem()
 
-        if ind:
-            mog = database.session.query(Mog).all()[ind[0].row()]
+        if item is not None:
+            mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
             selected_angle = float(self.max_ang_edit.text()) - float(self.min_ang_edit.text())
-            removed_Tx = mog.data.ntrace - sum(mog.in_Tx_vect)
-            removed_Rx = mog.data.ntrace - sum(mog.in_Rx_vect)
-            removed_Tx_and_Rx = (removed_Tx + removed_Rx) / mog.data.ntrace * 100
-            tot_traces = mog.data.ntrace
-            selec_traces = sum(mog.in_vect)
+            removed_Tx = mog_.data.ntrace - sum(mog_.in_Tx_vect)
+            removed_Rx = mog_.data.ntrace - sum(mog_.in_Rx_vect)
+            removed_Tx_and_Rx = (removed_Tx + removed_Rx) / mog_.data.ntrace * 100
+            tot_traces = mog_.data.ntrace
+            selec_traces = sum(mog_.in_vect)
             kept_traces = (selec_traces / tot_traces) * 100
 
-            self.value_Tx_info_label.setText(str(len(np.unique(mog.data.Tx_z))))
-            self.value_Rx_info_label.setText(str(len(np.unique(mog.data.Rx_z))))
+            self.value_Tx_info_label.setText(str(len(np.unique(mog_.data.Tx_z))))
+            self.value_Rx_info_label.setText(str(len(np.unique(mog_.data.Rx_z))))
             self.value_Tx_Rx_removed_label.setText(str(np.round(removed_Tx_and_Rx)))
             self.value_ray_angle_removed_label.setText(str(np.round(((180 - selected_angle) / 180) * 100)))
             self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
@@ -828,8 +856,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
                                               buttons=QtWidgets.QMessageBox.Ok)
             return
+
         for mog in database.session.query(Mog).all():
             self.deltat.min_combo.addItem(str(mog.name))
+
         self.deltat.getcompat()
 
     def import_mog(self):
@@ -848,6 +878,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.update_prune_edits_info()
             self.update_prune_info()
             self.moglogSignal.emit("Mog '{}' was imported successfully".format(item.name))
+            database.modified = True
 
     def update_color_scale(self):
         if self.color_scale_combo.currentText() == 'Low':
@@ -1417,8 +1448,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.Rx_combo.activated.connect(self.updateCoords)
 
         # --- CheckBox --- #
-        self.Air_shots_checkbox                  = QtWidgets.QCheckBox("Use Air Shots")
-        Correction_Factor_checkbox          = QtWidgets.QCheckBox("Fixed Time Step Correction Factor")
+        self.Air_shots_checkbox    = QtWidgets.QCheckBox("Use Air Shots")
+        Correction_Factor_checkbox = QtWidgets.QCheckBox("Fixed Time Step Correction Factor")
 
         # - CheckBoxes' Actions -#
         self.Air_shots_checkbox.stateChanged.connect(self.use_air)
@@ -1526,12 +1557,6 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         sub_right_buttons_Grid.addWidget(btn_export_tau, 4, 2)
         sub_right_buttons_Grid.addWidget(btn_Prune, 4, 3)
         sub_right_buttons_Grid.addWidget(btn_delta_t_mog, 5, 2)
-#         sub_right_buttons_Grid.setVerticalSpacing(0)
-#         sub_right_buttons_Grid.setHorizontalSpacing(0)
-#         sub_right_buttons_Grid.setRowStretch(0, 100)
-#         sub_right_buttons_Grid.setRowStretch(5, 100)
-#         sub_right_buttons_Grid.setColumnStretch(0, 100)
-#         sub_right_buttons_Grid.setColumnStretch(5, 100)
         sub_right_buttons_widget.setLayout(sub_right_buttons_Grid)
 
         # - MOG and list Sub Widget -#
@@ -1776,7 +1801,7 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
         zop_picked_ind = np.less_equal(dz, tol).astype(int) + np.not_equal(mog.tt, -1).astype(int)
         zop_picked_ind = np.where(zop_picked_ind == 2)[0]
 
-        tt, in_plus, in_minus, vapp = self.calculate_Vapp(mog, self.ui.air)
+        tt, in_plus, in_minus, vapp = self.calculate_Vapp(mog, database.session.query(AirShots).all())
 
         zmin = np.round(min(mog.data.Rx_z[zop_ind]), 4)
         zmax = np.round(max(mog.data.Rx_z[zop_ind]), 4)
@@ -2328,28 +2353,31 @@ class MergeMog(QtWidgets.QWidget):
 
     def doMerge(self):
 
-        num = self.ref_combo.currentIndex()
+        item = self.ref_combo.currentText()
         merge_name = self.comp_list.currentItem().text()
         if len(self.comp_list) == 0:
             self.dialog.setText("No compatible MOG found")
             self.dialog.setStandardButtons(QtWidgets.QMessageBox.Ok)
             self.dialog.setIcon(QtWidgets.QMessageBox.Warning)
+            return
         if merge_name is None:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected for merging", buttons=QtWidgets.QMessageBox.Ok)
+            return
         if not self.new_edit.text():
             QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for the new MOG", buttons=QtWidgets.QMessageBox.Ok)
+            return
 
         for i in range(database.session.query(Mog).count()):
             if database.session.query(Mog).all()[i].name == merge_name:
                 merging_mog = database.session.query(Mog).all()[i]
                 merge_ind = i
         newName = self.new_edit.text()
-        refMog = database.session.query(Mog).all()[num]
+        refMog = database.session.query(Mog).filter(Mog.name == item).first()
         newMog = Mog(newName, refMog.data)
         database.session.add(newMog)
 
-        newMog.av           = np.array([refMog.av, merging_mog.av])
-        newMog.ap           = np.array([refMog.ap, merging_mog.ap])
+        newMog.av           = refMog.av
+        newMog.ap           = refMog.ap
         newMog.Tx           = refMog.Tx
         newMog.Rx           = refMog.Rx
         newMog.f_et         = np.array([refMog.f_et, merging_mog.f_et])

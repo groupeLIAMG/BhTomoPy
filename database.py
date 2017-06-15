@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
 from borehole import Borehole
@@ -33,7 +33,8 @@ from utils import Base
 # Functions from 'database' require a module as first parameter. This
 # is a way of allowing the coexistence of multiple instances of session
 # throughout the program (one per module). Moreover, because the SQLAlchemy
-# objects exist as attributes, they are permanent.
+# objects exist as attributes, they are permanent. Note that any object may
+# replace modules, but the use of the latter is quite convenient.
 
 
 def create_data_management(module):
@@ -44,6 +45,7 @@ def create_data_management(module):
     module.engine = create_engine("sqlite:///:memory:")  # 'engine' interacts with the file
     module.Session = sessionmaker(bind=module.engine)    # 'Session' acts as a factory for upcoming sessions; the features of 'Session' aren't exploited
     module.session = module.Session()                    # the objects are stored in 'session' and can be manipulated from there
+    strong_reference_session(module.session)
     Base.metadata.create_all(module.engine)              # this creates the mapping for a specific engine
     module.modified = False                              # 'modified' keeps track of whether or not data has been modified since last save
 
@@ -60,6 +62,7 @@ def load(module, file):
         module.engine = create_engine("sqlite:///" + file)
         module.Session = sessionmaker(bind=module.engine)
         module.session = module.Session()
+        strong_reference_session(module.session)
         Base.metadata.create_all(module.engine)
         module.modified = False
 
@@ -86,13 +89,23 @@ def save_as(module, file):
     """
     Closes the current file, safely transfers its items to a new file and overwrites the selected file.
     To simply save a 'session' within the current file, the 'session.commit()' method is preferable.
-    Watch out, though, the session may not be wary of changes caused by methods such as *.append. In such
+    * Watch out, though, the session may not be wary of changes caused by methods such as *.append. In such
     cases, to commit properly, one must flag the attribute as modified. This can be achieved with the
     sqlalchemy.orm.attributes.flag_modified method, which takes an mapped object as first parameter and
     the attribute's name (a string) as second parameter.
+
+    e.g.: mog.tt_covar.append(structure) will not be detected because the append method doesn't replace the object.
+          mog.data.date = '00-00-0000' will not be detected because the assignment acts on an attribute's attribute.
+    Rather write:
+          mog.tt_covar.append(structure)
+          flag_modified(mog, 'tt_covar')
+          mog.data.date = '00-00-0000'
+          flag_modified(mog, 'data')
     """
 
     try:
+        airshots_cleanup(module)
+
         strong_referencing = get_many(module)  # @UnusedVariable  # Guarantees the objects and their relationships survive the transfer
         verify_mapping(module)                                    # Referencing the attributes seems to guarantee the strong referencing's effectiveness
         items = get_many(module)  # temporarily stores the saved items
@@ -104,6 +117,7 @@ def save_as(module, file):
         Base.metadata.create_all(module.engine)
         module.Session.configure(bind=module.engine)
         module.session = module.Session()
+        strong_reference_session(module.session)
 
         for item in get_many(module):  # overwrites the selected file
             module.session.delete(item)
@@ -150,16 +164,78 @@ def delete(module, item):
     module.modified = True
 
 
-def airshots_cleanup(module):
-    pass
+def airshots_cleanup(module):  # TODO: Verify
+    """
+    Deletes airshots that aren't associated with a mog.
+    """
+
+    used_airshots = []
+
+    for mog in module.session.query(Mog).all():
+        for airshot in mog.av, mog.ap:
+            if airshot is not None and airshot not in used_airshots:
+                used_airshots.append(airshot)
+
+    for airshot in module.session.query(AirShots).all():
+        if airshot not in used_airshots:
+            delete(module, airshot)
+
+
+def model_boreholes(model):
+    """
+    Returns a list of all the boreholes contained in the mogs of a model, without duplicates.
+    """
+
+    boreholes = []
+
+    for mog in model.mogs:
+        for borehole in mog.Tx, mog.Rx:
+            if borehole is not None:
+                if borehole not in boreholes:  # guarantees there is no duplicate
+                    boreholes.append(borehole)
+
+    return boreholes
 
 
 def long_url(module):
+    """
+    Returns a string of the form '*.db',
+    possibly with additional preceding directories.
+    """
     return str(module.engine.url)[10:]
 
 
 def short_url(module):
+    """
+    A failsafe method for obtaining strictly the url of the engine,
+    i.e. '*.db', without any preceding directories.
+    """
     return os.path.basename(long_url(module))
+
+
+def strong_reference_session(session):
+    """
+    Modifies a session in such a way that the objects it contains aren't
+    garbage-collected by mistake.
+    Taken from SQLAlchemy's website.
+    """
+    @event.listens_for(session, "pending_to_persistent")
+    @event.listens_for(session, "deleted_to_persistent")
+    @event.listens_for(session, "detached_to_persistent")
+    @event.listens_for(session, "loaded_as_persistent")
+    def strong_ref_object(sess, instance):
+        if 'refs' not in sess.info:
+            sess.info['refs'] = refs = set()
+        else:
+            refs = sess.info['refs']
+
+        refs.add(instance)
+
+    @event.listens_for(session, "persistent_to_detached")
+    @event.listens_for(session, "persistent_to_deleted")
+    @event.listens_for(session, "persistent_to_transient")
+    def deref_object(sess, instance):
+        sess.info['refs'].discard(instance)
 
 
 if __name__ == '__main__':
