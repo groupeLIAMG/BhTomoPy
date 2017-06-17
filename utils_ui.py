@@ -371,3 +371,186 @@ def duplicate_new_name(string, string_list):
         recursion += 1
 
     return string
+
+
+def lay(layout, *options, parent=None):
+    """
+    """
+    import PyQt5.QtWidgets as wgt
+    from itertools import count
+
+    def getSpan(row_no, col_no):
+
+        row_span = 1
+        col_span = 1
+
+        for row in count(row_no + 1):
+            try:
+                item = layout[row][col_no]
+                if not isinstance(item, str) or item == '|':
+                    break
+                elif item == '_':
+                    row_span = row - row_no + 1
+            except IndexError:
+                break
+
+        for col in count(col_no + 1):
+            try:
+                item = layout[row_no][col]
+                if not isinstance(item, str) or item == '_':
+                    break
+                elif item == '|':
+                    col_span = col - col_no + 1
+            except IndexError:
+                break
+
+        return row_no, col_no, row_span, col_span
+
+    if parent is None:
+        widget = None
+    grid = wgt.QGridLayout()
+
+    for row, row_no in zip(layout, count()):
+
+        if isinstance(row, (list, tuple)):
+
+            for item, col_no in zip(row, count()):
+
+                if item not in ('', '|', '_'):
+
+                    grid.addWidget(item, *getSpan(row_no, col_no))
+
+        else:
+            raise TypeError("Table was not built properly.")
+
+    def noMargins(*args):
+        nonlocal grid
+        grid.setContentsMargins(0, 0, 0, 0)
+
+    def scrollbar(*args):
+        nonlocal widget
+        if parent is None:
+            if widget is None:
+                widget = wgt.QWidget()
+                widget.setLayout(grid)
+                widget = auto_create_scrollbar(widget)
+            else:
+                raise TypeError("A format has already been specified. Can't format " + str(type(widget)) + " into scrollbar.")
+        else:
+            raise TypeError("A form can't be formatted into a scrollbar.")
+
+    def groupbox(*args):
+        nonlocal widget
+        if parent is None:
+            if widget is None:
+                widget = wgt.QGroupBox(*args)
+                widget.setLayout(grid)
+            else:
+                raise TypeError("A format has already been specified. Can't format " + str(type(widget)) + " into scrollbar.")
+        else:
+            raise TypeError("A form can't be formatted into a groupbox.")
+
+    def setRowStr(*args):
+        nonlocal grid
+        if isinstance(args[0], (list, tuple)):
+            for i in args:
+                grid.setRowStretch(*i)
+        else:
+            grid.setRowStretch(*i)
+
+    def setColStr(*args):
+        nonlocal grid
+        if isinstance(args[0], (list, tuple)):
+            for i in args:
+                grid.setColumnStretch(*i)
+        else:
+            grid.setColumnStretch(*i)
+
+    def setMinHei(*args):
+        nonlocal grid
+        if isinstance(args[0], (list, tuple)):
+            for i in args:
+                setMinHei(*i)
+        else:
+            if isinstance(args[0], int):
+                grid.setRowMinimumHeight(*args)
+            else:
+                args[0].setMinimumHeight(args[1])
+
+    def setMaxHei(*args):
+        nonlocal grid
+        if isinstance(args[0], (list, tuple)):
+            for i in args:
+                setMaxHei(*i)
+        else:
+            if isinstance(args[0], int):
+                grid.setRowMaximumHeight(*args)
+            else:
+                args[0].setMaximumHeight(args[1])
+
+    def setMinWid(*args):
+        nonlocal grid
+        if isinstance(args[0], (list, tuple)):
+            for i in args:
+                setMinWid(*i)
+        else:
+            if isinstance(args[0], int):
+                grid.setColumnMinimumWidth(*args)
+            else:
+                args[0].setMinimumWidth(args[1])
+
+    def setMaxWid(*args):
+        nonlocal grid
+        if isinstance(args[0], (list, tuple)):
+            for i in args:
+                setMaxWid(*i)
+        else:
+            if isinstance(args[0], int):
+                grid.setColumnMaximumWidth(*args)
+            else:
+                args[0].setMaximumWidth(args[1])
+
+    def setHorSpa(*args):
+        nonlocal grid
+        grid.setHorizontalSpacing(*args)
+
+    def setVerSpa(*args):
+        nonlocal grid
+        grid.setVerticalSpacing(*args)
+
+    opt_dict = {'noMargins': noMargins,
+                'scrollbar': scrollbar,
+                'groupbox':  groupbox,
+                'setRowStr': setRowStr,
+                'setColStr': setColStr,
+                'setMinHei': setMinHei,
+                'setMaxHei': setMaxHei,
+                'setMinWid': setMinWid,
+                'setMaxWid': setMaxWid,
+                'setHorSpa': setHorSpa,
+                'setVerSpa': setVerSpa}
+
+    for option in options:
+        opt_dict[option[0]](*option[1:])
+
+    if parent is None:
+        if widget is None:
+            widget = wgt.QWidget()
+            widget.setLayout(grid)
+        return widget
+
+    else:
+        parent.setLayout(grid)
+
+
+def column_lay(layout, *options, parent=None):
+
+    temp = []
+
+    if isinstance(layout[0], (list, tuple)):
+        pass  # complex_column_lay
+    else:
+        for item in layout:
+            temp.append([item])
+
+    return lay(temp, *options, parent=parent)
