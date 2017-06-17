@@ -39,7 +39,7 @@ class ManualttUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(ManualttUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
-        self.mog = 0  # TODO: -> None
+        self.mog = None
         self.initUI()
 
         # Signals of communication between Upper and Lower Figures
@@ -72,7 +72,7 @@ class ManualttUI(QtWidgets.QFrame):
 #        ind = self.openmain.mog_combo.currentIndex()
 
 #        self.mog = self.mogs[ind]
-        if self.mog == 0:
+        if self.mog is None:
             return
 
         if len(self.mogs) == 0:
@@ -176,7 +176,7 @@ class ManualttUI(QtWidgets.QFrame):
 
     def savefile(self):
         current_module.session.commit()
-#         if self.mog.useAirShots == 1: # TODO: verify implantation with sqlalchemy
+#         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy
 #             sfile['air'] = self.air
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
@@ -187,7 +187,7 @@ class ManualttUI(QtWidgets.QFrame):
             database.load(current_module)
             self.mogs = current_module.session.query(Mog).all()
             self.mog = item
-#             if self.mog.useAirShots == 1:
+#             if self.mog.useAirShots == True:
 #                 self.air = sfile['air']
 #                 self.t0_before_radio.setEnabled(True)
 #                 self.t0_after_radio.setEnabled(True)

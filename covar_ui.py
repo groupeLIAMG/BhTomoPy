@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 from model import Model
+from mog import Mog
 import covar
 import database
 import utils_ui
@@ -113,6 +114,14 @@ class CovarUI(QtWidgets.QFrame):
 
         if ind != -1:
             return self.current_covar()[ind]
+ 
+#     def current_mog(self):
+#
+#         if self.model is not None:
+#
+#             if self.mogs_list.currentIndex() != -1:
+#
+#                 return database.session.query(Mog).filter(Mog.name == self.mogs_list.currentItem().text()).first()
 
     def flag_modified_covar(self):
 
@@ -419,13 +428,18 @@ class CovarUI(QtWidgets.QFrame):
             cm = self.current_struct().slowness
             Cm = cm.compute(xc, xc)                    # Verify
 
+            mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]  # Pourquoi sélectionner des mogs?
+            air = (self.model.mogs[mog_indexes[0]].av, self.model.mogs[mog_indexes[0]].ap)
             L    = self.temp_grid.getForwardStraightRays()  # Verify
-#             data, _ = Model.getModelData(self.model, air, mog_indexes, data_type)  # , vlim)
+            if self.T_and_A_combo.currentIndex() == 0:
+                data, _ = Model.getModelData(self.model, air, mog_indexes, 'tt')  # , vlim)
+            else:
+                data, _ = Model.getModelData(self.model, air, mog_indexes, 'amp')
             s0   = 'wat'
             Cd   = 'wat'
 
-            if False:  # cm.use_xi == 1:
-                if cm.use_tilt == 1:
+            if False:  # cm.use_xi:
+                if cm.use_tilt:
                     np_ = np.size(L, 2) / 2
                     l = np.sqrt(L[:, 1:np_]**2 + L[:, (np_ + 1):]**2)
                     s0 = np.mean(data[:, 1] / sum(l, 2)) + np.zeros(np_, 1)
@@ -456,7 +470,7 @@ class CovarUI(QtWidgets.QFrame):
             afi = 1 / float(self.bin_frac_edit.text())
 
             gt = covar.moy_bloc(Cm, lclas)
-            ind0 = find(gt < Inf)
+            ind0 = np.where(gt < np.inf)
             gt = gt[ind0]
 
             g = Cd[ind]
@@ -469,13 +483,12 @@ class CovarUI(QtWidgets.QFrame):
 
             gmin = np.min(np.array([g, gt]))
             gmax = np.max(np.array([g, gt]))
-            self.covariance_fig.plot(g, gt, 'o', np.array([gmin, gmax]), np.array([gmin, gmax]), ':')
+            self.covariance_fig.plot(g, gt, np.array([gmin, gmax]), np.array([gmin, gmax]))
     #         haxes1.DataAspectRatio = [1 1 1]
 
             n1 = range(1, len(gt) + 1)  # TODO length(gt) + 1?
             n2 = range(1, len(g) + 1)   # TODO length(g)  + 1?
-            self.comparison_fig.plot(n2, g, '+', n1, gt, 'o')
-            legend(haxes2, 'Experimental (C_d^*)', 'Model (GC_mG^T +C_0)')
+            self.comparison_fig.plot(n2, g, n1, gt)
 
     def show_stats(self):
         if self.model is not None:
@@ -487,6 +500,8 @@ class CovarUI(QtWidgets.QFrame):
                 else:
                     self.statistics_fig.plot('amp', self.model, air, mog_indexes)
                 self.statistics_form.show()
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected.")
 
     def add_struct(self):
         new = covar.Structure(self.model.grid.type)
@@ -642,8 +657,8 @@ class CovarUI(QtWidgets.QFrame):
         self.Y_max_label = MyQLabel("0", ha='center')
         self.Z_max_label = MyQLabel("0", ha='center')
 
-        Min_label             = MyQLabel("Min", ha='right')
-        Max_label             = MyQLabel("Max", ha='right')
+        Min_label             = MyQLabel("Min", ha='left')
+        Max_label             = MyQLabel("Max", ha='left')
         step_label            = MyQLabel("Step :", ha='center')
         self.slowness_label   = MyQLabel("Slowness", ha='right')
         self.traveltime_label = MyQLabel("Traveltime", ha='right')
@@ -731,7 +746,7 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Grid_Coord_grid.addWidget(self.X_max_label, 2, 1)
         Sub_Grid_Coord_grid.addWidget(self.Y_max_label, 2, 2)
         Sub_Grid_Coord_grid.addWidget(self.Z_max_label, 2, 3)
-        Sub_Grid_Coord_grid.setHorizontalSpacing(55)
+#         Sub_Grid_Coord_grid.setHorizontalSpacing(25)
         Sub_Grid_Coord_Widget.setLayout(Sub_Grid_Coord_grid)
 
         # --- Step SubWidget --- #
@@ -1127,6 +1142,11 @@ class CovarUI(QtWidgets.QFrame):
         self.Adjust_Model_groupbox.setFixedHeight(self.Adjust_Model_groupbox.sizeHint().height())
         self.Sub_widget           .setFixedWidth(500)
 
+        for item in (Max_label, Min_label,
+                     self.X_max_label, self.Y_max_label, self.Z_max_label,
+                     self.X_min_label, self.Y_min_label, self.Z_min_label):
+            item.setFixedWidth(55)
+
         for item in (labels_2D_grid, slowness_grid, xi_grid, tilt_grid):
             for i in range(0, 7):
                 item.setRowMinimumHeight(i, slowness_param_edit.sizeHint().height())
@@ -1158,13 +1178,11 @@ class StatisticsFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax1 = self.figure.add_axes([0.1, 0.7, 0.85, 0.2])
-        self.ax2 = self.figure.add_axes([0.1, 0.4, 0.85, 0.2])
-        self.ax3 = self.figure.add_axes([0.1, 0.1, 0.85, 0.2])
-        mpl.axes.Axes.set_xlabel(self.ax2, "Straight Ray Length")
-        mpl.axes.Axes.set_xlabel(self.ax3, "Straight Ray Angle")
-
-#         plt.hist(self.ax1)
+        self.ax1 = self.figure.add_subplot(311)
+        self.ax2 = self.figure.add_subplot(312)
+        self.ax3 = self.figure.add_subplot(313)
+        self.ax2.set_xlabel("Straight Ray Length")
+        self.ax3.set_xlabel("Straight Ray Angle")
 
     def plot(self, data_type, model, air, mog_indexes):
         if model is not None and mog_indexes:
@@ -1184,13 +1202,14 @@ class StatisticsFig(FigureCanvasQTAgg):
             hyp = np.sqrt(np.sum((Tx - Rx)**2, 1))
             dz = Tx[:, 2] - Rx[:, 2]
             theta = 180 / np.pi * np.arcsin(dz / hyp)
-            self.ax1  # hist(s, 30)
-            self.ax2.plot(hyp, s, '+', c='b')
-            self.ax3.plot(theta, s, '+', c='b')
-            mpl.axes.Axes.set_title(self.ax1, "{}: {} $\pm$ {}".format(data_name, str(s0)[:3], str(vs)[:3]))
-            mpl.axes.Axes.set_ylabel(self.ax2, data_name)
-            mpl.axes.Axes.set_ylabel(self.ax3, data_name)
+            self.ax1.hist(s, 30)
+#             self.ax2.plot(hyp, s, 'b+')
+#             self.ax3.plot(theta, s, 'b+')
+            self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:3], str(vs)[:3]))
+            self.ax2.set_ylabel(data_name)
+            self.ax3.set_ylabel(data_name)
 
+            self.figure.tight_layout(h_pad=1)
             self.draw()
 
 
@@ -1201,12 +1220,13 @@ class CovarianceFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.1, 0.15, 0.85, 0.8])
+        self.ax = self.figure.add_subplot(111)
         mpl.axes.Axes.set_ylabel(self.ax, "Covariance")
         mpl.axes.Axes.set_xlabel(self.ax, "Bin Number")
 
     def plot(self, g, gt, gmin, gmax):
         self.ax.plot(g, gt, 'o', [gmin, gmax], [gmin, gmax], ':')
+        self.figure.tight_layout()
         self.draw()
 
 
@@ -1217,12 +1237,14 @@ class ComparisonFig(FigureCanvasQTAgg):
         self.initFig()
 
     def initFig(self):
-        self.ax = self.figure.add_axes([0.1, 0.15, 0.85, 0.8])
-        mpl.axes.Axes.set_ylabel(self.ax, "Model Covariance")
-        mpl.axes.Axes.set_xlabel(self.ax, "Experimental Covariance")
+        self.ax = self.figure.add_subplot(111)
+        self.ax.set_ylabel("Model Covariance")
+        self.ax.set_xlabel("Experimental Covariance")
 
     def plot(self, n2, g, n1, gt):
-        self.ax.plot(n2, g, '+', n1, gt, 'o')
+        self.ax.plot(n2, g, '+', n1, gt, 'o')  # TODO line 1:1 ratio
+        self.ax.legend(('Experimental (C_d^*)', 'Model (GC_mG^T +C_0)'), loc=1)
+        self.figure.tight_layout()
         self.draw()
 
 
