@@ -324,7 +324,7 @@ class CovarUI(QtWidgets.QFrame):
 
                 if self.ellip_veloc_checkbox.checkState():
                     if struct.xi is None:
-                        struct.xi = covar.CovarianceModels.detDefault2D()
+                        struct.xi = covar.CovarianceFactory.detDefault2D()
                     self.xi_type_combo  .setCurrentIndex(struct.xi.type)
                     self.xi_range_X_edit.setText(str(struct.xi.range[0]))
                     self.xi_range_Z_edit.setText(str(struct.xi.range[1]))
@@ -334,7 +334,7 @@ class CovarUI(QtWidgets.QFrame):
 
                     if self.tilted_ellip_veloc_checkbox.checkState():
                         if struct.tilt is None:
-                            struct.tilt = covar.CovarianceModels.detDefault2D()
+                            struct.tilt = covar.CovarianceFactory.detDefault2D()
                         self.tilt_type_combo  .setCurrentIndex(struct.tilt.type)
                         self.tilt_range_X_edit.setText(str(struct.tilt.range[0]))
                         self.tilt_range_Z_edit.setText(str(struct.tilt.range[1]))
@@ -370,7 +370,7 @@ class CovarUI(QtWidgets.QFrame):
 
                 if self.ellip_veloc_checkbox.checkState():
                     if struct.xi is None:
-                        struct.xi = covar.CovarianceModels.detDefault2D()
+                        struct.xi = covar.CovarianceFactory.detDefault2D()
                     struct.xi.range[0] = self.xi_range_X_edit.text()
                     struct.xi.range[1] = self.xi_range_Z_edit.text()
                     struct.xi.angle[0] = self.xi_theta_X_edit.text()
@@ -379,7 +379,7 @@ class CovarUI(QtWidgets.QFrame):
 
                     if self.tilted_ellip_veloc_checkbox.checkState():
                         if struct.tilt is None:
-                            struct.tilt = covar.CovarianceModels.detDefault2D()
+                            struct.tilt = covar.CovarianceFactory.detDefault2D()
                         struct.tilt.range[0] = self.tilt_range_X_edit.text()
                         struct.tilt.range[1] = self.tilt_range_Z_edit.text()
                         struct.tilt.angle[0] = self.tilt_theta_X_edit.text()
@@ -402,21 +402,21 @@ class CovarUI(QtWidgets.QFrame):
     def change_covar_type_slowness(self, ctype):
         if not self.updateHandler:
             cov = self.current_struct().slowness
-            self.current_struct().slowness = covar.CovarianceModels.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            self.current_struct().slowness = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
             self.flag_modified_covar()
             database.modified = True
 
     def change_covar_type_xi(self, ctype):
         if not self.updateHandler:
             cov = self.current_struct().xi
-            self.current_struct().xi = covar.CovarianceModels.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            self.current_struct().xi = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
             self.flag_modified_covar()
             database.modified = True
 
     def change_covar_type_tilt(self, ctype):
         if not self.updateHandler:
             cov = self.current_struct().tilt
-            self.current_struct().tilt = covar.CovarianceModels.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            self.current_struct().tilt = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
             self.flag_modified_covar()
             database.modified = True
 
@@ -504,7 +504,7 @@ class CovarUI(QtWidgets.QFrame):
                 QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected.")
 
     def add_struct(self):
-        new = covar.Structure(self.model.grid.type)
+        new = covar.CovarianceModel(self.model.grid.type)
         self.current_covar().append(new)
         count = self.covar_struct_combo.count()
         self.covar_struct_combo.addItem('Structure no ' + str(count + 1))
@@ -1041,7 +1041,7 @@ class ComparisonFig(FigureCanvasQTAgg):
 if __name__ == '__main__':
 
     database.create_data_management(database)
-    database.load(database, 'database.db')
+    #database.load(database, 'database.db')
 
     app = QtWidgets.QApplication(sys.argv)
 

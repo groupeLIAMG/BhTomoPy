@@ -47,7 +47,7 @@ class Covariance(object):
         self.range = r
         self.angle = a
         self.sill = s
-        self.type = None  # To be defined by CovarianceModels
+        self.type = None  # To be defined by CovarianceFactory
 
     def trans(self, cx):
         d = cx.ndim
@@ -120,7 +120,7 @@ class Covariance(object):
 class CovarianceCubic(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Cubic
+        self.type = CovarianceFactory.Cubic
 
     def _compute(self, h):
         return np.kron((1.0 - 3.0 * np.minimum(h, 1)**2 + 2.0 * np.minimum(h, 1)**3), self.sill)
@@ -129,7 +129,7 @@ class CovarianceCubic(Covariance):
 class CovarianceExponential(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Exponential
+        self.type = CovarianceFactory.Exponential
 
     def _compute(self, h):
         return np.kron(np.exp(-h), self.sill)
@@ -138,7 +138,7 @@ class CovarianceExponential(Covariance):
 class CovarianceGaussian(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Gaussian
+        self.type = CovarianceFactory.Gaussian
 
     def _compute(self, h):
         return np.kron(np.exp(-h**2), self.sill)
@@ -147,7 +147,7 @@ class CovarianceGaussian(Covariance):
 class CovarianceGravimetric(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Gravimetric
+        self.type = CovarianceFactory.Gravimetric
 
     def _compute(self, h):
         return np.kron((h**2 + 1)**-0.5, self.sill)
@@ -156,7 +156,7 @@ class CovarianceGravimetric(Covariance):
 class CovarianceHoleEffectCosine(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Hole_Effect_Cosine
+        self.type = CovarianceFactory.Hole_Effect_Cosine
 
     def _compute(self, h):
         return np.kron(np.cos(2.0 * np.pi * h), self.sill)
@@ -165,7 +165,7 @@ class CovarianceHoleEffectCosine(Covariance):
 class CovarianceHoleEffectSine(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Hole_Effect_Sine
+        self.type = CovarianceFactory.Hole_Effect_Sine
 
     def _compute(self, h):
         return np.kron(np.sin(np.maximum(np.finfo(float).eps, 2.0 * np.pi * h)) /
@@ -176,7 +176,7 @@ class CovarianceHoleEffectSine(Covariance):
 class CovarianceLinear(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Linear
+        self.type = CovarianceFactory.Linear
 
     def _compute(self, h):
         return np.kron((1.0 - h), self.sill)
@@ -185,7 +185,7 @@ class CovarianceLinear(Covariance):
 class CovarianceMagnetic(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Magnetic
+        self.type = CovarianceFactory.Magnetic
 
     def _compute(self, h):
         return np.kron((h**2 + 1)**-1.5, self.sill)
@@ -203,7 +203,7 @@ class CovarianceNugget(Covariance):
             raise ValueError('Covariance should be 1D, 2D or 3D')
 
         Covariance.__init__(self, np.ones((d, )), a, s)
-        self.type = CovarianceModels.Nugget
+        self.type = CovarianceFactory.Nugget
 
     def compute(self, x, x0):
         d = x.ndim
@@ -225,7 +225,7 @@ class CovarianceNugget(Covariance):
 class CovarianceSpherical(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Spherical
+        self.type = CovarianceFactory.Spherical
 
     def _compute(self, h):
         return np.kron((1 - (1.5 * np.minimum(h, 1) - 0.5 * (np.minimum(h, 1))**3)), self.sill)
@@ -234,13 +234,13 @@ class CovarianceSpherical(Covariance):
 class CovarianceThinPlate(Covariance):
     def __init__(self, r, a, s):
         Covariance.__init__(self, r, a, s)
-        self.type = CovarianceModels.Thin_Plate
+        self.type = CovarianceFactory.Thin_Plate
 
     def _compute(self, h):
         return np.kron(h**2 * np.log(np.maximum(h, np.finfo(float).eps)), self.sill)
 
 
-class CovarianceModels(IntEnum):
+class CovarianceFactory(IntEnum):
     Cubic = 0
     Spherical = 1
     Gaussian = 2
@@ -289,13 +289,13 @@ class CovarianceModels(IntEnum):
         return CovarianceSpherical(np.array([4.0, 4.0, 4.0]), np.array([0.0, 0.0, 0.0]), 1.0)
 
 
-class Structure(object):
+class CovarianceModel(object):
 
     def __init__(self, dim_type):
         if dim_type == '2D' or dim_type == '2D+':
-            self.slowness = CovarianceModels.detDefault2D()
+            self.slowness = CovarianceFactory.detDefault2D()
         elif dim_type == '3D':
-            self.slowness = CovarianceModels.detDefault3D()
+            self.slowness = CovarianceFactory.detDefault3D()
         else:
             raise TypeError
         self.xi                = None
@@ -1114,7 +1114,7 @@ if __name__ == '__main__':
         cm = CovarianceSpherical(np.array([10.0, 3.0]), np.array([30]), 2.5)
         k10 = cm.compute(x, x)
 
-        cm = CovarianceModels.buildCov(5, np.array([10.0, 3.0]), np.array([30]), 2.5)
+        cm = CovarianceFactory.buildCov(5, np.array([10.0, 3.0]), np.array([30]), 2.5)
         k11 = cm.compute(x, x)
 
         c = np.array([[2.5, 1.4], [1.8, 1.0]])
