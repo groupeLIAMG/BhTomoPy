@@ -33,7 +33,6 @@ import scipy.signal
 
 from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
 from sqlalchemy import Table, Column, String, ForeignKey
-from Cython.Compiler.Builtin import BuiltinFunction, BuiltinMethod
 
 Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
 
@@ -182,3 +181,20 @@ def IF(test, *results):
         result()
     else:
         return result
+
+def f():
+        
+    nout = nargout()
+    print(nout)
+    if nout==1:
+        return 1
+    elif nout==2:
+        return 1,2
+        
+if __name__ == "__main__":
+    
+    f()
+    a=f()
+    a,b = f()
+    
+    
