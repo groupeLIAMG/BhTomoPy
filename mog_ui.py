@@ -2052,36 +2052,6 @@ class VAppFig(FigureCanvasQTAgg):  # Apparent Velocity Figure
 
         self.ax.text2D(0.05, 0.95, "{} - Apparent Velocity".format(mog.name), transform=self.ax.transAxes)
 
-    def lsplane(self, X):
-        """
-        Least-squares plane
-        :param X:
-        :return:
-        x0 : Centroid of the data = point on the best fit plane
-        a : Direction cosines of the normal to the best fit plane
-        """
-
-        # First we check the number of data points
-        m = np.shape(X)[0]
-        if m < 3:
-            raise ValueError(' At least 3 data points required')
-
-        # Calculate centroid
-        x0 = np.mean(X, axis=0)
-
-        # Form a matrix A of translated points
-        A = np.array([X[:, 0] - x0[0], X[:, 1] - x0[1], X[:, 2] - x0[2]])
-
-        # Calculate the Single Valued Decomposition of A
-        U, S, V = np.linalg.svd(A, full_matrices=False)
-
-        s = np.amax(np.diag(S), axis=-1)
-        s = min(s)
-        i = np.nonzero(S == s)
-        a = V[:, i]
-
-        return x0, a
-
 
 class StatsAmpFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):

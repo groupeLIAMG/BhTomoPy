@@ -91,7 +91,7 @@ class Grid(object):
         return self.grz[1] - self.grz[0]
 
     @staticmethod
-    def lsplane(X, nout):
+    def lsplane(X):
         """
         Least-squares plane (orthogonal distance regression) to a cloud of points
         Usages:
@@ -109,7 +109,8 @@ class Grid(object):
 
         translation of the matlab function lsplane.m by I M Smith
         """
-
+        nout = nargout()
+        
         m = X.shape[0]
         if m < 3:
             raise ValueError('At least 3 data points required')
@@ -438,8 +439,8 @@ class Grid2D(Grid):
         zmin = self.grz[0] + dz / 2.0
         xmax = self.grx[-1] - dx / 3.0  # divide by 3 to avoid truncation error
         zmax = self.grz[-1] = dz / 3.0
-        nx = np.ceil((xmax - xmin) / dx)
-        nz = np.ceil((zmax - zmin) / dz)
+        nx = np.int64(np.ceil((xmax - xmin) / dx)+0.001)
+        nz = np.int64(np.ceil((zmax - zmin) / dz)+0.001)
 
         c = np.vstack([xmin + np.kron(np.ones((nz, )), np.arange(nx) * dx),
                        zmin + np.kron(np.arange(nz), np.ones((nx, )) * dz)]).T
