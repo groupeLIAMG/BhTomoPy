@@ -75,49 +75,53 @@
 # test()
 
 
-import sys
-import dis
+# import sys
+# import dis
+#
+#
+# def expecting():
+#     f = sys._getframe().f_back.f_back
+#     i = f.f_lasti + 3
+#     bytecode = f.f_code.co_code
+#     instruction = ord(str(bytecode[i]))
+#     while True:
+#         if instruction == dis.opmap['DUP_TOP']:
+#             if ord(bytecode[i + 1]) == dis.opmap['UNPACK_SEQUENCE']:
+#                 return ord(bytecode[i + 2])
+#             i += 4
+#             instruction = ord(bytecode[i])
+#             continue
+#         if instruction == dis.opmap['STORE_NAME']:
+#             return 1
+#         if instruction == dis.opmap['UNPACK_SEQUENCE']:
+#             return ord(bytecode[i + 1])
+#         return 0
+#
+#
+# def test():
+#     def f():
+#         r = expecting()
+#         print(r)
+#         if r == 0:
+#             return None
+#         if r == 1:
+#             return 0
+#         return range(r)
+#
+#     f()
+#     a = f()
+#     a, b = f()
+#     a, b = c = f()
+#     a, b = c = d = f()
+#     a = b = f()
+#     a = b, c = f()
+#     a = b = c, d = f()
+#     a = b, c = d = f()
+#     a, b = c, d = f()
+#
+#
+# test()
 
+# print([[]] * 8)
 
-def expecting():
-    f = sys._getframe().f_back.f_back
-    i = f.f_lasti + 3
-    bytecode = f.f_code.co_code
-    instruction = ord(str(bytecode[i]))
-    while True:
-        if instruction == dis.opmap['DUP_TOP']:
-            if ord(bytecode[i + 1]) == dis.opmap['UNPACK_SEQUENCE']:
-                return ord(bytecode[i + 2])
-            i += 4
-            instruction = ord(bytecode[i])
-            continue
-        if instruction == dis.opmap['STORE_NAME']:
-            return 1
-        if instruction == dis.opmap['UNPACK_SEQUENCE']:
-            return ord(bytecode[i + 1])
-        return 0
-
-
-def test():
-    def f():
-        r = expecting()
-        print(r)
-        if r == 0:
-            return None
-        if r == 1:
-            return 0
-        return range(r)
-
-    f()
-    a = f()
-    a, b = f()
-    a, b = c = f()
-    a, b = c = d = f()
-    a = b = f()
-    a = b, c = f()
-    a = b = c, d = f()
-    a = b, c = d = f()
-    a, b = c, d = f()
-
-
-test()
+print({}['invalid'])

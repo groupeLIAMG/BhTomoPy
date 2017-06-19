@@ -2425,7 +2425,7 @@ class MergeMog(QtWidgets.QWidget):
                 self.mog.update_List_Widget()
                 self.close()
 
-        elif not self.erase_check.isChecked():  # TODO: else?
+        else:
             self.mergemoglogSignal.emit("MOG {} have been created by the merge of {} and {}".format(newName,
                                                                                                     refMog.name,
                                                                                                     merging_mog.name))

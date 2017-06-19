@@ -1008,7 +1008,7 @@ def computeJ(L, e):
     ind = Js != 0
     Jxi[ind] = Jxi[ind] / Js[ind]
 
-    J = np.array([Js, Jxi])
+    J = np.concatenate([Js, Jxi])
     return J
 
 
@@ -1047,7 +1047,7 @@ def computeJ2(L, e):
 
     Jtheta[ind] = Jtheta[ind] / Js[ind]
 
-    J = np.array([Js, Jxi, Jtheta])
+    J = np.concatenate([Js, Jxi, Jtheta])
     return J
 
 

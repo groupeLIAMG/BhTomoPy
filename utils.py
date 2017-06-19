@@ -33,6 +33,7 @@ import scipy.signal
 
 from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
 from sqlalchemy import Table, Column, String, ForeignKey
+from Cython.Compiler.Builtin import BuiltinFunction, BuiltinMethod
 
 Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
 
@@ -156,3 +157,28 @@ def data_select(data, freq, dt, L=100, threshold=5, medfilt_len=10):
     ind_data_select[SNR > threshold] = True
 
     return SNR
+
+
+def IF(test, *results):
+    """
+    Complex if.
+    """
+
+    test = test()
+
+    if isinstance(results[0], dict):
+        result = results[0][test]
+    else:
+        if test:
+            result = results[0]
+        elif len(results) == 2:
+            result = results[1]
+        else:
+            result = None
+
+    if isinstance(result, tuple):
+        return IF(*result)
+    elif callable(result):
+        result()
+    else:
+        return result

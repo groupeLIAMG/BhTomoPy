@@ -28,6 +28,7 @@ import os
 import database
 from mog import Mog
 from model import Model
+import utils
 
 
 def chooseMOG(module, filename=None):
@@ -410,18 +411,18 @@ def lay(layout, *options, parent=None):
         widget = None
     grid = wgt.QGridLayout()
 
+    if not isinstance(layout[0], (list, tuple)):
+        layout = [layout]
+
+    verif_dims(layout)
+
     for row, row_no in zip(layout, count()):
 
-        if isinstance(row, (list, tuple)):
+        for item, col_no in zip(row, count()):
 
-            for item, col_no in zip(row, count()):
+            if item not in ('', '|', '_'):
 
-                if item not in ('', '|', '_'):
-
-                    grid.addWidget(item, *getSpan(row_no, col_no))
-
-        else:
-            raise TypeError("Table was not built properly.")
+                grid.addWidget(item, *getSpan(row_no, col_no))
 
     def noMargins(*args):
         nonlocal grid
@@ -520,7 +521,7 @@ def lay(layout, *options, parent=None):
 
     opt_dict = {'noMargins': noMargins,
                 'scrollbar': scrollbar,
-                'groupbox':  groupbox,
+                'groupbox' : groupbox,
                 'setRowStr': setRowStr,
                 'setColStr': setColStr,
                 'setMinHei': setMinHei,
@@ -531,7 +532,10 @@ def lay(layout, *options, parent=None):
                 'setVerSpa': setVerSpa}
 
     for option in options:
-        opt_dict[option[0]](*option[1:])
+        if isinstance(option, str):
+            opt_dict[option]()
+        else:
+            opt_dict[option[0]](*option[1:])
 
     if parent is None:
         if widget is None:
@@ -543,14 +547,60 @@ def lay(layout, *options, parent=None):
         parent.setLayout(grid)
 
 
-def column_lay(layout, *options, parent=None):
+def inv_lay(layout, *options, parent=None):
+
+    from itertools import count
 
     temp = []
 
     if isinstance(layout[0], (list, tuple)):
-        pass  # complex_column_lay
+
+        verif_dims(layout)
+
+        for _ in range(len(layout[0])):
+            temp.append([])
+
+        for row in layout:
+
+            for item, col_no in zip(row, count()):
+
+                if item == '_':
+                    item = '|'
+                elif item == '|':
+                    item = '_'
+                temp[col_no].append(item)
+
+        print(temp)
+
     else:
         for item in layout:
+
+            if item == '_':
+                item = '|'
+            elif item == '|':
+                item = '_'
             temp.append([item])
 
     return lay(temp, *options, parent=parent)
+
+
+def verif_dims(layout):
+
+    for row in layout[1:]:
+        if len(row) != len(layout[0]):
+            raise IndexError("Layout has wrong dimensions.")
+
+
+def def_update_in(widget, tests):
+
+    widget.update_in = lambda: utils.IF(*tests)
+
+
+def def_update_out(event, tests):
+
+    event.connect(lambda: utils.IF(*tests))
+
+
+def def_update_state(widget, tests):
+
+    widget.update_state = lambda: utils.IF(*tests)
