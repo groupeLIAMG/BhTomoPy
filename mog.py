@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import numpy as np
-from sqlalchemy import Column, String, Float, PickleType, Boolean, SmallInteger, ForeignKey
+from sqlalchemy import Column, String, Float, PickleType, Boolean, SmallInteger, ForeignKey, Integer
 from utils import Base
 from sqlalchemy import orm
 
@@ -233,17 +233,48 @@ class Mog(Base):
     __tablename__ = "Mog"
     name                     = Column(String, primary_key=True)
     pruneParams              = Column(PickleType)
-    data                     = Column(PickleType)          # Instance of MogData
+    data                     = Column(PickleType)
     tau_params               = Column(PickleType)
     fw                       = Column(PickleType)
     f_et                     = Column(Float)
     amp_name_Ldc             = Column(PickleType)
-    type                     = Column(SmallInteger)     # X-hole (1) ou VRP (2)
+    type                     = Column(SmallInteger)
     fac_dt                   = Column(Float)
     user_fac_dt              = Column(Float)
     useAirShots              = Column(Boolean)
     TxCosDir                 = Column(PickleType)
     RxCosDir                 = Column(PickleType)
+
+    ID                       = Column(Integer)
+    in_Rx_vect               = Column(PickleType)
+    in_Tx_vect               = Column(PickleType)
+    in_vect                  = Column(PickleType)
+    date                     = Column(String)
+    tt                       = Column(PickleType)
+    et                       = Column(PickleType)
+    tt_done                  = Column(PickleType)
+
+    ttTx                     = Column(PickleType)
+    ttTx_done                = Column(PickleType)
+
+    amp_tmin                 = Column(PickleType)
+    amp_tmax                 = Column(PickleType)
+    amp_done                 = Column(PickleType)
+    App                      = Column(PickleType)
+    fcentroid                = Column(PickleType)
+    scentroid                = Column(PickleType)
+    tauApp                   = Column(PickleType)
+    tauApp_et                = Column(PickleType)
+    tauFce                   = Column(PickleType)
+    tauFce_et                = Column(PickleType)
+    tauHyb                   = Column(PickleType)
+    tauHyb_et                = Column(PickleType)
+    tauHyb_et                = Column(PickleType)
+    Tx_z_orig                = Column(PickleType)
+    Rx_z_orig                = Column(PickleType)
+
+    pruneParams.zmin         = Column(PickleType)
+    pruneParams.zmax         = Column(PickleType)
 
     Tx_name = Column(String, ForeignKey('Borehole.name'))
     Tx = orm.relationship("Borehole", foreign_keys=Tx_name)
@@ -277,11 +308,6 @@ class Mog(Base):
         self.useAirShots               = False
         self.TxCosDir                  = np.array([])
         self.RxCosDir                  = np.array([])
-
-        self.init_on_load()
-
-    @orm.reconstructor
-    def init_on_load(self):  # reconstructs the objects from the stored one
 
         self.ID                       = Mog.getID()
         self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=bool)
@@ -325,7 +351,7 @@ class Mog(Base):
         :param air_after: instance of class Airshots
         """
 
-#        show = False  # TODO:
+#        show = False  # TODO
         fac_dt_av = 1
         fac_dt_ap = 1
         if not self.useAirShots:
@@ -402,22 +428,14 @@ class Mog(Base):
         ID = counter
         return ID
 
-    def getCorrectedTravelTimes(self, air):
-        for element in air:
-            if isinstance(element, AirShots):
-                pass
-            else:
-                raise TypeError("air shot should be instance of class AirShots")
+    def getCorrectedTravelTimes(self):
 
         if self.data.synthetique == 1:
             tt = self.tt
             t0 = np.zeros(np.shape(tt))
             return tt, t0
-        else:
-            airBefore = air[0]
-            airAfter  = air[1]
 
-            t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), airBefore, airAfter)
+        t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), self.av, self.ap)
 
         if self.av is not None:
             self.av.fac_dt = fac_dt_av
@@ -444,12 +462,15 @@ class Mog(Base):
 class AirShots(Base):
 
     __tablename__ = "Airshots"
-    name   = Column(String, primary_key=True)
-    mog    = Column(PickleType)
-    data   = Column(PickleType)            # MogData instance
-    d_TxRx = Column(PickleType)            # Distance between Tx and Rx
-    fac_dt = Column(Float)
-    method = Column(String)
+    name    = Column(String, primary_key=True)
+    mog     = Column(PickleType)
+    data    = Column(PickleType)            # MogData instance
+    d_TxRx  = Column(PickleType)            # Distance between Tx and Rx
+    fac_dt  = Column(Float)
+    method  = Column(String)
+    tt      = Column(PickleType)
+    et      = Column(PickleType)
+    tt_done = Column(PickleType)
 
     def __init__(self, name='', data=MogData()):
         self.mog = Mog()
@@ -457,11 +478,6 @@ class AirShots(Base):
         self.data = data           # MogData instance
         self.d_TxRx = 0            # Distance between Tx and Rx
         self.fac_dt = 1
-
-        self.init_on_load()
-
-    @orm.reconstructor
-    def init_on_load(self):  # reconstructs the objects from the stored one
 
         self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)  # arrival time
         self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)  # standard deviation of arrival time

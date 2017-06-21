@@ -115,7 +115,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         # ind = self.openmain.mog_combo.currentIndex()
         # mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
-        self.statsFig1.plot_stats(self.mog, self.air)
+        self.statsFig1.plot_stats(self.mog)
         self.statsFig1.showMaximized()
 
     def savefile(self):
@@ -682,13 +682,13 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax5 = self.figure.add_axes([0.4, 0.55, 0.2, 0.25])
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
-    def plot_stats(self, mog, airshots):
+    def plot_stats(self, mog):
 
         done = (mog.tt_done + mog.in_vect.astype(int)) - 1
         ind = np.nonzero(done == 1)[0]
         print(ind)
 
-        tt, t0 = mog.getCorrectedTravelTimes(airshots)
+        tt, t0 = mog.getCorrectedTravelTimes()
         print(tt)
         et = mog.et[ind]
         tt = tt[ind]

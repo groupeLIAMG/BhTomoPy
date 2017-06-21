@@ -23,6 +23,8 @@ import os
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.ext.automap import automap_base
 
 from borehole import Borehole
 from mog import Mog, AirShots
@@ -34,7 +36,7 @@ from utils import Base
 # is a way of allowing the coexistence of multiple instances of session
 # throughout the program (one per module). Moreover, because the SQLAlchemy
 # objects exist as attributes, they are permanent. Note that any object may
-# replace modules, but the use of the latter is quite convenient.
+# replace modules, but using the latter is quite convenient.
 
 
 def create_data_management(module):
@@ -66,11 +68,13 @@ def load(module, file):
         Base.metadata.create_all(module.engine)
         module.modified = False
 
-        get_many(module)  # initiate the session's objects, guarantees they exist within 'session'
+        get_many(module)  # initiate the session's objects, guarantees they exist within 'session'  # TODO might be deprecated because of strong_reference_session()
 
     except AttributeError:
         create_data_management(module)
         load(module, file)
+    except OperationalError:
+        convert_database(module, file)
 
 
 def verify_mapping(module):
@@ -106,8 +110,11 @@ def save_as(module, file):
     try:
         airshots_cleanup(module)
 
-        strong_referencing = get_many(module)  # @UnusedVariable  # Guarantees the objects and their relationships survive the transfer
-        verify_mapping(module)                                    # Referencing the attributes seems to guarantee the strong referencing's effectiveness
+        # Guarantees the objects and their relationships survive the transfer
+        # Referencing the attributes seems to guarantee the strong referencing's effectiveness
+        # TODO Reflecting the mapping instead of merging might make the code more efficient
+        strong_referencing = get_many(module)  # @UnusedVariable
+        verify_mapping(module)
         items = get_many(module)  # temporarily stores the saved items
 
         module.session.close()
@@ -238,20 +245,52 @@ def strong_reference_session(session):
         sess.info['refs'].discard(instance)
 
 
+def convert_database(module, file):
+    """
+    Converts an outdated database into a database that is conform to the actual mapping.
+    Such an outdated database may appear because an attribute has been added or removed,
+    or because an attribute's name has been altered.
+    """
+
+    from PyQt5 import QtWidgets
+
+    warning = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Critical, 'Database outdated',
+                                    "This database's mapping might be outdated. " +
+                                    "Proceeding will cause this database to be updated. " +
+                                    "Do you want to proceed?")
+    warning.addButton(QtWidgets.QMessageBox.Yes)
+    warning.addButton(QtWidgets.QMessageBox.No)
+    warning.setDefaultButton(QtWidgets.QMessageBox.No)
+
+    if warning.exec_() == QtWidgets.QMessageBox.Yes:
+
+        # TODO not completed
+
+        class dummy_module():
+            pass
+        module_ = dummy_module()
+
+        module_.engine  = create_engine("sqlite:///" + file)
+        module_.Session = sessionmaker(bind=module_.engine)
+        module_.session = module_.Session()
+        strong_reference_session(module_.session)
+
+        Base = automap_base()
+        Base.prepare(module_.engine, reflect=True)
+
+        module_.session.commit()
+
+        load(module, file)
+
+
 if __name__ == '__main__':
 
+    from PyQt5 import QtWidgets
     import sys
-    current_module = sys.modules[__name__]
-    create_data_management(current_module)
 
-    current_module.session.add(Borehole('test3'))
-    current_module.session.add(Borehole('test1'))
-    current_module.session.flush()
-    current_module.session.add(Borehole('test2'))
+    app = QtWidgets.QApplication(sys.argv)
 
-    from sqlalchemy import inspect
-    for item in current_module.session.query(Borehole).all():
-        print(item.name, inspect(item).persistent)
+    sys.exit(app.exec_())
 
 
 # Gets the current module, so that it can be sent as a parameter.
@@ -264,21 +303,21 @@ if __name__ == '__main__':
 
 
 # Test bank
-#                     from sqlalchemy import inspect
-#                     from sqlalchemy.engine import reflection
-#                     from sqlalchemy.orm.session import sessionmaker
-#                     print(reflection.Inspector.from_engine(database.engine).get_table_names())
-#                     print(items)
-#                     print([i.__tablename__ for i in items])
-#                     print(reflection.Inspector.from_engine(database.session.get_bind()).get_table_names())
-#                     print([sessionmaker.object_session(i) for i in items])
-#                     print(database.session)
-#                     print([sessionmaker.object_session(i) for i in items])
-#                     print(reflection.Inspector.from_engine(database.session.get_bind()).get_table_names())
-#                     print([i.__tablename__ for i in items])
-#                     print(database.session.get_bind().url)
-#                     print([inspect(my_object) for my_object in items])
-#                     database.session.commit()
-#                     print([inspect(my_object).persistent for my_object in items])
-#                     print([i.__tablename__ for i in database.session])
-#                     print(database.session.query(Borehole).all())
+#     from sqlalchemy import inspect
+#     from sqlalchemy.engine import reflection
+#     from sqlalchemy.orm.session import sessionmaker
+#     print(reflection.Inspector.from_engine(database.engine).get_table_names())
+#     print(items)
+#     print([i.__tablename__ for i in items])
+#     print(reflection.Inspector.from_engine(database.session.get_bind()).get_table_names())
+#     print([sessionmaker.object_session(i) for i in items])
+#     print(database.session)
+#     print([sessionmaker.object_session(i) for i in items])
+#     print(reflection.Inspector.from_engine(database.session.get_bind()).get_table_names())
+#     print([i.__tablename__ for i in items])
+#     print(database.session.get_bind().url)
+#     print([inspect(my_object) for my_object in items])
+#     database.session.commit()
+#     print([inspect(my_object).persistent for my_object in items])
+#     print([i.__tablename__ for i in database.session])
+#     print(database.session.query(Borehole).all())

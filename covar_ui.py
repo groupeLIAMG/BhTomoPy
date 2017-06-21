@@ -76,13 +76,29 @@ class CovarUI(QtWidgets.QFrame):
             self.mogs_list.clear()
             self.mogs_list.addItems([item.name for item in self.model.mogs])
             self.update_model()
+            self.update_booleans()
             self.parameters_displayed_update()
 
     def savefile(self):
+        self.apply_booleans()
         return utils_ui.savefile(database)
 
     def saveasfile(self):
+        self.apply_booleans()
         return utils_ui.saveasfile(database)
+
+    def apply_booleans(self):
+        self.current_covar().use_xi   = self.ellip_veloc_checkbox       .checkState()
+        self.current_covar().use_tilt = self.tilted_ellip_veloc_checkbox.checkState()
+        self.current_covar().use_c0   = self.include_checkbox           .checkState()
+        self.flag_modified_covar()
+
+    def update_booleans(self):
+        covar_ = self.current_covar()
+        if covar_ is not None:
+            self.ellip_veloc_checkbox       .setCheckState(covar_.use_xi )
+            self.tilted_ellip_veloc_checkbox.setCheckState(covar_.use_tilt)
+            self.include_checkbox           .setCheckState(covar_.use_c0)
 
     def set_current_model(self, model):
         if self.updateHandler:
@@ -98,21 +114,18 @@ class CovarUI(QtWidgets.QFrame):
 
     def current_covar(self):
 
-        if self.model is not None:
+        if self.model is not None and self.model.grid is not None:
 
             if self.T_and_A_combo.currentIndex() == 0:
+                if self.model.tt_covar is None:
+                    self.model.tt_covar = covar.CovarianceModel(self.model.grid.type)
                 covariance = self.model.tt_covar
             else:
+                if self.model.amp_covar is None:
+                    self.model.amp_covar = covar.CovarianceModel(self.model.grid.type)
                 covariance = self.model.amp_covar
 
             return covariance
-
-    def current_struct(self):
-
-        ind = self.covar_struct_combo.currentIndex()
-
-        if ind != -1:
-            return self.current_covar()[ind]
 
     def current_mog(self):
 
@@ -178,7 +191,8 @@ class CovarUI(QtWidgets.QFrame):
                 self.btn_Add_Struct    .setDisabled(False)
                 self.Grid_groupbox     .setDisabled(False)
 
-                if self.current_covar():
+                if self.current_covar().covar:
+
                     self.btn_Rem_Struct       .setDisabled(False)
                     self.Nug_groupbox         .setDisabled(False)
                     self.auto_update_checkbox .setDisabled(False)
@@ -207,8 +221,12 @@ class CovarUI(QtWidgets.QFrame):
                                 self.tilt_edit    .setHidden(False)
                                 self.tilt_checkbox.setHidden(False)
 
+                            else:
+                                self.tilted_ellip_veloc_checkbox.setCheckState(False)
+
                         else:
                             self.tilted_ellip_veloc_checkbox.setCheckState(False)
+                            self.ellip_veloc_checkbox.setCheckState(False)
 
                     elif self.model.grid.type == '3D':
                         self.slowness_3D_widget.setHidden(False)
@@ -241,8 +259,13 @@ class CovarUI(QtWidgets.QFrame):
             if self.model.grid is not None:
                 self.update_structures()
                 if self.temp_grid is None:
+
+                    ntraces = 0
+                    for mog_ in database.session.query(Mog).all():
+                        ntraces += mog_.data.ntrace
+
                     self.cells_no_label.setText(str(self.model.grid.getNumberOfCells()))
-                    self.rays_no_label.setText('0')  # TODO
+                    self.rays_no_label.setText(str(ntraces))
                     self.reset_grid()
             else:
                 self.cells_no_label.setText('0')
@@ -253,8 +276,10 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_structures(self):
         self.covar_struct_combo.clear()
-        current_list = self.current_covar()
-        if current_list:
+        current_list = self.current_covar().covar
+        if current_list is not None:
+            if not current_list:
+                self.add_struct()
             self.covar_struct_combo.addItems(["Structure no " + str(i + 1) for i in range(len(current_list))])
             self.covar_struct_combo.setCurrentIndex(0)
             self.update_parameters()
@@ -262,12 +287,6 @@ class CovarUI(QtWidgets.QFrame):
 
     def new_grid(self):
         self.temp_grid = self.model.grid
-#         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-#             self.temp_grid = grid.Grid2D()
-#         elif self.model.grid.type == '3D':
-#             self.temp_grid = grid.Grid3D()  # TODO
-#         else:
-#             self.temp_grid = None
 
     def reset_grid(self):
         if self.model is None or self.model.grid is None:
@@ -284,23 +303,24 @@ class CovarUI(QtWidgets.QFrame):
         else:
             self.new_grid()
 
-            self.X_min_label.setText(str(np.amin(self.temp_grid.grx))[:6])
-            self.X_max_label.setText(str(np.amax(self.temp_grid.grx))[:6])
+            self.X_min_label.setText(str(np.amin(self.temp_grid.grx))[:7])
+            self.X_max_label.setText(str(np.amax(self.temp_grid.grx))[:7])
             if self.temp_grid.gry:  # TODO verify
-                self.Y_min_label.setText(str(np.amin(self.temp_grid.gry))[:6])
-                self.Y_max_label.setText(str(np.amax(self.temp_grid.gry))[:6])
+                self.Y_min_label.setText(str(np.amin(self.temp_grid.gry))[:7])
+                self.Y_max_label.setText(str(np.amax(self.temp_grid.gry))[:7])
             else:
                 self.Y_min_label.setText('0')
                 self.Y_max_label.setText('0')
-            self.Z_min_label.setText(str(np.amin(self.temp_grid.grz))[:6])
-            self.Z_max_label.setText(str(np.amax(self.temp_grid.grz))[:6])
+            self.Z_min_label.setText(str(np.amin(self.temp_grid.grz))[:7])
+            self.Z_max_label.setText(str(np.amax(self.temp_grid.grz))[:7])
 
             self.step_X_edit.setText(str(2 * self.temp_grid.dx))  # by default, the step should be twice the size of the actual
             self.step_Y_edit.setText(str(2 * self.temp_grid.dy))  # grid in order to make the computing less resources-expensive
             self.step_Z_edit.setText(str(2 * self.temp_grid.dz))
 
     def update_grid(self):
-        pass
+        if self.temp_grid is not None:
+            self.cells_no_labeli.setText(str(self.temp_grid.getNumberOfCells()))
 
     def apply_grid_changes(self):
         self.temp_grid.dx = float(self.step_X_edit.text())
@@ -309,203 +329,128 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_parameters(self):
 
-        struct = self.current_struct()
+        covar_ = self.current_covar()
+        ind    = self.covar_struct_combo.currentIndex()
 
-        if struct is not None:
-
+        if ind != -1:
             if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-                self.slowness_type_combo  .setCurrentIndex(struct.slowness.type)
-                self.slowness_range_X_edit.setText(str(struct.slowness.range[0]))
-                self.slowness_range_Z_edit.setText(str(struct.slowness.range[1]))
-                self.slowness_theta_X_edit.setText(str(struct.slowness.angle[0]))
-                self.slowness_sill_edit   .setText(str(struct.slowness.sill))
-                self.slowness_edit        .setText(str(struct.nugget_slowness))
-                self.tt_edit      .setText(str(struct.nugget_traveltime))
+                self.slowness_type_combo  .setCurrentIndex(covar_.covar[ind].type)
+                self.slowness_range_X_edit.setText(str(covar_.covar[ind].range[0]))
+                self.slowness_range_Z_edit.setText(str(covar_.covar[ind].range[1]))
+                self.slowness_theta_X_edit.setText(str(covar_.covar[ind].angle[0]))
+                self.slowness_sill_edit   .setText(str(covar_.covar[ind].sill))
+                self.slowness_edit        .setText(str(covar_.nugget_slowness))
+                self.tt_edit              .setText(str(covar_.nugget_traveltime))
 
                 if self.ellip_veloc_checkbox.checkState():
-                    if struct.xi is None:
-                        struct.xi = covar.CovarianceFactory.detDefault2D()
-                    self.xi_type_combo  .setCurrentIndex(struct.xi.type)
-                    self.xi_range_X_edit.setText(str(struct.xi.range[0]))
-                    self.xi_range_Z_edit.setText(str(struct.xi.range[1]))
-                    self.xi_theta_X_edit.setText(str(struct.xi.angle[0]))
-                    self.xi_sill_edit   .setText(str(struct.xi.sill))
-                    self.xi_edit        .setText(str(struct.nugget_xi))
+                    if covar_.covar_xi[ind] is None:
+                        covar_.covar_xi[ind] = covar.CovarianceFactory.detDefault2D()
+                    self.xi_type_combo  .setCurrentIndex(covar_.covar_xi[ind].type)
+                    self.xi_range_X_edit.setText(str(covar_.covar_xi[ind].range[0]))
+                    self.xi_range_Z_edit.setText(str(covar_.covar_xi[ind].range[1]))
+                    self.xi_theta_X_edit.setText(str(covar_.covar_xi[ind].angle[0]))
+                    self.xi_sill_edit   .setText(str(covar_.covar_xi[ind].sill))
+                    self.xi_edit        .setText(str(covar_.nugget_xi))
 
                     if self.tilted_ellip_veloc_checkbox.checkState():
-                        if struct.tilt is None:
-                            struct.tilt = covar.CovarianceFactory.detDefault2D()
-                        self.tilt_type_combo  .setCurrentIndex(struct.tilt.type)
-                        self.tilt_range_X_edit.setText(str(struct.tilt.range[0]))
-                        self.tilt_range_Z_edit.setText(str(struct.tilt.range[1]))
-                        self.tilt_theta_X_edit.setText(str(struct.tilt.angle[0]))
-                        self.tilt_sill_edit   .setText(str(struct.tilt.sill))
-                        self.tilt_edit        .setText(str(struct.nugget_tilt))
+                        if covar_.covar_tilt[ind] is None:
+                            covar_.covar_tilt[ind] = covar.CovarianceFactory.detDefault2D()
+                        self.tilt_type_combo  .setCurrentIndex(covar_.covar_tilt[ind].type)
+                        self.tilt_range_X_edit.setText(str(covar_.covar_tilt[ind].range[0]))
+                        self.tilt_range_Z_edit.setText(str(covar_.covar_tilt[ind].range[1]))
+                        self.tilt_theta_X_edit.setText(str(covar_.covar_tilt[ind].angle[0]))
+                        self.tilt_sill_edit   .setText(str(covar_.covar_tilt[ind].sill))
+                        self.tilt_edit        .setText(str(covar_.nugget_tilt))
 
             elif self.model.grid.type == '3D':
-                self.slowness_3D_type_combo  .setCurrentIndex(struct.slowness.type)
-                self.slowness_3D_range_X_edit.setText(str(struct.slowness.range[0]))
-                self.slowness_3D_range_Y_edit.setText(str(struct.slowness.range[1]))
-                self.slowness_3D_range_Z_edit.setText(str(struct.slowness.range[2]))
-                self.slowness_3D_theta_X_edit.setText(str(struct.slowness.angle[0]))
-                self.slowness_3D_theta_Y_edit.setText(str(struct.slowness.angle[1]))
-                self.slowness_3D_theta_Z_edit.setText(str(struct.slowness.angle[2]))
-                self.slowness_3D_sill_edit   .setText(str(struct.slowness.sill))
-                self.slowness_edit           .setText(str(struct.nugget_slowness))
-                self.tt_edit         .setText(str(struct.nugget_traveltime))
+                self.slowness_3D_type_combo  .setCurrentIndex(covar_.covar[ind].type)
+                self.slowness_3D_range_X_edit.setText(str(covar_.covar[ind].range[0]))
+                self.slowness_3D_range_Y_edit.setText(str(covar_.covar[ind].range[1]))
+                self.slowness_3D_range_Z_edit.setText(str(covar_.covar[ind].range[2]))
+                self.slowness_3D_theta_X_edit.setText(str(covar_.covar[ind].angle[0]))
+                self.slowness_3D_theta_Y_edit.setText(str(covar_.covar[ind].angle[1]))
+                self.slowness_3D_theta_Z_edit.setText(str(covar_.covar[ind].angle[2]))
+                self.slowness_3D_sill_edit   .setText(str(covar_.covar[ind].sill))
+                self.slowness_edit           .setText(str(covar_.nugget_slowness))
+                self.tt_edit                 .setText(str(covar_.nugget_traveltime))
 
     def apply_parameters_changes(self):
 
-        struct = self.current_struct()
+        covar_ = self.current_covar()
+        ind    = self.covar_struct_combo.currentIndex()
 
-        if struct is not None:
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+            covar_.covar[ind].range[0] = self.slowness_range_X_edit.text()
+            covar_.covar[ind].range[1] = self.slowness_range_Z_edit.text()
+            covar_.covar[ind].angle[0] = self.slowness_theta_X_edit.text()
+            covar_.covar[ind].sill     = self.slowness_sill_edit   .text()
+            covar_.nugget_slowness     = self.slowness_edit        .text()
+            covar_.nugget_traveltime   = self.tt_edit              .text()
 
-            if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-                struct.slowness.range[0] = self.slowness_range_X_edit.text()
-                struct.slowness.range[1] = self.slowness_range_Z_edit.text()
-                struct.slowness.angle[0] = self.slowness_theta_X_edit.text()
-                struct.slowness.sill     = self.slowness_sill_edit   .text()
-                struct.nugget_slowness   = self.slowness_edit        .text()
-                struct.nugget_traveltime = self.tt_edit      .text()
+            if self.ellip_veloc_checkbox.checkState():
+                if covar_.covar_xi[ind] is None:
+                    covar_.covar_xi[ind] = covar.CovarianceFactory.detDefault2D()
+                covar_.covar_xi[ind].range[0] = self.xi_range_X_edit.text()
+                covar_.covar_xi[ind].range[1] = self.xi_range_Z_edit.text()
+                covar_.covar_xi[ind].angle[0] = self.xi_theta_X_edit.text()
+                covar_.covar_xi[ind].sill     = self.xi_sill_edit   .text()
+                covar_.nugget_xi              = self.xi_edit        .text()
 
-                if self.ellip_veloc_checkbox.checkState():
-                    if struct.xi is None:
-                        struct.xi = covar.CovarianceFactory.detDefault2D()
-                    struct.xi.range[0] = self.xi_range_X_edit.text()
-                    struct.xi.range[1] = self.xi_range_Z_edit.text()
-                    struct.xi.angle[0] = self.xi_theta_X_edit.text()
-                    struct.xi.sill     = self.xi_sill_edit   .text()
-                    struct.nugget_xi   = self.xi_edit        .text()
+                if self.tilted_ellip_veloc_checkbox.checkState():
+                    if covar_.covar_tilt[ind] is None:
+                        covar_.covar_tilt[ind] = covar.CovarianceFactory.detDefault2D()
+                    covar_.covar_tilt[ind].range[0] = self.tilt_range_X_edit.text()
+                    covar_.covar_tilt[ind].range[1] = self.tilt_range_Z_edit.text()
+                    covar_.covar_tilt[ind].angle[0] = self.tilt_theta_X_edit.text()
+                    covar_.covar_tilt[ind].sill     = self.tilt_sill_edit   .text()
+                    covar_.nugget_tilt              = self.tilt_edit        .text()
 
-                    if self.tilted_ellip_veloc_checkbox.checkState():
-                        if struct.tilt is None:
-                            struct.tilt = covar.CovarianceFactory.detDefault2D()
-                        struct.tilt.range[0] = self.tilt_range_X_edit.text()
-                        struct.tilt.range[1] = self.tilt_range_Z_edit.text()
-                        struct.tilt.angle[0] = self.tilt_theta_X_edit.text()
-                        struct.tilt.sill     = self.tilt_sill_edit   .text()
-                        struct.nugget_tilt   = self.tilt_edit        .text()
+        elif self.model.grid.type == '3D':
+            covar_.covar[ind].range[0] = self.slowness_3D_range_X_edit.text()
+            covar_.covar[ind].range[1] = self.slowness_3D_range_Y_edit.text()
+            covar_.covar[ind].range[2] = self.slowness_3D_range_Z_edit.text()
+            covar_.covar[ind].angle[0] = self.slowness_3D_theta_X_edit.text()
+            covar_.covar[ind].angle[1] = self.slowness_3D_theta_Y_edit.text()
+            covar_.covar[ind].angle[2] = self.slowness_3D_theta_Z_edit.text()
+            covar_.covar[ind].sill     = self.slowness_3D_sill_edit   .text()
+            covar_.nugget_slowness     = self.slowness_edit           .text()
+            covar_.nugget_traveltime   = self.tt_edit                 .text()
 
-            elif self.model.grid.type == '3D':
-                struct.slowness.range[0] = self.slowness_3D_range_X_edit.text()
-                struct.slowness.range[1] = self.slowness_3D_range_Y_edit.text()
-                struct.slowness.range[2] = self.slowness_3D_range_Z_edit.text()
-                struct.slowness.angle[0] = self.slowness_3D_theta_X_edit.text()
-                struct.slowness.angle[1] = self.slowness_3D_theta_Y_edit.text()
-                struct.slowness.angle[2] = self.slowness_3D_theta_Z_edit.text()
-                struct.slowness.sill     = self.slowness_3D_sill_edit   .text()
-                struct.nugget_slowness   = self.slowness_edit           .text()
-                struct.nugget_traveltime = self.tt_edit         .text()
         self.flag_modified_covar()
         database.modified = True
 
     def change_covar_type_slowness(self, ctype):
         if not self.updateHandler:
-            cov = self.current_struct().slowness
-            self.current_struct().slowness = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            ind = self.covar_struct_combo.currentIndex()
+            cov = self.current_covar().covar[ind]
+            self.current_covar().covar[ind] = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
             self.flag_modified_covar()
             database.modified = True
 
     def change_covar_type_xi(self, ctype):
         if not self.updateHandler:
-            cov = self.current_struct().xi
-            self.current_struct().xi = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            ind = self.covar_struct_combo.currentIndex()
+            cov = self.current_covar().covar_xi[ind]
+            self.current_covar().covar_xi[ind] = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
             self.flag_modified_covar()
             database.modified = True
 
     def change_covar_type_tilt(self, ctype):
         if not self.updateHandler:
-            cov = self.current_struct().tilt
-            self.current_struct().tilt = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
+            ind = self.covar_struct_combo.currentIndex()
+            cov = self.current_covar().covar_tilt[ind]
+            self.current_covar().covar_tilt[ind] = covar.CovarianceFactory.buildCov(ctype, cov.range, cov.angle, cov.sill)
             self.flag_modified_covar()
             database.modified = True
 
-    def compute(self):  # TODO progress bar
-        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())  # Store somewhere else?
-
-            xc = self.temp_grid.getCellCenter(dx, dz)  # Verify
-            cm = self.current_struct().slowness
-            Cm = cm.compute(xc, xc)                    # Verify
-
-            mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]  # Pourquoi sélectionner des mogs?
-            air = (self.model.mogs[mog_indexes[0]].av, self.model.mogs[mog_indexes[0]].ap)
-            L    = self.temp_grid.getForwardStraightRays()  # Verify
-            if self.T_and_A_combo.currentIndex() == 0:
-                data, _ = Model.getModelData(self.model, air, mog_indexes, 'tt')  # , vlim)
-            else:
-                data, _ = Model.getModelData(self.model, air, mog_indexes, 'amp')
-            s0   = 'wat'
-            Cd   = 'wat'
-
-            if False:  # cm.use_xi:
-                if cm.use_tilt:
-                    np_ = np.size(L, 2) / 2
-                    l = np.sqrt(L[:, 1:np_]**2 + L[:, (np_ + 1):]**2)
-                    s0 = np.mean(data[:, 1] / sum(l, 2)) + np.zeros(np_, 1)
-                    xi0 = np.ones(np_, 1) + 0.001       # add 1/1000 so that J_th != 0
-                    theta0 = np.zeros(np_, 1) + 0.0044  # add a quarter of a degree so that J_th != 0
-                    J = covar.computeJ2(L, np.concatenate([s0, xi0, theta0]))
-                    Cm = J * Cm * J.T
-                else:
-                    np_ = np.size(L, 2) / 2
-                    l = np.sqrt(L[:, 1:np_]**2 + L[:, (np_ + 1):]**2)
-                    s0 = np.mean(data[:, 1] / sum(l, 2)) + np.zeros(np_, 1)
-                    xi0 = np.ones(np_, 1)
-                    J = covar.computeJ(L, np.concatenate([s0, xi0]))
-                    Cm = J * Cm * J.T
-            else:
-                print(L.size, Cm.size)
-                Cm = L * Cm * L.T
-
-            if cm.use_c0 == 1:
-                # use exp variance
-                c0 = data[:, 2]**2
-                Cm = Cm + cm.nugget_d * np.diag(c0)
-            else:
-                Cm = Cm + cm.nugget_d * np.eye(np.size(L, 1))
-
-            Cm, ind = np.sort(Cm[:], 1, 'descend')
-            lclas = float(self.bin_edit.text())
-            afi = 1 / float(self.bin_frac_edit.text())
-
-            gt = covar.moy_bloc(Cm, lclas)
-            ind0 = np.where(gt < np.inf)
-            gt = gt[ind0]
-
-            g = Cd[ind]
-            g = covar.moy_bloc(g, lclas)
-            g = g[ind0]
-
-            N = np.round(len(g) / afi)
-            g = g[1:N]
-            gt = gt[1:N]
-
-            gmin = np.min(np.concatenate([g, gt]))
-            gmax = np.max(np.concatenate([g, gt]))
-            self.covariance_fig.plot(g, gt, gmin, gmax)
-    #         haxes1.DataAspectRatio = [1 1 1]
-
-            n1 = range(1, len(gt) + 1)  # TODO length(gt) + 1?
-            n2 = range(1, len(g) + 1)   # TODO length(g)  + 1?
-            self.comparison_fig.plot(n2, g, n1, gt)
-
-    def show_stats(self):
-        if self.model is not None:
-            if self.mogs_list.selectedIndexes() != []:
-                mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
-                air = (self.model.mogs[mog_indexes[0]].av, self.model.mogs[mog_indexes[0]].ap)
-                if self.T_and_A_combo.currentIndex() == 0:
-                    self.statistics_fig.plot('tt', self.model, air, mog_indexes)  # TODO send temp grid too
-                else:
-                    self.statistics_fig.plot('amp', self.model, air, mog_indexes)
-                self.statistics_form.show()
-            else:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected.")
-
     def add_struct(self):
-        new = covar.CovarianceModel(self.model.grid.type)
-        self.current_covar().append(new)
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+            new = covar.CovarianceFactory.detDefault2D()
+        elif self.model.grid.type == '3D':
+            new = covar.CovarianceFactory.detDefault3D()
+        self.current_covar().covar     .append(new)
+        self.current_covar().covar_xi  .append(None)
+        self.current_covar().covar_tilt.append(None)
         count = self.covar_struct_combo.count()
         self.covar_struct_combo.addItem('Structure no ' + str(count + 1))
         self.covar_struct_combo.setCurrentIndex(count)
@@ -516,9 +461,11 @@ class CovarUI(QtWidgets.QFrame):
 
     def del_struct(self):
         index = self.covar_struct_combo.currentIndex()
-        del self.current_covar()[index]
+        del self.current_covar().covar[index]
+        del self.current_covar().covar_xi[index]
+        del self.current_covar().covar_tilt[index]
         self.covar_struct_combo.clear()
-        self.covar_struct_combo.addItems(["Structure no " + str(i + 1) for i in range(len(self.current_covar()))])
+        self.covar_struct_combo.addItems(["Structure no " + str(i + 1) for i in range(len(self.current_covar().covar))])
         count = self.covar_struct_combo.count()
         if count != 0:
             if index == count:
@@ -560,6 +507,87 @@ class CovarUI(QtWidgets.QFrame):
             self.velocity_edit.setText('0.15')  # TODO model's value instead of default
         else:
             self.velocity_edit.setText('')
+
+    def compute(self):  # TODO progress bar
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())  # Store somewhere else?
+
+            xc = self.temp_grid.getCellCenter(dx, dz)
+            cm = self.current_covar()
+            Cm = cm.compute(xc, xc)
+
+            mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
+            L = self.temp_grid.getForwardStraightRays()
+            if self.T_and_A_combo.currentIndex() == 0:
+                data, _ = Model.getModelData(self.model, mog_indexes, 'tt')  # , vlim)
+            else:
+                data, _ = Model.getModelData(self.model, mog_indexes, 'amp')
+            s = data[:, 0] / np.sum(L, 1)
+            s0 = np.mean(s)
+            Cd = 'wat'
+
+            if cm.use_xi:
+                if cm.use_tilt:
+                    np_ = np.size(L, 1) / 2
+                    l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
+                    s0 = np.mean(data[:, 0] / sum(l, 2)) + np.zeros(np_, 1)
+                    xi0 = np.ones(np_, 0) + 0.001       # add 1/1000 so that J_th != 0
+                    theta0 = np.zeros(np_, 1) + 0.0044  # add a quarter of a degree so that J_th != 0
+                    J = covar.computeJ2(L, np.concatenate([s0, xi0, theta0]))
+                    Cm = J * Cm * J.T
+                else:
+                    np_ = np.size(L, 1) / 2
+                    l = np.sqrt(L[:, 1:np_]**2 + L[:, (np_ + 1):]**2)
+                    s0 = np.mean(data[:, 1] / sum(l, 2)) + np.zeros(np_, 1)
+                    xi0 = np.ones(np_, 1)
+                    J = covar.computeJ(L, np.concatenate([s0, xi0]))
+                    Cm = J * Cm * J.T
+            else:
+                print(L.size, Cm.size)
+                Cm = L * Cm * L.T
+
+            if cm.use_c0 == 1:
+                # use exp variance
+                c0 = data[:, 2]**2
+                Cm = Cm + cm.nugget_d * np.diag(c0)
+            else:
+                Cm = Cm + cm.nugget_d * np.eye(np.size(L, 1))
+
+            Cm, ind = np.sort(Cm[:], 1, 'descend')
+            lclas = float(self.bin_edit.text())
+            afi = 1 / float(self.bin_frac_edit.text())
+
+            gt = covar.moy_bloc(Cm, lclas)
+            ind0 = np.where(gt < np.inf)
+            gt = gt[ind0]
+
+            g = Cd[ind]
+            g = covar.moy_bloc(g, lclas)
+            g = g[ind0]
+
+            N = np.round(len(g) / afi)
+            g = g[1:N]
+            gt = gt[1:N]
+
+            gmin = np.min(np.concatenate([g, gt]))
+            gmax = np.max(np.concatenate([g, gt]))
+            self.comparison_fig.plot(g, gt, gmin, gmax)
+
+            n1 = range(1, len(gt) + 1)  # TODO length(gt) + 1?
+            n2 = range(1, len(g) + 1)   # TODO length(g)  + 1?
+            self.covariance_fig.plot(n2, g, n1, gt)
+
+    def show_stats(self):
+        if self.model is not None:
+            if self.mogs_list.selectedIndexes() != []:
+                mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
+                if self.T_and_A_combo.currentIndex() == 0:
+                    self.statistics_fig.plot('tt', self.model, mog_indexes)  # TODO send temp grid too
+                else:
+                    self.statistics_fig.plot('amp', self.model, mog_indexes)
+                self.statistics_form.show()
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected.")
 
     def initUI(self):
 
@@ -714,9 +742,11 @@ class CovarUI(QtWidgets.QFrame):
         Sub_Grid_Coord_Widget = lay([['',        X_label,          Y_label,          Z_label         ],
                                      [Min_label, self.X_min_label, self.Y_min_label, self.Z_min_label],
                                      [Max_label, self.X_max_label, self.Y_max_label, self.Z_max_label]],
-                                    ('setHorSpa', 55))
+                                    ('setHorSpa', 20),
+                                    ('setMinWid', (self.X_min_label, self.Y_min_label, self.Z_min_label,
+                                                   Max_label, self.X_max_label, self.Y_max_label, self.Z_max_label), 40))
 
-        cells_no_widget = lay([[self.cells_no_labeli, cells_labeli]])
+        cells_no_widget = lay([self.cells_no_labeli, cells_labeli])
 
         Sub_Step_Widget = lay([['',         Xi_label,         Yi_label,         Zi_label        ],
                                [step_label, self.step_X_edit, self.step_Y_edit, self.step_Z_edit],
@@ -732,7 +762,7 @@ class CovarUI(QtWidgets.QFrame):
                             ('setMaxHei', self.mogs_list, self.curv_rays_combo.sizeHint().height() * 3.6))
 
         self.Grid_groupbox = lay([Sub_Grid_Coord_Widget, Sub_Step_Widget],
-                                 ('groupbox', "Grid"))
+                                 'noMargins', ('groupbox', "Grid"))
 
         # --- Parameters Groupboxes --- #
         types = ('Cubic', 'Spherical', 'Gaussian', 'Exponential', 'Linear', 'Thin_Plate',
@@ -830,7 +860,7 @@ class CovarUI(QtWidgets.QFrame):
                                  [sill_label,    self.slowness_sill_edit,    self.slowness_sill_checkbox,    self.xi_sill_edit,    self.xi_sill_checkbox,    self.tilt_sill_edit,    self.tilt_sill_checkbox   ]],
                                 'noMargins')
 
-        labels     = (range_X_label, range_Z_label, theta_X_label, sill_label)
+        labels = (range_X_label, range_Z_label, theta_X_label, sill_label)
 
         self.slowness_edits      = (self.slowness_range_X_edit, self.slowness_range_Z_edit, self.slowness_theta_X_edit, self.slowness_sill_edit)
         self.slowness_checkboxes = (self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox, self.slowness_theta_X_checkbox, self.slowness_sill_checkbox)
@@ -894,7 +924,7 @@ class CovarUI(QtWidgets.QFrame):
 
         self.scrollbar = lay([[self.covariance_fig, self.Sub_widget],
                               [self.comparison_fig, '_'            ]],
-                             'noMargins', 'scrollbar', ('setMinWid', 0, 600))
+                             'scrollbar', 'noMargins', ('setMinWid', 0, 600))
 
         # Master Grid Disposition
         inv_lay([self.menu, self.scrollbar],
@@ -907,13 +937,13 @@ class CovarUI(QtWidgets.QFrame):
         self.btn_compute   .clicked.connect(self.compute)
         self.btn_GO        .clicked.connect(self.adjust)
 
-        self.Upper_limit_checkbox       .stateChanged.connect(self.auto_update)
-        self.Upper_limit_checkbox       .stateChanged.connect(self.update_velocity_display)
-        self.ellip_veloc_checkbox       .stateChanged.connect(self.parameters_displayed_update)
-        self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.parameters_displayed_update)
-        self.ellip_veloc_checkbox       .stateChanged.connect(self.auto_update)
-        self.tilted_ellip_veloc_checkbox.stateChanged.connect(self.auto_update)
-        self.include_checkbox           .stateChanged.connect(self.auto_update)
+        self.Upper_limit_checkbox       .clicked.connect(self.auto_update)
+        self.Upper_limit_checkbox       .clicked.connect(self.update_velocity_display)
+        self.ellip_veloc_checkbox       .clicked.connect(self.parameters_displayed_update)
+        self.tilted_ellip_veloc_checkbox.clicked.connect(self.parameters_displayed_update)
+        self.ellip_veloc_checkbox       .clicked.connect(self.auto_update)
+        self.tilted_ellip_veloc_checkbox.clicked.connect(self.auto_update)
+        self.include_checkbox           .clicked.connect(self.auto_update)
 
         self.T_and_A_combo     .currentIndexChanged.connect(self.update_structures)
         self.covar_struct_combo.currentIndexChanged.connect(self.parameters_displayed_update)
@@ -946,7 +976,7 @@ class CovarUI(QtWidgets.QFrame):
         for item in (self.menu, data_groupbox, self.Grid_groupbox,
                      Param_groupbox, self.Nug_groupbox, self.Adjust_Model_groupbox):
             item.setFixedHeight(item.sizeHint().height())
-        self.Sub_widget           .setFixedWidth(500)
+        self.Sub_widget.setFixedWidth(500)
 
         # --- Statistics Form --- #
 
@@ -957,8 +987,6 @@ class CovarUI(QtWidgets.QFrame):
         self.statistics_form.setLayout(statistics_grid)
         self.statistics_form.setMinimumSize(1.2 * self.statistics_form.sizeHint().height(),
                                             1.2 * self.statistics_form.sizeHint().width())
-
-        utils_ui.def_update_out(self.xi_checkbox.stateChanged, (self.xi_checkbox.checkState, self.hide))
 
 
 class StatisticsFig(FigureCanvasQTAgg):
@@ -974,9 +1002,9 @@ class StatisticsFig(FigureCanvasQTAgg):
         self.ax2.set_xlabel("Straight Ray Length")
         self.ax3.set_xlabel("Straight Ray Angle")
 
-    def plot(self, data_type, model, air, mog_indexes):
+    def plot(self, data_type, model, mog_indexes):
         if model is not None and mog_indexes:
-            data, idata = Model.getModelData(model, air, mog_indexes, data_type)  # , vlim)
+            data, idata = Model.getModelData(model, mog_indexes, data_type)  # , vlim)
             L = model.grid.getForwardStraightRays()
             print(data, 2)
             s = data[:, 0] / np.sum(L, 1)
@@ -993,8 +1021,8 @@ class StatisticsFig(FigureCanvasQTAgg):
             dz = Tx[:, 2] - Rx[:, 2]
             theta = 180 / np.pi * np.arcsin(dz / hyp)
             self.ax1.hist(s, 30)
-#             self.ax2.plot(hyp, s, 'b+')
-#             self.ax3.plot(theta, s, 'b+')
+            self.ax2.plot(hyp, s, 'b+')
+            self.ax3.plot(theta, s, 'b+')
             self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:3], str(vs)[:3]))
             self.ax2.set_ylabel(data_name)
             self.ax3.set_ylabel(data_name)
@@ -1014,8 +1042,9 @@ class CovarianceFig(FigureCanvasQTAgg):
         self.ax.set_ylabel("Covariance")
         self.ax.set_xlabel("Bin Number")
 
-    def plot(self, g, gt, gmin, gmax):
-        self.ax.plot(g, gt, 'o', np.concatenate([gmin, gmax]), np.concatenate([gmin, gmax]), ':')
+    def plot(self, n2, g, n1, gt):
+        self.ax.plot(n2, g, '+', n1, gt, 'o')
+        self.ax.legend(('Experimental (C_d^*)', 'Model (GC_mG^T +C_0)'), loc=1)
         self.figure.tight_layout()
         self.draw()
 
@@ -1031,9 +1060,9 @@ class ComparisonFig(FigureCanvasQTAgg):
         self.ax.set_ylabel("Model Covariance")
         self.ax.set_xlabel("Experimental Covariance")
 
-    def plot(self, n2, g, n1, gt):
-        self.ax.plot(n2, g, '+', n1, gt, 'o')  # TODO line 1:1 ratio
-        self.ax.legend(('Experimental (C_d^*)', 'Model (GC_mG^T +C_0)'), loc=1)
+    def plot(self, g, gt, gmin, gmax):
+        self.ax.plot(g, gt, 'o', (gmin, gmin), (gmax, gmax), ':')
+        self.ax.set_aspect('equal', 'datalim')
         self.figure.tight_layout()
         self.draw()
 
@@ -1041,7 +1070,7 @@ class ComparisonFig(FigureCanvasQTAgg):
 if __name__ == '__main__':
 
     database.create_data_management(database)
-    #database.load(database, 'database.db')
+    database.load(database, 'database.db')
 
     app = QtWidgets.QApplication(sys.argv)
 

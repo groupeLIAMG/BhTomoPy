@@ -57,7 +57,7 @@ def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catchin
 sys.excepthook = Hook
 
 
-def nargout():
+def nargout():  # TODO FIXME either doesn't work as of 3.6 or doesn't work on windows
     """
     Returns how many values the caller is expecting
 
@@ -158,43 +158,18 @@ def data_select(data, freq, dt, L=100, threshold=5, medfilt_len=10):
     return SNR
 
 
-def IF(test, *results):
-    """
-    Complex if.
-    """
-
-    test = test()
-
-    if isinstance(results[0], dict):
-        result = results[0][test]
-    else:
-        if test:
-            result = results[0]
-        elif len(results) == 2:
-            result = results[1]
-        else:
-            result = None
-
-    if isinstance(result, tuple):
-        return IF(*result)
-    elif callable(result):
-        result()
-    else:
-        return result
-
 def f():
-        
+
     nout = nargout()
     print(nout)
-    if nout==1:
+    if nout == 1:
         return 1
-    elif nout==2:
-        return 1,2
-        
+    elif nout == 2:
+        return 1, 2
+
+
 if __name__ == "__main__":
-    
+
     f()
-    a=f()
-    a,b = f()
-    
-    
+    a = f()
+    a, b = f()

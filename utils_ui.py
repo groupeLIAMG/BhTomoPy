@@ -181,9 +181,7 @@ def chooseModel(module, filename=None):
             for model in models:
                 b3.addItem(model.name)
         else:
-            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain Models.',
-                                          QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                                          QtWidgets.QMessageBox.NoButton)
+            QtWidgets.QMessageBox.warning(b3, '', 'File does not contain Models.')
             l0.setText('')
 
     if str(module.engine.url) != 'sqlite:///:memory:':
@@ -218,20 +216,21 @@ def save_warning(module):
         b2 = QtWidgets.QPushButton("Discard changes", d)
         b3 = QtWidgets.QPushButton("Cancel", d)
 
+        width = b2.sizeHint().width()
         l0.move(10, 10)
-        b0.setMinimumWidth(b2.width())
-        b1.setMinimumWidth(b2.width())
-        b2.setMinimumWidth(b2.width())
-        b3.setMinimumWidth(b2.width())
+        b0.setMinimumWidth(width)
+        b1.setMinimumWidth(width)
+        b2.setMinimumWidth(width)
+        b3.setMinimumWidth(width)
         b0.move(15, 40)
-        b1.move(15 + b2.width(), 40)
-        b2.move(15 + 2 * b2.width(), 40)
-        b3.move(15 + 3 * b2.width(), 40)
-        l0.setMinimumWidth(10 + 4 * b2.width())
-        d.setMaximumWidth(10 * 3 + b2.width() * 4)
-        d.setMaximumHeight(10 * 2 + b2.height() * 2)
-        d.setMinimumWidth(10 * 3 + b2.width() * 4)
-        d.setMinimumHeight(10 * 2 + b2.height() * 2)
+        b1.move(15 + width, 40)
+        b2.move(15 + 2 * width, 40)
+        b3.move(15 + 3 * width, 40)
+        l0.setMinimumWidth(10 + 4 * width)
+        d.setMaximumWidth(10 * 3 + width * 4)
+        d.setMaximumHeight(10 * 2 + b2.sizeHint().height() * 2)
+        d.setMinimumWidth(10 * 3 + width * 4)
+        d.setMinimumHeight(10 * 2 + b2.sizeHint().height() * 2)
 
         l0.setText("You must save your database before proceeding.")
 
@@ -436,7 +435,7 @@ def lay(layout, *options, parent=None):
                 widget.setLayout(grid)
                 widget = auto_create_scrollbar(widget)
             else:
-                raise TypeError("A format has already been specified. Can't format " + str(type(widget)) + " into scrollbar.")
+                raise TypeError("A format has already been specified. Can't format " + str(type(widget)) + " into a scrollbar.")
         else:
             raise TypeError("A form can't be formatted into a scrollbar.")
 
@@ -447,13 +446,13 @@ def lay(layout, *options, parent=None):
                 widget = wgt.QGroupBox(*args)
                 widget.setLayout(grid)
             else:
-                raise TypeError("A format has already been specified. Can't format " + str(type(widget)) + " into scrollbar.")
+                raise TypeError("A format has already been specified. Can't format " + str(type(widget)) + " into a scrollbar.")
         else:
             raise TypeError("A form can't be formatted into a groupbox.")
 
     def setRowStr(*args):
         nonlocal grid
-        if isinstance(args[0], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):
             for i in args:
                 grid.setRowStretch(*i)
         else:
@@ -461,7 +460,7 @@ def lay(layout, *options, parent=None):
 
     def setColStr(*args):
         nonlocal grid
-        if isinstance(args[0], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):
             for i in args:
                 grid.setColumnStretch(*i)
         else:
@@ -469,47 +468,70 @@ def lay(layout, *options, parent=None):
 
     def setMinHei(*args):
         nonlocal grid
-        if isinstance(args[0], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):
             for i in args:
                 setMinHei(*i)
         else:
             if isinstance(args[0], int):
                 grid.setRowMinimumHeight(*args)
+            elif isinstance(args[0], (list, tuple)):
+                for item in args[0]:
+                    item.setMinimumHeight(args[1])
             else:
                 args[0].setMinimumHeight(args[1])
 
     def setMaxHei(*args):
         nonlocal grid
-        if isinstance(args[0], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):
             for i in args:
                 setMaxHei(*i)
         else:
             if isinstance(args[0], int):
-                grid.setRowMaximumHeight(*args)
+                raise AttributeError("Cannot operate 'setMaxHei' on a grid itself.")
+            elif isinstance(args[0], (list, tuple)):
+                for item in args[0]:
+                    item.setMaximumHeight(args[1])
             else:
                 args[0].setMaximumHeight(args[1])
 
+    def setFixHei(*args):
+        nonlocal grid
+        setMinHei(*args)
+        setMaxHei(*args)
+
     def setMinWid(*args):
         nonlocal grid
-        if isinstance(args[0], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):
             for i in args:
                 setMinWid(*i)
         else:
             if isinstance(args[0], int):
                 grid.setColumnMinimumWidth(*args)
+            elif isinstance(args[0], (list, tuple)):
+                for item in args[0]:
+                    item.setMinimumWidth(args[1])
             else:
+                print(args)
                 args[0].setMinimumWidth(args[1])
 
     def setMaxWid(*args):
         nonlocal grid
-        if isinstance(args[0], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):
             for i in args:
                 setMaxWid(*i)
         else:
             if isinstance(args[0], int):
-                grid.setColumnMaximumWidth(*args)
+                raise AttributeError("Cannot operate 'setMaxWid' on a grid itself.")
+            elif isinstance(args[0], (list, tuple)):
+                for item in args[0]:
+                    item.setMaximumWidth(args[1])
             else:
                 args[0].setMaximumWidth(args[1])
+
+    def setFixWid(*args):
+        nonlocal grid
+        setMinWid(*args)
+        setMaxWid(*args)
 
     def setHorSpa(*args):
         nonlocal grid
@@ -526,8 +548,10 @@ def lay(layout, *options, parent=None):
                 'setColStr': setColStr,
                 'setMinHei': setMinHei,
                 'setMaxHei': setMaxHei,
+                'setFixHei': setFixHei,
                 'setMinWid': setMinWid,
                 'setMaxWid': setMaxWid,
+                'setFixWid': setFixWid,
                 'setHorSpa': setHorSpa,
                 'setVerSpa': setVerSpa}
 
@@ -589,18 +613,3 @@ def verif_dims(layout):
     for row in layout[1:]:
         if len(row) != len(layout[0]):
             raise IndexError("Layout has wrong dimensions.")
-
-
-def def_update_in(widget, tests):
-
-    widget.update_in = lambda: utils.IF(*tests)
-
-
-def def_update_out(event, tests):
-
-    event.connect(lambda: utils.IF(*tests))
-
-
-def def_update_state(widget, tests):
-
-    widget.update_state = lambda: utils.IF(*tests)

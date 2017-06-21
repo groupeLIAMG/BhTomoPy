@@ -549,7 +549,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                                   buttons=QtWidgets.QMessageBox.Ok)
 
                 else:
-                    self.statsttFig.plot_stats(mog_, database.session.query(AirShots).all())
+                    self.statsttFig.plot_stats(mog_)
                     self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(mog_.name))
                     self.statsttmanager.showMaximized()
         else:
@@ -1801,7 +1801,7 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
         zop_picked_ind = np.less_equal(dz, tol).astype(int) + np.not_equal(mog.tt, -1).astype(int)
         zop_picked_ind = np.where(zop_picked_ind == 2)[0]
 
-        tt, in_plus, in_minus, vapp = self.calculate_Vapp(mog, database.session.query(AirShots).all())
+        tt, in_plus, in_minus, vapp = self.calculate_Vapp(mog)
 
         zmin = np.round(min(mog.data.Rx_z[zop_ind]), 4)
         zmax = np.round(max(mog.data.Rx_z[zop_ind]), 4)
@@ -1868,7 +1868,7 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
                       (mog.data.Tx_y - mog.data.Rx_y)**2 +
                       (mog.data.Tx_z - mog.data.Rx_z)**2)
 
-        tt, t0 = mog.getCorrectedTravelTimes(air)
+        tt, t0 = mog.getCorrectedTravelTimes()
         et = mog.et
         vapp = hyp / tt
         in_minus = hyp / (tt - et)
@@ -1957,12 +1957,12 @@ class StatsttFig(FigureCanvasQTAgg):
         self.ax5 = self.figure.add_axes([0.4, 0.55, 0.2, 0.25])
         self.ax6 = self.figure.add_axes([0.7, 0.55, 0.2, 0.25])
 
-    def plot_stats(self, mog, airshots):
+    def plot_stats(self, mog):
 
         done = (mog.tt_done + mog.in_vect.astype(int))
         ind = np.where(done == 2)[0]
 
-        tt, t0 = mog.getCorrectedTravelTimes(airshots)
+        tt, t0 = mog.getCorrectedTravelTimes()
         et = mog.et[ind]
         tt = tt[ind]
 

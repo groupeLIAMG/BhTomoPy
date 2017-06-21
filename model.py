@@ -38,20 +38,20 @@ class Model(Base):
     use_tilted = Column(Boolean)
 
     mogs = relationship("Mog", secondary=mog_model)
-#     boreholes = relationship("Borehole", secondary=borehole_model)
+#     boreholes = relationship("Borehole", secondary=borehole_model)  # Deprecated
 
     def __init__(self, name=''):
         self.name       = name   # Model's name
         self.grid       = None   # Model's grid
-        self.tt_covar   = []     # Model's Traveltime covariance model
-        self.amp_covar  = []     # Model's Amplitude covariance model
+        self.tt_covar   = None   # Model's Traveltime covariance model
+        self.amp_covar  = None   # Model's Amplitude covariance model
         self.inv_res    = []     # Results of inversion
         self.tlinv_res  = None   # Time-lapse inversion results
         self.use_ellipt = False  # Whether or not the model uses anisotropy
         self.use_tilted = False  # Whether or not the model uses tilted anisotropy
 
     @staticmethod
-    def getModelData(model, air, selected_mogs, type1, type2=''):
+    def getModelData(model, selected_mogs, type1, type2=''):
         data = np.array([])
         type2 = ''
 
@@ -68,7 +68,7 @@ class Model(Base):
             mog = mogs[0]
             ind = np.not_equal(mog.tt, -1).T
             print(ind)
-            tt, t0 = mog.getCorrectedTravelTimes(air)
+            tt, t0 = mog.getCorrectedTravelTimes()
             tt = tt.T
             et = fac_dt * mog.f_et * mog.et.T
             in_vect = mog.in_vect.T
@@ -78,7 +78,7 @@ class Model(Base):
                 for n in range(1, len(model.mogs)):
                     mog = mogs[n]
                     ind = np.concatenate((ind, np.not_equal(mog.tt, -1).T), axis=0)
-                    tt = np.concatenate((tt, mog.getCorrectedTravelTimes(air)[0].T), axis=0)
+                    tt = np.concatenate((tt, mog.getCorrectedTravelTimes()[0].T), axis=0)
                     et = np.concatenate((et, fac_dt * mog.et * mog.f_et.T), axis=0)
                     in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
                     no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
@@ -86,10 +86,7 @@ class Model(Base):
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
 
             data = np.array([tt[ind], et[ind], no[ind]]).T
-            print(ind)
             print(data)
-            print(np.array([tt[ind], et[ind], no[ind]]))
-            print(np.array([tt[ind], et[ind], no[ind]]).T)
 
             return data, ind
 

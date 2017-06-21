@@ -293,13 +293,13 @@ class CovarianceModel(object):
 
     def __init__(self, dim_type):
         if dim_type == '2D' or dim_type == '2D+':
-            self.slowness = CovarianceFactory.detDefault2D()
+            self.covar = [CovarianceFactory.detDefault2D()]
         elif dim_type == '3D':
-            self.slowness = CovarianceFactory.detDefault3D()
+            self.covar = [CovarianceFactory.detDefault3D()]
         else:
             raise TypeError
-        self.xi                = None
-        self.tilt              = None
+        self.covar_xi          = [None]
+        self.covar_tilt        = [None]
         self.nugget_slowness   = 0.0
         self.nugget_traveltime = 0.0
         self.nugget_xi         = 0.0
@@ -307,6 +307,39 @@ class CovarianceModel(object):
         self.use_c0            = False
         self.use_xi            = False
         self.use_tilt          = False
+
+    def compute(self, x, x0):
+        Cm = self.covar[0].compute(x, x0)
+
+        for n in range(1, len(self.covar)):
+            Cm = Cm + self.covar[n].compute(x, x0)
+
+        if self.nugget_slowness != 0:
+            Cm = Cm + self.nugget_slowness * np.eye(np.shape(Cm, 1))
+
+        if self.use_xi:
+            Cx = self.covar_xi[0].compute(x, x0)
+            for n in range(1, len(self.covar_xi)):
+                Cx = Cx + self.covar_xi[n].compute(x, x0)
+
+            if self.nugget_xi != 0:
+                Cx = Cx + self.nugget_xi * np.eye(np.shape(Cx, 1))
+
+            if self.use_tilt:
+                Ct = self.covar_tilt[0].compute(x, x0)
+                for n in range(1, len(self.covar_tilt)):
+                    Ct = Ct + self.covar_tilt[n].compute(x, x0)
+
+                if self.nugget_tilt != 0:
+                    Ct = Ct + self.nugget_tilt * np.eye(np.shape(Ct, 1))
+
+                Cm = np.concatenate([[Cm, np.zeros(np.shape(Cx)), np.zeros(np.shape(Ct))],
+                                     [np.zeros(np.shape(Cm)), Cx, np.zeros(np.shape(Ct))],
+                                     [np.zeros(np.shape(Cm)), np.zeros(np.shape(Cx)), Ct]])
+
+            else:
+                Cm = np.concatenate([[Cm, np.zeros(np.shape(Cx))],
+                                     [np.zeros(np.shape(Cm)), Cx]])
 
 
 def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
@@ -996,8 +1029,8 @@ def _poletocart(pole):
 
 def computeJ(L, e):
 
-    nt = np.size(L, 1)
-    np_ = np.size(L, 2) / 2
+    nt = np.shape(L, 1)
+    np_ = np.shape(L, 2) / 2
 
     J = L**2
     Js = J[:, 1:np_] + J[:, (np_ + 1):] * np.kron(np.ones(nt, 1), (e[(np_ + 1):]**2).T)  # l_x^2 + l_z^2 * xi^2
@@ -1014,13 +1047,13 @@ def computeJ(L, e):
 
 def computeJ2(L, e):
 
-    nt = np.size(L, 1)
-    np_ = np.size(L, 2) / 2
+    nt = np.shape(L, 1)
+    np_ = np.shape(L, 2) / 2
 
     n = len(e) / 3
 
     if np_ != n:
-        raise ValueError("Error (computeJ2) - L et e sizes not compatible")
+        raise ValueError("Error (computeJ2) - L et e shapes not compatible")
 
     s = (e[1:n]).T
     xi = (e[(n + 1):(2 * n)]).T

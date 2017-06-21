@@ -146,16 +146,10 @@ class DatabaseUI(QtWidgets.QWidget):
                 if filename[-3:] != '.db':
                     QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
                 else:
-                    try:
-                        database.load(database, filename)
-                        self.update_database_info(os.path.basename(filename))
-                        self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
-                        self.update_widgets()
-
-                    except Exception as e:
-                        self.update_log("Error: Database was not recognised")
-                        QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened : '" + str(e)[:42] + "...' File may be empty or corrupted.",
-                                                      buttons=QtWidgets.QMessageBox.Ok)
+                    database.load(database, filename)
+                    self.update_database_info(os.path.basename(filename))
+                    self.update_widgets()
+                    self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
 
     def savefile(self):
 
@@ -295,13 +289,13 @@ if __name__ == '__main__':
     Database_ui.show()
 
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
-    Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
-    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
-    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
-    Database_ui.model.load_model("t0302's model")
-    Database_ui.model.load_model("test")
-    Database_ui.model.load_model("test2")
+#     Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
+#     Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
+#     Database_ui.model.load_model("t0302's model")
+#     Database_ui.model.load_model("test")
+#     Database_ui.model.load_model("test2")
 #     Database_ui.mog.plot_spectra()
 #     Database_ui.mog.plot_zop()
 

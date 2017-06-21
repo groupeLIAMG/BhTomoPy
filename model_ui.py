@@ -119,11 +119,14 @@ class ModelUI(QtWidgets.QWidget):
 
     def create_grid(self):
         model = self.current_model()
-        if model is not None and model.mogs:
-            g, ok = self.gridEditor(model)
-            if g is not None and ok == 1:
-                model.grid = g
-                database.modified = True
+        if model is not None:
+            if model.mogs:
+                g, ok = self.gridEditor(model)
+                if g is not None and ok == 1:
+                    model.grid = g
+                    database.modified = True
+            else:
+                QtWidgets.QMessageBox.warning(self, 'Warning', "This model has no mogs.")
 
     def edit_grid(self):
         model = self.current_model()
@@ -143,6 +146,10 @@ class ModelUI(QtWidgets.QWidget):
             previousGrid = None
 
         nBH = len(database.model_boreholes(model))
+
+        if nBH == 0 or nBH == 1:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "This model's mogs have misdefined boreholes.")
+            return
 
         data = self.prepare_grid_data()
         if g is None:
@@ -534,8 +541,7 @@ class Grid2DUI(QtWidgets.QWidget):
         uTx = np.sort(tmpTx, axis=0)
         uRx = np.sort(tmpRx, axis=0)
 
-#        data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0), 2)
-        data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0))
+        data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0), nout=2)
         # self.data.x0 : Centroid of the data = point on the best-fit plane
         # self.data.a  : Direction cosines of the normal to the best-fit plane
         if data.a[2] < 0:
