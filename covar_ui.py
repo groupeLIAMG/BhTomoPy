@@ -519,7 +519,7 @@ class CovarUI(QtWidgets.QFrame):
             mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
             L = self.temp_grid.getForwardStraightRays()
             if self.T_and_A_combo.currentIndex() == 0:
-                data, _ = Model.getModelData(self.model, mog_indexes, 'tt')  # , vlim)
+                data, _ = Model.getModelData(self.model, mog_indexes, 'tt')  # , vlim)  # TODO store data somewhere
             else:
                 data, _ = Model.getModelData(self.model, mog_indexes, 'amp')
             s = data[:, 0] / np.sum(L, 1)
@@ -530,16 +530,16 @@ class CovarUI(QtWidgets.QFrame):
                 if cm.use_tilt:
                     np_ = np.size(L, 1) / 2
                     l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
-                    s0 = np.mean(data[:, 0] / sum(l, 2)) + np.zeros(np_, 1)
-                    xi0 = np.ones(np_, 0) + 0.001       # add 1/1000 so that J_th != 0
-                    theta0 = np.zeros(np_, 1) + 0.0044  # add a quarter of a degree so that J_th != 0
+                    s0 = np.mean(data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                    xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
+                    theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
                     J = covar.computeJ2(L, np.concatenate([s0, xi0, theta0]))
                     Cm = J * Cm * J.T
                 else:
                     np_ = np.size(L, 1) / 2
-                    l = np.sqrt(L[:, 1:np_]**2 + L[:, (np_ + 1):]**2)
-                    s0 = np.mean(data[:, 1] / sum(l, 2)) + np.zeros(np_, 1)
-                    xi0 = np.ones(np_, 1)
+                    l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
+                    s0 = np.mean(data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                    xi0 = np.ones([np_, 1])
                     J = covar.computeJ(L, np.concatenate([s0, xi0]))
                     Cm = J * Cm * J.T
             else:
@@ -548,12 +548,12 @@ class CovarUI(QtWidgets.QFrame):
 
             if cm.use_c0 == 1:
                 # use exp variance
-                c0 = data[:, 2]**2
+                c0 = data[:, 1]**2
                 Cm = Cm + cm.nugget_d * np.diag(c0)
             else:
-                Cm = Cm + cm.nugget_d * np.eye(np.size(L, 1))
+                Cm = Cm + cm.nugget_d * np.eye(np.size(L, 0))
 
-            Cm, ind = np.sort(Cm[:], 1, 'descend')
+            Cm, ind = np.sort(Cm[:], 0, 'descend')  # Verify
             lclas = float(self.bin_edit.text())
             afi = 1 / float(self.bin_frac_edit.text())
 
@@ -566,15 +566,15 @@ class CovarUI(QtWidgets.QFrame):
             g = g[ind0]
 
             N = np.round(len(g) / afi)
-            g = g[1:N]
-            gt = gt[1:N]
+            g = g[0:N]
+            gt = gt[0:N]
 
             gmin = np.min(np.concatenate([g, gt]))
             gmax = np.max(np.concatenate([g, gt]))
             self.comparison_fig.plot(g, gt, gmin, gmax)
 
-            n1 = range(1, len(gt) + 1)  # TODO length(gt) + 1?
-            n2 = range(1, len(g) + 1)   # TODO length(g)  + 1?
+            n1 = range(0, len(gt))
+            n2 = range(0, len(g))
             self.covariance_fig.plot(n2, g, n1, gt)
 
     def show_stats(self):

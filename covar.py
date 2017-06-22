@@ -315,7 +315,7 @@ class CovarianceModel(object):
             Cm = Cm + self.covar[n].compute(x, x0)
 
         if self.nugget_slowness != 0:
-            Cm = Cm + self.nugget_slowness * np.eye(np.shape(Cm, 1))
+            Cm = Cm + self.nugget_slowness * np.eye(np.size(Cm, 0))
 
         if self.use_xi:
             Cx = self.covar_xi[0].compute(x, x0)
@@ -323,7 +323,7 @@ class CovarianceModel(object):
                 Cx = Cx + self.covar_xi[n].compute(x, x0)
 
             if self.nugget_xi != 0:
-                Cx = Cx + self.nugget_xi * np.eye(np.shape(Cx, 1))
+                Cx = Cx + self.nugget_xi * np.eye(np.size(Cx, 0))
 
             if self.use_tilt:
                 Ct = self.covar_tilt[0].compute(x, x0)
@@ -331,15 +331,15 @@ class CovarianceModel(object):
                     Ct = Ct + self.covar_tilt[n].compute(x, x0)
 
                 if self.nugget_tilt != 0:
-                    Ct = Ct + self.nugget_tilt * np.eye(np.shape(Ct, 1))
+                    Ct = Ct + self.nugget_tilt * np.eye(np.size(Ct, 0))
 
-                Cm = np.concatenate([[Cm, np.zeros(np.shape(Cx)), np.zeros(np.shape(Ct))],
-                                     [np.zeros(np.shape(Cm)), Cx, np.zeros(np.shape(Ct))],
-                                     [np.zeros(np.shape(Cm)), np.zeros(np.shape(Cx)), Ct]])
+                Cm = np.concatenate([[Cm, np.zeros(np.size(Cx)), np.zeros(np.size(Ct))],
+                                     [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],
+                                     [np.zeros(np.size(Cm)), np.zeros(np.size(Cx)), Ct]])
 
             else:
-                Cm = np.concatenate([[Cm, np.zeros(np.shape(Cx))],
-                                     [np.zeros(np.shape(Cm)), Cx]])
+                Cm = np.concatenate([[Cm, np.zeros(np.size(Cx))],
+                                     [np.zeros(np.size(Cm)), Cx]])
 
 
 def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):
@@ -1029,14 +1029,14 @@ def _poletocart(pole):
 
 def computeJ(L, e):
 
-    nt = np.shape(L, 1)
-    np_ = np.shape(L, 2) / 2
+    nt = np.size(L, 0)
+    np_ = np.size(L, 1) / 2
 
     J = L**2
-    Js = J[:, 1:np_] + J[:, (np_ + 1):] * np.kron(np.ones(nt, 1), (e[(np_ + 1):]**2).T)  # l_x^2 + l_z^2 * xi^2
+    Js = J[:, 0:np_] + J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[(np_):]**2).T)  # l_x^2 + l_z^2 * xi^2
     Js = np.sqrt(Js)  # equals to t / s_x
 
-    Jxi = J[:, (np_ + 1):] * np.kron(np.ones(nt, 1), (e[1:np_]).T) * np.kron(np.ones(nt, 1), (e[(np_ + 1):]).T)
+    Jxi = J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[0:np_]).T) * np.kron(np.ones([nt, 1]), (e[(np_):]).T)
 
     ind = Js != 0
     Jxi[ind] = Jxi[ind] / Js[ind]
@@ -1047,36 +1047,36 @@ def computeJ(L, e):
 
 def computeJ2(L, e):
 
-    nt = np.shape(L, 1)
-    np_ = np.shape(L, 2) / 2
+    nt = np.size(L, 0)
+    np_ = np.size(L, 1) / 2
 
     n = len(e) / 3
 
     if np_ != n:
-        raise ValueError("Error (computeJ2) - L et e shapes not compatible")
+        raise ValueError("Error (computeJ2) - L et e sizes not compatible")
 
-    s = (e[1:n]).T
-    xi = (e[(n + 1):(2 * n)]).T
-    theta = (e[(2 * n + 1):(3 * n)]).T
+    s = (e[0:n]).T
+    xi = (e[(n):(2 * n)]).T
+    theta = (e[(2 * n):(3 * n)]).T
 
     co = np.cos(theta)
     si = np.sin(theta)
 
-    tmp = (L[:, 1:np_] * np.kron(np.ones(nt, 1), co) + L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), si))**2
-    tmp = (tmp + np.kron(np.ones(nt, 1), xi**2) *
-           (L[:, 1:np_] * np.kron(np.ones(nt, 1), si) - L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), co))**2)
+    tmp = (L[:, 0:np_] * np.kron(np.ones([nt, 1]), co) + L[:, np_:] * np.kron(np.ones([nt, 1]), si))**2
+    tmp = (tmp + np.kron(np.ones([nt, 1]), xi**2) *
+           (L[:, 0:np_] * np.kron(np.ones([nt, 1]), si) - L[:, np_:] * np.kron(np.ones([nt, 1]), co))**2)
     Js = np.sqrt(tmp)
 
-    tmp = (L[:, 1:np_] * np.kron(np.ones(nt, 1), si) - L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), co))**2
-    Jxi = np.kron(np.ones(nt, 1), s) * np.kron(np.ones(nt, 1), xi) * tmp
+    tmp = (L[:, 0:np_] * np.kron(np.ones([nt, 1]), si) - L[:, np_:] * np.kron(np.ones([nt, 1]), co))**2
+    Jxi = np.kron(np.ones([nt, 1]), s) * np.kron(np.ones([nt, 1]), xi) * tmp
 
     ind = Js != 0
     Jxi[ind] = Jxi[ind] / Js[ind]
 
-    tmp = L[:, 1:np_]**2 - L[:, (np_ + 1):]**2
+    tmp = L[:, 0:np_]**2 - L[:, np_:]**2
     tmp = tmp * np.kron(np.ones(nt, 1), np.sin(2 * theta))
-    tmp = tmp - 2 * L[:, 1:np_] * L[:, (np_ + 1):] * np.kron(np.ones(nt, 1), np.cos(2 * theta))
-    Jtheta = np.kron(np.ones(nt, 1), s) * np.kron(np.ones(nt, 1), (xi**2 - 1)) * tmp
+    tmp = tmp - 2 * L[:, 0:np_] * L[:, np_:] * np.kron(np.ones([nt, 1]), np.cos(2 * theta))
+    Jtheta = np.kron(np.ones([nt, 1]), s) * np.kron(np.ones([nt, 1]), (xi**2 - 1)) * tmp
 
     Jtheta[ind] = Jtheta[ind] / Js[ind]
 
@@ -1088,8 +1088,8 @@ def moy_bloc(xy, lclas):
 
     k = np.floor(len(xy) / lclas)
 
-    m = np.mean(np.reshape(xy[1:k * lclas], lclas, k))
-    m[k] = np.mean(xy[(k - 1) * lclas + 1:])
+    m = np.mean(np.reshape(xy[0:k * lclas], lclas, k))
+    m[k] = np.mean(xy[(k - 1) * lclas:])  # TODO k - 1 ?
 
     return m
 
