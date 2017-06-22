@@ -591,7 +591,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         if database.session.query(Mog).count() != 0:
             item = self.MOG_list.currentItem()
             if item is not None:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text())
+                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
                 if mog_.Tx != 1 and mog_.Tx != 1:
                     self.pruneFig.plot_prune(mog_, 0)
                     self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(mog_.name))
@@ -2236,8 +2236,8 @@ class PruneFig(FigureCanvasQTAgg):
     def plot_prune(self, mog, round_factor):
         self.ax.cla()
 
-        false_Rx_ind = np.nonzero(not mog.in_Rx_vect)  # TODO: false_Rx_ind = np.nonzero(mog.in_Rx_vect == False)
-        false_Tx_ind = np.nonzero(not mog.in_Tx_vect)
+        false_Rx_ind = np.nonzero(np.logical_not(mog.in_Rx_vect))  # TODO: false_Rx_ind = np.nonzero(mog.in_Rx_vect == False)
+        false_Tx_ind = np.nonzero(np.logical_not(mog.in_Tx_vect))
 
         Tx_zs = np.unique(mog.data.Tx_z)
         Rx_zs = np.unique(mog.data.Rx_z)
