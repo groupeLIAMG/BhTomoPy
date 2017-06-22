@@ -29,22 +29,8 @@ import dis
 import numpy as np
 import scipy.signal
 
-# --- SQLAlchemy-related --- #
-
 from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
-from sqlalchemy import Table, Column, String, ForeignKey
-
 Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
-
-# - Relationships - #
-
-# borehole_model = Table('borehole_model', Base.metadata,
-#                        Column('Borehole_name', String, ForeignKey('Borehole.name')),
-#                        Column('Model_name', String, ForeignKey('Model.name')))
-
-mog_model = Table('mog_model', Base.metadata,
-                  Column('Mog_name', String, ForeignKey('Mog.name')),
-                  Column('Model_name', String, ForeignKey('Model.name')))
 
 
 def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
@@ -158,7 +144,7 @@ def data_select(data, freq, dt, L=100, threshold=5, medfilt_len=10):
     return SNR
 
 
-def f():
+def f():  # test with nargout
 
     nout = nargout()
     print(nout)

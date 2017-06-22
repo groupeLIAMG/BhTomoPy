@@ -734,40 +734,10 @@ class CovarUI(QtWidgets.QFrame):
 
         # --- List --- #
         self.mogs_list = QtWidgets.QListWidget()
-
-        # ------- SubWidgets ------- #
-        Sub_Curved_Rays_Widget = lay([curv_rays_label, self.curv_rays_combo],
-                                     'noMargins')
-
-        Sub_Grid_Coord_Widget = lay([['',        X_label,          Y_label,          Z_label         ],
-                                     [Min_label, self.X_min_label, self.Y_min_label, self.Z_min_label],
-                                     [Max_label, self.X_max_label, self.Y_max_label, self.Z_max_label]],
-                                    ('setHorSpa', 20),
-                                    ('setMinWid', (self.X_min_label, self.Y_min_label, self.Z_min_label,
-                                                   Max_label, self.X_max_label, self.Y_max_label, self.Z_max_label), 40))
-
-        cells_no_widget = lay([self.cells_no_labeli, cells_labeli])
-
-        Sub_Step_Widget = lay([['',         Xi_label,         Yi_label,         Zi_label        ],
-                               [step_label, self.step_X_edit, self.step_Y_edit, self.step_Z_edit],
-                               ['',         cells_no_widget,  '',               '|'             ]],
-                              ('setHorSpa', 0))
-
-        data_groupbox = lay([[self.model_label,    '|',         self.Upper_limit_checkbox,        self.velocity_edit ],
-                             [self.cells_no_label, cells_label, self.ellip_veloc_checkbox,        ''                 ],
-                             [self.rays_no_label,  rays_label,  self.tilted_ellip_veloc_checkbox, ''                 ],
-                             [self.mogs_list,      '|',         self.include_checkbox,            ''                 ],
-                             ['',                  '',          self.T_and_A_combo,               self.btn_Show_Stats],
-                             ['_',                 '',          Sub_Curved_Rays_Widget,           ''                 ]],
-                            ('setMaxHei', self.mogs_list, self.curv_rays_combo.sizeHint().height() * 3.6))
-
-        self.Grid_groupbox = lay([Sub_Grid_Coord_Widget, Sub_Step_Widget],
-                                 'noMargins', ('groupbox', "Grid"))
-
-        # --- Parameters Groupboxes --- #
         types = ('Cubic', 'Spherical', 'Gaussian', 'Exponential', 'Linear', 'Thin_Plate',
                  'Gravimetric', 'Magnetic', 'Hole Effect Sine', 'Hole Effect Cosine')
 
+        # --- Parameters --- #
         range_X_label = MyQLabel("Range X", ha='right')
         range_Z_label = MyQLabel("Range Z", ha='right')
         theta_X_label = MyQLabel("{} X".format(theta), ha='right')
@@ -851,14 +821,7 @@ class CovarUI(QtWidgets.QFrame):
         self.slowness_3D_theta_Z_checkbox = QtWidgets.QCheckBox()
         self.slowness_3D_sill_checkbox    = QtWidgets.QCheckBox()
 
-        self.param_widget = lay([['',            slowness_param_edit,        '|',                            xi_param_edit,        '|',                      tilt_param_edit,        '|'                       ],
-                                 ['',            self.slowness_type_combo,   '|',                            self.xi_type_combo,   '|',                      self.tilt_type_combo,   '|'                       ],
-                                 ['',            slowness_value_label,       slowness_fix_label,             xi_value_label,       xi_fix_label,             tilt_value_label,       tilt_fix_label            ],
-                                 [range_X_label, self.slowness_range_X_edit, self.slowness_range_X_checkbox, self.xi_range_X_edit, self.xi_range_X_checkbox, self.tilt_range_X_edit, self.tilt_range_X_checkbox],
-                                 [range_Z_label, self.slowness_range_Z_edit, self.slowness_range_Z_checkbox, self.xi_range_Z_edit, self.xi_range_Z_checkbox, self.tilt_range_Z_edit, self.tilt_range_Z_checkbox],
-                                 [theta_X_label, self.slowness_theta_X_edit, self.slowness_theta_X_checkbox, self.xi_theta_X_edit, self.xi_theta_X_checkbox, self.tilt_theta_X_edit, self.tilt_theta_X_checkbox],
-                                 [sill_label,    self.slowness_sill_edit,    self.slowness_sill_checkbox,    self.xi_sill_edit,    self.xi_sill_checkbox,    self.tilt_sill_edit,    self.tilt_sill_checkbox   ]],
-                                'noMargins')
+        # Widgets grouping. Unpacking those will produce clearer code. #
 
         labels = (range_X_label, range_Z_label, theta_X_label, sill_label)
 
@@ -877,6 +840,51 @@ class CovarUI(QtWidgets.QFrame):
 
         self.tilt_widget = (*self.tilt_edits, *self.tilt_checkboxes, tilt_param_edit, self.tilt_type_combo, tilt_value_label, tilt_fix_label)
 
+        self.labels_3d = (range_X_3D_label, range_Y_3D_label, range_Z_3D_label, theta_X_3D_label, theta_Y_3D_label, theta_Z_3D_label, sill_3D_label)  # @UnusedVariable
+
+        self.slowness_3D_edits      = (self.slowness_3D_range_X_edit, self.slowness_3D_range_Y_edit, self.slowness_3D_range_Z_edit,
+                                       self.slowness_3D_theta_X_edit, self.slowness_3D_theta_Y_edit, self.slowness_3D_theta_Z_edit, self.slowness_3D_sill_edit)
+        self.slowness_3D_checkboxes = (self.slowness_3D_range_X_checkbox, self.slowness_3D_range_Y_checkbox, self.slowness_3D_range_Z_checkbox,
+                                       self.slowness_3D_theta_X_checkbox, self.slowness_3D_theta_Y_checkbox, self.slowness_3D_theta_Z_checkbox, self.slowness_3D_sill_checkbox)
+
+        # ------- SubWidgets ------- #
+        Sub_Curved_Rays_Widget = lay([curv_rays_label, self.curv_rays_combo],
+                                     'noMargins')
+
+        Sub_Grid_Coord_Widget = lay([['',        X_label,          Y_label,          Z_label         ],
+                                     [Min_label, self.X_min_label, self.Y_min_label, self.Z_min_label],
+                                     [Max_label, self.X_max_label, self.Y_max_label, self.Z_max_label]],
+                                    ('setHorSpa', 20),
+                                    ('setMinWid', (self.X_min_label, self.Y_min_label, self.Z_min_label,
+                                                   Max_label, self.X_max_label, self.Y_max_label, self.Z_max_label), 40))
+
+        cells_no_widget = lay([self.cells_no_labeli, cells_labeli])
+
+        Sub_Step_Widget = lay([['',         Xi_label,         Yi_label,         Zi_label        ],
+                               [step_label, self.step_X_edit, self.step_Y_edit, self.step_Z_edit],
+                               ['',         cells_no_widget,  '',               '|'             ]],
+                              ('setHorSpa', 0))
+
+        data_groupbox = lay([[self.model_label,    '|',         self.Upper_limit_checkbox,        self.velocity_edit ],
+                             [self.cells_no_label, cells_label, self.ellip_veloc_checkbox,        ''                 ],
+                             [self.rays_no_label,  rays_label,  self.tilted_ellip_veloc_checkbox, ''                 ],
+                             [self.mogs_list,      '|',         self.include_checkbox,            ''                 ],
+                             ['',                  '',          self.T_and_A_combo,               self.btn_Show_Stats],
+                             ['_',                 '',          Sub_Curved_Rays_Widget,           ''                 ]],
+                            ('setMaxHei', self.mogs_list, self.curv_rays_combo.sizeHint().height() * 3.6))
+
+        self.Grid_groupbox = lay([Sub_Grid_Coord_Widget, Sub_Step_Widget],
+                                 'noMargins', ('groupbox', "Grid"))
+
+        self.param_widget = lay([['',            slowness_param_edit,        '|',                            xi_param_edit,        '|',                      tilt_param_edit,        '|'                       ],
+                                 ['',            self.slowness_type_combo,   '|',                            self.xi_type_combo,   '|',                      self.tilt_type_combo,   '|'                       ],
+                                 ['',            slowness_value_label,       slowness_fix_label,             xi_value_label,       xi_fix_label,             tilt_value_label,       tilt_fix_label            ],
+                                 [range_X_label, self.slowness_range_X_edit, self.slowness_range_X_checkbox, self.xi_range_X_edit, self.xi_range_X_checkbox, self.tilt_range_X_edit, self.tilt_range_X_checkbox],
+                                 [range_Z_label, self.slowness_range_Z_edit, self.slowness_range_Z_checkbox, self.xi_range_Z_edit, self.xi_range_Z_checkbox, self.tilt_range_Z_edit, self.tilt_range_Z_checkbox],
+                                 [theta_X_label, self.slowness_theta_X_edit, self.slowness_theta_X_checkbox, self.xi_theta_X_edit, self.xi_theta_X_checkbox, self.tilt_theta_X_edit, self.tilt_theta_X_checkbox],
+                                 [sill_label,    self.slowness_sill_edit,    self.slowness_sill_checkbox,    self.xi_sill_edit,    self.xi_sill_checkbox,    self.tilt_sill_edit,    self.tilt_sill_checkbox   ]],
+                                'noMargins')
+
         self.slowness_3D_widget = lay([['',               slowness_3D_param_edit,        '|'                              ],
                                        ['',               self.slowness_3D_type_combo,   '|'                              ],
                                        ['',               slowness_3D_value_label,       slowness_3D_fix_label            ],
@@ -889,20 +897,8 @@ class CovarUI(QtWidgets.QFrame):
                                        [sill_3D_label,    self.slowness_3D_sill_edit,    self.slowness_3D_sill_checkbox   ]],
                                       'noMargins')
 
-        self.labels_3d = (range_X_3D_label, range_Y_3D_label, range_Z_3D_label, theta_X_3D_label, theta_Y_3D_label, theta_Z_3D_label, sill_3D_label)  # @UnusedVariable
-
-        self.slowness_3D_edits      = (self.slowness_3D_range_X_edit, self.slowness_3D_range_Y_edit, self.slowness_3D_range_Z_edit,
-                                       self.slowness_3D_theta_X_edit, self.slowness_3D_theta_Y_edit, self.slowness_3D_theta_Z_edit, self.slowness_3D_sill_edit)
-        self.slowness_3D_checkboxes = (self.slowness_3D_range_X_checkbox, self.slowness_3D_range_Y_checkbox, self.slowness_3D_range_Z_checkbox,
-                                       self.slowness_3D_theta_X_checkbox, self.slowness_3D_theta_Y_checkbox, self.slowness_3D_theta_Z_checkbox, self.slowness_3D_sill_checkbox)
-
         Param_groupbox = lay(['', self.param_widget, self.slowness_3D_widget, ''],
                              ('setColStr', (0, 1), (1, 0), (2, 0), (3, 1)))
-
-        for item in (slowness_value_label, xi_value_label, tilt_value_label, slowness_3D_value_label,
-                     slowness_fix_label, xi_fix_label, tilt_fix_label, slowness_3D_fix_label,
-                     range_X_label, range_Z_label, theta_X_label, sill_label):
-            item.setFixedHeight(25)
 
         self.Nug_groupbox = lay([[self.slowness_label, self.slowness_edit, self.slowness_checkbox, self.tt_label,   self.tt_edit,   self.tt_checkbox  ],
                                  [self.xi_label,       self.xi_edit,       self.xi_checkbox,       self.tilt_label, self.tilt_edit, self.tilt_checkbox]],
@@ -978,6 +974,11 @@ class CovarUI(QtWidgets.QFrame):
             item.setFixedHeight(item.sizeHint().height())
         self.Sub_widget.setFixedWidth(500)
 
+        for item in (slowness_value_label, xi_value_label, tilt_value_label, slowness_3D_value_label,
+                     slowness_fix_label, xi_fix_label, tilt_fix_label, slowness_3D_fix_label,
+                     range_X_label, range_Z_label, theta_X_label, sill_label):
+            item.setFixedHeight(25)
+
         # --- Statistics Form --- #
 
         self.statistics_fig = StatisticsFig(self)
@@ -985,8 +986,8 @@ class CovarUI(QtWidgets.QFrame):
         statistics_grid = QtWidgets.QGridLayout()
         statistics_grid.addWidget(self.statistics_fig)
         self.statistics_form.setLayout(statistics_grid)
-        self.statistics_form.setMinimumSize(1.2 * self.statistics_form.sizeHint().height(),
-                                            1.2 * self.statistics_form.sizeHint().width())
+        self.statistics_form.setMinimumSize(self.statistics_form.sizeHint().height(),
+                                            self.statistics_form.sizeHint().width())
 
 
 class StatisticsFig(FigureCanvasQTAgg):

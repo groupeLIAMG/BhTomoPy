@@ -1,0 +1,24 @@
+As of June 30th 2017:
+
+Covar_ui is close to done.
+
+- 
+- 
+- No tests were made on the interface for 3D grids.
+
+Data management through SQLAlchemy has been fully implemented in database_ui and covar_ui, and the main submodules.
+Some other modules still lack this implementation, though. One should consider close to every *.bh, *.mog, *.model and
+*.air attributes deprecated if applied to a user interface. Those should be replaced by a call into the database by
+the means of <module>.session.query(<Class>).
+
+Be wary of the tools such as auto_create_scrollbar() and lay() in utils_ui, as they provide a way of reducing the
+quantity of code for a specified task and improving readability. (Full list of ignored errors: E202, E221, E241, E501, E722, E741)
+
+Arguments unpacking is used thoroughly in covar_ui and utils_ui, so one should become comfortable with this functionality
+of Python. The star ('*') is used to separate an iterable into different arguments. Therefore, 'print(*['a', 'b', 'c'])' reads
+for the program as 'print('a', 'b', 'c')'.
+
+The code is fully PEP 8 compatible, exception made for the extra spaces before and after operators and for lines too long,
+which are ignored for the purpose of readability.
+
+Finally, one should refer to the TODO annotations for specific tasks. Those may require a better understanding of BhTomoPy, though.

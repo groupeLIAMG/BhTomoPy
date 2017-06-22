@@ -20,9 +20,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from sqlalchemy import Column, String, PickleType, Boolean
-from utils import Base, mog_model  # , borehole_model
+from sqlalchemy import Column, String, PickleType, Table, ForeignKey
+from utils import Base
 from sqlalchemy.orm import relationship
+
+
+# Relationship definition
+
+model_mogs = Table('model_mogs', Base.metadata,
+                   Column('Mog_name', String, ForeignKey('Mog.name')),
+                   Column('Model_name', String, ForeignKey('Model.name')))
 
 
 class Model(Base):
@@ -34,21 +41,17 @@ class Model(Base):
     amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
     inv_res    = Column(PickleType)    # Results of inversion
     tlinv_res  = Column(PickleType)    # Time-lapse inversion results
-    use_ellipt = Column(Boolean)
-    use_tilted = Column(Boolean)
 
-    mogs = relationship("Mog", secondary=mog_model)
-#     boreholes = relationship("Borehole", secondary=borehole_model)  # Deprecated
+    mogs = relationship("Mog", secondary=model_mogs)  # The mogs associated with the model (acts like a list).
+    # The boreholes associated with a model can be accessed via with the model_boreholes method, which returns a list.
 
     def __init__(self, name=''):
-        self.name       = name   # Model's name
-        self.grid       = None   # Model's grid
-        self.tt_covar   = None   # Model's Traveltime covariance model
-        self.amp_covar  = None   # Model's Amplitude covariance model
-        self.inv_res    = []     # Results of inversion
-        self.tlinv_res  = None   # Time-lapse inversion results
-        self.use_ellipt = False  # Whether or not the model uses anisotropy
-        self.use_tilted = False  # Whether or not the model uses tilted anisotropy
+        self.name       = name
+        self.grid       = None
+        self.tt_covar   = None
+        self.amp_covar  = None
+        self.inv_res    = []
+        self.tlinv_res  = None
 
     @staticmethod
     def getModelData(model, selected_mogs, type1, type2=''):
@@ -105,3 +108,17 @@ class Model(Base):
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
             data = np.array([tt[ind], et[ind], no[ind]]).T
             return data, ind
+
+    def model_boreholes(self):
+        """
+        Returns a list of all the boreholes contained in the mogs of a model, without duplicates.
+        """
+        boreholes = []
+
+        for mog in self.mogs:
+            for borehole in mog.Tx, mog.Rx:
+                if borehole is not None:
+                    if borehole not in boreholes:  # guarantees there is no duplicate
+                        boreholes.append(borehole)
+
+        return boreholes

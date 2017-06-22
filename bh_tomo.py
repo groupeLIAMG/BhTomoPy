@@ -255,7 +255,7 @@ class BhTomoPy(QtWidgets.QWidget):
         # that the current loaded information can be saved. 'module' refers to the data management module
         # the form is linked to.
 
-        if module:
+        if module is not None:
             def handler(event):
                 ok = save_warning(module)
                 if ok:

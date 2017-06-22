@@ -19,6 +19,22 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# Functions from 'database' require a module as first parameter. This is a way of allowing the coexistence
+# of multiple instances of session throughout the program (one per module). Moreover, because the
+# SQLAlchemy objects exist as attributes, they are permanent. Note that any object may replace modules,
+# but using the latter is quite convenient.
+
+# To retrieve an object from the database, use <module>.query(<Class>).filter(<Class>.name == <str>).first()
+# Note that an object must always be extracted from a filter object by using the *.first() method.
+# One could also use <module>.session.query(<Class>).all()[<indice>] to retrieve an object, but this is less
+# SQLAlchemy-esque (and probably quite less efficient, as all the instances are retrieved).
+
+# Be wary that a database could fail to load if it open in another program.
+
+# One can get the current module so that it can be sent as a parameter like so:
+# import sys
+# current_module = sys.modules[__name__]
+
 import os
 
 from sqlalchemy import create_engine, event
@@ -32,20 +48,13 @@ from model import Model
 from utils import Base
 
 
-# Functions from 'database' require a module as first parameter. This
-# is a way of allowing the coexistence of multiple instances of session
-# throughout the program (one per module). Moreover, because the SQLAlchemy
-# objects exist as attributes, they are permanent. Note that any object may
-# replace modules, but using the latter is quite convenient.
-
-
 def create_data_management(module):
     """
     Initiate a module's SQLAlchemy attributes.
     """
 
     module.engine = create_engine("sqlite:///:memory:")  # 'engine' interacts with the file
-    module.Session = sessionmaker(bind=module.engine)    # 'Session' acts as a factory for upcoming sessions; the features of 'Session' aren't exploited
+    module.Session = sessionmaker(bind=module.engine)    # 'Session' acts as a factory for upcoming sessions; the features of 'Session' aren't exploited in BhTomoPy
     module.session = module.Session()                    # the objects are stored in 'session' and can be manipulated from there
     strong_reference_session(module.session)
     Base.metadata.create_all(module.engine)              # this creates the mapping for a specific engine
@@ -68,7 +77,8 @@ def load(module, file):
         Base.metadata.create_all(module.engine)
         module.modified = False
 
-        get_many(module)  # initiate the session's objects, guarantees they exist within 'session'  # TODO might be deprecated because of strong_reference_session()
+        # TODO might be deprecated because of strong_reference_session() and could be erased
+#         get_many(module)  # guarantees the objects exist within 'session'
 
     except AttributeError:
         create_data_management(module)
@@ -112,9 +122,12 @@ def save_as(module, file):
 
         # Guarantees the objects and their relationships survive the transfer
         # Referencing the attributes seems to guarantee the strong referencing's effectiveness
+        # TODO If no problem occur, this may be deprecated and can therefore be erased
+#         strong_referencing = get_many(module)  # @UnusedVariable
+#         verify_mapping(module)
+
         # TODO Reflecting the mapping instead of merging might make the code more efficient
-        strong_referencing = get_many(module)  # @UnusedVariable
-        verify_mapping(module)
+
         items = get_many(module)  # temporarily stores the saved items
 
         module.session.close()
@@ -140,18 +153,14 @@ def save_as(module, file):
         save_as(module, file)
 
 
-def get_many(module, *classes):
+def get_many(module):
     """
-    Get all or multiple classes stored within a session. Also guarantees these
-    items are loaded into the session.
+    Get all instances stored within a session.
     """
 
     items = []
 
-    if not classes:
-        classes = (Borehole, Mog, AirShots, Model)
-
-    for item in classes:
+    for item in (Borehole, Mog, AirShots, Model):
 
         items += module.session.query(item).all()
 
@@ -186,22 +195,6 @@ def airshots_cleanup(module):  # TODO: Verify
     for airshot in module.session.query(AirShots).all():
         if airshot not in used_airshots:
             delete(module, airshot)
-
-
-def model_boreholes(model):
-    """
-    Returns a list of all the boreholes contained in the mogs of a model, without duplicates.
-    """
-
-    boreholes = []
-
-    for mog in model.mogs:
-        for borehole in mog.Tx, mog.Rx:
-            if borehole is not None:
-                if borehole not in boreholes:  # guarantees there is no duplicate
-                    boreholes.append(borehole)
-
-    return boreholes
 
 
 def long_url(module):
@@ -291,15 +284,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     sys.exit(app.exec_())
-
-
-# Gets the current module, so that it can be sent as a parameter.
-# import sys
-# current_module = sys.modules[__name__]
-
-
-# from sqlalchemy.orm.attributes import flag_modified
-# flag_modified(module.session.query(Model).all()[0], 'tt_covar')
 
 
 # Test bank

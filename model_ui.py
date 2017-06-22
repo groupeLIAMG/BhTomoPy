@@ -145,7 +145,7 @@ class ModelUI(QtWidgets.QWidget):
         else:
             previousGrid = None
 
-        nBH = len(database.model_boreholes(model))
+        nBH = len(model.model_boreholes())
 
         if nBH == 0 or nBH == 1:
             QtWidgets.QMessageBox.warning(self, 'Warning', "This model's mogs have misdefined boreholes.")
@@ -292,7 +292,7 @@ class ModelUI(QtWidgets.QWidget):
         data.TxCosDir = mog.TxCosDir
         data.RxCosDir = mog.RxCosDir
 
-        data.boreholes = database.model_boreholes(self.current_model())
+        data.boreholes = self.current_model().model_boreholes()
 
         if len(mogs) > 1:
             for n in range(1, len(mogs)):

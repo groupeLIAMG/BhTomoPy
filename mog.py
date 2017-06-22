@@ -228,67 +228,67 @@ class PruneParams(object):
         self.thetaMax = 90
 
 
-class Mog(Base):
+class Mog(Base):  # Multi-Offset Gather
 
     __tablename__ = "Mog"
-    name                     = Column(String, primary_key=True)
-    pruneParams              = Column(PickleType)
-    data                     = Column(PickleType)
-    tau_params               = Column(PickleType)
-    fw                       = Column(PickleType)
-    f_et                     = Column(Float)
-    amp_name_Ldc             = Column(PickleType)
-    type                     = Column(SmallInteger)
-    fac_dt                   = Column(Float)
-    user_fac_dt              = Column(Float)
-    useAirShots              = Column(Boolean)
-    TxCosDir                 = Column(PickleType)
-    RxCosDir                 = Column(PickleType)
+    name             = Column(String, primary_key=True)
+    pruneParams      = Column(PickleType)
+    data             = Column(PickleType)    # Instance of MogData
+    tau_params       = Column(PickleType)
+    fw               = Column(PickleType)
+    f_et             = Column(Float)
+    amp_name_Ldc     = Column(PickleType)
+    type             = Column(SmallInteger)
+    fac_dt           = Column(Float)
+    user_fac_dt      = Column(Float)
+    useAirShots      = Column(Boolean)
+    TxCosDir         = Column(PickleType)
+    RxCosDir         = Column(PickleType)
 
-    ID                       = Column(Integer)
-    in_Rx_vect               = Column(PickleType)
-    in_Tx_vect               = Column(PickleType)
-    in_vect                  = Column(PickleType)
-    date                     = Column(String)
-    tt                       = Column(PickleType)
-    et                       = Column(PickleType)
-    tt_done                  = Column(PickleType)
+    ID               = Column(Integer)
+    in_Rx_vect       = Column(PickleType)
+    in_Tx_vect       = Column(PickleType)
+    in_vect          = Column(PickleType)
+    date             = Column(String)        # Date of the mog's data
+    tt               = Column(PickleType)    # Arrival time
+    et               = Column(PickleType)    # Standard deviation of arrival time
+    tt_done          = Column(PickleType)    # Boolean indicator of arrival time
 
-    ttTx                     = Column(PickleType)
-    ttTx_done                = Column(PickleType)
+    ttTx             = Column(PickleType)
+    ttTx_done        = Column(PickleType)
 
-    amp_tmin                 = Column(PickleType)
-    amp_tmax                 = Column(PickleType)
-    amp_done                 = Column(PickleType)
-    App                      = Column(PickleType)
-    fcentroid                = Column(PickleType)
-    scentroid                = Column(PickleType)
-    tauApp                   = Column(PickleType)
-    tauApp_et                = Column(PickleType)
-    tauFce                   = Column(PickleType)
-    tauFce_et                = Column(PickleType)
-    tauHyb                   = Column(PickleType)
-    tauHyb_et                = Column(PickleType)
-    tauHyb_et                = Column(PickleType)
-    Tx_z_orig                = Column(PickleType)
-    Rx_z_orig                = Column(PickleType)
+    amp_tmin         = Column(PickleType)
+    amp_tmax         = Column(PickleType)
+    amp_done         = Column(PickleType)
+    App              = Column(PickleType)
+    fcentroid        = Column(PickleType)
+    scentroid        = Column(PickleType)
+    tauApp           = Column(PickleType)
+    tauApp_et        = Column(PickleType)
+    tauFce           = Column(PickleType)
+    tauFce_et        = Column(PickleType)
+    tauHyb           = Column(PickleType)
+    tauHyb_et        = Column(PickleType)
+    tauHyb_et        = Column(PickleType)
+    Tx_z_orig        = Column(PickleType)
+    Rx_z_orig        = Column(PickleType)
 
-    pruneParams.zmin         = Column(PickleType)
-    pruneParams.zmax         = Column(PickleType)
+    pruneParams.zmin = Column(PickleType)
+    pruneParams.zmax = Column(PickleType)
 
-    Tx_name = Column(String, ForeignKey('Borehole.name'))
-    Tx = orm.relationship("Borehole", foreign_keys=Tx_name)
-    Rx_name = Column(String, ForeignKey('Borehole.name'))
-    Rx = orm.relationship("Borehole", foreign_keys=Rx_name)
+    Tx_name = Column(String, ForeignKey('Borehole.name'))    # One shouldn't manipulate these columns.
+    Rx_name = Column(String, ForeignKey('Borehole.name'))    # Use the following Tx, Rx, av and ap instead.
     av_name = Column(String, ForeignKey('Airshots.name'))
-    av = orm.relationship("AirShots", foreign_keys=av_name)
     ap_name = Column(String, ForeignKey('Airshots.name'))
-    ap = orm.relationship("AirShots", foreign_keys=ap_name)
+    Tx = orm.relationship("Borehole", foreign_keys=Tx_name)  # Mog's transmitter borehole
+    Rx = orm.relationship("Borehole", foreign_keys=Rx_name)  # Mog's receiver borehole
+    av = orm.relationship("AirShots", foreign_keys=av_name)  # Mog's 'before' airshot
+    ap = orm.relationship("AirShots", foreign_keys=ap_name)  # Mog's 'after' airshot
 
     def __init__(self, name='', data=MogData()):
         self.pruneParams               = PruneParams()
         self.name                      = name
-        self.data                      = data          # Instance of MogData
+        self.data                      = data
         self.tau_params                = np.array([])
         self.fw                        = np.array([])
         self.f_et                      = 1
@@ -325,7 +325,7 @@ class Mog(Base):
             self.ttTx                 = np.zeros(self.data.ntrace)
             self.ttTx_done            = np.zeros(self.data.ntrace, dtype=bool)
 
-        self.amp_tmin                 = -1 * np.ones(self.data.ntrace, dtype=float)   # à Définir avec Bernard
+        self.amp_tmin                 = -1 * np.ones(self.data.ntrace, dtype=float)
         self.amp_tmax                 = -1 * np.ones(self.data.ntrace, dtype=float)
         self.amp_done                 = np.zeros(self.data.ntrace, dtype=bool)
         self.App                      = np.zeros(self.data.ntrace, dtype=float)
@@ -463,25 +463,25 @@ class AirShots(Base):
 
     __tablename__ = "Airshots"
     name    = Column(String, primary_key=True)
-    mog     = Column(PickleType)
-    data    = Column(PickleType)            # MogData instance
-    d_TxRx  = Column(PickleType)            # Distance between Tx and Rx
+#     mog     = Column(PickleType)  # Deprecated ?
+    data    = Column(PickleType)  # MogData instance
+    d_TxRx  = Column(PickleType)  # Distance between Tx and Rx
     fac_dt  = Column(Float)
     method  = Column(String)
-    tt      = Column(PickleType)
-    et      = Column(PickleType)
-    tt_done = Column(PickleType)
+    tt      = Column(PickleType)  # Arrival time
+    et      = Column(PickleType)  # Standard deviation of arrival time
+    tt_done = Column(PickleType)  # Boolean indicator of arrival time
 
     def __init__(self, name='', data=MogData()):
         self.mog = Mog()
         self.name = name
-        self.data = data           # MogData instance
-        self.d_TxRx = 0            # Distance between Tx and Rx
+        self.data = data
+        self.d_TxRx = 0
         self.fac_dt = 1
 
-        self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)  # arrival time
-        self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)  # standard deviation of arrival time
-        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool)  # boolean indicator of arrival time
+        self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)
+        self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)
+        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool)
 
 
 if __name__ == '__main__':

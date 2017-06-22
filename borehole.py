@@ -22,7 +22,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 from sqlalchemy import Column, Float, String, PickleType
 from utils import Base
-from sqlalchemy.orm import relationship
 
 
 class Borehole(Base):
@@ -31,7 +30,7 @@ class Borehole(Base):
     """
 
     __tablename__ = "Borehole"
-    name      = Column(String, primary_key=True)           # name of the borehole (BH)
+    name      = Column(String, primary_key=True)           # borehole's name (BH)
     X         = Column(Float)            # X, Y and Z: the BH's top cartesian coordinates
     Y         = Column(Float)
     Z         = Column(Float)
@@ -46,17 +45,17 @@ class Borehole(Base):
 
     def __init__(self, name=''):
 
-        self.name      = name           # name of the borehole(BH)
-        self.X         = 0.0            # X, Y and Z: the BH's top cartesian coordinates
+        self.name      = name
+        self.X         = 0.0
         self.Y         = 0.0
         self.Z         = 0.0
-        self.Xmax      = 0.0            # Xmax, Ymax and Zmax : the BH's bottom cartesian coordinates
+        self.Xmax      = 0.0
         self.Ymax      = 0.0
         self.Zmax      = 0.0
-        self.Z_surf    = 0.0            # BH's surface height  # N.B.: This is obsolete and therefore optional, as for the diameter
-        self.scont     = np.array([])   # Matrix containing the slowness for each point of the BH's trajectory
-        self.acont     = np.array([])   # Matrix containing the attenuation for each point of the BH's trajectory
-        self.fdata     = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])    # Matrix containing the BH's trajectory in space
+        self.Z_surf    = 0.0
+        self.scont     = np.array([])
+        self.acont     = np.array([])
+        self.fdata     = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
 
     @staticmethod
     def project(fdata, ldepth):

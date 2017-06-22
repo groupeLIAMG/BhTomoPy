@@ -124,4 +124,4 @@ test()
 
 # print([[]] * 8)
 
-print({}['invalid'])
+# print({}['invalid'])

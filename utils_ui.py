@@ -28,7 +28,6 @@ import os
 import database
 from mog import Mog
 from model import Model
-import utils
 
 
 def chooseMOG(module, filename=None):
@@ -340,9 +339,9 @@ def auto_create_scrollbar(widget):
     return scrollbar
 
 
-def duplicate_verif(string, string_list):
+def duplicate_verif(string, string_list):  # deprecated
     """
-    Returns wether or not there is a duplicate in a list with some additional feedback.
+    Returns whether or not there is a duplicate in a list with some additional feedback.
     """
     if not string:
         QtWidgets.QMessageBox.warning(None, "Warning", "Could not rename: field must not be empty.")
@@ -355,7 +354,7 @@ def duplicate_verif(string, string_list):
     return False
 
 
-def duplicate_new_name(string, string_list):
+def duplicate_new_name(string, string_list):  # deprecated
     """
     Verifies if a string has a duplicate in a list and returns a new string in such cases.
     """
@@ -375,11 +374,39 @@ def duplicate_new_name(string, string_list):
 
 def lay(layout, *options, parent=None):
     """
+    An intuitive and auto-documentating way of creating a layout. Steps such as grid and widget initialization
+    are included in this function, accounting for an upgrade in readability. One should send a layout of the form:
+
+    [[model_label,    '|',         Upper_limit_checkbox,        velocity_edit      ],
+     [cells_no_label, cells_label, ellip_veloc_checkbox,        ''                 ],
+     [rays_no_label,  rays_label,  tilted_ellip_veloc_checkbox, ''                 ],
+     [mogs_list,      '|',         include_checkbox,            ''                 ],
+     ['',             '',          T_and_A_combo,               btn_Show_Stats     ],
+     ['_',            '',          Sub_Curved_Rays_Widget,      ''                 ]]
+
+    In which every object is pre-existing. If a widget should take more than one square, one should indicate
+    the line and column at which the widget ends by an underscore ('_') and a vertical slash ('|'), respectively.
+    Every blank square should then be filled with an empty string ('').
+
+    Additional options may be sent in the form of a string, or a tuple if the option requires parameters. For instance,
+    'noMargins' would create a layout without margins and ('groupbox', "Grid") would make the parent widget a groupbox
+    with name "Grid". Adding non-existent options to the 'lay' function only requires one to define said function above
+    'opt_dict' and including the string corresponding to the function in 'opt_dict'.
+
+    If one wishes to make an outside widget the parent of the grid, the parent parameter should be set to the desired
+    widget. Such cases include associating a master grid to a form.
+
+    Tips:
+    * If a layout has only one line, a second pair of brackets is not necessary (i.e. [w1, w2], rather than [[w1, w2]]).
+    * Some options have a custom way of managing paramaters (i.e. 'setMinHei'). One should take a moment to look those up.
     """
     import PyQt5.QtWidgets as wgt
     from itertools import count
 
     def getSpan(row_no, col_no):
+        """
+        Gets the width and height in terms of squares of a widget at row 'row_no' and column 'col_no'.
+        """
 
         row_span = 1
         col_span = 1
@@ -406,6 +433,8 @@ def lay(layout, *options, parent=None):
 
         return row_no, col_no, row_span, col_span
 
+    # Widget initialization and grid filling #
+
     if parent is None:
         widget = None
     grid = wgt.QGridLayout()
@@ -423,11 +452,13 @@ def lay(layout, *options, parent=None):
 
                 grid.addWidget(item, *getSpan(row_no, col_no))
 
+    # Options definitions and dictionary #
+
     def noMargins(*args):
         nonlocal grid
         grid.setContentsMargins(0, 0, 0, 0)
 
-    def scrollbar(*args):
+    def scrollbar(*args):  # Makes the layout a scrollbar instead of the default widget.
         nonlocal widget
         if parent is None:
             if widget is None:
@@ -439,11 +470,11 @@ def lay(layout, *options, parent=None):
         else:
             raise TypeError("A form can't be formatted into a scrollbar.")
 
-    def groupbox(*args):
+    def groupbox(*args):  # Makes the layout a groupbox instead of the default widget.
         nonlocal widget
         if parent is None:
             if widget is None:
-                widget = wgt.QGroupBox(*args)
+                widget = wgt.QGroupBox(*args)  # Takes the same arguments as the standard QGroupBox
                 widget.setLayout(grid)
             else:
                 raise TypeError("A format has already been specified. Can't format " + str(type(widget)) + " into a scrollbar.")
@@ -451,6 +482,7 @@ def lay(layout, *options, parent=None):
             raise TypeError("A form can't be formatted into a groupbox.")
 
     def setRowStr(*args):
+        # Arguments can either be of the form ('setRowStr', row, stretch) or ('setRowStr', (row, str), (row, str), ...)
         nonlocal grid
         if isinstance(args[-1], (list, tuple)):
             for i in args:
@@ -459,6 +491,7 @@ def lay(layout, *options, parent=None):
             grid.setRowStretch(*i)
 
     def setColStr(*args):
+        # Arguments can either be of the form ('setColStr', col, stretch) or ('setRowStr', (col, str), (col, str), ...)
         nonlocal grid
         if isinstance(args[-1], (list, tuple)):
             for i in args:
@@ -467,6 +500,8 @@ def lay(layout, *options, parent=None):
             grid.setColumnStretch(*i)
 
     def setMinHei(*args):
+        # Arguments can either be of the form ('setMinHei', widget, height) or ('setMinHei', row, height) or
+        # ('setMinHei', (...), (...), (...), ...) or ('setMinHei', (widget, widget, ...), height)
         nonlocal grid
         if isinstance(args[-1], (list, tuple)):
             for i in args:
@@ -481,13 +516,14 @@ def lay(layout, *options, parent=None):
                 args[0].setMinimumHeight(args[1])
 
     def setMaxHei(*args):
+        # Refer to 'SetMinHei'.
         nonlocal grid
         if isinstance(args[-1], (list, tuple)):
             for i in args:
                 setMaxHei(*i)
         else:
             if isinstance(args[0], int):
-                raise AttributeError("Cannot operate 'setMaxHei' on a grid itself.")
+                raise AttributeError("Cannot operate 'setMaxHei' on a grid.")
             elif isinstance(args[0], (list, tuple)):
                 for item in args[0]:
                     item.setMaximumHeight(args[1])
@@ -495,11 +531,13 @@ def lay(layout, *options, parent=None):
                 args[0].setMaximumHeight(args[1])
 
     def setFixHei(*args):
+        # The specified height can't be modified by the user.
         nonlocal grid
         setMinHei(*args)
         setMaxHei(*args)
 
     def setMinWid(*args):
+        # Refer to 'SetMinHei'.
         nonlocal grid
         if isinstance(args[-1], (list, tuple)):
             for i in args:
@@ -515,13 +553,14 @@ def lay(layout, *options, parent=None):
                 args[0].setMinimumWidth(args[1])
 
     def setMaxWid(*args):
+        # Refer to 'SetMinHei'.
         nonlocal grid
         if isinstance(args[-1], (list, tuple)):
             for i in args:
                 setMaxWid(*i)
         else:
             if isinstance(args[0], int):
-                raise AttributeError("Cannot operate 'setMaxWid' on a grid itself.")
+                raise AttributeError("Cannot operate 'setMaxWid' on a grid.")
             elif isinstance(args[0], (list, tuple)):
                 for item in args[0]:
                     item.setMaximumWidth(args[1])
@@ -529,6 +568,7 @@ def lay(layout, *options, parent=None):
                 args[0].setMaximumWidth(args[1])
 
     def setFixWid(*args):
+        # The specified width can't be modified by the user.
         nonlocal grid
         setMinWid(*args)
         setMaxWid(*args)
@@ -555,6 +595,8 @@ def lay(layout, *options, parent=None):
                 'setHorSpa': setHorSpa,
                 'setVerSpa': setVerSpa}
 
+    # Applying the options and returning the results #
+
     for option in options:
         if isinstance(option, str):
             opt_dict[option]()
@@ -572,6 +614,11 @@ def lay(layout, *options, parent=None):
 
 
 def inv_lay(layout, *options, parent=None):
+    """
+    A way of sending the matrix transpose of 'layout' into 'lay'.
+    Columns of widgets take up less place in the code this way.
+    See 'lay'.
+    """
 
     from itertools import count
 
@@ -609,7 +656,6 @@ def inv_lay(layout, *options, parent=None):
 
 
 def verif_dims(layout):
-
     for row in layout[1:]:
         if len(row) != len(layout[0]):
             raise IndexError("Layout has wrong dimensions.")
