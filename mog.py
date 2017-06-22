@@ -232,21 +232,21 @@ class Mog(Base):  # Multi-Offset Gather
 
     __tablename__ = "Mog"
     name             = Column(String, primary_key=True)
-    pruneParams      = Column(PickleType)
+    pruneParams      = Column(PickleType)    # 
     data             = Column(PickleType)    # Instance of MogData
-    tau_params       = Column(PickleType)
-    fw               = Column(PickleType)
-    f_et             = Column(Float)
-    amp_name_Ldc     = Column(PickleType)
-    type             = Column(SmallInteger)
-    fac_dt           = Column(Float)
-    user_fac_dt      = Column(Float)
+    tau_params       = Column(PickleType)    # parameters used to set source amplitude (set in manual_amp_ui)
+    fw               = Column(PickleType)    # numpy array holding wavelet transform frequency filtered traces (set in manual_*_ui)
+    f_et             = Column(Float)         
+    amp_name_Ldc     = Column(String)        # name of inversion to use in attenuation tomography (for obtaining matrix L)
+    type             = Column(SmallInteger)  # VRP ou cross-hole
+    fac_dt           = Column(Float)         # boolean: time step correction factor
+    user_fac_dt      = Column(Float)         # time step correction factor defined by user
     useAirShots      = Column(Boolean)
-    TxCosDir         = Column(PickleType)
-    RxCosDir         = Column(PickleType)
+    TxCosDir         = Column(PickleType)    # direction cosine at Tx points
+    RxCosDir         = Column(PickleType)    # direction cosine at Rx points
 
-    ID               = Column(Integer)
-    in_Rx_vect       = Column(PickleType)
+    ID               = Column(Integer)       # unique IF for mog
+    in_Rx_vect       = Column(PickleType)    # 
     in_Tx_vect       = Column(PickleType)
     in_vect          = Column(PickleType)
     date             = Column(String)        # Date of the mog's data
@@ -254,8 +254,8 @@ class Mog(Base):  # Multi-Offset Gather
     et               = Column(PickleType)    # Standard deviation of arrival time
     tt_done          = Column(PickleType)    # Boolean indicator of arrival time
 
-    ttTx             = Column(PickleType)
-    ttTx_done        = Column(PickleType)
+    ttTx             = Column(PickleType)    # travel time picked at the Tx np.array
+    ttTx_done        = Column(PickleType)    
 
     amp_tmin         = Column(PickleType)
     amp_tmax         = Column(PickleType)
@@ -270,11 +270,8 @@ class Mog(Base):  # Multi-Offset Gather
     tauHyb           = Column(PickleType)
     tauHyb_et        = Column(PickleType)
     tauHyb_et        = Column(PickleType)
-    Tx_z_orig        = Column(PickleType)
-    Rx_z_orig        = Column(PickleType)
-
-    pruneParams.zmin = Column(PickleType)
-    pruneParams.zmax = Column(PickleType)
+    Tx_z_orig        = Column(PickleType)    # depth of Tx points (from borehole collar)
+    Rx_z_orig        = Column(PickleType)    # depth of Rx points (from borehole collar)
 
     Tx_name = Column(String, ForeignKey('Borehole.name'))    # One shouldn't manipulate these columns.
     Rx_name = Column(String, ForeignKey('Borehole.name'))    # Use the following Tx, Rx, av and ap instead.
@@ -466,8 +463,8 @@ class AirShots(Base):
 #     mog     = Column(PickleType)  # Deprecated ?
     data    = Column(PickleType)  # MogData instance
     d_TxRx  = Column(PickleType)  # Distance between Tx and Rx
-    fac_dt  = Column(Float)
-    method  = Column(String)
+    fac_dt  = Column(Float)       # time step correction factor computed from slope of t vs d
+    method  = Column(String)      # 'fixed_antenna' when single distance value between Tx & Rx or 'walkaway' when multiple distances
     tt      = Column(PickleType)  # Arrival time
     et      = Column(PickleType)  # Standard deviation of arrival time
     tt_done = Column(PickleType)  # Boolean indicator of arrival time
