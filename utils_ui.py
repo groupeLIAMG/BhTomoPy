@@ -397,8 +397,8 @@ def lay(layout, *options, parent=None):
     widget. Such cases include associating a master grid to a form.
 
     Tips:
-    * If a layout has only one line, a second pair of brackets is not necessary (i.e. [w1, w2], rather than [[w1, w2]]).
-    * Some options have a custom way of managing paramaters (i.e. 'setMinHei'). One should take a moment to look those up.
+    * If a layout has only one line, a second pair of brackets is not necessary (for instance [w1, w2], rather than [[w1, w2]]).
+    * Some options have a custom way of managing paramaters (for instance 'setMinHei'). One should take a moment to look those up.
     """
     import PyQt5.QtWidgets as wgt
     from itertools import count

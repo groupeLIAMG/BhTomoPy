@@ -35,12 +35,22 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 import matplotlib as mpl
 import numpy as np
 
+import unicodedata
+xi    = unicodedata.lookup("GREEK SMALL LETTER XI")
+theta = unicodedata.lookup("GREEK SMALL LETTER THETA")
+tau   = unicodedata.lookup("GREEK SMALL LETTER TAU")
+
 
 class CovarUI(QtWidgets.QFrame):
 
-    model = None  # current model
-    temp_grid = None
+    model = None           # current model
+    temp_grid = None       # the grid modified from covar_ui actually is only a temporary one. The original grid must not be modified.
     updateHandler = False  # selected model may seldom be modified twice. 'updateHandler' prevents functions from firing more than once. TODO: use a QValidator instead.
+    data = None            # holds the model's data so that it does not need to be computed more than once
+    idata = None           # idem.
+    L = None               # ray matrix               # TODO Unused yet
+    Cd = None              # experimental covariance  # TODO Unused yet
+    xc = None              # grid's centers           # TODO Unused yet
 
     def __init__(self, parent=None):
         super(CovarUI, self).__init__()
@@ -101,7 +111,7 @@ class CovarUI(QtWidgets.QFrame):
             self.include_checkbox           .setCheckState(covar_.use_c0)
 
     def set_current_model(self, model):
-        if self.updateHandler:
+        if self.updateHandler:  # TODO unnecessary?
             return
 
         self.updateHandler = True
@@ -245,6 +255,17 @@ class CovarUI(QtWidgets.QFrame):
             self.ellip_veloc_checkbox       .setCheckState(False)
             self.tilted_ellip_veloc_checkbox.setCheckState(False)
 
+        if self.T_and_A_combo.currentIndex() == 0:
+            self.slowness_param_edit   .setText("Slowness")
+            self.slowness_3D_param_edit.setText("Slowness")
+            self.slowness_label        .setText("Slowness")
+            self.tt_label              .setText("Traveltime")
+        else:
+            self.slowness_param_edit   .setText("Attenuation")
+            self.slowness_3D_param_edit.setText("Attenuation")
+            self.slowness_label        .setText("Attenuation")
+            self.tt_label              .setText(tau)
+
         self.updateHandler = False
 
     def auto_update(self):
@@ -264,8 +285,15 @@ class CovarUI(QtWidgets.QFrame):
                     for mog_ in database.session.query(Mog).all():
                         ntraces += mog_.data.ntrace
 
+                    self.mogs_list.setCurrentRow(0)
+
+                    if self.T_and_A_combo.currentIndex() == 0:
+                        self.data, self.idata = Model.getModelData(self.model, [0], 'tt')  # TODO is that supposed to change depending on mog_indexes?
+                    else:
+                        self.data, self.idata = Model.getModelData(self.model, [0], 'amp')
+
                     self.cells_no_label.setText(str(self.model.grid.getNumberOfCells()))
-                    self.rays_no_label.setText(str(ntraces))
+                    self.rays_no_label.setText(str(np.size(self.data, 0)))
                     self.reset_grid()
             else:
                 self.cells_no_label.setText('0')
@@ -273,6 +301,13 @@ class CovarUI(QtWidgets.QFrame):
                 self.reset_grid()
         else:
             self.reset_grid()
+
+    def update_data(self):
+        mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
+        if self.T_and_A_combo.currentIndex() == 0:
+            self.data, self.idata = Model.getModelData(self.model, mog_indexes, 'tt')  # , vlim)
+        else:
+            self.data, self.idata = Model.getModelData(self.model, mog_indexes, 'amp')
 
     def update_structures(self):
         self.covar_struct_combo.clear()
@@ -314,7 +349,7 @@ class CovarUI(QtWidgets.QFrame):
             self.Z_min_label.setText(str(np.amin(self.temp_grid.grz))[:7])
             self.Z_max_label.setText(str(np.amax(self.temp_grid.grz))[:7])
 
-            self.step_X_edit.setText(str(2 * self.temp_grid.dx))  # by default, the step should be twice the size of the actual
+            self.step_X_edit.setText(str(2 * self.temp_grid.dx))  # by default, the step should be twice the size of the original
             self.step_Y_edit.setText(str(2 * self.temp_grid.dy))  # grid in order to make the computing less resources-expensive
             self.step_Z_edit.setText(str(2 * self.temp_grid.dz))
 
@@ -339,8 +374,8 @@ class CovarUI(QtWidgets.QFrame):
                 self.slowness_range_Z_edit.setText(str(covar_.covar[ind].range[1]))
                 self.slowness_theta_X_edit.setText(str(covar_.covar[ind].angle[0]))
                 self.slowness_sill_edit   .setText(str(covar_.covar[ind].sill))
-                self.slowness_edit        .setText(str(covar_.nugget_slowness))
-                self.tt_edit              .setText(str(covar_.nugget_traveltime))
+                self.slowness_edit        .setText(str(covar_.nugget_model))
+                self.tt_edit              .setText(str(covar_.nugget_data))
 
                 if self.ellip_veloc_checkbox.checkState():
                     if covar_.covar_xi[ind] is None:
@@ -371,8 +406,8 @@ class CovarUI(QtWidgets.QFrame):
                 self.slowness_3D_theta_Y_edit.setText(str(covar_.covar[ind].angle[1]))
                 self.slowness_3D_theta_Z_edit.setText(str(covar_.covar[ind].angle[2]))
                 self.slowness_3D_sill_edit   .setText(str(covar_.covar[ind].sill))
-                self.slowness_edit           .setText(str(covar_.nugget_slowness))
-                self.tt_edit                 .setText(str(covar_.nugget_traveltime))
+                self.slowness_edit           .setText(str(covar_.nugget_model))
+                self.tt_edit                 .setText(str(covar_.nugget_data))
 
     def apply_parameters_changes(self):
 
@@ -384,8 +419,8 @@ class CovarUI(QtWidgets.QFrame):
             covar_.covar[ind].range[1] = self.slowness_range_Z_edit.text()
             covar_.covar[ind].angle[0] = self.slowness_theta_X_edit.text()
             covar_.covar[ind].sill     = self.slowness_sill_edit   .text()
-            covar_.nugget_slowness     = self.slowness_edit        .text()
-            covar_.nugget_traveltime   = self.tt_edit              .text()
+            covar_.nugget_model        = self.slowness_edit        .text()
+            covar_.nugget_data         = self.tt_edit              .text()
 
             if self.ellip_veloc_checkbox.checkState():
                 if covar_.covar_xi[ind] is None:
@@ -413,8 +448,8 @@ class CovarUI(QtWidgets.QFrame):
             covar_.covar[ind].angle[1] = self.slowness_3D_theta_Y_edit.text()
             covar_.covar[ind].angle[2] = self.slowness_3D_theta_Z_edit.text()
             covar_.covar[ind].sill     = self.slowness_3D_sill_edit   .text()
-            covar_.nugget_slowness     = self.slowness_edit           .text()
-            covar_.nugget_traveltime   = self.tt_edit                 .text()
+            covar_.nugget_model        = self.slowness_edit           .text()
+            covar_.nugget_data         = self.tt_edit                 .text()
 
         self.flag_modified_covar()
         database.modified = True
@@ -504,25 +539,20 @@ class CovarUI(QtWidgets.QFrame):
         flag = self.Upper_limit_checkbox.checkState()
         self.velocity_edit.setEnabled(flag)
         if flag:
-            self.velocity_edit.setText('0.15')  # TODO model's value instead of default
+            self.velocity_edit.setText('0.15')
         else:
             self.velocity_edit.setText('')
 
     def compute(self):  # TODO progress bar
         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())  # Store somewhere else?
+            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())  # TODO Store somewhere else?
 
             xc = self.temp_grid.getCellCenter(dx, dz)
             cm = self.current_covar()
             Cm = cm.compute(xc, xc)
 
-            mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
             L = self.temp_grid.getForwardStraightRays()
-            if self.T_and_A_combo.currentIndex() == 0:
-                data, _ = Model.getModelData(self.model, mog_indexes, 'tt')  # , vlim)  # TODO store data somewhere
-            else:
-                data, _ = Model.getModelData(self.model, mog_indexes, 'amp')
-            s = data[:, 0] / np.sum(L, 1)
+            s = self.data[:, 0] / np.sum(L, 1)
             s0 = np.mean(s)
             Cd = 'wat'
 
@@ -530,7 +560,7 @@ class CovarUI(QtWidgets.QFrame):
                 if cm.use_tilt:
                     np_ = np.size(L, 1) / 2
                     l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
-                    s0 = np.mean(data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                     xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
                     theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
                     J = covar.computeJ2(L, np.concatenate([s0, xi0, theta0]))
@@ -538,7 +568,7 @@ class CovarUI(QtWidgets.QFrame):
                 else:
                     np_ = np.size(L, 1) / 2
                     l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
-                    s0 = np.mean(data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                     xi0 = np.ones([np_, 1])
                     J = covar.computeJ(L, np.concatenate([s0, xi0]))
                     Cm = J * Cm * J.T
@@ -548,7 +578,7 @@ class CovarUI(QtWidgets.QFrame):
 
             if cm.use_c0 == 1:
                 # use exp variance
-                c0 = data[:, 1]**2
+                c0 = self.data[:, 1]**2
                 Cm = Cm + cm.nugget_d * np.diag(c0)
             else:
                 Cm = Cm + cm.nugget_d * np.eye(np.size(L, 0))
@@ -580,20 +610,31 @@ class CovarUI(QtWidgets.QFrame):
     def show_stats(self):
         if self.model is not None:
             if self.mogs_list.selectedIndexes() != []:
-                mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
+
+                L = self.temp_grid.getForwardStraightRays()
+                print(self.data, 2)
+                s = self.data[:, 0] / np.sum(L, 1)
+
                 if self.T_and_A_combo.currentIndex() == 0:
-                    self.statistics_fig.plot('tt', self.model, mog_indexes)  # TODO send temp grid too
+                    s = 1 / s
+                    data_type = 'tt'
                 else:
-                    self.statistics_fig.plot('amp', self.model, mog_indexes)
-                self.statistics_form.show()
+                    data_type = 'amp'
+
+                s0 = np.mean(s)
+                vs = np.var(s)
+                Tx = self.temp_grid.Tx[self.idata, :]
+                Rx = self.temp_grid.Rx[self.idata, :]
+                hyp = np.sqrt(np.sum((Tx - Rx)**2, 1))
+                dz = Tx[:, 2] - Rx[:, 2]
+                theta = 180 / np.pi * np.arcsin(dz / hyp)
+
+                self.statistics_fig.plot(data_type, s, hyp, theta, s0, vs)
+
             else:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected.")
 
     def initUI(self):
-
-        import unicodedata
-        xi    = unicodedata.lookup("GREEK SMALL LETTER XI")
-        theta = unicodedata.lookup("GREEK SMALL LETTER THETA")
 
         # --- Color for the labels --- #
         palette = QtGui.QPalette()
@@ -702,7 +743,7 @@ class CovarUI(QtWidgets.QFrame):
         self.step_Z_edit = MyLineEdit()
         self.step_Z_edit.setFixedWidth(50)
         self.slowness_edit   = MyLineEdit('0.0')
-        self.tt_edit = MyLineEdit('0.0')
+        self.tt_edit         = MyLineEdit('0.0')
         self.xi_edit         = MyLineEdit('0.0')
         self.tilt_edit       = MyLineEdit('0.0')
         self.bin_edit        = MyLineEdit('50')
@@ -743,9 +784,9 @@ class CovarUI(QtWidgets.QFrame):
         theta_X_label = MyQLabel("{} X".format(theta), ha='right')
         sill_label    = MyQLabel("Sill", ha='right')
 
-        slowness_param_edit       = QtWidgets.QLineEdit('Slowness')
-        slowness_param_edit.setReadOnly(True)
-        slowness_param_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.slowness_param_edit       = QtWidgets.QLineEdit('Slowness')
+        self.slowness_param_edit.setReadOnly(True)
+        self.slowness_param_edit.setAlignment(QtCore.Qt.AlignCenter)
         self.slowness_type_combo       = QtWidgets.QComboBox()
         self.slowness_type_combo.addItems(types)
         slowness_value_label      = MyQLabel("Value", ha='center')
@@ -799,9 +840,9 @@ class CovarUI(QtWidgets.QFrame):
         theta_Z_3D_label = MyQLabel("{} Z".format(theta), ha='right')
         sill_3D_label    = MyQLabel("Sill", ha='right')
 
-        slowness_3D_param_edit       = QtWidgets.QLineEdit('Slowness')
-        slowness_3D_param_edit.setReadOnly(True)
-        slowness_3D_param_edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.slowness_3D_param_edit       = QtWidgets.QLineEdit('Slowness')
+        self.slowness_3D_param_edit.setReadOnly(True)
+        self.slowness_3D_param_edit.setAlignment(QtCore.Qt.AlignCenter)
         self.slowness_3D_type_combo       = QtWidgets.QComboBox()
         self.slowness_3D_type_combo.addItems(types)
         slowness_3D_value_label      = MyQLabel("Value", ha='center')
@@ -828,7 +869,7 @@ class CovarUI(QtWidgets.QFrame):
         self.slowness_edits      = (self.slowness_range_X_edit, self.slowness_range_Z_edit, self.slowness_theta_X_edit, self.slowness_sill_edit)
         self.slowness_checkboxes = (self.slowness_range_X_checkbox, self.slowness_range_Z_checkbox, self.slowness_theta_X_checkbox, self.slowness_sill_checkbox)
 
-        self.slowness_widget = (*labels, *self.slowness_edits, *self.slowness_checkboxes, slowness_param_edit, self.slowness_type_combo, slowness_value_label, slowness_fix_label)
+        self.slowness_widget = (*labels, *self.slowness_edits, *self.slowness_checkboxes, self.slowness_param_edit, self.slowness_type_combo, slowness_value_label, slowness_fix_label)
 
         self.xi_edits      = (self.xi_range_X_edit, self.xi_range_Z_edit, self.xi_theta_X_edit, self.xi_sill_edit)
         self.xi_checkboxes = (self.xi_range_X_checkbox, self.xi_range_Z_checkbox, self.xi_theta_X_checkbox, self.xi_sill_checkbox)
@@ -876,7 +917,7 @@ class CovarUI(QtWidgets.QFrame):
         self.Grid_groupbox = lay([Sub_Grid_Coord_Widget, Sub_Step_Widget],
                                  'noMargins', ('groupbox', "Grid"))
 
-        self.param_widget = lay([['',            slowness_param_edit,        '|',                            xi_param_edit,        '|',                      tilt_param_edit,        '|'                       ],
+        self.param_widget = lay([['',            self.slowness_param_edit,   '|',                            xi_param_edit,        '|',                      tilt_param_edit,        '|'                       ],
                                  ['',            self.slowness_type_combo,   '|',                            self.xi_type_combo,   '|',                      self.tilt_type_combo,   '|'                       ],
                                  ['',            slowness_value_label,       slowness_fix_label,             xi_value_label,       xi_fix_label,             tilt_value_label,       tilt_fix_label            ],
                                  [range_X_label, self.slowness_range_X_edit, self.slowness_range_X_checkbox, self.xi_range_X_edit, self.xi_range_X_checkbox, self.tilt_range_X_edit, self.tilt_range_X_checkbox],
@@ -885,7 +926,7 @@ class CovarUI(QtWidgets.QFrame):
                                  [sill_label,    self.slowness_sill_edit,    self.slowness_sill_checkbox,    self.xi_sill_edit,    self.xi_sill_checkbox,    self.tilt_sill_edit,    self.tilt_sill_checkbox   ]],
                                 'noMargins')
 
-        self.slowness_3D_widget = lay([['',               slowness_3D_param_edit,        '|'                              ],
+        self.slowness_3D_widget = lay([['',               self.slowness_3D_param_edit,   '|'                              ],
                                        ['',               self.slowness_3D_type_combo,   '|'                              ],
                                        ['',               slowness_3D_value_label,       slowness_3D_fix_label            ],
                                        [range_X_3D_label, self.slowness_3D_range_X_edit, self.slowness_3D_range_X_checkbox],
@@ -922,7 +963,7 @@ class CovarUI(QtWidgets.QFrame):
                               [self.comparison_fig, '_'            ]],
                              'scrollbar', 'noMargins', ('setMinWid', 0, 600))
 
-        # Master Grid Disposition
+        # Master Grid Disposition #
         inv_lay([self.menu, self.scrollbar],
                 'noMargins', ('setVerSpa', 0), parent=self)
 
@@ -1003,24 +1044,13 @@ class StatisticsFig(FigureCanvasQTAgg):
         self.ax2.set_xlabel("Straight Ray Length")
         self.ax3.set_xlabel("Straight Ray Angle")
 
-    def plot(self, data_type, model, mog_indexes):
-        if model is not None and mog_indexes:
-            data, idata = Model.getModelData(model, mog_indexes, data_type)  # , vlim)
-            L = model.grid.getForwardStraightRays()
-            print(data, 2)
-            s = data[:, 0] / np.sum(L, 1)
+    def plot(self, data_type, s, hyp, theta, s0, vs):
+
             if data_type == 'tt':
-                s = 1 / s
                 data_name = "App. Velocity"
-            else:
+            elif data_type == 'amp':
                 data_name = "App. Attenuation"
-            s0 = np.mean(s)
-            vs = np.var(s)
-            Tx = model.grid.Tx[idata, :]
-            Rx = model.grid.Rx[idata, :]
-            hyp = np.sqrt(np.sum((Tx - Rx)**2, 1))
-            dz = Tx[:, 2] - Rx[:, 2]
-            theta = 180 / np.pi * np.arcsin(dz / hyp)
+
             self.ax1.hist(s, 30)
             self.ax2.plot(hyp, s, 'b+')
             self.ax3.plot(theta, s, 'b+')
@@ -1030,6 +1060,7 @@ class StatisticsFig(FigureCanvasQTAgg):
 
             self.figure.tight_layout(h_pad=1)
             self.draw()
+            self.show()
 
 
 class CovarianceFig(FigureCanvasQTAgg):

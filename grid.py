@@ -109,7 +109,7 @@ class Grid(object):
 
         translation of the matlab function lsplane.m by I M Smith
         """
-#         nout = nargout()
+#         nout = nargout()  # TODO fix nargout()
 #         print(nout)
 
         m = X.shape[0]

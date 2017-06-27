@@ -1,10 +1,23 @@
-As of June 30th 2017:
+As of June 30th 2017...
 
-Covar_ui is close to done.
+Covar_ui is close to done:
 
-- 
-- 
+- Some validation tests for amplitude covariance are still missing (for instance curved rays must be loaded to access it);
+- Some data isn't stored as UI attributes, although it could help reducing unnecessary computing (for instance the matrix 'L');
 - No tests were made on the interface for 3D grids.
+- Modifying parameters should modify 'temp_grid' accordingly.
+- Experimental covariance isn't implemented.
+
+Random tasks:
+
+- Model.getModelData seems to be missing supported types (for instance, 'tt' is supported, but 'amp' is missing). These exist in Model.m
+  within the Matlab code.
+- Model.getModelData also doesn't support an upper limit velocity ('vlim').
+- All dependencies from object to object should be cleared once it refers to a deleted object. One should study how the 'relationships'
+  are implemented between the Borehole, Mog, AirShots and Model classes in order to achieve this.
+- Data management is not fully viable: whenever a stored class' attribute's name is modified, the database is deprecated, which
+  is quite a problem. One could solve this issue by completing 'convert_database' from the module 'database', although this is neither urgent
+  nor easy to do. Some resources might be found on this subject on the web.
 
 Data management through SQLAlchemy has been fully implemented in database_ui and covar_ui, and the main submodules.
 Some other modules still lack this implementation, though. One should consider close to every *.bh, *.mog, *.model and
@@ -12,13 +25,13 @@ Some other modules still lack this implementation, though. One should consider c
 the means of <module>.session.query(<Class>).
 
 Be wary of the tools such as auto_create_scrollbar() and lay() in utils_ui, as they provide a way of reducing the
-quantity of code for a specified task and improving readability. (Full list of ignored errors: E202, E221, E241, E501, E722, E741)
+quantity of code for a specified task and improving readability.
 
 Arguments unpacking is used thoroughly in covar_ui and utils_ui, so one should become comfortable with this functionality
 of Python. The star ('*') is used to separate an iterable into different arguments. Therefore, 'print(*['a', 'b', 'c'])' reads
 for the program as 'print('a', 'b', 'c')'.
 
 The code is fully PEP 8 compatible, exception made for the extra spaces before and after operators and for lines too long,
-which are ignored for the purpose of readability.
+which are ignored for the purpose of readability. (Full list of ignored errors: E202, E221, E241, E501, E722, E741)
 
 Finally, one should refer to the TODO annotations for specific tasks. Those may require a better understanding of BhTomoPy, though.

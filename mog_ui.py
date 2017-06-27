@@ -101,7 +101,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
     def update_edits(self):
         """
-        updates the info either in the MOG's edits or in the info's labels
+        Updates the info either in the MOG's edits or in the info's labels
         """
         item = self.MOG_list.currentItem()
         if item is not None:

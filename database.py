@@ -29,7 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 # One could also use <module>.session.query(<Class>).all()[<indice>] to retrieve an object, but this is less
 # SQLAlchemy-esque (and probably quite less efficient, as all the instances are retrieved).
 
-# Be wary that a database could fail to load if it open in another program.
+# Be wary that a database could fail to load if it is open in another program.
 
 # One can get the current module so that it can be sent as a parameter like so:
 # import sys

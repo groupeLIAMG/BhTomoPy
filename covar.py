@@ -298,15 +298,15 @@ class CovarianceModel(object):
             self.covar = [CovarianceFactory.detDefault3D()]
         else:
             raise TypeError
-        self.covar_xi          = [None]
-        self.covar_tilt        = [None]
-        self.nugget_slowness   = 0.0
-        self.nugget_traveltime = 0.0
-        self.nugget_xi         = 0.0
-        self.nugget_tilt       = 0.0
-        self.use_c0            = False
-        self.use_xi            = False
-        self.use_tilt          = False
+        self.covar_xi     = [None]
+        self.covar_tilt   = [None]
+        self.nugget_model = 0.0  # slowness for the slowness covariance / amplitude for the amplitude covariance
+        self.nugget_data  = 0.0  # traveltime for the slowness covariance / tau for the amplitude covariance
+        self.nugget_xi    = 0.0
+        self.nugget_tilt  = 0.0
+        self.use_c0       = False
+        self.use_xi       = False
+        self.use_tilt     = False
 
     def compute(self, x, x0):
         Cm = self.covar[0].compute(x, x0)
@@ -1085,11 +1085,12 @@ def computeJ2(L, e):
 
 
 def moy_bloc(xy, lclas):
+    # (C) 2005 Erwan Gloaguen, Bernard Giroux
 
     k = np.floor(len(xy) / lclas)
 
     m = np.mean(np.reshape(xy[0:k * lclas], lclas, k))
-    m[k] = np.mean(xy[(k - 1) * lclas:])  # TODO k - 1 ?
+    m[k] = np.mean(xy[(k - 1) * lclas:])
 
     return m
 
