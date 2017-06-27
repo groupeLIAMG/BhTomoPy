@@ -75,51 +75,51 @@ class ManualttUI(QtWidgets.QFrame):
         if self.mog is None:
             return
 
-        if len(self.mogs) == 0:
-            return
-        else:
-            if self.main_data_radio.isChecked():
-                done = np.round(len(self.mog.tt[self.mog.tt != -1]) / len(self.mog.tt) * 100)
-                self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
-                self.xTx_label.setText(str(self.mog.data.Tx_x[n]))
-                self.yRx_label.setText(str(self.mog.data.Rx_y[n]))
-                self.yTx_label.setText(str(self.mog.data.Tx_y[n]))
-                self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
-                self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
-                self.ntrace_label.setText(str(self.mog.data.ntrace))
-                self.percent_done_label.setText(str(done))
-                self.time.setText(str(np.round(self.mog.tt[n], 4)))
-                self.incertitude_value_label.setText(str(np.round(self.mog.et[n], 4)))
+#         if len(self.mogs) == 0:
+#             return
+#         else:
+        if self.main_data_radio.isChecked():
+            done = np.round(len(self.mog.tt[self.mog.tt != -1]) / len(self.mog.tt) * 100)
+            self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
+            self.xTx_label.setText(str(self.mog.data.Tx_x[n]))
+            self.yRx_label.setText(str(self.mog.data.Rx_y[n]))
+            self.yTx_label.setText(str(self.mog.data.Tx_y[n]))
+            self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
+            self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
+            self.ntrace_label.setText(str(self.mog.data.ntrace))
+            self.percent_done_label.setText(str(done))
+            self.time.setText(str(np.round(self.mog.tt[n], 4)))
+            self.incertitude_value_label.setText(str(np.round(self.mog.et[n], 4)))
 
-            if self.t0_before_radio.isChecked():
-                airshot_before = self.air[self.mog.av]
-                done = np.round(len(airshot_before.tt[airshot_before.tt != -1]) / len(airshot_before.tt) * 100)
-                self.xRx_label.setText(str(airshot_before.data.Rx_x[n]))
-                self.xTx_label.setText(str(airshot_before.data.Tx_x[n]))
-                self.yRx_label.setText(str(airshot_before.data.Rx_y[n]))
-                self.yTx_label.setText(str(airshot_before.data.Tx_y[n]))
-                self.zRx_label.setText(str(np.round(airshot_before.data.Rx_z[n], 3)))
-                self.zTx_label.setText(str(airshot_before.data.Tx_z[n]))
-                self.ntrace_label.setText(str(airshot_before.data.ntrace))
-                self.percent_done_label.setText(str(done))
-                self.time.setText(str(np.round(airshot_before.tt[n], 4)))
-                self.incertitude_value_label.setText(str(np.round(airshot_before.et[n], 4)))
+        if self.t0_before_radio.isChecked():
+            airshot_before = self.air[self.mog.av]
+            done = np.round(len(airshot_before.tt[airshot_before.tt != -1]) / len(airshot_before.tt) * 100)
+            self.xRx_label.setText(str(airshot_before.data.Rx_x[n]))
+            self.xTx_label.setText(str(airshot_before.data.Tx_x[n]))
+            self.yRx_label.setText(str(airshot_before.data.Rx_y[n]))
+            self.yTx_label.setText(str(airshot_before.data.Tx_y[n]))
+            self.zRx_label.setText(str(np.round(airshot_before.data.Rx_z[n], 3)))
+            self.zTx_label.setText(str(airshot_before.data.Tx_z[n]))
+            self.ntrace_label.setText(str(airshot_before.data.ntrace))
+            self.percent_done_label.setText(str(done))
+            self.time.setText(str(np.round(airshot_before.tt[n], 4)))
+            self.incertitude_value_label.setText(str(np.round(airshot_before.et[n], 4)))
 
-            if self.t0_after_radio.isChecked():
-                airshot_after = self.air[self.mog.ap]
-                done = np.round(len(airshot_after.tt[airshot_after.tt != -1]) / len(airshot_after.tt) * 100)
-                self.xRx_label.setText(str(airshot_after.data.Rx_x[n]))
-                self.xTx_label.setText(str(airshot_after.data.Tx_x[n]))
-                self.yRx_label.setText(str(airshot_after.data.Rx_y[n]))
-                self.yTx_label.setText(str(airshot_after.data.Tx_y[n]))
-                self.zRx_label.setText(str(np.round(airshot_after.data.Rx_z[n], 3)))
-                self.zTx_label.setText(str(airshot_after.data.Tx_z[n]))
-                self.ntrace_label.setText(str(airshot_after.data.ntrace))
-                self.percent_done_label.setText(str(done))
-                self.time.setText(str(np.round(airshot_after.tt[n], 4)))
-                self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
+        if self.t0_after_radio.isChecked():
+            airshot_after = self.air[self.mog.ap]
+            done = np.round(len(airshot_after.tt[airshot_after.tt != -1]) / len(airshot_after.tt) * 100)
+            self.xRx_label.setText(str(airshot_after.data.Rx_x[n]))
+            self.xTx_label.setText(str(airshot_after.data.Tx_x[n]))
+            self.yRx_label.setText(str(airshot_after.data.Rx_y[n]))
+            self.yTx_label.setText(str(airshot_after.data.Tx_y[n]))
+            self.zRx_label.setText(str(np.round(airshot_after.data.Rx_z[n], 3)))
+            self.zTx_label.setText(str(airshot_after.data.Tx_z[n]))
+            self.ntrace_label.setText(str(airshot_after.data.ntrace))
+            self.percent_done_label.setText(str(done))
+            self.time.setText(str(np.round(airshot_after.tt[n], 4)))
+            self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
 
-        self.check_save()
+#         self.check_save()  TODO ?
         self.update_a_and_t_edits()
         self.upperFig.plot_amplitude()
         self.lowerFig.plot_trace_data()
@@ -175,7 +175,13 @@ class ManualttUI(QtWidgets.QFrame):
         self.statsFig1.showMaximized()
 
     def savefile(self):
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(self.mog, 'tt')
+        flag_modified(self.mog, 'et')
+        flag_modified(self.mog, 'tt_done')
+
         current_module.session.commit()
+
 #         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy
 #             sfile['air'] = self.air
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
@@ -184,8 +190,6 @@ class ManualttUI(QtWidgets.QFrame):
     def openfile(self):
         item = chooseMOG(current_module, database.long_url(current_module))
         if item is not None:
-            database.load(current_module)
-            self.mogs = current_module.session.query(Mog).all()
             self.mog = item
 #             if self.mog.useAirShots == True:
 #                 self.air = sfile['air']

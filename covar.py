@@ -314,8 +314,8 @@ class CovarianceModel(object):
         for n in range(1, len(self.covar)):
             Cm = Cm + self.covar[n].compute(x, x0)
 
-        if self.nugget_slowness != 0:
-            Cm = Cm + self.nugget_slowness * np.eye(np.size(Cm, 0))
+        if self.nugget_model != 0:
+            Cm = Cm + self.nugget_model * np.eye(np.size(Cm, 0))
 
         if self.use_xi:
             Cx = self.covar_xi[0].compute(x, x0)

@@ -70,7 +70,6 @@ class Model(Base):
 
             mog = mogs[0]
             ind = np.not_equal(mog.tt, -1).T
-            print(ind)
             tt, t0 = mog.getCorrectedTravelTimes()
             tt = tt.T
             et = fac_dt * mog.f_et * mog.et.T
@@ -89,7 +88,6 @@ class Model(Base):
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
 
             data = np.array([tt[ind], et[ind], no[ind]]).T
-            print(data)
 
             return data, ind
 

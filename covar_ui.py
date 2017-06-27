@@ -551,8 +551,8 @@ class CovarUI(QtWidgets.QFrame):
             cm = self.current_covar()
             Cm = cm.compute(xc, xc)
 
-            L = self.temp_grid.getForwardStraightRays()
-            s = self.data[:, 0] / np.sum(L, 1)
+            L = self.temp_grid.getForwardStraightRays(ind=self.idata)
+            s = (self.data[:, 0].reshape(-1) / np.sum(L, 1).reshape(-1)).T
             s0 = np.mean(s)
             Cd = 'wat'
 
@@ -564,17 +564,17 @@ class CovarUI(QtWidgets.QFrame):
                     xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
                     theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
                     J = covar.computeJ2(L, np.concatenate([s0, xi0, theta0]))
-                    Cm = J * Cm * J.T
+                    Cm = np.dot(J, np.dot(Cm, J.T))
                 else:
                     np_ = np.size(L, 1) / 2
                     l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
                     s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                     xi0 = np.ones([np_, 1])
                     J = covar.computeJ(L, np.concatenate([s0, xi0]))
-                    Cm = J * Cm * J.T
+                    Cm = np.dot(J, np.dot(Cm, J.T))
             else:
                 print(L.size, Cm.size)
-                Cm = L * Cm * L.T
+                Cm = np.dot(L, np.dot(Cm, L.T))
 
             if cm.use_c0 == 1:
                 # use exp variance
@@ -611,9 +611,8 @@ class CovarUI(QtWidgets.QFrame):
         if self.model is not None:
             if self.mogs_list.selectedIndexes() != []:
 
-                L = self.temp_grid.getForwardStraightRays()
-                print(self.data, 2)
-                s = self.data[:, 0] / np.sum(L, 1)
+                L = self.temp_grid.getForwardStraightRays(ind=self.idata)
+                s = (self.data[:, 0].reshape(-1) / np.sum(L, 1).reshape(-1)).T
 
                 if self.T_and_A_combo.currentIndex() == 0:
                     s = 1 / s
@@ -630,6 +629,7 @@ class CovarUI(QtWidgets.QFrame):
                 theta = 180 / np.pi * np.arcsin(dz / hyp)
 
                 self.statistics_fig.plot(data_type, s, hyp, theta, s0, vs)
+                self.statistics_form.show()
 
             else:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected.")
@@ -1054,13 +1054,12 @@ class StatisticsFig(FigureCanvasQTAgg):
             self.ax1.hist(s, 30)
             self.ax2.plot(hyp, s, 'b+')
             self.ax3.plot(theta, s, 'b+')
-            self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:3], str(vs)[:3]))
+            self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:5], str(vs)[:5]))
             self.ax2.set_ylabel(data_name)
             self.ax3.set_ylabel(data_name)
 
             self.figure.tight_layout(h_pad=1)
             self.draw()
-            self.show()
 
 
 class CovarianceFig(FigureCanvasQTAgg):
