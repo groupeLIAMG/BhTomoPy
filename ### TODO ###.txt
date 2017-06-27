@@ -3,21 +3,26 @@ As of June 30th 2017...
 Covar_ui is close to done:
 
 - Some validation tests for amplitude covariance are still missing (for instance curved rays must be loaded to access it);
-- Some data isn't stored as UI attributes, although it could help reducing unnecessary computing (for instance the matrix 'L');
-- No tests were made on the interface for 3D grids.
-- Modifying parameters should modify 'temp_grid' accordingly.
+- Data stored in the UI (such as 'data', 'idata' or 'L') may not be consistent throughout the module;
+- No tests were made on the interface for 3D grids;
+- Modifying parameters should modify 'temp_grid' accordingly;
 - Experimental covariance isn't implemented.
+
+In order to successfully create a covariance model, some preliminary steps are required. First, on must create the model in database_ui 
+and add at least one mog to it. The latter must have boreholes associated with it. Second, one should create the model's grid (N.B.: don't 
+forget clicking on 'Done' on the grid editor). Finally, one must also indicate the arrival times for each of the traces from the manual_tt_ui
+(which can be achieved easily by importing tt.dat). Every feature of covar_ui should then be accessible.
 
 Random tasks:
 
 - Model.getModelData seems to be missing supported types (for instance, 'tt' is supported, but 'amp' is missing). These exist in Model.m
-  within the Matlab code.
-- Model.getModelData also doesn't support an upper limit velocity ('vlim').
+  within the Matlab code;
+- Model.getModelData also doesn't support an upper limit velocity ('vlim');
 - All dependencies from object to object should be cleared once it refers to a deleted object. One should study how the 'relationships'
-  are implemented between the Borehole, Mog, AirShots and Model classes in order to achieve this.
+  are implemented between the Borehole, Mog, AirShots and Model classes in order to achieve this;
 - Data management is not fully viable: whenever a stored class' attribute's name is modified, the database is deprecated, which
   is quite a problem. One could solve this issue by completing 'convert_database' from the module 'database', although this is neither urgent
-  nor easy to do. Some resources might be found on this subject on the web.
+  nor easy to do. Some resources on this subject might exist on the web.
 
 Data management through SQLAlchemy has been fully implemented in database_ui and covar_ui, and the main submodules.
 Some other modules still lack this implementation, though. One should consider close to every *.bh, *.mog, *.model and

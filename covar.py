@@ -104,7 +104,7 @@ class Covariance(object):
             # TODO: debug this for n2>1
             tmp1 = np.tile(t1[:, ii], (n2, 1)).T
             tmp2 = np.tile(t2[:, ii], (n1, 1))
-            h = h + (tmp1 - tmp2)**2
+            h += (tmp1 - tmp2)**2
 
         return np.sqrt(h)
 
@@ -313,6 +313,7 @@ class CovarianceModel(object):
 
         for n in range(1, len(self.covar)):
             Cm = Cm + self.covar[n].compute(x, x0)
+            print(Cm.shape)
 
         if self.nugget_model != 0:
             Cm = Cm + self.nugget_model * np.eye(np.size(Cm, 0))
@@ -340,6 +341,8 @@ class CovarianceModel(object):
             else:
                 Cm = np.concatenate([[Cm, np.zeros(np.size(Cx))],
                                      [np.zeros(np.size(Cm)), Cx]])
+
+        return Cm
 
 
 def cokri(x, x0, cm, itype, avg, block, nd, ival, nk, rad, ntok, verbose=False):

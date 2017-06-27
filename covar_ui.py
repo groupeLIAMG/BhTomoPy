@@ -48,9 +48,9 @@ class CovarUI(QtWidgets.QFrame):
     updateHandler = False  # selected model may seldom be modified twice. 'updateHandler' prevents functions from firing more than once. TODO: use a QValidator instead.
     data = None            # holds the model's data so that it does not need to be computed more than once
     idata = None           # idem.
-    L = None               # ray matrix               # TODO Unused yet
-    Cd = None              # experimental covariance  # TODO Unused yet
-    xc = None              # grid's centers           # TODO Unused yet
+    L = None               # ray matrix
+    Cd = None              # experimental covariance
+    xc = None              # grid's centers           # TODO Unimplemented yet
 
     def __init__(self, parent=None):
         super(CovarUI, self).__init__()
@@ -88,6 +88,7 @@ class CovarUI(QtWidgets.QFrame):
             self.update_model()
             self.update_booleans()
             self.parameters_displayed_update()
+            self.update_data()
 
     def savefile(self):
         self.apply_booleans()
@@ -287,27 +288,15 @@ class CovarUI(QtWidgets.QFrame):
 
                     self.mogs_list.setCurrentRow(0)
 
-                    if self.T_and_A_combo.currentIndex() == 0:
-                        self.data, self.idata = Model.getModelData(self.model, [0], 'tt')  # TODO is that supposed to change depending on mog_indexes?
-                    else:
-                        self.data, self.idata = Model.getModelData(self.model, [0], 'amp')
-
                     self.cells_no_label.setText(str(self.model.grid.getNumberOfCells()))
-                    self.rays_no_label.setText(str(np.size(self.data, 0)))
                     self.reset_grid()
+                    self.update_data()
             else:
                 self.cells_no_label.setText('0')
                 self.rays_no_label.setText('0')
                 self.reset_grid()
         else:
             self.reset_grid()
-
-    def update_data(self):
-        mog_indexes = [i.row() for i in self.mogs_list.selectedIndexes()]
-        if self.T_and_A_combo.currentIndex() == 0:
-            self.data, self.idata = Model.getModelData(self.model, mog_indexes, 'tt')  # , vlim)
-        else:
-            self.data, self.idata = Model.getModelData(self.model, mog_indexes, 'amp')
 
     def update_structures(self):
         self.covar_struct_combo.clear()
@@ -356,11 +345,6 @@ class CovarUI(QtWidgets.QFrame):
     def update_grid(self):
         if self.temp_grid is not None:
             self.cells_no_labeli.setText(str(self.temp_grid.getNumberOfCells()))
-
-    def apply_grid_changes(self):
-        self.temp_grid.dx = float(self.step_X_edit.text())
-        self.temp_grid.dy = float(self.step_Y_edit.text())
-        self.temp_grid.dz = float(self.step_Z_edit.text())
 
     def update_parameters(self):
 
@@ -423,6 +407,10 @@ class CovarUI(QtWidgets.QFrame):
             covar_.nugget_data         = self.tt_edit              .text()
 
             if self.ellip_veloc_checkbox.checkState():
+
+                self.loadRays()
+                self.computeCd()
+
                 if covar_.covar_xi[ind] is None:
                     covar_.covar_xi[ind] = covar.CovarianceFactory.detDefault2D()
                 covar_.covar_xi[ind].range[0] = self.xi_range_X_edit.text()
@@ -543,45 +531,108 @@ class CovarUI(QtWidgets.QFrame):
         else:
             self.velocity_edit.setText('')
 
-    def compute(self):  # TODO progress bar
-        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())  # TODO Store somewhere else?
+    def update_data(self):
+        selectedMogs = [i.row() for i in self.mogs_list.selectedIndexes()]
+        if self.include_checkbox.checkState() and self.T_and_A_combo.currentIndex() == 0:
+            vlim = float(self.velocity_edit.text())
+        else:
+            vlim = []
 
+        type_dict = {0: 'tt', 1: 'amp', 2: 'fce'}
+        type_ = type_dict[self.T_and_A_combo.currentIndex()]
+
+        self.data, self.idata = Model.getModelData(self.model, selectedMogs, type_)  # , vlim)
+        self.rays_no_label.setText(str(np.size(self.data, 1)))
+        self.loadRays()
+        self.computeCd()
+
+    def loadRays(self):
+        aniso = self.ellip_veloc_checkbox.checkState()
+        if self.curv_rays_combo.count() > 1:  # TODO implement curved rays
+            # curved rays
+
+            # check if grid compatible
+            if self.model.grid.checkCenter(self.model.inv_res[self.curv_rays_combo.currentIndex() - 1].tomo.x,  # TODO -1's?
+                                           self.model.inv_res[self.curv_rays_combo.currentIndex() - 1].tomo.y,
+                                           self.model.inv_res[self.curv_rays_combo.currentIndex() - 1].tomo.z) == 0:
+                print('Grid Not Compatible With Ray Matrix. Using Straight Rays.')
+                self.curv_rays_combo.setCurrentIndex(0)
+                self.loadRays()
+                return
+            ndata = 0
+            ind = np.zeros(np.size(self.data, 0), 1)
+            for n in range(0, np.size(self.data, 0)):
+                ii = np.where(self.model.inv_res[self.curv_rays_combo.currentIndex() - 1].tomo.no_trace == self.data[n, 2])
+                if np.all(ii == 0):
+                    print('Ray No', str(self.data[n, 3]), 'Missing From Ray Matrix. Using Straight Rays.')
+                    self.curv_rays_combo.setCurrentIndex(0)
+                    self.loadRays()
+                    return
+                else:
+                    ndata += 1
+                    ind[ndata] = ii
+            ind = ind[0:ndata]
+            self.L = self.model.inv_res[self.curv_rays_combo.currentIndex() - 1].tomo.L[ind, :]
+        else:
+            # straight rays
+            dx = float(self.step_X_edit.text())
+            dy = float(self.step_Y_edit.text())
+            dz = float(self.step_Z_edit.text())
+            self.L = self.model.grid.getForwardStraightRays(self.idata, dx, dy, dz, aniso)
+
+    def computeCd(self):
+        # Computes experimental covariance
+        nt = np.size(self.L, 0)
+
+        if not self.ellip_veloc_checkbox.checkState():
+            s0 = np.mean(self.data[:, 0] / np.sum(self.L, 1))
+            mta = s0 * np.sum(self.L, 1)  # mean traveltime
+        else:
+            np_ = np.size(self.L, 1) / 2
+            l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, np_:]**2)
+            s0 = np.mean(self.data[:, 0] / sum(l, 1))
+            mta = s0 * sum(l, 1)
+
+        dt = self.data[:, 0] - mta
+
+        return np.reshape(dt * dt.T, nt**2, 1)
+
+    def compute(self):  # TODO progress bar
+        self.apply_booleans()
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())
             xc = self.temp_grid.getCellCenter(dx, dz)
             cm = self.current_covar()
             Cm = cm.compute(xc, xc)
 
-            L = self.temp_grid.getForwardStraightRays(ind=self.idata)
-            s = (self.data[:, 0].reshape(-1) / np.sum(L, 1).reshape(-1)).T
+            s = (self.data[:, 0].reshape(-1) / np.sum(self.L, 1).reshape(-1)).T
             s0 = np.mean(s)
-            Cd = 'wat'
 
             if cm.use_xi:
                 if cm.use_tilt:
-                    np_ = np.size(L, 1) / 2
-                    l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
+                    np_ = np.size(self.L, 1) / 2
+                    l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
                     s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                     xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
                     theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
-                    J = covar.computeJ2(L, np.concatenate([s0, xi0, theta0]))
+                    J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
                     Cm = np.dot(J, np.dot(Cm, J.T))
                 else:
-                    np_ = np.size(L, 1) / 2
-                    l = np.sqrt(L[:, 0:np_]**2 + L[:, (np_):]**2)
+                    np_ = np.size(self.L, 1) / 2
+                    l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
                     s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                     xi0 = np.ones([np_, 1])
-                    J = covar.computeJ(L, np.concatenate([s0, xi0]))
+                    J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
                     Cm = np.dot(J, np.dot(Cm, J.T))
             else:
-                print(L.size, Cm.size)
-                Cm = np.dot(L, np.dot(Cm, L.T))
+                Cm = np.dot(self.L, np.dot(Cm, self.L.T))
 
-            if cm.use_c0 == 1:
+            if cm.use_c0:
                 # use exp variance
                 c0 = self.data[:, 1]**2
-                Cm = Cm + cm.nugget_d * np.diag(c0)
+                Cm += cm.nugget_data * np.diag(c0)
             else:
-                Cm = Cm + cm.nugget_d * np.eye(np.size(L, 0))
+                Cm += cm.nugget_data * np.eye(np.size(self.L, 0))
 
             Cm, ind = np.sort(Cm[:], 0, 'descend')  # Verify
             lclas = float(self.bin_edit.text())
@@ -591,7 +642,7 @@ class CovarUI(QtWidgets.QFrame):
             ind0 = np.where(gt < np.inf)
             gt = gt[ind0]
 
-            g = Cd[ind]
+            g = self.Cd[ind]
             g = covar.moy_bloc(g, lclas)
             g = g[ind0]
 

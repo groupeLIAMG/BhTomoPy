@@ -144,7 +144,7 @@ def data_select(data, freq, dt, L=100, threshold=5, medfilt_len=10):
     return SNR
 
 
-def f():  # test with nargout
+def f():  # test
 
     nout = nargout()
     print(nout)
