@@ -578,7 +578,7 @@ class CovarUI(QtWidgets.QFrame):
             dx = float(self.step_X_edit.text())
             dy = float(self.step_Y_edit.text())
             dz = float(self.step_Z_edit.text())
-            self.L = self.model.grid.getForwardStraightRays(self.idata, dx, dy, dz, aniso)
+            self.L = self.temp_grid.getForwardStraightRays(self.idata, dx, dy, dz, aniso)
 
     def computeCd(self):
         # Computes experimental covariance
@@ -603,6 +603,7 @@ class CovarUI(QtWidgets.QFrame):
             dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())
             xc = self.temp_grid.getCellCenter(dx, dz)
             cm = self.current_covar()
+            print(xc.shape)
             Cm = cm.compute(xc, xc)
 
             s = (self.data[:, 0].reshape(-1) / np.sum(self.L, 1).reshape(-1)).T
@@ -625,6 +626,7 @@ class CovarUI(QtWidgets.QFrame):
                     J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
                     Cm = np.dot(J, np.dot(Cm, J.T))
             else:
+                print(Cm.shape, self.L.shape, 'here')
                 Cm = np.dot(self.L, np.dot(Cm, self.L.T))
 
             if cm.use_c0:
