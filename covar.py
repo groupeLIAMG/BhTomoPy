@@ -1032,8 +1032,8 @@ def _poletocart(pole):
 
 def computeJ(L, e):
 
-    nt = np.size(L, 0)
-    np_ = np.size(L, 1) / 2
+    nt = L.shape[0]
+    np_ = L.shape[1] / 2
 
     J = L**2
     Js = J[:, 0:np_] + J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[(np_):]**2).T)  # l_x^2 + l_z^2 * xi^2
@@ -1050,8 +1050,8 @@ def computeJ(L, e):
 
 def computeJ2(L, e):
 
-    nt = np.size(L, 0)
-    np_ = np.size(L, 1) / 2
+    nt = L.shape[0]
+    np_ = L.shape[1] / 2
 
     n = len(e) / 3
 
@@ -1087,13 +1087,13 @@ def computeJ2(L, e):
     return J
 
 
-def moy_bloc(xy, lclas):
+def moy_bloc(xy, lclas):  # TODO VERIFY
     # (C) 2005 Erwan Gloaguen, Bernard Giroux
 
-    k = np.floor(len(xy) / lclas)
+    k = int(np.floor(len(xy) / lclas))
 
-    m = np.mean(np.reshape(xy[0:k * lclas], lclas, k))
-    m[k] = np.mean(xy[(k - 1) * lclas:])
+    m = np.mean(np.reshape(xy[0:k * lclas], (lclas, k)), 0).reshape([-1, 1])
+    m[k - 1] = np.mean(xy[(k - 1) * lclas:])
 
     return m
 

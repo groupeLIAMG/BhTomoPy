@@ -412,12 +412,12 @@ class Grid2D(Grid):
             ind = np.ones((self.Tx.shape[0],), dtype=bool)
 
         small = 0.00001
-        if dx is None:
+        if dx is None or dx == 0:
             grx = self.grx
         else:
             grx = np.arange(self.grx[0], self.grx[-1] + small, dx)
 
-        if dz is None:
+        if dz is None or dz == 0:
             grz = self.grz
         else:
             grz = np.arange(self.grz[0], self.grz[-1] + small, dz)

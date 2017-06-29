@@ -327,24 +327,42 @@ class CovarUI(QtWidgets.QFrame):
         else:
             self.new_grid()
 
-            self.X_min_label.setText(str(np.amin(self.temp_grid.grx))[:7])
-            self.X_max_label.setText(str(np.amax(self.temp_grid.grx))[:7])
+            self.X_min_label.setText(str(self.temp_grid.grx[0] )[:7])
+            self.X_max_label.setText(str(self.temp_grid.grx[-1])[:7])
             if self.temp_grid.gry:  # TODO verify
-                self.Y_min_label.setText(str(np.amin(self.temp_grid.gry))[:7])
-                self.Y_max_label.setText(str(np.amax(self.temp_grid.gry))[:7])
+                self.Y_min_label.setText(str(self.temp_grid.gry[0] )[:7])
+                self.Y_max_label.setText(str(self.temp_grid.gry[-1])[:7])
             else:
                 self.Y_min_label.setText('0')
                 self.Y_max_label.setText('0')
-            self.Z_min_label.setText(str(np.amin(self.temp_grid.grz))[:7])
-            self.Z_max_label.setText(str(np.amax(self.temp_grid.grz))[:7])
+            self.Z_min_label.setText(str(self.temp_grid.grz[0] )[:7])
+            self.Z_max_label.setText(str(self.temp_grid.grz[-1])[:7])
 
             self.step_X_edit.setText(str(2 * self.temp_grid.dx))  # by default, the step should be twice the size of the original
             self.step_Y_edit.setText(str(2 * self.temp_grid.dy))  # grid in order to make the computing less resources-expensive
             self.step_Z_edit.setText(str(2 * self.temp_grid.dz))
 
+            self.update_grid()
+
     def update_grid(self):
         if self.temp_grid is not None:
+
+            small = 0.00001
+
+            if self.temp_grid.dx != float(self.step_X_edit.text()):
+                dx = float(self.step_X_edit.text())
+                self.temp_grid.grx = np.arange(self.temp_grid.grx[0], self.temp_grid.grx[-1] + small, dx)
+
+            elif self.temp_grid.dy != float(self.step_Y_edit.text()):
+                dy = float(self.step_Y_edit.text())
+                self.temp_grid.gry = np.arange(self.temp_grid.gry[0], self.temp_grid.gry[-1] + small, dy)
+
+            elif self.temp_grid.dz != float(self.step_Z_edit.text()):
+                dz = float(self.step_Z_edit.text())
+                self.temp_grid.grz = np.arange(self.temp_grid.grz[0], self.temp_grid.grz[-1] + small, dz)
+
             self.cells_no_labeli.setText(str(self.temp_grid.getNumberOfCells()))
+            self.update_data()
 
     def update_parameters(self):
 
@@ -542,7 +560,7 @@ class CovarUI(QtWidgets.QFrame):
         type_ = type_dict[self.T_and_A_combo.currentIndex()]
 
         self.data, self.idata = Model.getModelData(self.model, selectedMogs, type_)  # , vlim)
-        self.rays_no_label.setText(str(np.size(self.data, 1)))
+        self.rays_no_label.setText(str(self.data.shape[1]))
         self.loadRays()
         self.computeCd()
 
@@ -560,8 +578,8 @@ class CovarUI(QtWidgets.QFrame):
                 self.loadRays()
                 return
             ndata = 0
-            ind = np.zeros(np.size(self.data, 0), 1)
-            for n in range(0, np.size(self.data, 0)):
+            ind = np.zeros(self.data.shape[0], 1)
+            for n in range(0, self.data.shape[0]):
                 ii = np.where(self.model.inv_res[self.curv_rays_combo.currentIndex() - 1].tomo.no_trace == self.data[n, 2])
                 if np.all(ii == 0):
                     print('Ray No', str(self.data[n, 3]), 'Missing From Ray Matrix. Using Straight Rays.')
@@ -582,28 +600,26 @@ class CovarUI(QtWidgets.QFrame):
 
     def computeCd(self):
         # Computes experimental covariance
-        nt = np.size(self.L, 0)
+        nt = self.L.shape[0]
 
         if not self.ellip_veloc_checkbox.checkState():
             s0 = np.mean(self.data[:, 0] / np.sum(self.L, 1))
             mta = s0 * np.sum(self.L, 1)  # mean traveltime
         else:
-            np_ = np.size(self.L, 1) / 2
+            np_ = self.L.shape[1] / 2
             l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, np_:]**2)
             s0 = np.mean(self.data[:, 0] / sum(l, 1))
             mta = s0 * sum(l, 1)
 
         dt = self.data[:, 0] - mta
 
-        return np.reshape(dt * dt.T, nt**2, 1)
+        self.Cd = np.reshape(dt * dt.T, (nt**2, 1))
 
     def compute(self):  # TODO progress bar
         self.apply_booleans()
         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            dx, dz = float(self.step_X_edit.text()), float(self.step_Z_edit.text())
-            xc = self.temp_grid.getCellCenter(dx, dz)
+            xc = self.temp_grid.getCellCenter()
             cm = self.current_covar()
-            print(xc.shape)
             Cm = cm.compute(xc, xc)
 
             s = (self.data[:, 0].reshape(-1) / np.sum(self.L, 1).reshape(-1)).T
@@ -611,7 +627,7 @@ class CovarUI(QtWidgets.QFrame):
 
             if cm.use_xi:
                 if cm.use_tilt:
-                    np_ = np.size(self.L, 1) / 2
+                    np_ = self.L.shape[1] / 2
                     l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
                     s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                     xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
@@ -619,14 +635,14 @@ class CovarUI(QtWidgets.QFrame):
                     J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
                     Cm = np.dot(J, np.dot(Cm, J.T))
                 else:
-                    np_ = np.size(self.L, 1) / 2
+                    np_ = self.L.shape[1] / 2
                     l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
                     s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                     xi0 = np.ones([np_, 1])
                     J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
                     Cm = np.dot(J, np.dot(Cm, J.T))
             else:
-                print(Cm.shape, self.L.shape, 'here')
+                print(self.L.shape, Cm.shape)
                 Cm = self.L.dot(Cm.dot(self.L.T.todense()))
 
             if cm.use_c0:
@@ -636,22 +652,22 @@ class CovarUI(QtWidgets.QFrame):
             else:
                 Cm += cm.nugget_data * np.eye(self.L.shape[0])
 
-            Cm = Cm.reshape((-1,1))
+            Cm = Cm.reshape([-1, 1])
             ind = np.argsort(Cm, axis=0)
             ind = ind[::-1]
             Cm = Cm[ind]
-            lclas = float(self.bin_edit.text())
+            lclas = int(self.bin_edit.text())
             afi = 1 / float(self.bin_frac_edit.text())
 
             gt = covar.moy_bloc(Cm, lclas)
             ind0 = np.where(gt < np.inf)
-            gt = gt[ind0]
+            gt = gt[ind0].T
 
             g = self.Cd[ind]
             g = covar.moy_bloc(g, lclas)
-            g = g[ind0]
+            g = g[ind0].T
 
-            N = np.round(len(g) / afi)
+            N = int(np.round(len(g) / afi))
             g = g[0:N]
             gt = gt[0:N]
 
@@ -1107,10 +1123,15 @@ class StatisticsFig(FigureCanvasQTAgg):
             elif data_type == 'amp':
                 data_name = "App. Attenuation"
 
+            self.ax1.clear()
+            self.ax2.clear()
+            self.ax3.clear()
             self.ax1.hist(s, 30)
             self.ax2.plot(hyp, s, 'b+')
             self.ax3.plot(theta, s, 'b+')
             self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:5], str(vs)[:5]))
+            self.ax2.set_xlabel("Straight Ray Length")
+            self.ax3.set_xlabel("Straight Ray Angle")
             self.ax2.set_ylabel(data_name)
             self.ax3.set_ylabel(data_name)
 
@@ -1130,7 +1151,10 @@ class CovarianceFig(FigureCanvasQTAgg):
         self.ax.set_xlabel("Bin Number")
 
     def plot(self, n2, g, n1, gt):
+        self.ax.clear()
         self.ax.plot(n2, g, '+', n1, gt, 'o')
+        self.ax.set_ylabel("Covariance")
+        self.ax.set_xlabel("Bin Number")
         self.ax.legend(('Experimental (C_d^*)', 'Model (GC_mG^T +C_0)'), loc=1)
         self.figure.tight_layout()
         self.draw()
@@ -1146,10 +1170,13 @@ class ComparisonFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_subplot(111)
         self.ax.set_ylabel("Model Covariance")
         self.ax.set_xlabel("Experimental Covariance")
+        self.ax.set_aspect('equal')
 
     def plot(self, g, gt, gmin, gmax):
-        self.ax.plot(g, gt, 'o', (gmin, gmin), (gmax, gmax), ':')
-        self.ax.set_aspect('equal', 'datalim')
+        self.ax.clear()
+        self.ax.set_ylabel("Model Covariance")
+        self.ax.set_xlabel("Experimental Covariance")
+        self.ax.plot(g, gt, 'o', (gmin, gmax), (gmin, gmax), ':')
         self.figure.tight_layout()
         self.draw()
 

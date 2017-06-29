@@ -542,8 +542,8 @@ class Grid2DUI(QtWidgets.QWidget):
         uRx = np.sort(tmpRx, axis=0)
 
         data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0), nout=2)
-        # self.data.x0 : Centroid of the data = point on the best-fit plane
-        # self.data.a  : Direction cosines of the normal to the best-fit plane
+        # data.x0 : Centroid of the data = point on the best-fit plane
+        # data.a  : Direction cosines of the normal to the best-fit plane
         if data.a[2] < 0:
             data.a = -data.a
 
