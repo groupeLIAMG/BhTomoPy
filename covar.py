@@ -316,7 +316,7 @@ class CovarianceModel(object):
             print(Cm.shape)
 
         if self.nugget_model != 0:
-            Cm = Cm + self.nugget_model * np.eye(np.size(Cm, 0))
+            Cm = Cm + self.nugget_model * np.eye(Cm.shape[0])
 
         if self.use_xi:
             Cx = self.covar_xi[0].compute(x, x0)
@@ -324,7 +324,7 @@ class CovarianceModel(object):
                 Cx = Cx + self.covar_xi[n].compute(x, x0)
 
             if self.nugget_xi != 0:
-                Cx = Cx + self.nugget_xi * np.eye(np.size(Cx, 0))
+                Cx = Cx + self.nugget_xi * np.eye(Cm.shape[0])
 
             if self.use_tilt:
                 Ct = self.covar_tilt[0].compute(x, x0)
@@ -332,7 +332,7 @@ class CovarianceModel(object):
                     Ct = Ct + self.covar_tilt[n].compute(x, x0)
 
                 if self.nugget_tilt != 0:
-                    Ct = Ct + self.nugget_tilt * np.eye(np.size(Ct, 0))
+                    Ct = Ct + self.nugget_tilt * np.eye(Cm.shape[0])
 
                 Cm = np.concatenate([[Cm, np.zeros(np.size(Cx)), np.zeros(np.size(Ct))],
                                      [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],

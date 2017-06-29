@@ -627,16 +627,19 @@ class CovarUI(QtWidgets.QFrame):
                     Cm = np.dot(J, np.dot(Cm, J.T))
             else:
                 print(Cm.shape, self.L.shape, 'here')
-                Cm = np.dot(self.L, np.dot(Cm, self.L.T))
+                Cm = self.L.dot(Cm.dot(self.L.T.todense()))
 
             if cm.use_c0:
                 # use exp variance
                 c0 = self.data[:, 1]**2
                 Cm += cm.nugget_data * np.diag(c0)
             else:
-                Cm += cm.nugget_data * np.eye(np.size(self.L, 0))
+                Cm += cm.nugget_data * np.eye(self.L.shape[0])
 
-            Cm, ind = np.sort(Cm[:], 0, 'descend')  # Verify
+            Cm = Cm.reshape((-1,1))
+            ind = np.argsort(Cm, axis=0)
+            ind = ind[::-1]
+            Cm = Cm[ind]
             lclas = float(self.bin_edit.text())
             afi = 1 / float(self.bin_frac_edit.text())
 
