@@ -29,6 +29,7 @@ import utils_ui
 from utils_ui import lay, inv_lay
 import grid
 from sqlalchemy.orm.attributes import flag_modified
+from copy import deepcopy
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 # from mpl_toolkits.mplot3d import axes3d
@@ -85,6 +86,7 @@ class CovarUI(QtWidgets.QFrame):
             self.set_current_model(new_model)
             self.mogs_list.clear()
             self.mogs_list.addItems([item.name for item in self.model.mogs])
+            self.mogs_list.setCurrentRow(0)
             self.update_model()
             self.update_booleans()
             self.parameters_displayed_update()
@@ -119,8 +121,14 @@ class CovarUI(QtWidgets.QFrame):
         if self.model is not None:
             if utils_ui.save_warning(database):
                 self.model = model
+                self.clear_figures()
+                if model.grid is not None:
+                    self.update_temp_grid()
         else:
             self.model = model
+            self.clear_figures()
+            if model.grid is not None:
+                self.update_temp_grid()
         self.updateHandler = False
 
     def current_covar(self):
@@ -146,7 +154,7 @@ class CovarUI(QtWidgets.QFrame):
 
                 return database.session.query(Mog).filter(Mog.name == self.mogs_list.currentItem().text()).first()
 
-    def flag_modified_covar(self):
+    def flag_modified_covar(self):  # refer to database's 'save_as' function
 
         if self.model is not None:
 
@@ -275,13 +283,17 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_model(self):
         self.btn_Rem_Struct.setDisabled(True)
+
+        self.updateHandler = True
         self.covar_struct_combo.clear()
+        self.updateHandler = False
+
         if self.model is not None:
             self.model_label.setText("Model : " + self.model.name)
             if self.model.grid is not None:
                 self.update_structures()
-                if self.temp_grid is None:
 
+                if self.temp_grid is None:
                     ntraces = 0
                     for mog_ in database.session.query(Mog).all():
                         ntraces += mog_.data.ntrace
@@ -310,7 +322,7 @@ class CovarUI(QtWidgets.QFrame):
             self.btn_Rem_Struct.setDisabled(False)
 
     def new_grid(self):
-        self.temp_grid = self.model.grid
+        self.temp_grid = deepcopy(self.model.grid)
 
     def reset_grid(self):
         if self.model is None or self.model.grid is None:
@@ -342,24 +354,23 @@ class CovarUI(QtWidgets.QFrame):
             self.step_Y_edit.setText(str(2 * self.temp_grid.dy))  # grid in order to make the computing less resources-expensive
             self.step_Z_edit.setText(str(2 * self.temp_grid.dz))
 
-            self.update_grid()
+            self.update_temp_grid()
 
-    def update_grid(self):
-        if self.temp_grid is not None:
-
-            small = 0.00001
+    def update_temp_grid(self):
+        if self.temp_grid is not None and self.model.grid is not None:
 
             if self.temp_grid.dx != float(self.step_X_edit.text()):
                 dx = float(self.step_X_edit.text())
-                self.temp_grid.grx = np.arange(self.temp_grid.grx[0], self.temp_grid.grx[-1] + small, dx)
+                self.temp_grid.grx = np.arange(self.model.grid.grx[0], self.model.grid.grx[-1] + dx, dx)
+                # 'dx' is added so that the upper boundary is included
 
             elif self.temp_grid.dy != float(self.step_Y_edit.text()):
                 dy = float(self.step_Y_edit.text())
-                self.temp_grid.gry = np.arange(self.temp_grid.gry[0], self.temp_grid.gry[-1] + small, dy)
+                self.temp_grid.gry = np.arange(self.model.grid.gry[0], self.model.grid.gry[-1] + dy, dy)
 
             elif self.temp_grid.dz != float(self.step_Z_edit.text()):
                 dz = float(self.step_Z_edit.text())
-                self.temp_grid.grz = np.arange(self.temp_grid.grz[0], self.temp_grid.grz[-1] + small, dz)
+                self.temp_grid.grz = np.arange(self.model.grid.grz[0], self.model.grid.grz[-1] + dz, dz)
 
             self.cells_no_labeli.setText(str(self.temp_grid.getNumberOfCells()))
             self.update_data()
@@ -559,10 +570,11 @@ class CovarUI(QtWidgets.QFrame):
         type_dict = {0: 'tt', 1: 'amp', 2: 'fce'}
         type_ = type_dict[self.T_and_A_combo.currentIndex()]
 
-        self.data, self.idata = Model.getModelData(self.model, selectedMogs, type_)  # , vlim)
-        self.rays_no_label.setText(str(self.data.shape[1]))
-        self.loadRays()
-        self.computeCd()
+        if self.mogs_list.currentRow() != -1:
+            self.data, self.idata = Model.getModelData(self.model, selectedMogs, type_)  # , vlim)
+            self.rays_no_label.setText(str(self.data.shape[1]))
+            self.loadRays()
+            self.computeCd()
 
     def loadRays(self):
         aniso = self.ellip_veloc_checkbox.checkState()
@@ -593,10 +605,7 @@ class CovarUI(QtWidgets.QFrame):
             self.L = self.model.inv_res[self.curv_rays_combo.currentIndex() - 1].tomo.L[ind, :]
         else:
             # straight rays
-            dx = float(self.step_X_edit.text())
-            dy = float(self.step_Y_edit.text())
-            dz = float(self.step_Z_edit.text())
-            self.L = self.temp_grid.getForwardStraightRays(self.idata, dx, dy, dz, aniso)
+            self.L = self.temp_grid.getForwardStraightRays(self.idata, aniso=aniso)
 
     def computeCd(self):
         # Computes experimental covariance
@@ -642,7 +651,6 @@ class CovarUI(QtWidgets.QFrame):
                     J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
                     Cm = np.dot(J, np.dot(Cm, J.T))
             else:
-                print(self.L.shape, Cm.shape)
                 Cm = self.L.dot(Cm.dot(self.L.T.todense()))
 
             if cm.use_c0:
@@ -705,6 +713,11 @@ class CovarUI(QtWidgets.QFrame):
 
             else:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "No MOG selected.")
+
+    def clear_figures(self):
+        self.covariance_fig.clear_()
+        self.comparison_fig.clear_()
+        self.statistics_fig.clear_()
 
     def initUI(self):
 
@@ -1062,9 +1075,9 @@ class CovarUI(QtWidgets.QFrame):
         self.tilt_type_combo       .currentIndexChanged.connect(self.change_covar_type_tilt)
         self.slowness_3D_type_combo.currentIndexChanged.connect(self.change_covar_type_slowness)
 
-        self.step_X_edit.textModified.connect(self.update_grid)
-        self.step_Y_edit.textModified.connect(self.update_grid)
-        self.step_Z_edit.textModified.connect(self.update_grid)
+        self.step_X_edit.textModified.connect(self.update_temp_grid)
+        self.step_Y_edit.textModified.connect(self.update_temp_grid)
+        self.step_Z_edit.textModified.connect(self.update_temp_grid)
 
         for item in (*self.slowness_checkboxes, *self.xi_checkboxes, *self.tilt_checkboxes, *self.slowness_3D_checkboxes):
             item.clicked.connect(self.fix_verif)
@@ -1118,25 +1131,29 @@ class StatisticsFig(FigureCanvasQTAgg):
 
     def plot(self, data_type, s, hyp, theta, s0, vs):
 
-            if data_type == 'tt':
-                data_name = "App. Velocity"
-            elif data_type == 'amp':
-                data_name = "App. Attenuation"
+        if data_type == 'tt':
+            data_name = "App. Velocity"
+        elif data_type == 'amp':
+            data_name = "App. Attenuation"
 
-            self.ax1.clear()
-            self.ax2.clear()
-            self.ax3.clear()
-            self.ax1.hist(s, 30)
-            self.ax2.plot(hyp, s, 'b+')
-            self.ax3.plot(theta, s, 'b+')
-            self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:5], str(vs)[:5]))
-            self.ax2.set_xlabel("Straight Ray Length")
-            self.ax3.set_xlabel("Straight Ray Angle")
-            self.ax2.set_ylabel(data_name)
-            self.ax3.set_ylabel(data_name)
+        self.clear_()
+        self.ax1.hist(s, 30)
+        self.ax2.plot(hyp, s, 'b+')
+        self.ax3.plot(theta, s, 'b+')
+        self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:5], str(vs)[:5]))
+        self.ax2.set_xlabel("Straight Ray Length")
+        self.ax3.set_xlabel("Straight Ray Angle")
+        self.ax2.set_ylabel(data_name)
+        self.ax3.set_ylabel(data_name)
 
-            self.figure.tight_layout(h_pad=1)
-            self.draw()
+        self.figure.tight_layout(h_pad=1)
+        self.draw()
+
+    def clear_(self):
+        self.ax1.clear()
+        self.ax2.clear()
+        self.ax3.clear()
+        self.draw()
 
 
 class CovarianceFig(FigureCanvasQTAgg):
@@ -1151,12 +1168,16 @@ class CovarianceFig(FigureCanvasQTAgg):
         self.ax.set_xlabel("Bin Number")
 
     def plot(self, n2, g, n1, gt):
-        self.ax.clear()
+        self.clear_()
         self.ax.plot(n2, g, '+', n1, gt, 'o')
+        self.ax.legend(('Experimental ($C_d^*$)', 'Model ($GC_mG^T+C_0$)'), loc=1)
+        self.figure.tight_layout()
+        self.draw()
+
+    def clear_(self):
+        self.ax.clear()
         self.ax.set_ylabel("Covariance")
         self.ax.set_xlabel("Bin Number")
-        self.ax.legend(('Experimental (C_d^*)', 'Model (GC_mG^T +C_0)'), loc=1)
-        self.figure.tight_layout()
         self.draw()
 
 
@@ -1173,20 +1194,24 @@ class ComparisonFig(FigureCanvasQTAgg):
         self.ax.set_aspect('equal')
 
     def plot(self, g, gt, gmin, gmax):
+        self.clear_()
+        self.ax.plot(g, gt, 'o', (gmin, gmax), (gmin, gmax), ':')
+        self.figure.tight_layout()
+        self.draw()
+
+    def clear_(self):
         self.ax.clear()
         self.ax.set_ylabel("Model Covariance")
         self.ax.set_xlabel("Experimental Covariance")
-        self.ax.plot(g, gt, 'o', (gmin, gmax), (gmin, gmax), ':')
-        self.figure.tight_layout()
         self.draw()
 
 
 if __name__ == '__main__':
 
+    app = QtWidgets.QApplication(sys.argv)
+
     database.create_data_management(database)
     database.load(database, 'database.db')
-
-    app = QtWidgets.QApplication(sys.argv)
 
     Covar_ui = CovarUI()
     Covar_ui.show()

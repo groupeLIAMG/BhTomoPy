@@ -29,6 +29,7 @@ import sys
 
 import numpy as np
 from scipy.special import erfcinv
+from scipy.sparse import csr_matrix
 from scipy import linalg
 # import pyfftw.interfaces.numpy_fft as np_fft
 
@@ -313,7 +314,6 @@ class CovarianceModel(object):
 
         for n in range(1, len(self.covar)):
             Cm = Cm + self.covar[n].compute(x, x0)
-            print(Cm.shape)
 
         if self.nugget_model != 0:
             Cm = Cm + self.nugget_model * np.eye(Cm.shape[0])
@@ -334,13 +334,13 @@ class CovarianceModel(object):
                 if self.nugget_tilt != 0:
                     Ct = Ct + self.nugget_tilt * np.eye(Cm.shape[0])
 
-                Cm = np.concatenate([[Cm, np.zeros(np.size(Cx)), np.zeros(np.size(Ct))],
-                                     [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],
-                                     [np.zeros(np.size(Cm)), np.zeros(np.size(Cx)), Ct]])
+                Cm = csr_matrix(np.concatenate([[Cm, np.zeros(np.size(Cx)), np.zeros(np.size(Ct))],  # TODO Verify sparse implementation
+                                                [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],
+                                                [np.zeros(np.size(Cm)), np.zeros(np.size(Cx)), Ct]]))
 
             else:
-                Cm = np.concatenate([[Cm, np.zeros(np.size(Cx))],
-                                     [np.zeros(np.size(Cm)), Cx]])
+                Cm = csr_matrix(np.concatenate([[Cm, np.zeros(np.size(Cx))],  # TODO Verify sparse implementation
+                                                [np.zeros(np.size(Cm)), Cx]]))
 
         return Cm
 

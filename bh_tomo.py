@@ -345,14 +345,14 @@ class MyQToolBox(QtWidgets.QWidget):
 
             if head == self.sender():
                 if self.__currentIndex == row:
-                    # if clicked tool is open, close it
+                    # if clicked tool is open, closes it
                     head.setIcon(self.__iclosed)
                     tool.hide()
                     self.__currentIndex = -1
                     self.sizeChanged.emit(self.sizeHint().height() + head.sizeHint().height())
 
                 else:
-                    # if clicked tool is closed, expand it
+                    # if clicked tool is closed, expands it
                     head.setIcon(self.__iexpand)
                     tool.show()
                     self.__currentIndex = row

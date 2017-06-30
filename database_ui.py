@@ -281,9 +281,9 @@ class MyLogWidget(QtWidgets.QTextEdit):
 
 if __name__ == '__main__':
 
-    database.create_data_management(database)
-
     app = QtWidgets.QApplication(sys.argv)
+
+    database.create_data_management(database)
 
     Database_ui = DatabaseUI()
     Database_ui.show()

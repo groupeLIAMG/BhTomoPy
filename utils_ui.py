@@ -405,7 +405,7 @@ def lay(layout, *options, parent=None):
 
     def getSpan(row_no, col_no):
         """
-        Gets the width and height in terms of squares of a widget at row 'row_no' and column 'col_no'.
+        Gets the width and height in terms of squares for a widget at row 'row_no' and column 'col_no'.
         """
 
         row_span = 1
@@ -484,35 +484,35 @@ def lay(layout, *options, parent=None):
     def setRowStr(*args):
         # Arguments can either be of the form ('setRowStr', row, stretch) or ('setRowStr', (row, str), (row, str), ...)
         nonlocal grid
-        if isinstance(args[-1], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):  # ('setRowStr', (row, str), (row, str), ...)
             for i in args:
                 grid.setRowStretch(*i)
-        else:
+        else:                                    # ('setRowStr', row, stretch)
             grid.setRowStretch(*i)
 
     def setColStr(*args):
         # Arguments can either be of the form ('setColStr', col, stretch) or ('setRowStr', (col, str), (col, str), ...)
         nonlocal grid
-        if isinstance(args[-1], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):  # ('setRowStr', (col, str), (col, str), ...)
             for i in args:
                 grid.setColumnStretch(*i)
-        else:
+        else:                                    # ('setColStr', col, stretch)
             grid.setColumnStretch(*i)
 
     def setMinHei(*args):
         # Arguments can either be of the form ('setMinHei', widget, height) or ('setMinHei', row, height) or
         # ('setMinHei', (...), (...), (...), ...) or ('setMinHei', (widget, widget, ...), height)
         nonlocal grid
-        if isinstance(args[-1], (list, tuple)):
+        if isinstance(args[-1], (list, tuple)):       # ('setMinHei', (...), (...), (...), ...)
             for i in args:
                 setMinHei(*i)
         else:
-            if isinstance(args[0], int):
+            if isinstance(args[0], int):              # ('setMinHei', row, height)
                 grid.setRowMinimumHeight(*args)
-            elif isinstance(args[0], (list, tuple)):
+            elif isinstance(args[0], (list, tuple)):  # ('setMinHei', (widget, widget, ...), height)
                 for item in args[0]:
                     item.setMinimumHeight(args[1])
-            else:
+            else:                                     # ('setMinHei', widget, height)
                 args[0].setMinimumHeight(args[1])
 
     def setMaxHei(*args):
@@ -598,13 +598,13 @@ def lay(layout, *options, parent=None):
     # Applying the options and returning the results #
 
     for option in options:
-        if isinstance(option, str):
+        if isinstance(option, str):  # An option can be sent as a plain string if it does not require parameters
             opt_dict[option]()
         else:
             opt_dict[option[0]](*option[1:])
 
     if parent is None:
-        if widget is None:
+        if widget is None:  # If a scrollbar or gridbox hasn't been selected, the returned widget is the default one
             widget = wgt.QWidget()
             widget.setLayout(grid)
         return widget

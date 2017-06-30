@@ -43,7 +43,21 @@ class Model(Base):
     tlinv_res  = Column(PickleType)    # Time-lapse inversion results
 
     mogs = relationship("Mog", secondary=model_mogs)  # The mogs associated with the model (acts like a list).
-    # The boreholes associated with a model can be accessed via with the model_boreholes method, which returns a list.
+
+    @property
+    def boreholes(self):
+        """
+        Returns a list of all the boreholes contained in the mogs of a model, without duplicates.
+        """
+        boreholes = []
+
+        for mog in self.mogs:
+            for borehole in mog.Tx, mog.Rx:
+                if borehole is not None:
+                    if borehole not in boreholes:  # guarantees there is no duplicate
+                        boreholes.append(borehole)
+
+        return boreholes
 
     def __init__(self, name=''):
         self.name       = name
@@ -106,17 +120,3 @@ class Model(Base):
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
             data = np.array([tt[ind], et[ind], no[ind]]).T
             return data, ind
-
-    def model_boreholes(self):
-        """
-        Returns a list of all the boreholes contained in the mogs of a model, without duplicates.
-        """
-        boreholes = []
-
-        for mog in self.mogs:
-            for borehole in mog.Tx, mog.Rx:
-                if borehole is not None:
-                    if borehole not in boreholes:  # guarantees there is no duplicate
-                        boreholes.append(borehole)
-
-        return boreholes

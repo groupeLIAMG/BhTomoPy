@@ -439,7 +439,7 @@ class Grid2D(Grid):
         xmin = self.grx[0] + dx / 2.0
         zmin = self.grz[0] + dz / 2.0
         xmax = self.grx[-1] - dx / 3.0  # divide by 3 to avoid truncation error
-        zmax = self.grz[-1] = dz / 3.0
+        zmax = self.grz[-1] - dz / 3.0
         nx = np.int64(np.ceil((xmax - xmin) / dx) + 0.001)
         nz = np.int64(np.ceil((zmax - zmin) / dz) + 0.001)
 

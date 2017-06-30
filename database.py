@@ -42,6 +42,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.automap import automap_base
 
+from PyQt5 import QtWidgets
+
 from borehole import Borehole
 from mog import Mog, AirShots
 from model import Model
@@ -52,8 +54,13 @@ def create_data_management(module):
     """
     Initiate a module's SQLAlchemy attributes.
     """
+    new_data_management(module, ':memory:')
 
-    module.engine = create_engine("sqlite:///:memory:")  # 'engine' interacts with the file
+
+def new_data_management(module, file):
+
+    module.engine = create_engine("sqlite:///" + file)   # 'engine' interacts with the file
+    verify_database_active(module.engine)
     module.Session = sessionmaker(bind=module.engine)    # 'Session' acts as a factory for upcoming sessions; the features of 'Session' aren't exploited in BhTomoPy
     module.session = module.Session()                    # the objects are stored in 'session' and can be manipulated from there
     strong_reference_session(module.session)
@@ -70,15 +77,7 @@ def load(module, file):
         module.session.close()
         module.engine.dispose()
 
-        module.engine = create_engine("sqlite:///" + file)
-        module.Session = sessionmaker(bind=module.engine)
-        module.session = module.Session()
-        strong_reference_session(module.session)
-        Base.metadata.create_all(module.engine)
-        module.modified = False
-
-        # TODO might be deprecated because of strong_reference_session() and could be erased
-#         get_many(module)  # guarantees the objects exist within 'session'
+        new_data_management(module, file)
 
     except AttributeError:
         create_data_management(module)
@@ -87,16 +86,17 @@ def load(module, file):
         convert_database(module, file)
 
 
-def verify_mapping(module):
-    """
-    By referencing the items' relationships once, they don't get deleted by the closing of the
-    current session (by the means of module.session.close() and module.engine.dispose()).
-    """
-
-    for item in module.session.query(Model).all():
-        item.mogs, item.tt_covar
-    for item in module.session.query(Mog).all():
-        item.Tx, item.Rx, item.av, item.ap
+# DEPRECATED
+# def verify_mapping(module):
+#     """
+#     By referencing the items' relationships once, they don't get deleted by the closing of the
+#     current session (by the means of module.session.close() and module.engine.dispose()).
+#     """
+#
+#     for item in module.session.query(Model).all():
+#         item.mogs, item.tt_covar
+#     for item in module.session.query(Mog).all():
+#         item.Tx, item.Rx, item.av, item.ap
 
 
 def save_as(module, file):
@@ -120,11 +120,11 @@ def save_as(module, file):
     try:
         airshots_cleanup(module)
 
+        # DEPRECATED:
         # Guarantees the objects and their relationships survive the transfer
         # Referencing the attributes seems to guarantee the strong referencing's effectiveness
-        # TODO If no problem occur, this may be deprecated and can therefore be erased
-#         strong_referencing = get_many(module)  # @UnusedVariable
-#         verify_mapping(module)
+        # strong_referencing = get_many(module)  # @UnusedVariable
+        # verify_mapping(module)
 
         # TODO Reflecting the mapping instead of merging might make the code more efficient
 
@@ -133,11 +133,7 @@ def save_as(module, file):
         module.session.close()
         module.engine.dispose()
 
-        module.engine = create_engine("sqlite:///" + file)
-        Base.metadata.create_all(module.engine)
-        module.Session.configure(bind=module.engine)
-        module.session = module.Session()
-        strong_reference_session(module.session)
+        new_data_management(module, file)
 
         for item in get_many(module):  # overwrites the selected file
             module.session.delete(item)
@@ -146,7 +142,6 @@ def save_as(module, file):
         module.session.add_all(items)
 
         module.session.commit()
-        module.modified = False
 
     except AttributeError:
         create_data_management(module)
@@ -155,7 +150,7 @@ def save_as(module, file):
 
 def get_many(module):
     """
-    Get all instances stored within a session.
+    Gets all instances stored within a session.
     """
 
     items = []
@@ -180,7 +175,7 @@ def delete(module, item):
     module.modified = True
 
 
-def airshots_cleanup(module):  # TODO: Verify
+def airshots_cleanup(module):  # TODO: Verify if this works
     """
     Deletes airshots that aren't associated with a mog.
     """
@@ -245,8 +240,6 @@ def convert_database(module, file):
     or because an attribute's name has been altered.
     """
 
-    from PyQt5 import QtWidgets
-
     warning = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Critical, 'Database outdated',
                                     "This database's mapping might be outdated. " +
                                     "Proceeding will cause this database to be updated. " +
@@ -257,28 +250,53 @@ def convert_database(module, file):
 
     if warning.exec_() == QtWidgets.QMessageBox.Yes:
 
-        # TODO not completed
+        # TODO not functional
 
-        class dummy_module():
-            pass
-        module_ = dummy_module()
+        # class dummy_module():
+        #     pass
+        # module_ = dummy_module()
 
-        module_.engine  = create_engine("sqlite:///" + file)
-        module_.Session = sessionmaker(bind=module_.engine)
-        module_.session = module_.Session()
-        strong_reference_session(module_.session)
+        # module_.engine  = create_engine("sqlite:///" + file)
+        # module_.Session = sessionmaker(bind=module_.engine)
+        # module_.session = module_.Session()
+        # strong_reference_session(module_.session)
 
-        Base = automap_base()
-        Base.prepare(module_.engine, reflect=True)
+        # Base = automap_base()
+        # Base.prepare(module_.engine, reflect=True)
 
-        module_.session.commit()
+        # module_.session.commit()
 
         load(module, file)
 
 
+def verify_database_active(engine):
+    """
+    Verifies whether a database associated with an engine is open or not. If it is, throws a warning.
+    """
+    url = os.path.basename(str(engine.url)[10:])
+    if url != ':memory:':
+        try:
+            if not os.path.exists(url):
+                return
+            os.rename(url, url)  # Renaming the file fails if the database is already in use
+
+        except OSError:
+            warning = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Critical, 'Database in use',
+                                            "This database is already in use. " +
+                                            "Please close other instances of BhTomoPy before proceeding.\n" +
+                                            "Try again?")
+            warning.addButton(QtWidgets.QMessageBox.Yes)
+            warning.addButton(QtWidgets.QMessageBox.No)
+            warning.setDefaultButton(QtWidgets.QMessageBox.Yes)
+
+            if warning.exec_() == QtWidgets.QMessageBox.Yes:
+                verify_database_active(engine)
+            else:  # TODO exiting might not be the desired action
+                exit()
+
+
 if __name__ == '__main__':
 
-    from PyQt5 import QtWidgets
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
