@@ -549,7 +549,6 @@ def lay(layout, *options, parent=None):
                 for item in args[0]:
                     item.setMinimumWidth(args[1])
             else:
-                print(args)
                 args[0].setMinimumWidth(args[1])
 
     def setMaxWid(*args):
@@ -640,8 +639,6 @@ def inv_lay(layout, *options, parent=None):
                 elif item == '|':
                     item = '_'
                 temp[col_no].append(item)
-
-        print(temp)
 
     else:
         for item in layout:

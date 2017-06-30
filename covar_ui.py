@@ -624,68 +624,74 @@ class CovarUI(QtWidgets.QFrame):
 
         self.Cd = np.reshape(dt * dt.T, (nt**2, 1))
 
-    def compute(self):  # TODO progress bar
-        self.apply_booleans()
-        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            xc = self.temp_grid.getCellCenter()
-            cm = self.current_covar()
-            Cm = cm.compute(xc, xc)
+    def compute(self):
+        self.progress_form.show()
+        try:
+            self.progress_bar.setValue(10)
+            self.apply_booleans()
+            if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                xc = self.temp_grid.getCellCenter()
+                cm = self.current_covar()
+                Cm = cm.compute(xc, xc)
 
-            s = (self.data[:, 0].reshape(-1) / np.sum(self.L, 1).reshape(-1)).T
-            s0 = np.mean(s)
+                s = (self.data[:, 0].reshape(-1) / np.sum(self.L, 1).reshape(-1)).T
+                s0 = np.mean(s)
 
-            if cm.use_xi:
-                if cm.use_tilt:
-                    np_ = self.L.shape[1] / 2
-                    l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
-                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
-                    xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
-                    theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
-                    J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
-                    Cm = np.dot(J, np.dot(Cm, J.T))
+                if cm.use_xi:
+                    if cm.use_tilt:
+                        np_ = self.L.shape[1] / 2
+                        l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
+                        s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                        xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
+                        theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
+                        J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
+                        Cm = np.dot(J, np.dot(Cm, J.T))
+                    else:
+                        np_ = self.L.shape[1] / 2
+                        l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
+                        s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                        xi0 = np.ones([np_, 1])
+                        J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
+                        Cm = np.dot(J, np.dot(Cm, J.T))
                 else:
-                    np_ = self.L.shape[1] / 2
-                    l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
-                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
-                    xi0 = np.ones([np_, 1])
-                    J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
-                    Cm = np.dot(J, np.dot(Cm, J.T))
-            else:
-                Cm = self.L.dot(Cm.dot(self.L.T.todense()))
+                    Cm = self.L.dot(Cm.dot(self.L.T.todense()))
 
-            if cm.use_c0:
-                # use exp variance
-                c0 = self.data[:, 1]**2
-                Cm += cm.nugget_data * np.diag(c0)
-            else:
-                Cm += cm.nugget_data * np.eye(self.L.shape[0])
+                if cm.use_c0:
+                    # use exp variance
+                    c0 = self.data[:, 1]**2
+                    Cm += cm.nugget_data * np.diag(c0)
+                else:
+                    Cm += cm.nugget_data * np.eye(self.L.shape[0])
 
-            Cm = Cm.reshape([-1, 1])
-            ind = np.argsort(Cm, axis=0)
-            ind = ind[::-1]
-            Cm = Cm[ind]
-            lclas = int(self.bin_edit.text())
-            afi = 1 / float(self.bin_frac_edit.text())
+                Cm = Cm.reshape([-1, 1])
+                ind = np.argsort(Cm, axis=0)
+                ind = ind[::-1]
+                Cm = Cm[ind]
+                lclas = int(self.bin_edit.text())
+                afi = 1 / float(self.bin_frac_edit.text())
 
-            gt = covar.moy_bloc(Cm, lclas)
-            ind0 = np.where(gt < np.inf)
-            gt = gt[ind0].T
+                gt = covar.moy_bloc(Cm, lclas)
+                ind0 = np.where(gt < np.inf)
+                gt = gt[ind0].T
 
-            g = self.Cd[ind]
-            g = covar.moy_bloc(g, lclas)
-            g = g[ind0].T
+                g = self.Cd[ind]
+                g = covar.moy_bloc(g, lclas)
+                g = g[ind0].T
 
-            N = int(np.round(len(g) / afi))
-            g = g[0:N]
-            gt = gt[0:N]
+                N = int(np.round(len(g) / afi))
+                g = g[0:N]
+                gt = gt[0:N]
 
-            gmin = np.min(np.concatenate([g, gt]))
-            gmax = np.max(np.concatenate([g, gt]))
-            self.comparison_fig.plot(g, gt, gmin, gmax)
+                gmin = np.min(np.concatenate([g, gt]))
+                gmax = np.max(np.concatenate([g, gt]))
+                self.comparison_fig.plot(g, gt, gmin, gmax)
 
-            n1 = range(0, len(gt))
-            n2 = range(0, len(g))
-            self.covariance_fig.plot(n2, g, n1, gt)
+                n1 = range(0, len(gt))
+                n2 = range(0, len(g))
+                self.covariance_fig.plot(n2, g, n1, gt)
+
+        finally:
+            self.progress_form.hide()
 
     def show_stats(self):
         if self.model is not None:
@@ -1109,11 +1115,19 @@ class CovarUI(QtWidgets.QFrame):
 
         self.statistics_fig = StatisticsFig(self)
         self.statistics_form = QtWidgets.QWidget()
-        statistics_grid = QtWidgets.QGridLayout()
-        statistics_grid.addWidget(self.statistics_fig)
-        self.statistics_form.setLayout(statistics_grid)
+        lay([self.statistics_fig], 'noMargins', parent=self.statistics_form)
         self.statistics_form.setMinimumSize(self.statistics_form.sizeHint().height(),
                                             self.statistics_form.sizeHint().width())
+
+        # --- Progress bar form --- #
+
+        self.progress_form = QtWidgets.QWidget()
+        self.progress_form.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        self.progress_form.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        progress_lbl = MyQLabel("Computing...", ha='center')
+        self.progress_bar = QtWidgets.QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        inv_lay([progress_lbl, self.progress_bar], ('setFixWid', self.progress_bar, 500), parent=self.progress_form)
 
 
 class StatisticsFig(FigureCanvasQTAgg):
