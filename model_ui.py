@@ -31,6 +31,7 @@ from model import Model
 from mog import Mog
 from grid import Grid, Grid2D
 from events_ui import GridEdited
+from sqlalchemy.orm.attributes import flag_modified
 import database
 
 
@@ -134,6 +135,7 @@ class ModelUI(QtWidgets.QWidget):
             g, ok = self.gridEditor(model, model.grid)
             if g is not None and ok == 1:
                 model.grid = g
+                flag_modified(model, 'grid')
                 database.modified = True
 
     def gridEditor(self, model, grid=None):
