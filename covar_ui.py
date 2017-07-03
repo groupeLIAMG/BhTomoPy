@@ -361,8 +361,9 @@ class CovarUI(QtWidgets.QFrame):
         if self.temp_grid is not None and self.model.grid is not None:
 
             if np.abs(self.temp_grid.dx - float(self.step_X_edit.text())) > 0.00001:
+                # TODO: compute with range, ie with (max-min)/dx
                 dx = float(self.step_X_edit.text())
-                self.temp_grid.grx = np.arange(self.model.grid.grx[0], self.model.grid.grx[-1] + dx, dx)
+                self.temp_grid.grx = np.arange(self.model.grid.grx[0], self.model.grid.grx[-1] + dx/2, dx)
                 # 'dx' is added so that the upper boundary is included
 
             elif np.abs(self.temp_grid.dy - float(self.step_Y_edit.text())) > 0.00001:
@@ -620,8 +621,8 @@ class CovarUI(QtWidgets.QFrame):
         nt = self.L.shape[0]
 
         if not self.ellip_veloc_checkbox.checkState():
-            s0 = np.mean(self.data[:, 0] / np.sum(self.L, 1))
-            mta = s0 * np.sum(self.L, 1)  # mean traveltime
+            s0 = np.mean(self.data[:, 0] / np.sum(self.L.toarray(), 1))
+            mta = s0 * np.sum(self.L, 1).getA()  # mean traveltime
         else:
             np_ = self.L.shape[1] / 2
             l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, np_:]**2)
@@ -630,7 +631,7 @@ class CovarUI(QtWidgets.QFrame):
 
         dt = self.data[:, 0].reshape((-1, 1)) - mta
 
-        self.Cd = dt.dot(dt.T).getA()
+        self.Cd = dt.dot(dt.T)
         self.Cd = self.Cd.reshape((nt**2, 1), order='F')
 
     def compute(self):
@@ -654,16 +655,16 @@ class CovarUI(QtWidgets.QFrame):
                         xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
                         theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
                         J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
-                        Cm = J.dot(np.dot(Cm, J.T.todense())).getA()
+                        Cm = J.dot(np.dot(Cm, J.T.toarray()))
                     else:
                         np_ = self.L.shape[1] / 2
                         l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
                         s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                         xi0 = np.ones([np_, 1])
                         J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
-                        Cm = J.dot(np.dot(Cm, J.T.todense())).getA()
+                        Cm = J.dot(np.dot(Cm, J.T.toarray()))
                 else:
-                    Cm = self.L.dot(Cm.dot(self.L.T.todense())).getA()
+                    Cm = self.L.dot(Cm.dot(self.L.T.toarray()))
 
                 if cm.use_c0:
                     # use exp variance
