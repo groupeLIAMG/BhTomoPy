@@ -1090,10 +1090,10 @@ def computeJ2(L, e):
 def moy_bloc(xy, lclas):  # TODO VERIFY
     # (C) 2005 Erwan Gloaguen, Bernard Giroux
 
-    k = int(np.floor(len(xy) / lclas))
+    k = int(np.floor(xy.size / lclas))
 
-    m = np.mean(np.reshape(xy[0:k * lclas], (lclas, k)), 0).reshape([-1, 1])
-    m[k - 1] = np.mean(xy[(k - 1) * lclas:])
+    m = np.mean(np.reshape(xy[0:k * lclas], (k,lclas)), axis=1).flatten()
+    m = np.hstack((m, np.mean(xy[(k - 1) * lclas:])))
 
     return m
 
