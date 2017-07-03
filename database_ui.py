@@ -157,7 +157,7 @@ class DatabaseUI(QtWidgets.QWidget):
             if str(database.engine.url) == 'sqlite:///:memory:':
                 self.saveasfile()
                 return
-
+            
             database.session.commit()
             database.modified = False
 

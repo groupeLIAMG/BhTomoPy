@@ -212,16 +212,26 @@ class ManualttUI(QtWidgets.QFrame):
 
     def load_tt_file(self, filename):
         try:
-            info_tt = np.loadtxt(filename)
-            for row in info_tt:
-                trc_number = int(float(row[0]))
-                tt = float(row[1])
-                et = float(row[2])
-                self.mog.tt_done[trc_number - 1] = 1
-                self.mog.tt[trc_number - 1] = tt
-                self.mog.et[trc_number - 1] = et
+            
+            warning = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Warning, 'Warning', "This will reinitialize all previous picks. Proceed?")
+            warning.addButton(QtWidgets.QMessageBox.Yes)
+            warning.addButton(QtWidgets.QMessageBox.No)
+            warning.setDefaultButton(QtWidgets.QMessageBox.No)
 
-            self.update_control_center()
+            if warning.exec_() == QtWidgets.QMessageBox.Yes:            
+                info_tt = np.loadtxt(filename)
+                self.mog.tt_done[:] = 0
+                self.mog.tt[:] = -1
+                self.mog.et[:] = -1
+                for row in info_tt:
+                    trc_number = int(float(row[0])+0.00000001)
+                    tt = float(row[1])
+                    et = float(row[2])
+                    self.mog.tt_done[trc_number - 1] = 1
+                    self.mog.tt[trc_number - 1] = tt
+                    self.mog.et[trc_number - 1] = et
+    
+                self.update_control_center()
         except:
             QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename), buttons=QtWidgets.QMessageBox.Ok)
 
