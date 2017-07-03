@@ -784,9 +784,9 @@ class BoreholesFig(FigureCanvasQTAgg):
             Tx_ys = mog.data.Tx_y[:num_Tx]
             Rx_ys = mog.data.Rx_y[:num_Rx]
             self.ax.text(x=Tx_xs[0], y=Tx_ys[0], z=mog.Tx.fdata[0, 2], s=str(mog.Tx.name))
-            self.ax.scatter(Tx_xs, Tx_ys, Tx_zs, c='g', marker='o', label="{}'s Tx".format(mog.name), lw=0)
+            self.ax.scatter(Tx_xs, Tx_ys, Tx_zs, c='b', marker='o', label="{}'s Tx".format(mog.name), lw=0)
             self.ax.text(x=Rx_xs[0], y=Rx_ys[0], z=mog.Rx.fdata[0, 2], s=str(mog.Rx.name))
-            self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='b', marker='*', label="{}'s Rx".format(mog.name), lw=0)
+            self.ax.scatter(Rx_xs, Rx_ys, Rx_zs, c='g', marker='*', label="{}'s Rx".format(mog.name), lw=0)
 
             l = self.ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left', borderpad=0)
             l.draw_frame(False)
@@ -837,8 +837,8 @@ class GridViewFig(FigureCanvasQTAgg):
         for j in range(len(self.gUI.grid.grz)):
             self.ax.plot(xx1[j, :], zz2[j, :], color='grey')
 
-        self.ax.plot(self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Tx[self.gUI.grid.in_vect, 2], marker='o', color='green', ls='none')
-        self.ax.plot(self.gUI.grid.Rx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 2], marker='*', color='blue', ls='none')
+        self.ax.plot(self.gUI.grid.Tx[self.gUI.grid.in_vect, 0], self.gUI.grid.Tx[self.gUI.grid.in_vect, 2], marker='o', color='blue', ls='none')
+        self.ax.plot(self.gUI.grid.Rx[self.gUI.grid.in_vect, 0], self.gUI.grid.Rx[self.gUI.grid.in_vect, 2], marker='*', color='green', ls='none')
 
         self.ax.set_xlim(min(self.gUI.grid.grx), max(self.gUI.grid.grx))
         self.ax.set_ylim(min(self.gUI.grid.grz), max(self.gUI.grid.grz))
