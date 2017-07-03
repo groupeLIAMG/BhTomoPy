@@ -359,16 +359,16 @@ class CovarUI(QtWidgets.QFrame):
     def update_temp_grid(self):
         if self.temp_grid is not None and self.model.grid is not None:
 
-            if self.temp_grid.dx != float(self.step_X_edit.text()):
+            if np.abs(self.temp_grid.dx - float(self.step_X_edit.text())) > 0.00001:
                 dx = float(self.step_X_edit.text())
                 self.temp_grid.grx = np.arange(self.model.grid.grx[0], self.model.grid.grx[-1] + dx, dx)
                 # 'dx' is added so that the upper boundary is included
 
-            elif self.temp_grid.dy != float(self.step_Y_edit.text()):
+            elif np.abs(self.temp_grid.dy - float(self.step_Y_edit.text())) > 0.00001:
                 dy = float(self.step_Y_edit.text())
                 self.temp_grid.gry = np.arange(self.model.grid.gry[0], self.model.grid.gry[-1] + dy, dy)
 
-            elif self.temp_grid.dz != float(self.step_Z_edit.text()):
+            elif np.abs(self.temp_grid.dz - float(self.step_Z_edit.text())) > 0.00001:
                 dz = float(self.step_Z_edit.text())
                 self.temp_grid.grz = np.arange(self.model.grid.grz[0], self.model.grid.grz[-1] + dz, dz)
 
@@ -428,12 +428,12 @@ class CovarUI(QtWidgets.QFrame):
         ind    = self.covar_struct_combo.currentIndex()
 
         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            covar_.covar[ind].range[0] = self.slowness_range_X_edit.text()
-            covar_.covar[ind].range[1] = self.slowness_range_Z_edit.text()
-            covar_.covar[ind].angle[0] = self.slowness_theta_X_edit.text()
-            covar_.covar[ind].sill     = self.slowness_sill_edit   .text()
-            covar_.nugget_model        = self.slowness_edit        .text()
-            covar_.nugget_data         = self.tt_edit              .text()
+            covar_.covar[ind].range[0] = float(self.slowness_range_X_edit.text())
+            covar_.covar[ind].range[1] = float(self.slowness_range_Z_edit.text())
+            covar_.covar[ind].angle[0] = float(self.slowness_theta_X_edit.text())
+            covar_.covar[ind].sill     = float(self.slowness_sill_edit   .text())
+            covar_.nugget_model        = float(self.slowness_edit        .text())
+            covar_.nugget_data         = float(self.tt_edit              .text())
 
             if self.ellip_veloc_checkbox.checkState():
 
@@ -442,31 +442,31 @@ class CovarUI(QtWidgets.QFrame):
 
                 if covar_.covar_xi[ind] is None:
                     covar_.covar_xi[ind] = covar.CovarianceFactory.detDefault2D()
-                covar_.covar_xi[ind].range[0] = self.xi_range_X_edit.text()
-                covar_.covar_xi[ind].range[1] = self.xi_range_Z_edit.text()
-                covar_.covar_xi[ind].angle[0] = self.xi_theta_X_edit.text()
-                covar_.covar_xi[ind].sill     = self.xi_sill_edit   .text()
-                covar_.nugget_xi              = self.xi_edit        .text()
+                covar_.covar_xi[ind].range[0] = float(self.xi_range_X_edit.text())
+                covar_.covar_xi[ind].range[1] = float(self.xi_range_Z_edit.text())
+                covar_.covar_xi[ind].angle[0] = float(self.xi_theta_X_edit.text())
+                covar_.covar_xi[ind].sill     = float(self.xi_sill_edit   .text())
+                covar_.nugget_xi              = float(self.xi_edit        .text())
 
                 if self.tilted_ellip_veloc_checkbox.checkState():
                     if covar_.covar_tilt[ind] is None:
                         covar_.covar_tilt[ind] = covar.CovarianceFactory.detDefault2D()
-                    covar_.covar_tilt[ind].range[0] = self.tilt_range_X_edit.text()
-                    covar_.covar_tilt[ind].range[1] = self.tilt_range_Z_edit.text()
-                    covar_.covar_tilt[ind].angle[0] = self.tilt_theta_X_edit.text()
-                    covar_.covar_tilt[ind].sill     = self.tilt_sill_edit   .text()
-                    covar_.nugget_tilt              = self.tilt_edit        .text()
+                    covar_.covar_tilt[ind].range[0] = float(self.tilt_range_X_edit.text())
+                    covar_.covar_tilt[ind].range[1] = float(self.tilt_range_Z_edit.text())
+                    covar_.covar_tilt[ind].angle[0] = float(self.tilt_theta_X_edit.text())
+                    covar_.covar_tilt[ind].sill     = float(self.tilt_sill_edit   .text())
+                    covar_.nugget_tilt              = float(self.tilt_edit        .text())
 
         elif self.model.grid.type == '3D':
-            covar_.covar[ind].range[0] = self.slowness_3D_range_X_edit.text()
-            covar_.covar[ind].range[1] = self.slowness_3D_range_Y_edit.text()
-            covar_.covar[ind].range[2] = self.slowness_3D_range_Z_edit.text()
-            covar_.covar[ind].angle[0] = self.slowness_3D_theta_X_edit.text()
-            covar_.covar[ind].angle[1] = self.slowness_3D_theta_Y_edit.text()
-            covar_.covar[ind].angle[2] = self.slowness_3D_theta_Z_edit.text()
-            covar_.covar[ind].sill     = self.slowness_3D_sill_edit   .text()
-            covar_.nugget_model        = self.slowness_edit           .text()
-            covar_.nugget_data         = self.tt_edit                 .text()
+            covar_.covar[ind].range[0] = float(self.slowness_3D_range_X_edit.text())
+            covar_.covar[ind].range[1] = float(self.slowness_3D_range_Y_edit.text())
+            covar_.covar[ind].range[2] = float(self.slowness_3D_range_Z_edit.text())
+            covar_.covar[ind].angle[0] = float(self.slowness_3D_theta_X_edit.text())
+            covar_.covar[ind].angle[1] = float(self.slowness_3D_theta_Y_edit.text())
+            covar_.covar[ind].angle[2] = float(self.slowness_3D_theta_Z_edit.text())
+            covar_.covar[ind].sill     = float(self.slowness_3D_sill_edit   .text())
+            covar_.nugget_model        = float(self.slowness_edit           .text())
+            covar_.nugget_data         = float(self.tt_edit                 .text())
 
         self.flag_modified_covar()
         database.modified = True
@@ -617,12 +617,13 @@ class CovarUI(QtWidgets.QFrame):
         else:
             np_ = self.L.shape[1] / 2
             l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, np_:]**2)
-            s0 = np.mean(self.data[:, 0] / sum(l, 1))
-            mta = s0 * sum(l, 1)
+            s0 = np.mean(self.data[:, 0] / np.sum(l, 1))
+            mta = s0 * np.sum(l, 1)
 
-        dt = self.data[:, 0] - mta
+        dt = self.data[:, 0].reshape((-1,1)) - mta
 
-        self.Cd = np.reshape(dt * dt.T, (nt**2, 1))
+        self.Cd = dt.dot(dt.T).getA()
+        self.Cd = self.Cd.reshape((nt**2, 1), order='F')
 
     def compute(self):
         self.progress_form.show()
@@ -645,16 +646,16 @@ class CovarUI(QtWidgets.QFrame):
                         xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
                         theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
                         J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
-                        Cm = np.dot(J, np.dot(Cm, J.T))
+                        Cm = J.dot(np.dot(Cm, J.T.todense())).getA()
                     else:
                         np_ = self.L.shape[1] / 2
                         l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
                         s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
                         xi0 = np.ones([np_, 1])
                         J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
-                        Cm = np.dot(J, np.dot(Cm, J.T))
+                        Cm = J.dot(np.dot(Cm, J.T.todense())).getA()
                 else:
-                    Cm = self.L.dot(Cm.dot(self.L.T.todense()))
+                    Cm = self.L.dot(Cm.dot(self.L.T.todense())).getA()
 
                 if cm.use_c0:
                     # use exp variance
@@ -663,12 +664,12 @@ class CovarUI(QtWidgets.QFrame):
                 else:
                     Cm += cm.nugget_data * np.eye(self.L.shape[0])
 
-                Cm = Cm.reshape([-1, 1])
-                ind = np.argsort(Cm, axis=0)
+                Cm = Cm.flatten()
+                ind = np.argsort(Cm)
                 ind = ind[::-1]
                 Cm = Cm[ind]
                 lclas = int(self.bin_edit.text())
-                afi = 1 / float(self.bin_frac_edit.text())
+                afi = float(self.bin_frac_edit.text())
 
                 gt = covar.moy_bloc(Cm, lclas)
                 ind0 = np.where(gt < np.inf)
@@ -678,7 +679,7 @@ class CovarUI(QtWidgets.QFrame):
                 g = covar.moy_bloc(g, lclas)
                 g = g[ind0].T
 
-                N = int(np.round(len(g) / afi))
+                N = int(np.round(len(g) * afi))
                 g = g[0:N]
                 gt = gt[0:N]
 
@@ -1088,7 +1089,7 @@ class CovarUI(QtWidgets.QFrame):
         for item in (*self.slowness_checkboxes, *self.xi_checkboxes, *self.tilt_checkboxes, *self.slowness_3D_checkboxes):
             item.clicked.connect(self.fix_verif)
 
-        for item in (*self.slowness_edits, *self.xi_edits, *self.tilt_edits, *self.slowness_3D_edits):
+        for item in (*self.slowness_edits, *self.xi_edits, *self.tilt_edits, *self.slowness_3D_edits, self.tt_edit, self.slowness_edit, self.xi_edit, self.tilt_edit):
             item.textModified.connect(self.apply_parameters_changes)
             item.textModified.connect(self.auto_update)
 
