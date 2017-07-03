@@ -22,14 +22,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 # Functions from 'database' require a module as first parameter. This is a way of allowing the coexistence
 # of multiple instances of session throughout the program (one per module). Moreover, because the
 # SQLAlchemy objects exist as attributes, they are permanent. Note that any object may replace modules,
-# but using the latter is quite convenient.
+# but using the latter is quite convenient, as they are easily accessible.
 
-# To retrieve an object from the database, use <module>.query(<Class>).filter(<Class>.name == <str>).first()
+# To retrieve an object from a database, use <module>.query(<Class>).filter(<Class>.name == <str>).first()
 # Note that an object must always be extracted from a filter object by using the *.first() method.
 # One could also use <module>.session.query(<Class>).all()[<indice>] to retrieve an object, but this is less
 # SQLAlchemy-esque (and probably quite less efficient, as all the instances are retrieved).
 
-# Be wary that a database could fail to load if it is open in another program.
+# Be wary that a database could fail to load if it is open in another program. The verify_database_active
+# function serves the purpose of validating whether or not it is the case.
 
 # One can get the current module so that it can be sent as a parameter like so:
 # import sys

@@ -35,7 +35,7 @@ class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Database")
-        # --- Other Modules Instance --- #
+        # --- Other Modules Instances --- #
         self.bh = BoreholeUI()
         self.mog = MOGUI()
         self.model = ModelUI()
@@ -161,10 +161,7 @@ class DatabaseUI(QtWidgets.QWidget):
             database.session.commit()
             database.modified = False
 
-            try:
-                self.model.gridui.update_model_grid()
-            except:
-                print("Warning : 'update_model_grid' skipped [database_ui 1]")
+#             self.model.gridui.update_model_grid()  # TODO Is that deprecated?
 
             self.update_log("Database was saved successfully")
             QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
