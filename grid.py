@@ -443,8 +443,8 @@ class Grid2D(Grid):
         nx = np.int64(np.ceil((xmax - xmin) / dx) + 0.001)
         nz = np.int64(np.ceil((zmax - zmin) / dz) + 0.001)
 
-        c = np.vstack([xmin + np.kron(np.ones((nz, )), np.arange(nx) * dx),
-                       zmin + np.kron(np.arange(nz), np.ones((nx, )) * dz)]).T
+        c = np.vstack([xmin + np.kron(np.arange(nx), np.ones((nz, )) * dx),
+                       zmin + np.kron(np.ones((nx, )), np.arange(nz) * dz)]).T
         return c
 
     def checkCenter(self, x, y, z):
