@@ -480,6 +480,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
             if Tx != Rx:
                 self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
+                
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(mog, 'data')
+
 
     def plot_rawdata(self):
         if database.session.query(Mog).count() != 0:
