@@ -313,26 +313,26 @@ class CovarianceModel(object):
         Cm = self.covar[0].compute(x, x0)
 
         for n in range(1, len(self.covar)):
-            Cm = Cm + self.covar[n].compute(x, x0)
+            Cm += self.covar[n].compute(x, x0)
 
         if self.nugget_model != 0:
-            Cm = Cm + self.nugget_model * np.eye(Cm.shape[0])
+            Cm += self.nugget_model * np.eye(Cm.shape[0])
 
         if self.use_xi:
             Cx = self.covar_xi[0].compute(x, x0)
             for n in range(1, len(self.covar_xi)):
-                Cx = Cx + self.covar_xi[n].compute(x, x0)
+                Cx += self.covar_xi[n].compute(x, x0)
 
             if self.nugget_xi != 0:
-                Cx = Cx + self.nugget_xi * np.eye(Cm.shape[0])
+                Cx += self.nugget_xi * np.eye(Cm.shape[0])
 
             if self.use_tilt:
                 Ct = self.covar_tilt[0].compute(x, x0)
                 for n in range(1, len(self.covar_tilt)):
-                    Ct = Ct + self.covar_tilt[n].compute(x, x0)
+                    Ct += self.covar_tilt[n].compute(x, x0)
 
                 if self.nugget_tilt != 0:
-                    Ct = Ct + self.nugget_tilt * np.eye(Cm.shape[0])
+                    Ct += self.nugget_tilt * np.eye(Cm.shape[0])
 
                 Cm = csr_matrix(np.concatenate([[Cm, np.zeros(np.size(Cx)), np.zeros(np.size(Ct))],  # TODO Verify sparse implementation
                                                 [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],
@@ -1036,7 +1036,7 @@ def computeJ(L, e):
     np_ = L.shape[1] / 2
 
     J = L**2
-    Js = J[:, 0:np_] + J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[(np_):]**2).T)  # l_x^2 + l_z^2 * xi^2
+    Js = J[:, 0:np_] + J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[(np_):]**2).T)  # l_x**2 + l_z**2 * xi**2
     Js = np.sqrt(Js)  # equals to t / s_x
 
     Jxi = J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[0:np_]).T) * np.kron(np.ones([nt, 1]), (e[(np_):]).T)
@@ -1092,7 +1092,7 @@ def moy_bloc(xy, lclas):  # TODO VERIFY
 
     k = int(np.floor(xy.size / lclas))
 
-    m = np.mean(np.reshape(xy[0:k * lclas], (k,lclas)), axis=1).flatten()
+    m = np.mean(np.reshape(xy[0:k * lclas], (k, lclas)), axis=1).flatten()
     m = np.hstack((m, np.mean(xy[(k - 1) * lclas:])))
 
     return m

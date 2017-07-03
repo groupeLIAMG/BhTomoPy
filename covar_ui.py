@@ -47,6 +47,7 @@ class CovarUI(QtWidgets.QFrame):
     model = None           # current model
     temp_grid = None       # the grid modified from covar_ui actually is only a temporary one. The original grid must not be modified.
     updateHandler = False  # selected model may seldom be modified twice. 'updateHandler' prevents functions from firing more than once. TODO: use a QValidator instead.
+    updateHandlerParameters = False
     data = None            # holds the model's data so that it does not need to be computed more than once
     idata = None           # idem.
     L = None               # ray matrix
@@ -377,6 +378,8 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_parameters(self):
 
+        self.updateHandlerParameters = True
+
         covar_ = self.current_covar()
         ind    = self.covar_struct_combo.currentIndex()
 
@@ -422,7 +425,12 @@ class CovarUI(QtWidgets.QFrame):
                 self.slowness_edit           .setText(str(covar_.nugget_model))
                 self.tt_edit                 .setText(str(covar_.nugget_data))
 
+        self.updateHandlerParameters = False
+
     def apply_parameters_changes(self):
+
+        if self.updateHandlerParameters:
+            return
 
         covar_ = self.current_covar()
         ind    = self.covar_struct_combo.currentIndex()
@@ -572,7 +580,7 @@ class CovarUI(QtWidgets.QFrame):
 
         if self.mogs_list.currentRow() != -1:
             self.data, self.idata = Model.getModelData(self.model, selectedMogs, type_)  # , vlim)
-            self.rays_no_label.setText(str(self.data.shape[1]))
+            self.rays_no_label.setText(str(self.data.shape[0]))
             self.loadRays()
             self.computeCd()
 
@@ -620,7 +628,7 @@ class CovarUI(QtWidgets.QFrame):
             s0 = np.mean(self.data[:, 0] / np.sum(l, 1))
             mta = s0 * np.sum(l, 1)
 
-        dt = self.data[:, 0].reshape((-1,1)) - mta
+        dt = self.data[:, 0].reshape((-1, 1)) - mta
 
         self.Cd = dt.dot(dt.T).getA()
         self.Cd = self.Cd.reshape((nt**2, 1), order='F')
@@ -1155,7 +1163,19 @@ class StatisticsFig(FigureCanvasQTAgg):
         self.ax1.hist(s, 30)
         self.ax2.plot(hyp, s, 'b+')
         self.ax3.plot(theta, s, 'b+')
-        self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, str(s0)[:5], str(vs)[:5]))
+        s0, vs = str(s0), str(vs)
+
+        if s0[-4] == 'e':
+            s0 = s0[:5] + s0[-4:]
+        else:
+            s0 = s0[:9]
+
+        if vs[-4] == 'e':
+            vs = vs[:5] + vs[-4:]
+        else:
+            vs = vs[:9]
+
+        self.ax1.set_title("{}: {} $\pm$ {}".format(data_name, s0, vs))
         self.ax2.set_xlabel("Straight Ray Length")
         self.ax3.set_xlabel("Straight Ray Angle")
         self.ax2.set_ylabel(data_name)
