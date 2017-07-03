@@ -54,9 +54,9 @@ class ManualttUI(QtWidgets.QFrame):
         if self.main_data_radio.isChecked():
             self.mog.tt_done[n - 2] = 1
         elif self.t0_before_radio.isChecked():
-            self.air[self.mog.av].tt_done[n - 2] = 1
+            self.mog.av.tt_done[n - 2] = 1
         elif self.t0_after_radio.isChecked():
-            self.air[self.mog.ap].tt_done[n - 2] = 1
+            self.mog.ap.tt_done[n - 2] = 1
 
         self.Tnum_Edit.setText(str(n))
         self.update_control_center()
@@ -92,7 +92,7 @@ class ManualttUI(QtWidgets.QFrame):
             self.incertitude_value_label.setText(str(np.round(self.mog.et[n], 4)))
 
         if self.t0_before_radio.isChecked():
-            airshot_before = self.air[self.mog.av]
+            airshot_before = self.mog.av
             done = np.round(len(airshot_before.tt[airshot_before.tt != -1]) / len(airshot_before.tt) * 100)
             self.xRx_label.setText(str(airshot_before.data.Rx_x[n]))
             self.xTx_label.setText(str(airshot_before.data.Tx_x[n]))
@@ -106,7 +106,7 @@ class ManualttUI(QtWidgets.QFrame):
             self.incertitude_value_label.setText(str(np.round(airshot_before.et[n], 4)))
 
         if self.t0_after_radio.isChecked():
-            airshot_after = self.air[self.mog.ap]
+            airshot_after = self.mog.ap
             done = np.round(len(airshot_after.tt[airshot_after.tt != -1]) / len(airshot_after.tt) * 100)
             self.xRx_label.setText(str(airshot_after.data.Rx_x[n]))
             self.xTx_label.setText(str(airshot_after.data.Tx_x[n]))
@@ -134,11 +134,11 @@ class ManualttUI(QtWidgets.QFrame):
             A_min = min(self.mog.data.rdata[:, n].flatten())
             self.A_min_Edit.setText(str(A_min))
             self.A_max_Edit.setText(str(A_max))
-        else:
-            self.A_min_Edit.setText(str(-1000))
-            self.A_max_Edit.setText(str(1000))
-            self.t_min_Edit.setText(str(0))
-            self.t_max_Edit.setText(str(int(np.round(self.mog.data.timestp[-1]))))
+#         else:
+#             self.A_min_Edit.setText(str(-1000))
+#             self.A_max_Edit.setText(str(1000))
+#             self.t_min_Edit.setText(str(0))
+#             self.t_max_Edit.setText(str(int(np.round(self.mog.data.timestp[-1]))))
 
     def reinit_trace(self):
         n = int(self.Tnum_Edit.text()) - 1
@@ -147,13 +147,13 @@ class ManualttUI(QtWidgets.QFrame):
             self.mog.et[n] = -1.0
             self.mog.tt_done[n] = -1.0
         if self.t0_before_radio.isChecked():
-            self.air[self.mog.av].tt[n] = -1.0
-            self.air[self.mog.av].et[n] = -1.0
-            self.air[self.mog.av].tt_done[n] = -1.0
+            self.mog.av.tt[n] = -1.0
+            self.mog.av.et[n] = -1.0
+            self.mog.av.tt_done[n] = -1.0
         if self.t0_after_radio.isChecked():
-            self.air[self.mog.ap].tt[n] = -1.0
-            self.air[self.mog.ap].et[n] = -1.0
-            self.air[self.mog.ap].tt_done[n] = -1.0
+            self.mog.ap.tt[n] = -1.0
+            self.mog.ap.et[n] = -1.0
+            self.mog.ap.tt_done[n] = -1.0
 
         self.update_control_center()
 
@@ -179,7 +179,14 @@ class ManualttUI(QtWidgets.QFrame):
         flag_modified(self.mog, 'tt')
         flag_modified(self.mog, 'et')
         flag_modified(self.mog, 'tt_done')
-
+        if self.mog.useAirShots == True:
+            flag_modified(self.mog.av, 'tt')
+            flag_modified(self.mog.av, 'et')
+            flag_modified(self.mog.av, 'tt_done')
+            flag_modified(self.mog.ap, 'tt')
+            flag_modified(self.mog.ap, 'et')
+            flag_modified(self.mog.ap, 'tt_done')
+        
         current_module.session.commit()
 
 #         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy
@@ -191,13 +198,12 @@ class ManualttUI(QtWidgets.QFrame):
         item = chooseMOG(current_module, database.long_url(current_module))
         if item is not None:
             self.mog = item
-#             if self.mog.useAirShots == True:
-#                 self.air = sfile['air']
-#                 self.t0_before_radio.setEnabled(True)
-#                 self.t0_after_radio.setEnabled(True)
-#             else:
-#                 self.t0_before_radio.setEnabled(False)
-#                 self.t0_after_radio.setEnabled(False)
+            if self.mog.useAirShots == True:
+                self.t0_before_radio.setEnabled(True)
+                self.t0_after_radio.setEnabled(True)
+            else:
+                self.t0_before_radio.setEnabled(False)
+                self.t0_after_radio.setEnabled(False)
             self.update_control_center()
 
     def import_tt_file(self):
@@ -631,13 +637,13 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picket2.set_xdata(-100)
 
         if self.tt.t0_before_radio.isChecked():
-            airshot_before = self.tt.air[self.tt.mog.av]
+            airshot_before = self.tt.mog.av
             trace = airshot_before.data.rdata[:, n - 1]
 
-            if self.tt.air[self.tt.mog.av].tt[self.trc_number] != -1:
+            if self.tt.mog.av.tt[self.trc_number] != -1:
                 self.picktt.set_xdata(airshot_before.tt[self.trc_number])
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.air[self.tt.mog.av].tt[self.trc_number] != -1.0:
+                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.mog.av.tt[self.trc_number] != -1.0:
                     self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
                                            airshot_before.et[self.trc_number])
                     self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
@@ -654,7 +660,7 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picket2.set_xdata(-100)
 
         if self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.air[self.tt.mog.ap]
+            airshot_after = self.tt.mog.ap
             trace = airshot_after.data.rdata[:, n - 1]
             if airshot_after.tt[self.trc_number] != -1:
                 self.picktt.set_xdata(airshot_after.tt[self.trc_number])
@@ -686,9 +692,9 @@ class UpperFig(FigureCanvasQTAgg):
         if self.tt.main_data_radio.isChecked():
             self.trace.set_xdata(self.tt.mog.data.timestp)
         if self.tt.t0_before_radio.isChecked():
-            self.trace.set_xdata(self.tt.air[self.tt.mog.av].data.timestp)
+            self.trace.set_xdata(self.tt.mog.av.data.timestp)
         if self.tt.t0_after_radio.isChecked():
-            self.trace.set_xdata(self.tt.air[self.tt.mog.ap].data.timestp)
+            self.trace.set_xdata(self.tt.mog.ap.data.timestp)
         self.trace.set_ydata(trace)
 
         # TODO
@@ -732,14 +738,14 @@ class UpperFig(FigureCanvasQTAgg):
                     self.tt.mog.tt_done[self.trc_number] = 1
 
                 if self.tt.t0_before_radio.isChecked():
-                    self.tt.air[self.tt.mog.av].tt[self.trc_number] = event.xdata
-                    self.tt.air[self.tt.mog.av].tt_done[self.trc_number] = 1
+                    self.tt.mog.av.tt[self.trc_number] = event.xdata
+                    self.tt.mog.av.tt_done[self.trc_number] = 1
                     self.ax2.set_xlim(x_lim[0], x_lim[-1])
                     self.ax.set_ylim(y_lim[0], y_lim[-1])
 
                 if self.tt.t0_after_radio.isChecked():
-                    self.tt.air[self.tt.mog.ap].tt[self.trc_number] = event.xdata
-                    self.tt.air[self.tt.mog.ap].tt_done[self.trc_number] = 1
+                    self.tt.mog.ap.tt[self.trc_number] = event.xdata
+                    self.tt.mog.ap.tt_done[self.trc_number] = 1
                     self.ax2.set_xlim(x_lim[0], x_lim[-1])
                     self.ax.set_ylim(y_lim[0], y_lim[-1])
 
@@ -748,10 +754,10 @@ class UpperFig(FigureCanvasQTAgg):
                         self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
 
                     if self.tt.t0_before_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
+                        self.picktt.set_xdata(self.tt.mog.av.tt[self.trc_number])
 
                     if self.tt.t0_after_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number])
+                        self.picktt.set_xdata(self.tt.mog.ap.tt[self.trc_number])
 
                 elif self.tt.pick_combo.currentText() == "Pick with std deviation":
 
@@ -763,18 +769,18 @@ class UpperFig(FigureCanvasQTAgg):
                                                self.tt.mog.et[self.trc_number])
 
                     if self.tt.t0_before_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] -
-                                               self.tt.air[self.tt.mog.av].et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] +
-                                               self.tt.air[self.tt.mog.av].et[self.trc_number])
+                        self.picktt.set_xdata(self.tt.mog.av.tt[self.trc_number])
+                        self.picket1.set_xdata(self.tt.mog.av.tt[self.trc_number] -
+                                               self.tt.mog.av.et[self.trc_number])
+                        self.picket2.set_xdata(self.tt.mog.av.tt[self.trc_number] +
+                                               self.tt.mog.av.et[self.trc_number])
 
                     if self.tt.t0_after_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] -
-                                               self.tt.air[self.tt.mog.ap].et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] +
-                                               self.tt.air[self.tt.mog.ap].et[self.trc_number])
+                        self.picktt.set_xdata(self.tt.mog.ap.tt[self.trc_number])
+                        self.picket1.set_xdata(self.tt.mog.ap.tt[self.trc_number] -
+                                               self.tt.mog.ap.et[self.trc_number])
+                        self.picket2.set_xdata(self.tt.mog.ap.tt[self.trc_number] +
+                                               self.tt.mog.ap.et[self.trc_number])
 
             self.UpperTracePickedSignal.emit(True)
 
@@ -793,10 +799,10 @@ class UpperFig(FigureCanvasQTAgg):
                     self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
 
                 if self.tt.t0_before_radio.isChecked():
-                    self.tt.air[self.tt.mog.av].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.xdata)
+                    self.tt.mog.av.et[self.trc_number] = np.abs(self.tt.mog.av.tt[self.trc_number] - event.xdata)
 
                 if self.tt.t0_after_radio.isChecked():
-                    self.tt.air[self.tt.mog.ap].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.xdata)
+                    self.tt.mog.ap.et[self.trc_number] = np.abs(self.tt.mog.ap.tt[self.trc_number] - event.xdata)
 
                 y_lim = self.ax.get_ylim()
                 x_lim = self.ax.get_xlim()
@@ -807,14 +813,14 @@ class UpperFig(FigureCanvasQTAgg):
                     self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] + et)
 
                 if self.tt.t0_before_radio.isChecked():
-                    et = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.xdata)
-                    self.picket1.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] - et)
-                    self.picket2.set_xdata(self.tt.air[self.tt.mog.av].tt[self.trc_number] + et)
+                    et = np.abs(self.tt.mog.av.tt[self.trc_number] - event.xdata)
+                    self.picket1.set_xdata(self.tt.mog.av.tt[self.trc_number] - et)
+                    self.picket2.set_xdata(self.tt.mog.av.tt[self.trc_number] + et)
 
                 if self.tt.t0_after_radio.isChecked():
-                    et = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.xdata)
-                    self.picket1.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - et)
-                    self.picket2.set_xdata(self.tt.air[self.tt.mog.ap].tt[self.trc_number] + et)
+                    et = np.abs(self.tt.mog.ap.tt[self.trc_number] - event.xdata)
+                    self.picket1.set_xdata(self.tt.mog.ap.tt[self.trc_number] - et)
+                    self.picket2.set_xdata(self.tt.mog.ap.tt[self.trc_number] + et)
 
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
 
@@ -974,7 +980,7 @@ class LowerFig(FigureCanvasQTAgg):
             self.draw()
 
         elif self.tt.t0_before_radio.isChecked():
-            airshot_before = self.tt.air[self.tt.mog.av]
+            airshot_before = self.tt.mog.av
             data = airshot_before.data.rdata
 
             unpicked_tt_ind = np.where(airshot_before.tt == -1)[0]
@@ -1014,7 +1020,7 @@ class LowerFig(FigureCanvasQTAgg):
             self.draw()
 
         elif self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.air[self.tt.mog.ap]
+            airshot_after = self.tt.mog.ap
             data = airshot_after.data.rdata
 
             unpicked_tt_ind = np.where(airshot_after.tt == -1)[0]
@@ -1097,7 +1103,7 @@ class LowerFig(FigureCanvasQTAgg):
             if self.x is not None and self.y is not None:
 
                 y_lim = self.ax.get_ylim()
-                x_lim = self.ax.get_xlim()
+#                 x_lim = self.ax.get_xlim()
 
                 if self.tt.tt_picking_radio.isChecked():
 
@@ -1106,14 +1112,14 @@ class LowerFig(FigureCanvasQTAgg):
                         self.tt.mog.tt_done[self.trc_number] = 1
                         self.picked_tt_circle.set_ydata(self.tt.mog.tt[self.trc_number])
                     elif self.tt.t0_before_radio.isChecked():
-                        self.tt.air[self.tt.mog.av].tt[self.trc_number] = event.ydata
-                        self.tt.air[self.tt.mog.av].tt_done[self.trc_number] = 1
-                        self.picked_tt_circle.set_ydata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
+                        self.tt.mog.av.tt[self.trc_number] = event.ydata
+                        self.tt.mog.av.tt_done[self.trc_number] = 1
+                        self.picked_tt_circle.set_ydata(self.tt.mog.av.tt[self.trc_number])
 
                     elif self.tt.t0_after_radio.isChecked():
-                        self.tt.air[self.tt.mog.ap].tt[self.trc_number] = event.ydata
-                        self.tt.air[self.tt.mog.ap].tt_done[self.trc_number] = 1
-                        self.picked_tt_circle.set_ydata(self.tt.air[self.tt.mog.av].tt[self.trc_number])
+                        self.tt.mog.ap.tt[self.trc_number] = event.ydata
+                        self.tt.mog.ap.tt_done[self.trc_number] = 1
+                        self.picked_tt_circle.set_ydata(self.tt.mog.av.tt[self.trc_number])
 
                 elif self.tt.trace_selec_radio.isChecked():
 
@@ -1137,9 +1143,9 @@ class LowerFig(FigureCanvasQTAgg):
                 if self.tt.main_data_radio.isChecked():
                     self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.ydata)
                 elif self.tt.t0_before_radio.isChecked():
-                    self.tt.air[self.tt.mog.av].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.av].tt[self.trc_number] - event.ydata)
+                    self.tt.mog.av.et[self.trc_number] = np.abs(self.tt.mog.av.tt[self.trc_number] - event.ydata)
                 elif self.tt.t0_after_radio.isChecked():
-                    self.tt.air[self.tt.mog.ap].et[self.trc_number] = np.abs(self.tt.air[self.tt.mog.ap].tt[self.trc_number] - event.ydata)
+                    self.tt.mog.ap.et[self.trc_number] = np.abs(self.tt.mog.ap.tt[self.trc_number] - event.ydata)
 
                 self.LowerTracePickedSignal.emit(True)
 
