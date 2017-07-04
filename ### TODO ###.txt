@@ -2,17 +2,15 @@ As of June 30th 2017...
 
 Covar_ui is close to done:
 
-- Some validation tests for amplitude covariance are still missing (for instance curved rays must be loaded to access it);
-- Data stored in the UI (such as 'data', 'idata' or 'L') may not be consistent throughout the module;
+- Some validation tests for amplitude covariance are still missing (for instance, curved rays must be loaded to access that functionality);
 - No tests were made on the interface for 3D grids;
-- Modifying parameters should modify 'temp_grid' accordingly;
 - Experimental covariance isn't implemented;
 - No tests were run on anisotropic covariance models.
 
 In order to successfully create a covariance model, some preliminary steps are required. First, on must create the model in database_ui 
 and add at least one mog to it. The latter must have boreholes associated with it. Second, one should create the model's grid (N.B.: don't 
 forget clicking on 'Done' on the grid editor). Finally, one must also indicate the arrival times for each of the traces from the manual_tt_ui
-(which can be achieved easily by importing tt.dat). Every feature of covar_ui should then be accessible.
+(which can be achieved easily by importing testData\tt.dat). Every feature of covar_ui should then be accessible.
 
 Random tasks:
 
@@ -29,6 +27,10 @@ Data management through SQLAlchemy has been fully implemented in database_ui and
 Some other modules still lack this implementation, though. One should consider close to every *.bh, *.mog, *.model and
 *.air attributes deprecated if applied to a user interface. Those should be replaced by a call into the database by
 the means of <module>.session.query(<Class>).
+
+Quite often, a specific class's attribute may fail to save. This is due to the issue described in database.save_as's documentation.
+One should consider solving this issue as soon as possible, as the errors it causes are hard to debug, and the solving of this
+issue would result in much less confusing code.
 
 Be wary of the tools such as auto_create_scrollbar() and lay() in utils_ui, as they provide a way of reducing the
 quantity of code for a specified task and improving readability.

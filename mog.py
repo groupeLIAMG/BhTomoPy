@@ -21,8 +21,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import numpy as np
-from sqlalchemy import Column, String, Float, Boolean, SmallInteger, ForeignKey, Integer
-from utils import Base, PickleType
+from sqlalchemy import Column, String, Float, Boolean, SmallInteger, ForeignKey, Integer, PickleType
+from utils import Base
 from sqlalchemy import orm
 
 

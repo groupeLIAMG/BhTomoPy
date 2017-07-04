@@ -29,7 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 # One could also use <module>.session.query(<Class>).all()[<indice>] to retrieve an object, but this is less
 # SQLAlchemy-esque (and probably quite less efficient, as all the instances are retrieved).
 
-# Be wary that a database could fail to load if it is open in another program. The verify_database_active
+# Be wary that a database could fail to load if it is open in another program. The 'verify_database_active'
 # function serves the purpose of validating whether or not it is the case.
 
 # One can get the current module so that it can be sent as a parameter like so:
@@ -87,19 +87,6 @@ def load(module, file):
         convert_database(module, file)
 
 
-# DEPRECATED
-# def verify_mapping(module):
-#     """
-#     By referencing the items' relationships once, they don't get deleted by the closing of the
-#     current session (by the means of module.session.close() and module.engine.dispose()).
-#     """
-#
-#     for item in module.session.query(Model).all():
-#         item.mogs, item.tt_covar
-#     for item in module.session.query(Mog).all():
-#         item.Tx, item.Rx, item.av, item.ap
-
-
 def save_as(module, file):
     """
     Closes the current file, safely transfers its items to a new file and overwrites the selected file.
@@ -116,16 +103,16 @@ def save_as(module, file):
           flag_modified(mog, 'tt_covar')
           mog.data.date = '00-00-0000'
           flag_modified(mog, 'data')
+
+    This happens because PickleType doesn't track changes made in place. Refer to:
+    https://bitbucket.org/zzzeek/sqlalchemy/issues/2994/pickletype-gets-not-updated-in-database-in
+
+    TODO: One should consider coding mutable custom types in order to eradicate this issue:
+    http://docs.sqlalchemy.org/en/rel_1_1/orm/extensions/mutable.html?highlight=mutation
     """
 
     try:
         airshots_cleanup(module)
-
-        # DEPRECATED:
-        # Guarantees the objects and their relationships survive the transfer
-        # Referencing the attributes seems to guarantee the strong referencing's effectiveness
-        # strong_referencing = get_many(module)  # @UnusedVariable
-        # verify_mapping(module)
 
         # TODO Reflecting the mapping instead of merging might make the code more efficient
 
@@ -294,33 +281,3 @@ def verify_database_active(engine):
                 verify_database_active(engine)
             else:  # TODO exiting might not be the desired action
                 exit()
-
-
-if __name__ == '__main__':
-
-    import sys
-
-    app = QtWidgets.QApplication(sys.argv)
-
-    sys.exit(app.exec_())
-
-
-# Test bank
-#     from sqlalchemy import inspect
-#     from sqlalchemy.engine import reflection
-#     from sqlalchemy.orm.session import sessionmaker
-#     print(reflection.Inspector.from_engine(database.engine).get_table_names())
-#     print(items)
-#     print([i.__tablename__ for i in items])
-#     print(reflection.Inspector.from_engine(database.session.get_bind()).get_table_names())
-#     print([sessionmaker.object_session(i) for i in items])
-#     print(database.session)
-#     print([sessionmaker.object_session(i) for i in items])
-#     print(reflection.Inspector.from_engine(database.session.get_bind()).get_table_names())
-#     print([i.__tablename__ for i in items])
-#     print(database.session.get_bind().url)
-#     print([inspect(my_object) for my_object in items])
-#     database.session.commit()
-#     print([inspect(my_object).persistent for my_object in items])
-#     print([i.__tablename__ for i in database.session])
-#     print(database.session.query(Borehole).all())
