@@ -30,6 +30,8 @@ from utils_ui import lay, inv_lay
 import grid
 from sqlalchemy.orm.attributes import flag_modified
 from copy import deepcopy
+from itertools import count, islice
+from math import ceil
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 # from mpl_toolkits.mplot3d import axes3d
@@ -361,18 +363,19 @@ class CovarUI(QtWidgets.QFrame):
         if self.temp_grid is not None and self.model.grid is not None:
 
             if np.abs(self.temp_grid.dx - float(self.step_X_edit.text())) > 0.00001:
-                # TODO: compute with range, ie with (max-min)/dx
                 dx = float(self.step_X_edit.text())
-                self.temp_grid.grx = np.arange(self.model.grid.grx[0], self.model.grid.grx[-1] + dx/2, dx)
-                # 'dx' is added so that the upper boundary is included
+                nb_elements = ceil((self.model.grid.grx[-1] - self.model.grid.grx[0]) / dx)
+                self.temp_grid.grx = self.model.grid.grx[0] + dx * np.arange(0, nb_elements + 1)
 
             elif np.abs(self.temp_grid.dy - float(self.step_Y_edit.text())) > 0.00001:
                 dy = float(self.step_Y_edit.text())
-                self.temp_grid.gry = np.arange(self.model.grid.gry[0], self.model.grid.gry[-1] + dy, dy)
+                nb_elements = ceil((self.model.grid.gry[-1] - self.model.grid.gry[0]) / dy)
+                self.temp_grid.gry = self.model.grid.gry[0] + dy * np.arange(0, nb_elements + 1)
 
             elif np.abs(self.temp_grid.dz - float(self.step_Z_edit.text())) > 0.00001:
                 dz = float(self.step_Z_edit.text())
-                self.temp_grid.grz = np.arange(self.model.grid.grz[0], self.model.grid.grz[-1] + dz, dz)
+                nb_elements = ceil((self.model.grid.grz[-1] - self.model.grid.grz[0]) / dz)
+                self.temp_grid.grz = self.model.grid.grz[0] + dz * np.arange(0, nb_elements + 1)
 
             self.cells_no_labeli.setText(str(self.temp_grid.getNumberOfCells()))
             self.update_data()
