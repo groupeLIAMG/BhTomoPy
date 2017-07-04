@@ -20,8 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from sqlalchemy import Column, String, PickleType, Table, ForeignKey
-from utils import Base
+from sqlalchemy import Column, String, Table, ForeignKey
+from utils import Base, PickleType
 from sqlalchemy.orm import relationship
 
 

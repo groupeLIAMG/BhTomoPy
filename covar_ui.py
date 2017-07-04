@@ -635,9 +635,8 @@ class CovarUI(QtWidgets.QFrame):
         self.Cd = self.Cd.reshape((nt**2, 1), order='F')
 
     def compute(self):
-        self.progress_form.show()
+        self.computing_form.show()  # TODO debug on windows & mac
         try:
-            self.progress_bar.setValue(10)
             self.apply_booleans()
             if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
                 xc = self.temp_grid.getCellCenter()
@@ -701,7 +700,7 @@ class CovarUI(QtWidgets.QFrame):
                 self.covariance_fig.plot(n2, g, n1, gt)
 
         finally:
-            self.progress_form.hide()
+            self.computing_form.hide()
 
     def show_stats(self):
         if self.model is not None:
@@ -1129,15 +1128,13 @@ class CovarUI(QtWidgets.QFrame):
         self.statistics_form.setMinimumSize(self.statistics_form.sizeHint().height(),
                                             self.statistics_form.sizeHint().width())
 
-        # --- Progress bar form --- #
+        # --- Computing form --- #
 
-        self.progress_form = QtWidgets.QWidget()
-        self.progress_form.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.progress_form.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        progress_lbl = MyQLabel("Computing...", ha='center')
-        self.progress_bar = QtWidgets.QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        inv_lay([progress_lbl, self.progress_bar], ('setFixWid', self.progress_bar, 500), parent=self.progress_form)
+        self.computing_form = QtWidgets.QWidget()
+        self.computing_form.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # TODO Doesn't work
+        self.computing_form.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        progress_lbl = MyQLabel("Computing.\nPlease wait...", ha='center')
+        inv_lay([progress_lbl], parent=self.computing_form)
 
 
 class StatisticsFig(FigureCanvasQTAgg):

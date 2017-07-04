@@ -28,9 +28,11 @@ import inspect
 import dis
 import numpy as np
 import scipy.signal
+import sqlalchemy.types as types
 
 from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
 Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
+PickleType = types.PickleType(comparator=lambda *a: False)
 
 
 def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.

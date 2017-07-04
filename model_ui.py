@@ -125,6 +125,7 @@ class ModelUI(QtWidgets.QWidget):
                 g, ok = self.gridEditor(model)
                 if g is not None and ok == 1:
                     model.grid = g
+                    flag_modified(model, 'grid')
                     database.modified = True
             else:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "This model has no mogs.")

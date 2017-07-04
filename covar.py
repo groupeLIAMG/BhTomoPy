@@ -335,7 +335,7 @@ class CovarianceModel(object):
                     Ct += self.nugget_tilt * np.eye(Cm.shape[0])
 
                 Cm = csr_matrix(np.concatenate([[Cm, np.zeros(np.size(Cx)), np.zeros(np.size(Ct))],  # TODO Verify sparse implementation
-                                                [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],
+                                                [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],  # (Warning, row/column selection may not work properly.)
                                                 [np.zeros(np.size(Cm)), np.zeros(np.size(Cx)), Ct]]))
 
             else:
@@ -1030,7 +1030,7 @@ def _poletocart(pole):
     return x
 
 
-def computeJ(L, e):
+def computeJ(L, e):  # TODO Products may need to be replaced by *.dot's
 
     nt = L.shape[0]
     np_ = L.shape[1] / 2
@@ -1048,7 +1048,7 @@ def computeJ(L, e):
     return J
 
 
-def computeJ2(L, e):
+def computeJ2(L, e):  # TODO Products may need to be replaced by *.dot's
 
     nt = L.shape[0]
     np_ = L.shape[1] / 2

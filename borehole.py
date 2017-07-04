@@ -20,8 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from sqlalchemy import Column, Float, String, PickleType
-from utils import Base
+from sqlalchemy import Column, Float, String
+from utils import Base, PickleType
 
 
 class Borehole(Base):
