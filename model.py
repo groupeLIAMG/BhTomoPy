@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -17,23 +17,58 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 """
-import numpy as np
 
-class Model:
-    def __init__(self, name= ''):
-        self.name       = name  # Model's name
-        self.mogs       = []    # List of mogs contained in the model
-        self.boreholes  = []    # List of boreholes contained in the model
-        self.grid       = None  # Model's grid
-        self.tt_covar   = None  # Model's Traveltime covariance model
-        self.amp_covar  = None  # Model's Amplitude covariance model
-        self.inv_res    = []  # Results of inversion
-        self.tlinv_res  = None  # Time-lapse inversion results
+import numpy as np
+from sqlalchemy import Column, String, Table, ForeignKey, PickleType
+from utils import Base
+from sqlalchemy.orm import relationship
+
+
+# Relationship definition
+
+model_mogs = Table('model_mogs', Base.metadata,
+                   Column('Mog_name', String, ForeignKey('Mog.name')),
+                   Column('Model_name', String, ForeignKey('Model.name')))
+
+
+class Model(Base):
+
+    __tablename__ = "Model"
+    name       = Column(String, primary_key=True)  # Model's name
+    grid       = Column(PickleType)    # Model's grid
+    tt_covar   = Column(PickleType)    # Model's Traveltime covariance model
+    amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
+    inv_res    = Column(PickleType)    # Results of inversion
+    tlinv_res  = Column(PickleType)    # Time-lapse inversion results
+
+    mogs = relationship("Mog", secondary=model_mogs)  # The mogs associated with the model (acts like a list).
+
+    @property
+    def boreholes(self):
+        """
+        Returns a list of all the boreholes contained in the mogs of a model, without duplicates.
+        """
+        boreholes = []
+
+        for mog in self.mogs:
+            for borehole in mog.Tx, mog.Rx:
+                if borehole is not None:
+                    if borehole not in boreholes:  # guarantees there is no duplicate
+                        boreholes.append(borehole)
+
+        return boreholes
+
+    def __init__(self, name=''):
+        self.name       = name
+        self.grid       = None
+        self.tt_covar   = None
+        self.amp_covar  = None
+        self.inv_res    = []
+        self.tlinv_res  = None
 
     @staticmethod
-    def getModelData(model, air, selected_mogs, type1, type2= ''):
+    def getModelData(model, selected_mogs, type1, type2=''):
         data = np.array([])
         type2 = ''
 
@@ -49,48 +84,39 @@ class Model:
 
             mog = mogs[0]
             ind = np.not_equal(mog.tt, -1).T
-            tt, t0 = mog.getCorrectedTravelTimes(air)
+            tt, t0 = mog.getCorrectedTravelTimes()
             tt = tt.T
-            et = fac_dt*mog.f_et*mog.et.T
+            et = fac_dt * mog.f_et * mog.et.T
             in_vect = mog.in_vect.T
             no = np.arange(mog.data.ntrace).T
 
             if len(mogs) > 1:
                 for n in range(1, len(model.mogs)):
                     mog = mogs[n]
-                    ind = np.concatenate((ind, np.not_equal(mog.tt, -1).T), axis= 0)
-                    tt = np.concatenate((tt, mog.getCorrectedTravelTimes(air)[0].T), axis= 0)
-                    et = np.concatenate((et, fac_dt*mog.et*mog.f_et.T), axis= 0)
-                    in_vect = np.concatenate((in_vect, mog.in_vect.T), axis= 0)
-                    no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis = 0)
+                    ind = np.concatenate((ind, np.not_equal(mog.tt, -1).T), axis=0)
+                    tt = np.concatenate((tt, mog.getCorrectedTravelTimes()[0].T), axis=0)
+                    et = np.concatenate((et, fac_dt * mog.et * mog.f_et.T), axis=0)
+                    in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
+                    no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
 
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
 
             data = np.array([tt[ind], et[ind], no[ind]]).T
 
-
             return data, ind
 
         if type2 == 'depth':
-            data, ind = getModelData(model, air, selected_mogs, type1) # @UndefinedVariable
+            data, ind = getModelData(model, air, selected_mogs, type1)  # @UndefinedVariable
             mog = mogs[0]
             tt = mog.Tx_z_orig.T
             et = mog.Rx_z_orig.T
             in_vect = mog.in_vect.T
             if len(mogs) > 1:
                 for n in (1, len(mogs)):
-                    tt = np.concatenate((tt, mogs[n].Tx_z_orig.T), axis= 0)
-                    et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis= 0)
-                    in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis= 0)
+                    tt = np.concatenate((tt, mogs[n].Tx_z_orig.T), axis=0)
+                    et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis=0)
+                    in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis=0)
 
             ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
             data = np.array([tt[ind], et[ind], no[ind]]).T
             return data, ind
-
-
-
-
-
-
-
-

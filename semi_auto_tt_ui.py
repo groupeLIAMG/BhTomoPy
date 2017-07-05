@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -17,8 +17,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
 """
 
 import sys
@@ -32,14 +30,11 @@ class SemiAutottUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Semi Automatic Traveltime Picking")
-        self.openmain = OpenMainData(self)
         self.initUI()
 
     def initUI(self):
 
-
-
-        #------ Creation of the Manager for the Upper figure -------#
+        # ------ Creation of the Manager for the Upper figure ------- #
         self.Fig = Fig()
         self.tool = NavigationToolbar2QT(self.Fig, self)
         self.manager = QtWidgets.QWidget()
@@ -49,42 +44,42 @@ class SemiAutottUI(QtWidgets.QWidget):
         managergrid.setContentsMargins(0, 0, 0, 0)
         managergrid.setVerticalSpacing(3)
         self.manager.setLayout(managergrid)
-        #------- Widgets -------#
-        #--- Labels ---#
-        Z_min_label                     = MyQLabel(('Z min'), ha= 'center')
-        Z_max_label                     = MyQLabel(('Z max'), ha= 'center')
-        Tx_label                        = MyQLabel(('Tx'), ha= 'center')
-        Rx_label                        = MyQLabel(('Rx'), ha= 'center')
-        self.percent_label              = MyQLabel((''), ha= 'center')
-        Bin_label                       = MyQLabel(('Bin width [°]'), ha= 'center')
-        self.bin_value_label            = MyQLabel(('0'), ha= 'center')
-        sn_treshold_process_label       = MyQLabel(('S/N treshold - 1st Cycle processing'), ha= 'right')
-        treshold_label                  = MyQLabel(('Selection treshold, 1st Cycle'), ha= 'right')
-        weight_label                    = MyQLabel(('Weight - Traces 1st Cycle'), ha= 'right')
-        sn_treshold_freq_label          = MyQLabel(('S/N treshold - Dom freq scaling'), ha= 'right')
-        Dom_freq_min_label              = MyQLabel(('Dom freq - acceptable min freq'), ha= 'right')
-        Dom_freq_max_label              = MyQLabel(('Dom freq - acceptable max freq'), ha= 'right')
-        iteration_label                 = MyQLabel(('Iteration No'), ha= 'center')
-        self.iteration_num_label        = MyQLabel(('0'), ha= 'center')
-        t_label                         = MyQLabel(('t   '), ha= 'right')
-        t_min_label                     = MyQLabel(('min'), ha= 'center')
-        t_max_label                     = MyQLabel(('max'), ha= 'center')
-        A_label                         = MyQLabel(('A   '), ha= 'right')
-        A_min_label                     = MyQLabel(('min'), ha= 'center')
-        A_max_label                     = MyQLabel(('max'), ha= 'center')
-        computation_label               = MyQLabel(('Window - S/N computation'), ha= 'right')
-        self.time_units_label           = MyQLabel(('[]'), ha= 'center')
+        # ------- Widgets ------- #
+        # --- Labels --- #
+        Z_min_label                     = MyQLabel(('Z min'), ha='center')
+        Z_max_label                     = MyQLabel(('Z max'), ha='center')
+        Tx_label                        = MyQLabel(('Tx'), ha='center')
+        Rx_label                        = MyQLabel(('Rx'), ha='center')
+        self.percent_label              = MyQLabel((''), ha='center')
+        Bin_label                       = MyQLabel(('Bin width [°]'), ha='center')
+        self.bin_value_label            = MyQLabel(('0'), ha='center')
+        sn_threshold_process_label      = MyQLabel(('S/N threshold - 1st Cycle processing'), ha='right')
+        threshold_label                 = MyQLabel(('Selection threshold, 1st Cycle'), ha='right')
+        weight_label                    = MyQLabel(('Weight - Traces 1st Cycle'), ha='right')
+        sn_threshold_freq_label         = MyQLabel(('S/N threshold - Dom freq scaling'), ha='right')
+        Dom_freq_min_label              = MyQLabel(('Dom freq - acceptable min freq'), ha='right')
+        Dom_freq_max_label              = MyQLabel(('Dom freq - acceptable max freq'), ha='right')
+        iteration_label                 = MyQLabel(('Iteration No'), ha='center')
+        self.iteration_num_label        = MyQLabel(('0'), ha='center')
+        t_label                         = MyQLabel(('t   '), ha='right')
+        t_min_label                     = MyQLabel(('min'), ha='center')
+        t_max_label                     = MyQLabel(('max'), ha='center')
+        A_label                         = MyQLabel(('A   '), ha='right')
+        A_min_label                     = MyQLabel(('min'), ha='center')
+        A_max_label                     = MyQLabel(('max'), ha='center')
+        computation_label               = MyQLabel(('Window - S/N computation'), ha='right')
+        self.time_units_label           = MyQLabel(('[]'), ha='center')
 
-        #--- Edits ---#
+        # --- Edits --- #
         self.Tx_Zmin_edit               = QtWidgets.QLineEdit()
         self.Tx_Zmax_edit               = QtWidgets.QLineEdit()
         self.Rx_Zmin_edit               = QtWidgets.QLineEdit()
         self.Rx_Zmax_edit               = QtWidgets.QLineEdit()
         self.bin_width_edit             = QtWidgets.QLineEdit()
-        self.sn_treshold_process_edit   = QtWidgets.QLineEdit()
-        self.treshold_edit              = QtWidgets.QLineEdit()
+        self.sn_threshold_process_edit  = QtWidgets.QLineEdit()
+        self.threshold_edit             = QtWidgets.QLineEdit()
         self.weight_edit                = QtWidgets.QLineEdit()
-        self.sn_treshold_freq_edit      = QtWidgets.QLineEdit()
+        self.sn_threshold_freq_edit     = QtWidgets.QLineEdit()
         self.Dom_freq_min_edit          = QtWidgets.QLineEdit()
         self.Dom_freq_max_edit          = QtWidgets.QLineEdit()
         self.t_min_edit                 = QtWidgets.QLineEdit()
@@ -93,7 +88,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         self.A_max_edit                 = QtWidgets.QLineEdit()
         self.time_step_edit             = QtWidgets.QLineEdit()
 
-        #- Edits Dispotion -#
+        # - Edits Dispotion - #
         self.Tx_Zmin_edit.setFixedWidth(80)
         self.Tx_Zmax_edit.setFixedWidth(80)
         self.Rx_Zmin_edit.setFixedWidth(80)
@@ -104,14 +99,14 @@ class SemiAutottUI(QtWidgets.QWidget):
         self.A_min_edit.setFixedWidth(50)
         self.A_max_edit.setFixedWidth(50)
         self.time_step_edit.setFixedWidth(50)
-        self.sn_treshold_process_edit.setFixedWidth(50)
-        self.treshold_edit.setFixedWidth(50)
+        self.sn_threshold_process_edit.setFixedWidth(50)
+        self.threshold_edit.setFixedWidth(50)
         self.weight_edit.setFixedWidth(50)
-        self.sn_treshold_freq_edit.setFixedWidth(50)
+        self.sn_threshold_freq_edit.setFixedWidth(50)
         self.Dom_freq_min_edit.setFixedWidth(50)
         self.Dom_freq_max_edit.setFixedWidth(50)
 
-        #--- Buttons ---#
+        # --- Buttons --- #
         self.btn_prev_bin               = QtWidgets.QPushButton('Previous')
         self.btn_next_bin               = QtWidgets.QPushButton('Next')
         self.btn_prep                   = QtWidgets.QPushButton('Prepare')
@@ -121,13 +116,13 @@ class SemiAutottUI(QtWidgets.QWidget):
         self.btn_align                  = QtWidgets.QPushButton('Align Traces')
         self.btn_pick                   = QtWidgets.QPushButton('Pick mean Trace')
         self.btn_corr                   = QtWidgets.QPushButton('Pick Traces using Cross correlation')
-        #--- Action for Menubar ---#
+        # --- Action for Menubar --- #
         saveAction = QtWidgets.QAction('Save', self)
         saveAction.setShortcut('Ctrl+S')
 
         chooseAction = QtWidgets.QAction('Choose MOG', self)
         chooseAction.setShortcut('Ctrl+O')
-        chooseAction.triggered.connect(self.openmain.show)
+#         chooseAction.triggered.connect(self.openmain.show)
 
         reiniAction = QtWidgets.QAction('Reinitialize', self)
 
@@ -141,7 +136,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         pointAction = QtWidgets.QAction('Point the average Trace', self)
         pointAction.setShortcut('Ctrl+P')
 
-        prevAction  = QtWidgets.QAction(' Previous Group', self)
+        prevAction  = QtWidgets.QAction('Previous Group', self)
         prevAction.setShortcut('Ctrl+P')
 
         nextAction  = QtWidgets.QAction('Next Group', self)
@@ -149,15 +144,15 @@ class SemiAutottUI(QtWidgets.QWidget):
 
         averAction  = QtWidgets.QAction('Show average Traces', self)
 
-        #--- Menubar ---#
+        # --- Menubar --- #
         self.menu  = QtWidgets.QMenuBar()
 
-        #- Menus -#
+        # - Menus - #
         filemenu    = self.menu.addMenu('&File')
         editmenu    = self.menu.addMenu('&Edit')
         actionmenu  = self.menu.addMenu('&Action')
 
-        # Menus Actions #
+        # - Menus Actions - #
         filemenu.addAction(chooseAction)
         filemenu.addAction(saveAction)
 
@@ -171,25 +166,24 @@ class SemiAutottUI(QtWidgets.QWidget):
         actionmenu.addAction(nextAction)
         actionmenu.addAction(averAction)
 
-        #--- Checkboxes ---#
+        # --- Checkboxes --- #
         self.work_check             = QtWidgets.QCheckBox('Work with 1st Cycle')
         self.dom_freq_check         = QtWidgets.QCheckBox('Dominant frequency scaling')
         self.orig_check             = QtWidgets.QCheckBox('Display original Traces')
         self.show_check             = QtWidgets.QCheckBox('Show Picks')
 
-
-        #------- SubWidgets -------#
-        #--- Edits and Labels SubWidget ---#
+        # ------- SubWidgets ------- #
+        # --- Edits and Labels SubWidget --- #
         Sub_E_and_L_widget = QtWidgets.QWidget()
         Sub_E_and_L_grid = QtWidgets.QGridLayout()
-        Sub_E_and_L_grid.addWidget(sn_treshold_process_label, 0, 1)
-        Sub_E_and_L_grid.addWidget(self.sn_treshold_process_edit, 0, 2)
-        Sub_E_and_L_grid.addWidget(treshold_label, 1, 1)
-        Sub_E_and_L_grid.addWidget(self.treshold_edit, 1, 2)
+        Sub_E_and_L_grid.addWidget(sn_threshold_process_label, 0, 1)
+        Sub_E_and_L_grid.addWidget(self.sn_threshold_process_edit, 0, 2)
+        Sub_E_and_L_grid.addWidget(threshold_label, 1, 1)
+        Sub_E_and_L_grid.addWidget(self.threshold_edit, 1, 2)
         Sub_E_and_L_grid.addWidget(weight_label, 2, 1)
         Sub_E_and_L_grid.addWidget(self.weight_edit, 2, 2)
-        Sub_E_and_L_grid.addWidget(sn_treshold_freq_label, 3, 1)
-        Sub_E_and_L_grid.addWidget(self.sn_treshold_freq_edit, 3, 2)
+        Sub_E_and_L_grid.addWidget(sn_threshold_freq_label, 3, 1)
+        Sub_E_and_L_grid.addWidget(self.sn_threshold_freq_edit, 3, 2)
         Sub_E_and_L_grid.addWidget(Dom_freq_min_label, 4, 1)
         Sub_E_and_L_grid.addWidget(self.Dom_freq_min_edit, 4, 2)
         Sub_E_and_L_grid.addWidget(Dom_freq_max_label, 5, 1)
@@ -200,7 +194,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         Sub_E_and_L_widget.setFixedWidth(250)
         Sub_E_and_L_widget.setLayout(Sub_E_and_L_grid)
 
-        #--- Lower Buttons SubWidget ---#
+        # --- Lower Buttons SubWidget --- #
         Sub_lower_widget = QtWidgets.QWidget()
         Sub_lower_grid = QtWidgets.QGridLayout()
         Sub_lower_grid.addWidget(self.btn_show, 0, 0)
@@ -210,7 +204,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         Sub_lower_grid.setContentsMargins(0, 0, 0, 0)
         Sub_lower_widget.setLayout(Sub_lower_grid)
 
-        #--- trace SubWidget ---#
+        # --- trace SubWidget --- #
         Sub_trace_widget = QtWidgets.QWidget()
         Sub_trace_grid = QtWidgets.QGridLayout()
         Sub_trace_grid.addWidget(self.btn_align, 0, 0)
@@ -220,7 +214,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         Sub_trace_grid.setContentsMargins(0, 0, 0, 0)
         Sub_trace_widget.setLayout(Sub_trace_grid)
 
-        #--- Time and Amplitude Subwidget ---#
+        # --- Time and Amplitude Subwidget --- #
         Sub_T_and_A_widget = QtWidgets.QWidget()
         Sub_T_and_A_grid = QtWidgets.QGridLayout()
         Sub_T_and_A_grid.addWidget(t_min_label, 0, 1)
@@ -240,9 +234,8 @@ class SemiAutottUI(QtWidgets.QWidget):
         Sub_T_and_A_grid.setContentsMargins(0, 0, 0, 0)
         Sub_T_and_A_widget.setLayout(Sub_T_and_A_grid)
 
-
-        #------- GroupBoxes --------#
-        #--- Station GroupBox ---#
+        # ------- GroupBoxes -------- #
+        # --- Station GroupBox --- #
         station_group = QtWidgets.QGroupBox('Stations Tx-Rx')
         station_grid = QtWidgets.QGridLayout()
         station_grid.addWidget(Tx_label, 0, 1)
@@ -257,7 +250,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         station_group.setLayout(station_grid)
         station_group.setFixedWidth(300)
 
-        #--- Bin GroupBox ---#
+        # --- Bin GroupBox --- #
         bin_group = QtWidgets.QGroupBox('Bin')
         bin_grid = QtWidgets.QGridLayout()
         bin_grid.addWidget(Bin_label, 0, 0)
@@ -268,7 +261,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         bin_group.setLayout(bin_grid)
         bin_group.setFixedWidth(300)
 
-        #--- No Name GroupBox ---#
+        # --- No Name GroupBox --- #
         no_group = QtWidgets.QGroupBox()
         no_grid = QtWidgets.QGridLayout()
         no_grid.addWidget(self.work_check, 0, 0)
@@ -279,7 +272,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         no_grid.addWidget(Sub_lower_widget, 5, 0)
         no_group.setLayout(no_grid)
 
-        #--- Traces GroupBox ---#
+        # --- Traces GroupBox --- #
         traces_group = QtWidgets.QGroupBox('Traces')
         traces_grid = QtWidgets.QGridLayout()
         traces_grid.addWidget(no_group, 0, 0)
@@ -288,7 +281,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         traces_group.setLayout(traces_grid)
         traces_group.setFixedWidth(300)
 
-        #--- Automatic Picking GroupBox ---#
+        # --- Automatic Picking GroupBox --- #
         auto_group = QtWidgets.QGroupBox('Automatic Picking')
         auto_grid = QtWidgets.QGridLayout()
         auto_grid.addWidget(self.show_check, 0, 0)
@@ -296,9 +289,7 @@ class SemiAutottUI(QtWidgets.QWidget):
         auto_group.setLayout(auto_grid)
         auto_group.setFixedWidth(300)
 
-
-
-        #------- Master Grid -------#
+        # ------- Master Grid ------- #
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 5)
         master_grid.addWidget(self.manager, 1, 0, 5, 4)
@@ -311,9 +302,10 @@ class SemiAutottUI(QtWidgets.QWidget):
         master_grid.setContentsMargins(0, 0, 0, 0)
         self.setLayout(master_grid)
 
+
 class Fig(FigureCanvasQTAgg):
     def __init__(self):
-        fig = mpl.figure.Figure(facecolor= 'white')
+        fig = mpl.figure.Figure(facecolor='white')
         super(Fig, self).__init__(fig)
         self.initFig()
 
@@ -323,83 +315,18 @@ class Fig(FigureCanvasQTAgg):
         ax1.yaxis.set_ticks_position('left')
         ax1.set_axisbelow(True)
 
-class OpenMainData(QtWidgets.QWidget):
-    def __init__(self, tt, parent=None):
-        super(OpenMainData, self).__init__()
-        self.setWindowTitle("Choose Data")
-        self.database_list = []
-        self.tt = tt
-        self.initUI()
 
-    def openfile(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
-
-        self.load_file(filename)
-
-    def load_file(self, filename):
-
-        rname = filename.split('/')
-        rname = rname[-1]
-        if '.p' in rname:
-            rname = rname[:-2]
-        if '.pkl' in rname:
-            rname = rname[:-4]
-        if '.pickle' in rname:
-            rname = rname[:-7]
-        file = open(filename, 'rb')
-
-        boreholes, self.tt.mogs, self.tt.air, models = pickle.load(file)
-
-        self.database_edit.setText(rname)
-        for mog in self.tt.mogs:
-            self.mog_combo.addItem(mog.name)
-
-
-    def cancel(self):
-        self.close()
-
-    def ok(self):
-        self.tt.update_control_center()
-        self.close()
-
-    def initUI(self):
-
-        #-------  Widgets --------#
-        #--- Edit ---#
-        self.database_edit = QtWidgets.QLineEdit()
-        #- Edit Action -#
-        self.database_edit.setReadOnly(True)
-        #--- Buttons ---#
-        self.btn_database = QtWidgets.QPushButton('Choose Database')
-        self.btn_ok = QtWidgets.QPushButton('Ok')
-        self.btn_cancel = QtWidgets.QPushButton('Cancel')
-
-        #- Buttons' Actions -#
-        self.btn_cancel.clicked.connect(self.cancel)
-        self.btn_database.clicked.connect(self.openfile)
-        self.btn_ok.clicked.connect(self.ok)
-
-        #--- Combobox ---#
-        self.mog_combo = QtWidgets.QComboBox()
-
-        master_grid = QtWidgets.QGridLayout()
-        master_grid.addWidget(self.database_edit, 0, 0, 1, 2)
-        master_grid.addWidget(self.btn_database, 1, 0, 1, 2)
-        master_grid.addWidget(self.mog_combo, 2, 0, 1, 2)
-        master_grid.addWidget(self.btn_ok, 3, 0)
-        master_grid.addWidget(self.btn_cancel, 3 ,1)
-        self.setLayout(master_grid)
-
-#--- Class for alignment ---#
-class  MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left',  parent=None):
-        super(MyQLabel, self).__init__(label,parent)
+# --- Class for alignment --- #
+class MyQLabel(QtWidgets.QLabel):
+    def __init__(self, label, ha='left', parent=None):
+        super(MyQLabel, self).__init__(label, parent)
         if ha == 'center':
             self.setAlignment(QtCore.Qt.AlignCenter)
         elif ha == 'right':
             self.setAlignment(QtCore.Qt.AlignRight)
         else:
             self.setAlignment(QtCore.Qt.AlignLeft)
+
 
 if __name__ == '__main__':
 

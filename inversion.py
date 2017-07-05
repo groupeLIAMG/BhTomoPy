@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -18,11 +18,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import numpy as np
 import scipy as spy
 from scipy.sparse import linalg
 
-class InvLSQRParams:
+
+class InvLSQRParams(object):
     def __init__(self):
         self.tomoAtt        = 0
         self.selectedMogs   = []
@@ -39,10 +41,11 @@ class InvLSQRParams:
         self.nbreiter       = 0
         self.dv_max         = 0
 
-def invLSQR(params, data, idata, grid, L, app= None, ui= None):
+
+def invLSQR(params, data, idata, grid, L, app=None, ui=None):
     """
     Input:
-    params:  Instance of lsqrParams class whose parameters as been
+    params:  Instance of lsqrParams class whose parameters have been
              edited in InversionUI or manually
 
     data:   (m, 15) array :
@@ -85,9 +88,8 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
     ui: the InversionUI QWidget
     """
 
-    # Frst we call a Tomo class instance. It will hold the data we will process along the way.
+    # First we call a Tomo class instance. It will hold the data we will process along the way.
     tomo = Tomo()
-
 
     if data.shape[1] >= 9:
         tomo.no_trace = data[:, 8]
@@ -96,35 +98,34 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
         # We get the straights rays for the first iteration
         L = grid.getForwardStraightRays(idata)
 
-    tomo.x = 0.5*(grid.grx[0:-2] + grid.grx[1:-1])
-    tomo.z = 0.5*(grid.grz[0:-2] + grid.grz[1:-1])
+    tomo.x = 0.5 * (grid.grx[0:-2] + grid.grx[1:-1])
+    tomo.z = 0.5 * (grid.grz[0:-2] + grid.grz[1:-1])
 
     if not np.all(grid.gry == 0):
-        tomo.y = 0.5*(grid.gry[0:-2] + grid.gry[1:-1])
+        tomo.y = 0.5 * (grid.gry[0:-2] + grid.gry[1:-1])
     else:
         tomo.y = np.array([])
 
     cont = np.array([])
-    #TODO:  Ajouter les conditions par rapport au contraintes de v�locit� appliqu�es dans grid editor
-
+    # TODO:  Ajouter les conditions par rapport au contraintes de v�locit� appliqu�es dans grid editor
 
     # Getting our spatial derivative elements
     # These will smoothen the subsequent slowness/velocity model
     Dx, Dy, Dz = grid.derivative(params.order)
 
     for noIter in range(params.numItCurved + params.numItStraight):
-        if ui != None and app != None:
+        if ui is not None and app is not None:
             ui.gv.noIter = noIter
             app.processEvents()
 
         if noIter == 0:
             # Calculating the mean slowness from the picked tts and the ray lenghts
-            mean_s = np.mean(data[:, 6]/ L.sum(axis= 1))
+            mean_s = np.mean(data[:, 6] / L.sum(axis=1))
         else:
             mean_s = np.mean(tomo.s)
 
         # Making sur to have a b array whit (m,) shape
-        mta = L.sum(axis= 1)*mean_s
+        mta = L.sum(axis=1) * mean_s
         mta = np.hstack(mta).T
 
         tmp = mta.flat
@@ -138,15 +139,15 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
         if noIter == 0:
             s_o = mean_s * np.ones(L.shape[1]).T
 
-        A = spy.sparse.vstack([L, Dx*params.alphax, Dz*params.alphaz])
+        A = spy.sparse.vstack([L, Dx * params.alphax, Dz * params.alphaz])
 
         b = np.concatenate((dt, np.zeros(Dx.shape[0]), np.zeros(Dz.shape[0])))
 
         if not np.all(cont == 0) and params.useCont == 1:
-            #TODO faire les modifications aux matrices A et b avec les contraintes
+            # TODO: faire les modifications aux matrices A et b avec les contraintes
             pass
 
-        ans = linalg.lsqr(A, b, atol= params.tol, btol= params.tol, iter_lim = params.nbreiter)
+        ans = linalg.lsqr(A, b, atol=params.tol, btol=params.tol, iter_lim=params.nbreiter)
         # See http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.sparse.linalg.lsqr.html for documentation
         x = ans[0]
 
@@ -155,10 +156,9 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
         else:
             np.append(tomo.res, ans[3])
 
-
-        if max(abs(s_o/(x+mean_s) - 1)) > params.dv_max:
-            fac = min(abs( (s_o/(params.dv_max+1)-mean_s)/x ))
-            x = fac*x
+        if max(abs(s_o / (x + mean_s) - 1)) > params.dv_max:
+            fac = min(abs((s_o / (params.dv_max + 1) - mean_s) / x))
+            x = fac * x
             s_o = x + mean_s
 
         tomo.s = x + mean_s
@@ -166,12 +166,12 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
         # Applying the resulting model to Tx and Rx to get new tt and L and the trajectory of curved rays
         tt, L, tomo.rays = grid.raytrace(tomo.s, data[:, 0:3], data[:, 3:6])
 
-        if ui != None:
+        if ui is not None:
             ui.algo_label.setText('LSQR Inversion -')
-            ui.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter+1))
+            ui.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter + 1))
             ui.gv.invFig.plot_lsqr_inv(tomo.s)
         else:
-            print('LSQR Inversion - Ray Tracing, Iteration {}'.format(noIter+1))
+            print('LSQR Inversion - Ray Tracing, Iteration {}'.format(noIter + 1))
 
         if params.saveInvData == 1:
             tt = L * tomo.s
@@ -180,31 +180,31 @@ def invLSQR(params, data, idata, grid, L, app= None, ui= None):
                 tomo.invData.s = np.array([tomo.s]).T
 
             else:
-                tomo.invData.res = np.concatenate((tomo.invData.res, np.array([data[:, 6] - tt]).T), axis= 1)
-                tomo.invData.s = np.concatenate((tomo.invData.s, np.array([tomo.s]).T), axis= 1)
+                tomo.invData.res = np.concatenate((tomo.invData.res, np.array([data[:, 6] - tt]).T), axis=1)
+                tomo.invData.s = np.concatenate((tomo.invData.s, np.array([tomo.s]).T), axis=1)
 
         tomo.L = L
 
-                #Results:
-                #       tomo.invData.res:
-                #                       - shape: (m, noIter+1)
-                #                       - values: residuals from comparison between original tt (i.e. data[:, 6])
-                #                                 and tt calculated from the slowness model and the L sparse matrix
-                #
-                #       tomo.invData.res:
-                #                       - shape: (n, noIter+1)
-                #                       - values: slowness models from ech iterations
+#                 Results:
+#                       tomo.invData.res:
+#                                       - shape: (m, noIter+1)
+#                                       - values: residuals from comparison between original tt (i.e. data[:, 6])
+#                                                 and tt calculated from the slowness model and the L sparse matrix
+#
+#                       tomo.invData.res:
+#                                       - shape: (n, noIter+1)
+#                                       - values: slowness models from ech iterations
 
-    if ui != None:
+    if ui is not None:
         ui.algo_label.setText('LSQR Inversion -')
-        ui.noIter_label.setText('Finished, {} Iterations Done'.format(noIter+1))
+        ui.noIter_label.setText('Finished, {} Iterations Done'.format(noIter + 1))
     else:
-        print('LSQR Inversion - Finished, {} Iterations Done'.format(noIter+1))
+        print('LSQR Inversion - Finished, {} Iterations Done'.format(noIter + 1))
 
     return tomo
 
 
-class Tomo:
+class Tomo(object):
     def __init__(self):
         self.rays   = np.array([])
         self.L      = np.array([])
@@ -217,7 +217,8 @@ class Tomo:
         self.res = np.array([0])
         self.var_res = np.array([])
 
-class invData:
+
+class invData(object):
     def __init__(self):
         self.res = np.array([0])
         self.s = np.array([0])
