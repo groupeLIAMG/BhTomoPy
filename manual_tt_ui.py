@@ -24,7 +24,7 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
-from mog import Mog
+from sqlalchemy.orm.attributes import flag_modified
 
 from utils_ui import chooseMOG
 
@@ -175,18 +175,17 @@ class ManualttUI(QtWidgets.QFrame):
         self.statsFig1.showMaximized()
 
     def savefile(self):
-        from sqlalchemy.orm.attributes import flag_modified
         flag_modified(self.mog, 'tt')
         flag_modified(self.mog, 'et')
         flag_modified(self.mog, 'tt_done')
-        if self.mog.useAirShots == True:
+        if self.mog.useAirShots:
             flag_modified(self.mog.av, 'tt')
             flag_modified(self.mog.av, 'et')
             flag_modified(self.mog.av, 'tt_done')
             flag_modified(self.mog.ap, 'tt')
             flag_modified(self.mog.ap, 'et')
             flag_modified(self.mog.ap, 'tt_done')
-        
+
         current_module.session.commit()
 
 #         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy

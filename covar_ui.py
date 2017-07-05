@@ -27,10 +27,8 @@ import covar
 import database
 import utils_ui
 from utils_ui import lay, inv_lay
-import grid
 from sqlalchemy.orm.attributes import flag_modified
 from copy import deepcopy
-from itertools import count, islice
 from math import ceil
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
