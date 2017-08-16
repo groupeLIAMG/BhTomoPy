@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-
-Copyright 2016 Bernard Giroux, Elie Dumas-Lefebvre
+Copyright 2017 Bernard Giroux, Elie Dumas-Lefebvre, Jerome Simon
+email: Bernard.Giroux@ete.inrs.ca
 
 This file is part of BhTomoPy.
 
@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 from borehole_ui import BoreholeUI
@@ -26,27 +27,22 @@ from mog_ui import MOGUI, MergeMog
 from info_ui import InfoUI
 import time
 import os
-import shelve
+import database
+import utils_ui
+
 
 class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(DatabaseUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Database")
-        #--- Other Modules Instance ---#
-        self.actual_time = time.asctime()[11:16]
+        # --- Other Modules Instances --- #
         self.bh = BoreholeUI()
-        self.mog = MOGUI(self.bh)
-        self.model = ModelUI(borehole=self.bh, mog=self.mog)
+        self.mog = MOGUI()
+        self.model = ModelUI()
         self.info = InfoUI()
-        self.mergemog = MergeMog(self.mog.MOGs)
+        self.mergemog = MergeMog(self.mog)
         self.initUI()
         self.action_list = []
-        self.filename = ''
-        self.name = ''
-        self.models = self.model.models
-        self.boreholes = self.bh.boreholes
-        self.mogs = self.mog.MOGs
-        self.air = self.mog.air
 
         # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
         # modules in order to update them
@@ -61,16 +57,12 @@ class DatabaseUI(QtWidgets.QWidget):
         self.mog.moglogSignal.connect(self.update_log)
         self.model.modellogSignal.connect(self.update_log)
 
-
     def update_spectra(self, Tx_list):
         self.mog.update_spectra_Tx_num_combo(Tx_list)
         self.mog.update_spectra_Tx_elev_value_label(Tx_list)
 
-
     def update_MogUI(self, list_bh):
         self.mog.update_Tx_and_Rx_Widget(list_bh)
-
-
 
     def update_database_info(self, name):
         self.info.update_database(name)
@@ -88,16 +80,16 @@ class DatabaseUI(QtWidgets.QWidget):
         self.info.update_trace(num)
 
     def update_log(self, action):
-        # Clear the log to make sure any action is not written more than once
+        # Clears the log to make sure any action is not written more than once
         self.log.clear()
 
-        # Append the time and the action that was done
-        self.action_list.append("[{}] {} " .format(self.actual_time, action))
+        # Appends the time and the action that was done
+        self.action_list.append("[{}] {} ".format(time.asctime()[11:16], action))
 
-        # Put the Error messages in red and the others in black
+        # Shows the Error messages in red and the others in black
         for item in self.action_list:
 
-            if "Error: " in item:
+            if "Error:" in item:
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.red))
                 self.log.append(item)
 
@@ -105,59 +97,12 @@ class DatabaseUI(QtWidgets.QWidget):
                 self.log.setTextColor(QtGui.QColor(QtCore.Qt.black))
                 self.log.append(item)
 
+    def update_widgets(self):
 
-    def show(self):
-        super(DatabaseUI, self).show()
-
-        # Get initial geometry of the widget:
-        qr = self.frameGeometry()
-
-        # Show it at the center of the screen
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
-
-        # Move the window's center at the center of the screen
-        qr.moveCenter(cp)
-
-        # Then move it at the top left
-        translation = qr.topLeft()
-
-        self.move(translation)
-        
-        if self.filename != '':
-            self.load_file(self.filename)
-
-    def openfile(self):
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')
-        if filename is not '':
-            if '.db' in filename:
-                filename = filename[:-3]
-            self.load_file(filename)
-
-    def load_file(self, filename):
-        self.filename = filename
-
-        rname = os.path.basename(filename)
-
-        if '.db' in rname:
-            rname = rname[:-3]
-
-        try:
-            sfile = shelve.open(filename, 'r')
-    
-            self.bh.boreholes = sfile['boreholes']
-            self.mog.MOGs = sfile['mogs']
-            self.model.models = sfile['models']
-            self.mog.air = sfile['air']
-            
-            sfile.close()
-           
-            self.update_database_info(rname)
-            self.update_log("Database '{}' was loaded successfully".format(rname))
-    
             self.bh.update_List_Widget()
             self.bh.bh_list.setCurrentRow(0)
             self.bh.update_List_Edits()
-    
+
             self.mog.update_List_Widget()
             self.mog.update_edits()
             self.mog.MOG_list.setCurrentRow(0)
@@ -166,70 +111,89 @@ class DatabaseUI(QtWidgets.QWidget):
             self.mog.update_edits()
             self.mog.update_prune_edits_info()
             self.mog.update_prune_info()
-    
+
             self.model.update_model_list()
             self.model.update_model_mog_list()
 
-        except:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be opened",
-                                      buttons=QtWidgets.QMessageBox.Ok)
-            self.update_log('Error: Database file must be of shelve type')
+            if str(database.engine.url) != 'sqlite:///:memory:':
+                self.update_database_info(database.short_url(database))
+
+    def show(self):
+        super(DatabaseUI, self).show()
+
+        # Gets initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Shows it at the center of the screen
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+
+        # Moves the window's center at the center of the screen
+        qr.moveCenter(cp)
+
+        # Then moves it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
+
+        self.update_widgets()
+
+    def openfile(self):  # TODO: On Windows, access to folders containing special characters fails. May be due to the fact that Windows doesn't use Unicode.
+
+        if utils_ui.save_warning(database):
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+
+            if filename:
+                if filename[-3:] != '.db':
+                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
+                else:
+                    database.load(database, filename)
+                    self.update_database_info(os.path.basename(filename))
+                    self.update_widgets()
+                    self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
 
     def savefile(self):
 
-        if self.filename == '':
-            self.saveasfile()
-            return
-
         try:
-            sfile = shelve.open(self.filename, flag='c')
-            try:
-                self.model.gridui.update_model_grid()
-            except:
-                pass
-
-            sfile['models'] = self.model.models
-            sfile['boreholes'] = self.bh.boreholes
-            sfile['mogs'] = self.mog.MOGs
-            sfile['air'] = self.mog.air
-            sfile.close()
+            if str(database.engine.url) == 'sqlite:///:memory:':
+                self.saveasfile()
+                return
             
-            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtWidgets.QMessageBox.Ok)
+            database.session.commit()
+            database.modified = False
+
+#             self.model.gridui.update_model_grid()  # TODO Is that deprecated?
+
             self.update_log("Database was saved successfully")
-        except:
-            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved",
-                                      buttons=QtWidgets.QMessageBox.Ok)
-            self.update_log('Error: Database could not be saved')
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                              buttons=QtWidgets.QMessageBox.Ok)
+
+        except Exception as e:
+            QtWidgets.QMessageBox.warning(self, 'Warning', "Database could not be saved : " + str(e),
+                                          buttons=QtWidgets.QMessageBox.Ok)
 
     def saveasfile(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
-                                                     self.name, filter= 'shelve (*.db)', )
-        if filename is not '':
-            if '.db' in filename:
-                filename = filename[:-3]
-            self.filename = filename
-            self.savefile()
+                                                         filter='Database (*.db)', )[0]
 
-    def editname(self):
-        new_name = QtWidgets.QInputDialog.getText(self, "Change Name", 'Enter new name for database')
+        if filename:
+            if filename != database.long_url(database):
+                database.save_as(database, filename)
 
-        self.name = new_name
+                self.update_database_info(os.path.basename(filename))
+                self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
 
-        if new_name == '':
-            return
-
-        self.info.live_database_label.setText(str(new_name))
-
+            else:
+                database.session.commit()
+                database.modified = False
 
     def initUI(self):
 
-        #--- Log Widget ---#
+        # --- Log Widget --- #
         self.log = QtWidgets.QTextEdit()
         self.log.setReadOnly(True)
         self.log.setLineWrapMode(0)
 
-        #--- Actions ---#
+        # --- Actions --- #
         openAction = QtWidgets.QAction('Open', self)
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.openfile)
@@ -242,67 +206,67 @@ class DatabaseUI(QtWidgets.QWidget):
         saveasAction.setShortcut('Ctrl+A')
         saveasAction.triggered.connect(self.saveasfile)
 
-        editnameAction = QtWidgets.QAction('Edit database name', self)
-        editnameAction.triggered.connect(self.editname)
-
-
-        #--- Menubar ---#
+        # --- Menubar --- #
         self.menu = QtWidgets.QMenuBar()
         filemenu = self.menu.addMenu('&File')
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
         filemenu.addAction(saveasAction)
 
-        editmenu = self.menu.addMenu('&Edit')
-        editmenu.addAction(editnameAction)
-
-
-        #--- GroupBoxes ---#
-        #- Boreholes GroupBox -#
-        bh_GroupBox =  QtWidgets.QGroupBox("Boreholes")
-        bh_Sub_Grid   = QtWidgets.QGridLayout()
+        # --- GroupBoxes --- #
+        # - Boreholes GroupBox - #
+        bh_GroupBox = QtWidgets.QGroupBox("Boreholes")
+        bh_Sub_Grid = QtWidgets.QGridLayout()
         bh_Sub_Grid.addWidget(self.bh)
         bh_GroupBox.setLayout(bh_Sub_Grid)
 
-        #- MOGs GroupBox -#
-        MOGs_GroupBox =  QtWidgets.QGroupBox("MOGs")
-        MOGs_Sub_Grid   = QtWidgets.QGridLayout()
+        # - MOGs GroupBox - #
+        MOGs_GroupBox = QtWidgets.QGroupBox("MOGs")
+        MOGs_Sub_Grid = QtWidgets.QGridLayout()
         MOGs_Sub_Grid.addWidget(self.mog)
         MOGs_GroupBox.setLayout(MOGs_Sub_Grid)
 
-        #- Models GroupBox -#
-        Models_GroupBox =  QtWidgets.QGroupBox("Models")
-        Models_Sub_Grid   = QtWidgets.QGridLayout()
+        # - Models GroupBox - #
+        Models_GroupBox = QtWidgets.QGroupBox("Models")
+        Models_Sub_Grid = QtWidgets.QGridLayout()
         Models_Sub_Grid.addWidget(self.model)
         Models_GroupBox.setLayout(Models_Sub_Grid)
 
-        #- Info GroupBox -#
-        Info_GroupBox =  QtWidgets.QGroupBox("Infos")
-        Info_Sub_Grid   = QtWidgets.QGridLayout()
+        # - Info GroupBox - #
+        Info_GroupBox = QtWidgets.QGroupBox("Infos")
+        Info_Sub_Grid = QtWidgets.QGridLayout()
         Info_Sub_Grid.addWidget(self.info)
         Info_GroupBox.setLayout(Info_Sub_Grid)
 
-        #- Big SubWidget -#
+        # - Big SubWidget - #
         sub_big_widget = QtWidgets.QWidget()
         sub_big_grid = QtWidgets.QGridLayout()
-        sub_big_grid.addWidget(bh_GroupBox, 1, 0)
-        sub_big_grid.addWidget(MOGs_GroupBox, 1, 1, 1, 2)
-        sub_big_grid.addWidget(Models_GroupBox, 2, 0, 1, 2)
-        sub_big_grid.addWidget(Info_GroupBox, 2, 2)
+        sub_big_grid.addWidget(bh_GroupBox, 0, 0, 1, 1)
+        sub_big_grid.addWidget(MOGs_GroupBox, 0, 1, 1, 3)
+        sub_big_grid.addWidget(Models_GroupBox, 1, 0, 2, 2)
+        sub_big_grid.addWidget(Info_GroupBox, 1, 2, 2, 3)
+        sub_big_grid.setColumnStretch(0, 1)
+        sub_big_grid.setColumnStretch(1, 1)
+        sub_big_grid.setColumnStretch(2, 1)
         sub_big_widget.setLayout(sub_big_grid)
 
-        #--- Grid ---#
-        master_grid     = QtWidgets.QGridLayout()
+        # - Scroll bar - #
+
+        scrollbar = utils_ui.auto_create_scrollbar(sub_big_widget)
+
+        # --- Grid --- #
+        master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(self.menu, 0, 0, 1, 3)
-        master_grid.addWidget(sub_big_widget, 1, 0, 1, 3)
+        master_grid.addWidget(scrollbar, 1, 0, 1, 3)
         master_grid.addWidget(self.log, 2, 0, 2, 3)
         master_grid.setContentsMargins(0, 0, 0, 0)
         master_grid.setVerticalSpacing(5)
 
         self.setLayout(master_grid)
 
+
 class MyLogWidget(QtWidgets.QTextEdit):
-    def __init__(self, parent =None):
+    def __init__(self, parent=None):
         super(MyLogWidget, self).__init__(parent)
 
     def append(self, txt):
@@ -311,24 +275,27 @@ class MyLogWidget(QtWidgets.QTextEdit):
         bottom = self.verticalScrollBar().maximum()
         self.verticalScrollBar().setValue(bottom)
 
+
 if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
 
+    database.create_data_management(database)
+
     Database_ui = DatabaseUI()
-    Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.filename = 'test_constraints'
-    #Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
-    #Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
-    #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
-    #Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
-    #Database_ui.model.load_model("t0302's model")
-    #Database_ui.mog.plot_spectra()
-    #Database_ui.mog.plot_zop()
-
-
     Database_ui.show()
 
+    Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
+    Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
+    Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
+    Database_ui.model.load_model("t0302's model")
+    Database_ui.model.load_model("test")
+    Database_ui.model.load_model("test2")
+#     Database_ui.mog.plot_spectra()
+#     Database_ui.mog.plot_zop()
 
+#     Database_ui.saveasfile()
 
     sys.exit(app.exec_())
