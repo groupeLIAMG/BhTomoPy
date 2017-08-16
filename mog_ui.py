@@ -2123,6 +2123,9 @@ class RayCoverageFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
+    def plot_lines(self,xs,ys,zs,_color):
+         self.ax.plot(xs.T.flatten(),ys.T.flatten(),zs.T.flatten(),color=_color)
+
     def plot_ray_coverage(self, mog, n, show_type, entire_state):
         self.ax.cla()
         picked_tt = np.where(mog.tt != -1)[0]
@@ -2164,31 +2167,17 @@ class RayCoverageFig(FigureCanvasQTAgg):
 
         if entire_state:
             if show_type == 'Show picked and unpicked':
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, unpicked_tt],
-                                       Y=Tx_Rx_ys[:, unpicked_tt],
-                                       Z=Tx_Rx_zs[:, unpicked_tt],
-                                       color='red')
+                self.plot_lines(Tx_Rx_xs[:, unpicked_tt],Tx_Rx_ys[:, unpicked_tt],Tx_Rx_zs[:, unpicked_tt],'red')
 
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, picked_tt],
-                                       Y=Tx_Rx_ys[:, picked_tt],
-                                       Z=Tx_Rx_zs[:, picked_tt],
-                                       color='green')
-
-                self.draw()
+                self.plot_lines(Tx_Rx_xs[:, picked_tt],Tx_Rx_ys[:, picked_tt],Tx_Rx_zs[:, picked_tt],'green')
 
             elif show_type == 'Show picked only':
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, picked_tt],
-                                       Y=Tx_Rx_ys[:, picked_tt],
-                                       Z=Tx_Rx_zs[:, picked_tt],
-                                       color='green')
-                self.draw()
+                self.plot_lines(Tx_Rx_xs[:, picked_tt],Tx_Rx_ys[:, picked_tt],Tx_Rx_zs[:, picked_tt],'green')
 
             elif show_type == 'Show unpicked only':
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, unpicked_tt],
-                                       Y=Tx_Rx_ys[:, unpicked_tt],
-                                       Z=Tx_Rx_zs[:, unpicked_tt],
-                                       color='red')
-                self.draw()
+                self.plot_lines(Tx_Rx_xs[:, unpicked_tt],Tx_Rx_ys[:, unpicked_tt],Tx_Rx_zs[:, unpicked_tt],'red')
+
+            self.draw()
         else:
             Tx = np.unique(mog.data.Tx_z)
             ind_unpicked = np.where(Tx_Rx_zs[0, unpicked_tt] == Tx[n])[0]
@@ -2198,41 +2187,27 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_unpicked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_unpicked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_unpicked],
-                                       color='red')
 
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_unpicked],tmp_Tx_Rx_ys[:, ind_unpicked],tmp_Tx_Rx_zs[:, ind_unpicked],'red')
+               
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_picked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_picked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_picked],
-                                       color='green')
-                self.draw()
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_picked],tmp_Tx_Rx_ys[:, ind_picked],tmp_Tx_Rx_zs[:, ind_picked],'green')
 
             elif show_type == 'Show picked only':
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_picked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_picked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_picked],
-                                       color='green')
-
-                self.draw()
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_picked],tmp_Tx_Rx_ys[:, ind_picked],tmp_Tx_Rx_zs[:, ind_picked],'green')
 
             elif show_type == 'Show unpicked only':
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_unpicked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_unpicked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_unpicked],
-                                       color='red')
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_unpicked],tmp_Tx_Rx_ys[:, ind_unpicked],tmp_Tx_Rx_zs[:, ind_unpicked],'red')
 
-                self.draw()
+            self.draw()
 
 
 class PruneFig(FigureCanvasQTAgg):
