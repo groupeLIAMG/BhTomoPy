@@ -1864,7 +1864,7 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
 
         self.draw()
 
-    def calculate_Vapp(self, mog, air):
+    def calculate_Vapp(self, mog):
 
         hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 +
                       (mog.data.Tx_y - mog.data.Rx_y)**2 +
