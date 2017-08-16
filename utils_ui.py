@@ -92,8 +92,7 @@ def chooseMOG(module, filename=None):
                 b3.addItem(mog.name)
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS.',
-                                          QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                                          QtWidgets.QMessageBox.NoButton)
+                                          QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton)
             l0.setText('')
 
     if str(module.engine.url) != 'sqlite:///:memory:':

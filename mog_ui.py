@@ -195,6 +195,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             database.delete(database, mog_)
         self.update_List_Widget()
         self.update_edits()
+        database.airshots_cleanup(database)
         database.modified = True
 
     def rename(self):
