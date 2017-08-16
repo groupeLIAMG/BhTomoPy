@@ -261,6 +261,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                     # The getText method returns a tuple containing the entered data and a boolean factor
                     # (i.e. if the ok button is clicked, it returns True)
                     if ok:
+                        if not distance:
+                            self.moglogSignal.emit('Error: you must pick distances for the airshot')
+                            return
+
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
                         distance_list = [float(i) for i in distance_list]
 
@@ -316,6 +320,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                     distance, ok = QtWidgets.QInputDialog.getText(self, 'Airshots After', 'Distance between Tx and Rx :')
 
                     if ok:
+                        if not distance:
+                            self.moglogSignal.emit('Error: you must pick distances for the airshot')
+                            return
+
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
                         distance_list = [float(i) for i in distance_list]
 
@@ -454,14 +462,14 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -MOG'
 
                 # Vertical boreholes
-                if len(Tx.fdata[:, 0]) == 2 and len(Tx.fdata[:, 1]) == 2:
+                if Tx is not None and len(Tx.fdata[:, 0]) == 2 and len(Tx.fdata[:, 1]) == 2:
                     if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05:
                         mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
                         mog.data.Tx_z = Tx.Z - mog.data.TxOffset - mog.Tx_z_orig
                         mog.TxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
 
-                if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
+                if Rx is not None and len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
                     if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) < 1e-05:
                         mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
@@ -478,7 +486,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 QtWidgets.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
                                                   buttons=QtWidgets.QMessageBox.Ok)
 
-            if Tx != Rx:
+            if Tx is not None and Rx is not None and Tx != Rx:
                 self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
 
             flag_modified(mog, 'data')
