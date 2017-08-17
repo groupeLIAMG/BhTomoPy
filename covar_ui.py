@@ -544,11 +544,11 @@ class CovarUI(QtWidgets.QFrame):
 
     def fix_verif(self):
         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-            items = [*self.slowness_checkboxes]
+            items = [*self.slowness_checkboxes,*self.nugget_checkboxes]
             if self.ellip_veloc_checkbox.checkState():
-                items += [*self.xi_checkboxes]
+                items += [*self.xi_checkboxes,self.xi_checkbox]
                 if self.tilted_ellip_veloc_checkbox.checkState():
-                    items += [self.tilt_checkboxes]
+                    items += [self.tilt_checkboxes,self.tilt_checkbox]
 
         elif self.model.grid.type == '3D':
             items = [*self.slowness_3D_checkboxes]
@@ -989,6 +989,8 @@ class CovarUI(QtWidgets.QFrame):
         self.slowness_3D_checkboxes = (self.slowness_3D_range_X_checkbox, self.slowness_3D_range_Y_checkbox, self.slowness_3D_range_Z_checkbox,
                                        self.slowness_3D_theta_X_checkbox, self.slowness_3D_theta_Y_checkbox, self.slowness_3D_theta_Z_checkbox, self.slowness_3D_sill_checkbox)
 
+        self.nugget_checkboxes = (self.slowness_checkbox, self.tt_checkbox)
+
         # ------- SubWidgets ------- #
         Sub_Curved_Rays_Widget = lay([curv_rays_label, self.curv_rays_combo],
                                      'noMargins')
@@ -1095,7 +1097,7 @@ class CovarUI(QtWidgets.QFrame):
         self.step_Y_edit.textModified.connect(self.update_temp_grid)
         self.step_Z_edit.textModified.connect(self.update_temp_grid)
 
-        for item in (*self.slowness_checkboxes, *self.xi_checkboxes, *self.tilt_checkboxes, *self.slowness_3D_checkboxes):
+        for item in (*self.slowness_checkboxes, *self.xi_checkboxes, *self.tilt_checkboxes, *self.slowness_3D_checkboxes, *self.nugget_checkboxes, self.tilt_checkbox, self.xi_checkbox):
             item.clicked.connect(self.fix_verif)
 
         for item in (*self.slowness_edits, *self.xi_edits, *self.tilt_edits, *self.slowness_3D_edits, self.tt_edit, self.slowness_edit, self.xi_edit, self.tilt_edit):
