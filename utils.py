@@ -29,10 +29,21 @@ import dis
 import numpy as np
 import scipy.signal
 import sqlalchemy.types as types
+from PyQt5.QtCore import QThread
 
 from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
 Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
 
+class ComputeThread(QThread): # Class that simplify the threading of a function. Simply create a thread for a giving function
+    def __init__(self, function_to_compute):
+        QThread.__init__(self)
+        self.compute = function_to_compute
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.compute()
 
 def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
     initial_ctx = traceback.tb_next

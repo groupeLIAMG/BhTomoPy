@@ -27,6 +27,7 @@ import covar
 import database
 import utils_ui
 from utils_ui import lay, inv_lay
+from utils import ComputeThread
 from sqlalchemy.orm.attributes import flag_modified
 from copy import deepcopy
 from math import ceil
@@ -41,9 +42,8 @@ xi    = unicodedata.lookup("GREEK SMALL LETTER XI")
 theta = unicodedata.lookup("GREEK SMALL LETTER THETA")
 tau   = unicodedata.lookup("GREEK SMALL LETTER TAU")
 
-
 class CovarUI(QtWidgets.QFrame):
-
+    
     model = None           # current model
     temp_grid = None       # the grid modified from covar_ui actually is only a temporary one. The original grid must not be modified.
     updateHandler = False  # selected model may seldom be modified twice. 'updateHandler' prevents functions from firing more than once. TODO: use a QValidator instead.
@@ -575,13 +575,13 @@ class CovarUI(QtWidgets.QFrame):
         if self.include_checkbox.checkState() and self.T_and_A_combo.currentIndex() == 0:
             vlim = float(self.velocity_edit.text())
         else:
-            vlim = []
+            vlim = 0.0
 
         type_dict = {0: 'tt', 1: 'amp', 2: 'fce'}
         type_ = type_dict[self.T_and_A_combo.currentIndex()]
 
         if self.mogs_list.currentRow() != -1:
-            self.data, self.idata = Model.getModelData(self.model, selectedMogs, type_)  # , vlim)
+            self.data, self.idata = Model.getModelData(self.model, selectedMogs, type_, vlim = vlim)
             self.rays_no_label.setText(str(self.data.shape[0]))
             self.loadRays()
             self.computeCd()
@@ -636,73 +636,73 @@ class CovarUI(QtWidgets.QFrame):
         self.Cd = self.Cd.reshape((nt**2, 1), order='F')
 
     def compute(self):
-        self.computing_form.show()  # TODO debug on windows & mac
-        try:
-            self.apply_booleans()
-            if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
-                xc = self.temp_grid.getCellCenter()
-                cm = self.current_covar()
-                Cm = cm.compute(xc, xc)
+        self.computing_form.show()
+        self.compute_thread = ComputeThread(self.calculate)
+        self.compute_thread.finished.connect(self.computing_form.hide)
+        self.compute_thread.start()
+       
+    def calculate(self):
+        self.apply_booleans()
+        if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+            xc = self.temp_grid.getCellCenter()
+            cm = self.current_covar()
+            Cm = cm.compute(xc, xc)
 
-                s = (self.data[:, 0].reshape(-1) / np.sum(self.L, 1).reshape(-1)).T
-                s0 = np.mean(s)
+            s = (self.data[:, 0].reshape(-1) / np.sum(self.L, 1).reshape(-1)).T
+            s0 = np.mean(s)
 
-                if cm.use_xi:
-                    if cm.use_tilt:
-                        np_ = self.L.shape[1] / 2
-                        l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
-                        s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
-                        xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
-                        theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
-                        J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
-                        Cm = J.dot(np.dot(Cm, J.T.toarray()))
-                    else:
-                        np_ = self.L.shape[1] / 2
-                        l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
-                        s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
-                        xi0 = np.ones([np_, 1])
-                        J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
-                        Cm = J.dot(np.dot(Cm, J.T.toarray()))
+            if cm.use_xi:
+                if cm.use_tilt:
+                    np_ = self.L.shape[1] / 2
+                    l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
+                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                    xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
+                    theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
+                    J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
+                    Cm = J.dot(np.dot(Cm, J.T.toarray()))
                 else:
-                    Cm = self.L.dot(Cm.dot(self.L.T.toarray()))
+                    np_ = self.L.shape[1] / 2
+                    l = np.sqrt(self.L[:, 0:np_]**2 + self.L[:, (np_):]**2)
+                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
+                    xi0 = np.ones([np_, 1])
+                    J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
+                    Cm = J.dot(np.dot(Cm, J.T.toarray()))
+            else:
+                Cm = self.L.dot(Cm.dot(self.L.T.toarray()))
 
-                if cm.use_c0:
-                    # use exp variance
-                    c0 = self.data[:, 1]**2
-                    Cm += cm.nugget_data * np.diag(c0)
-                else:
-                    Cm += cm.nugget_data * np.eye(self.L.shape[0])
+            if cm.use_c0:
+                # use exp variance
+                c0 = self.data[:, 1]**2
+                Cm += cm.nugget_data * np.diag(c0)
+            else:
+                Cm += cm.nugget_data * np.eye(self.L.shape[0])
 
-                Cm = Cm.flatten()
-                ind = np.argsort(Cm)
-                ind = ind[::-1]
-                Cm = Cm[ind]
-                lclas = int(self.bin_edit.text())
-                afi = float(self.bin_frac_edit.text())
+            Cm = Cm.flatten()
+            ind = np.argsort(Cm)
+            ind = ind[::-1]
+            Cm = Cm[ind]
+            lclas = int(self.bin_edit.text())
+            afi = float(self.bin_frac_edit.text())
 
-                gt = covar.moy_bloc(Cm, lclas)
-                ind0 = np.where(gt < np.inf)
-                gt = gt[ind0].T
+            gt = covar.moy_bloc(Cm, lclas)
+            ind0 = np.where(gt < np.inf)
+            gt = gt[ind0].T
 
-                g = self.Cd[ind]
-                g = covar.moy_bloc(g, lclas)
-                g = g[ind0].T
+            g = self.Cd[ind]
+            g = covar.moy_bloc(g, lclas)
+            g = g[ind0].T
 
-                N = int(np.round(len(g) * afi))
-                g = g[0:N]
-                gt = gt[0:N]
+            N = int(np.round(len(g) * afi))
+            g = g[0:N]
+            gt = gt[0:N]
 
-                gmin = np.min(np.concatenate([g, gt]))
-                gmax = np.max(np.concatenate([g, gt]))
-                self.comparison_fig.plot(g, gt, gmin, gmax)
+            gmin = np.min(np.concatenate([g, gt]))
+            gmax = np.max(np.concatenate([g, gt]))
+            self.comparison_fig.plot(g, gt, gmin, gmax)
 
-                n1 = range(0, len(gt))
-                n2 = range(0, len(g))
-                self.covariance_fig.plot(n2, g, n1, gt)
-
-        finally:
-            self.computing_form.hide()
-
+            n1 = range(0, len(gt))
+            n2 = range(0, len(g))
+            self.covariance_fig.plot(n2, g, n1, gt)
     def show_stats(self):
         if self.model is not None:
             if self.mogs_list.selectedIndexes() != []:
@@ -776,7 +776,7 @@ class CovarUI(QtWidgets.QFrame):
         saveAction = QtWidgets.QAction('Save', self)
         saveAction.setShortcut('Ctrl+S')
         saveAction.triggered.connect(self.savefile)
-
+       
         saveasAction = QtWidgets.QAction('Save as', self)
         saveasAction.setShortcut('Ctrl+A')
         saveasAction.triggered.connect(self.saveasfile)
@@ -1134,8 +1134,7 @@ class CovarUI(QtWidgets.QFrame):
         # --- Computing form --- #
 
         self.computing_form = QtWidgets.QWidget()
-        self.computing_form.setWindowFlags(QtCore.Qt.FramelessWindowHint)  # TODO Doesn't work
-        self.computing_form.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.computing_form.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
         progress_lbl = MyQLabel("Computing.\nPlease wait...", ha='center')
         inv_lay([progress_lbl], parent=self.computing_form)
 
