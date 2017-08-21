@@ -68,8 +68,9 @@ class Model(Base):
         self.tlinv_res  = None
 
     @staticmethod
-    def getModelData(model, selected_mogs, type1, type2=''):
+    def getModelData(model, selected_mogs, type1, vlim = 0, type2=''):
         data = np.array([])
+        ind = np.array([])
         type2 = ''
 
         tt = np.array([])
@@ -99,11 +100,57 @@ class Model(Base):
                     in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
                     no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
 
-            ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
+        elif type1 == "amp":
+            mog = mogs[0]
+            ind = np.not_equal(mog.tauApp, -1).T
+            tt = mog.tauApp.T
+            et = mog.tauApp_et.T * mog.f_et
+            in_vect = mog.in_vect.T
+            no = np.arange(mog.data.ntrace).T
 
-            data = np.array([tt[ind], et[ind], no[ind]]).T
+            if len(mogs) > 1:
+                for n in range(1, len(model.mogs)):
+                    mog = mogs[n]
+                    ind = np.concatenate((ind, np.not_equal(mog.tauApp, -1).T), axis=0)
+                    tt = np.concatenate((tt, mog.tauApp.T), axis=0)
+                    et = np.concatenate((et, mog.tauApp_et.T * mog.f_et), axis=0)
+                    in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
+                    no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
 
-            return data, ind
+        elif type1 == "fce":
+            mog = mogs[0]
+            ind = np.not_equal(mog.tauFce, -1).T
+            tt = mog.tauFce.T
+            et = mog.tauFce_et.T * mog.f_et
+            in_vect = mog.in_vect.T
+            no = np.arange(mog.data.ntrace).T
+
+            if len(mogs) > 1:
+                for n in range(1, len(model.mogs)):
+                    mog = mogs[n]
+                    ind = np.concatenate((ind, np.not_equal(mog.tauFce, -1).T), axis=0)
+                    tt = np.concatenate((tt, mog.tauFce.T), axis=0)
+                    et = np.concatenate((et, mog.tauFce_et.T * mog.f_et), axis=0)
+                    in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
+                    no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
+
+        elif type1 == "hyb":
+            mog = mogs[0]
+            ind = np.not_equal(mog.tauHyb, -1).T
+            tt = mog.tauHyb.T
+            et = mog.tauHyb_et.T * mog.f_et
+            in_vect = mog.in_vect.T
+            no = np.arange(mog.data.ntrace).T
+
+            if len(mogs) > 1:
+                for n in range(1, len(model.mogs)):
+                    mog = mogs[n]
+                    ind = np.concatenate((ind, np.not_equal(mog.tauHyb, -1).T), axis=0)
+                    tt = np.concatenate((tt, mog.tauHyb.T), axis=0)
+                    et = np.concatenate((et, mog.tauHyb_et.T * mog.f_et), axis=0)
+                    in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
+                    no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
+
 
         if type2 == 'depth':
             data, ind = getModelData(model, air, selected_mogs, type1)  # @UndefinedVariable
@@ -117,6 +164,13 @@ class Model(Base):
                     et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis=0)
                     in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis=0)
 
-            ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
-            data = np.array([tt[ind], et[ind], no[ind]]).T
-            return data, ind
+        if vlim != 0:   
+            l = ((model.grid.Tx-model.grid.Rx)**2+2).T
+            vapp = l/tt
+            in2 = vapp<vlim
+            #disp([num2str(sum(~in2&ind)),' rays with apparent velocity above ',num2str(vlim)])
+            ind = ind & in2
+         
+        ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)
+        data = np.array([tt[ind], et[ind], no[ind]]).T
+        return data, ind
