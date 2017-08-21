@@ -80,7 +80,7 @@ class InversionUI(QtWidgets.QFrame):
         # models, model = chooseModel(self.filename) # TODO: Is this necessary?
         # if model:
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database','','Database (*.db)')[0]
         database.load(current_module, filename)
 
         self.model_ind = None

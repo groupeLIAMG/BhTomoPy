@@ -140,7 +140,7 @@ class DatabaseUI(QtWidgets.QWidget):
     def openfile(self):  # TODO: On Windows, access to folders containing special characters fails. May be due to the fact that Windows doesn't use Unicode.
 
         if utils_ui.save_warning(database):
-            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database','','Database (*.db)')[0]
 
             if filename:
                 if filename[-3:] != '.db':
