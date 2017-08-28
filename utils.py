@@ -39,9 +39,6 @@ class ComputeThread(QThread): # Class that simplify the threading of a function.
         QThread.__init__(self)
         self.compute = function_to_compute
 
-    def __del__(self):
-        self.wait()
-
     def run(self):
         self.compute()
 

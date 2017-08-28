@@ -161,7 +161,7 @@ def chooseModel(module, filename=None):
                     database.load(module, filename)
                     l0.setText(os.path.basename(filename))
                     load_models()
-
+                    b1.setFocus()
                 else:
                     QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
                                                   QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
