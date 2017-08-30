@@ -912,7 +912,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # -------- Creation of the manager for the ZOPRay figure ------- #
         self.zopraysFig = ZOPRaysFig()
-        self.zopraysmanager = QtWidgets.QWidget()
+        self.zopraysmanager = QtWidgets.QDialog()
         self.zopraystool = NavigationToolbar2QT(self.zopraysFig, self)
         zopraysmanagergrid = QtWidgets.QGridLayout()
         zopraysmanagergrid.addWidget(self.zopraystool, 0, 0)
@@ -921,7 +921,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # -------- Creation of the manager for the Stats Amp figure ------- #
         self.statsampFig = StatsAmpFig()
-        self.statsampmanager = QtWidgets.QWidget()
+        self.statsampmanager = QtWidgets.QDialog()
         self.statsamptool = NavigationToolbar2QT(self.statsampFig, self)
         statsampmanagergrid = QtWidgets.QGridLayout()
         statsampmanagergrid.addWidget(self.statsamptool, 0, 0)
@@ -930,7 +930,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # ------- Creation of the manager for the Stats tt figure ------- #
         self.statsttFig = StatsttFig()
-        self.statsttmanager = QtWidgets.QWidget()
+        self.statsttmanager = QtWidgets.QDialog()
         self.statstttool = NavigationToolbar2QT(self.statsttFig, self)
         statsttmanagergrid = QtWidgets.QGridLayout()
         statsttmanagergrid.addWidget(self.statstttool, 0, 0)
@@ -1051,7 +1051,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         # -------- Creation of the manager for Prune Figure -------- #
         self.pruneFig = PruneFig()
         self.prunetool = NavigationToolbar2QT(self.pruneFig, self)
-        self.prunemanager = QtWidgets.QWidget()
+        self.prunemanager = QtWidgets.QDialog()
         prunemanagergrid = QtWidgets.QGridLayout()
         prunemanagergrid.addWidget(self.prunetool, 0, 0, 1, 3)
         prunemanagergrid.addWidget(self.pruneFig, 1, 0, 2, 2)
@@ -1148,7 +1148,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # -------- Creation of the manager for the Ray Coverage figure ------- #
         self.raycoverageFig = RayCoverageFig()
-        self.raymanager = QtWidgets.QWidget()
+        self.raymanager = QtWidgets.QDialog()
         self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
         raymanagergrid = QtWidgets.QGridLayout()
         raymanagergrid.addWidget(self.raytool, 0, 0, 1, 2)
@@ -1272,7 +1272,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # ------- Creation of the manager for the ZOP figure ------- #
         self.zopFig = ZOPFig(self)
-        self.zopmanager = QtWidgets.QWidget()
+        self.zopmanager = QtWidgets.QDialog()
         zopmanagergrid = QtWidgets.QGridLayout()
         zopmanagergrid.addWidget(self.zopFig, 0, 0, 2, 5)
         zopmanagergrid.addWidget(control_group, 0, 5)
@@ -1283,7 +1283,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         # ------- Creation of the Manager for the raw Data figure ------- #
         self.rawdataFig = RawDataFig()
         self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
-        self.rawdatamanager = QtWidgets.QWidget()
+        self.rawdatamanager = QtWidgets.QDialog()
         rawdatamanagergrid = QtWidgets.QGridLayout()
         rawdatamanagergrid.addWidget(self.rawdatatool, 0, 0)
         rawdatamanagergrid.addWidget(self.rawdataFig, 1, 0)
@@ -1409,7 +1409,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         # ------ Creation of the Manager for the Spectra figure ------- #
         self.spectraFig = SpectraFig()
         self.spectratool = NavigationToolbar2QT(self.spectraFig, self)
-        self.spectramanager = QtWidgets.QWidget()
+        self.spectramanager = QtWidgets.QDialog()
         spectramanagergrid = QtWidgets.QGridLayout()
         spectramanagergrid.addWidget(self.spectratool, 0, 0)
         spectramanagergrid.addWidget(self.info_label, 0, 2)
