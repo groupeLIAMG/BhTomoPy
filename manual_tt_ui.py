@@ -29,8 +29,8 @@ from sqlalchemy.orm.attributes import flag_modified
 from utils_ui import chooseMOG
 
 import database
-current_module = sys.modules[__name__]
-database.create_data_management(current_module)
+#current_module = sys.modules[__name__]
+#database.create_data_management(current_module)
 
 
 class ManualttUI(QtWidgets.QFrame):
@@ -195,7 +195,7 @@ class ManualttUI(QtWidgets.QFrame):
             flag_modified(self.mog.ap, 'et')
             flag_modified(self.mog.ap, 'tt_done')
 
-        current_module.session.commit()
+        database.session.commit()
 
 #         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy
 #             sfile['air'] = self.air
@@ -203,7 +203,7 @@ class ManualttUI(QtWidgets.QFrame):
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        item = chooseMOG(current_module, database.long_url(current_module))
+        item = chooseMOG(database)
         if item is not None:
             self.mog = item
             if self.mog.useAirShots == True:

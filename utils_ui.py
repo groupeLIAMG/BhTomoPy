@@ -75,7 +75,6 @@ def chooseMOG(module, filename=None):
                 database.load(module, filename)
                 l0.setText(os.path.basename(filename))
                 load_mogs()
-
             else:
                 QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
                                               QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton)
@@ -93,6 +92,7 @@ def chooseMOG(module, filename=None):
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS.',
                                           QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton)
             l0.setText('')
+        b1.setFocus()
 
     if str(module.engine.url) != 'sqlite:///:memory:':
         l0.setText(database.short_url(module))
@@ -161,7 +161,6 @@ def chooseModel(module, filename=None):
                     database.load(module, filename)
                     l0.setText(os.path.basename(filename))
                     load_models()
-                    b1.setFocus()
                 else:
                     QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
                                                   QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
@@ -180,6 +179,7 @@ def chooseModel(module, filename=None):
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain Models.')
             l0.setText('')
+        b1.setFocus()
 
     if str(module.engine.url) != 'sqlite:///:memory:':
         l0.setText(database.short_url(module))
