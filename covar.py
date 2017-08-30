@@ -334,13 +334,13 @@ class CovarianceModel(object):
                 if self.nugget_tilt != 0:
                     Ct += self.nugget_tilt * np.eye(Cm.shape[0])
 
-                Cm = csr_matrix(np.concatenate([[Cm, np.zeros(np.size(Cx)), np.zeros(np.size(Ct))],  # TODO Verify sparse implementation
-                                                [np.zeros(np.size(Cm)), Cx, np.zeros(np.size(Ct))],  # (Warning, row/column selection may not work properly.)
-                                                [np.zeros(np.size(Cm)), np.zeros(np.size(Cx)), Ct]]))
+                Cm = csr_matrix(np.concatenate([np.concatenate([Cm, np.zeros(np.shape(Cx)), np.zeros(np.shape(Ct))], axis = 1), 
+                                                np.concatenate([np.zeros(np.shape(Cm)), Cx, np.zeros(np.shape(Ct))], axis = 1), 
+                                                np.concatenate([np.zeros(np.shape(Cm)), np.zeros(np.shape(Cx)), Ct], axis = 1)]))
 
             else:
-                Cm = csr_matrix(np.concatenate([[Cm, np.zeros(np.size(Cx))],  # TODO Verify sparse implementation
-                                                [np.zeros(np.size(Cm)), Cx]]))
+                Cm = csr_matrix(np.concatenate([np.concatenate([Cm, np.zeros(np.shape(Cx))],axis = 1),
+                                                np.concatenate([np.zeros(np.shape(Cm)), Cx],axis = 1)]))
 
         return Cm
 
@@ -1030,21 +1030,22 @@ def _poletocart(pole):
     return x
 
 
-def computeJ(L, e):  # TODO Products may need to be replaced by *.dot's
+def computeJ(L, e): 
 
     nt = L.shape[0]
     np_ = L.shape[1] / 2
 
-    J = L**2
-    Js = J[:, 0:np_] + J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[(np_):]**2).T)  # l_x**2 + l_z**2 * xi**2
+    J = L.power(2)
+    Js = J[:, 0:np_] + J[:, (np_):].multiply(np.kron(np.ones([nt, 1]), (e[int(np_):]**2).T))  # l_x**2 + l_z**2 * xi**2
     Js = np.sqrt(Js)  # equals to t / s_x
 
-    Jxi = J[:, (np_):] * np.kron(np.ones([nt, 1]), (e[0:np_]).T) * np.kron(np.ones([nt, 1]), (e[(np_):]).T)
+    Jxi = J[:, int(np_):].multiply(np.kron(np.ones([nt, 1]), (e[0:int(np_)]).T) * np.kron(np.ones([nt, 1]), (e[int(np_):]).T))
 
     ind = Js != 0
+    Jxi = Jxi.tocsr()
     Jxi[ind] = Jxi[ind] / Js[ind]
 
-    J = np.concatenate([Js, Jxi])
+    J = np.concatenate([Js.toarray(), Jxi.toarray()],axis=1)
     return J
 
 
@@ -1058,42 +1059,43 @@ def computeJ2(L, e):  # TODO Products may need to be replaced by *.dot's
     if np_ != n:
         raise ValueError("Error (computeJ2) - L et e sizes not compatible")
 
-    s = (e[0:n]).T
-    xi = (e[(n):(2 * n)]).T
-    theta = (e[(2 * n):(3 * n)]).T
+    s = (e[0:int(n)]).T
+    xi = (e[int(n):(2 * int(n))]).T
+    theta = (e[(2 * int(n)):(3 * int(n))]).T
 
     co = np.cos(theta)
     si = np.sin(theta)
 
-    tmp = (L[:, 0:np_] * np.kron(np.ones([nt, 1]), co) + L[:, np_:] * np.kron(np.ones([nt, 1]), si))**2
-    tmp = (tmp + np.kron(np.ones([nt, 1]), xi**2) *
-           (L[:, 0:np_] * np.kron(np.ones([nt, 1]), si) - L[:, np_:] * np.kron(np.ones([nt, 1]), co))**2)
+    tmp = (L[:, 0:np_].multiply(np.kron(np.ones([nt, 1]), co)) + L[:, np_:].multiply(np.kron(np.ones([nt, 1]), si))).power(2)
+    tmp = tmp + (L[:, 0:np_].multiply(np.kron(np.ones([nt, 1]), si)) - L[:, np_:].multiply(np.kron(np.ones([nt, 1]), co))).power(2).multiply(np.kron(np.ones([nt, 1]), xi**2))
     Js = np.sqrt(tmp)
 
-    tmp = (L[:, 0:np_] * np.kron(np.ones([nt, 1]), si) - L[:, np_:] * np.kron(np.ones([nt, 1]), co))**2
-    Jxi = np.kron(np.ones([nt, 1]), s) * np.kron(np.ones([nt, 1]), xi) * tmp
+    tmp = (L[:, 0:np_].multiply(np.kron(np.ones([nt, 1]), si)) - L[:, np_:].multiply(np.kron(np.ones([nt, 1]), co))).power(2)
+    Jxi = np.kron(np.ones([nt, 1]), s) * (np.kron(np.ones([nt, 1]), xi)) * tmp.toarray()
 
-    ind = Js != 0
+    Js = Js.toarray()
+    ind = (Js != 0)
     Jxi[ind] = Jxi[ind] / Js[ind]
 
-    tmp = L[:, 0:np_]**2 - L[:, np_:]**2
-    tmp = tmp * np.kron(np.ones(nt, 1), np.sin(2 * theta))
-    tmp = tmp - 2 * L[:, 0:np_] * L[:, np_:] * np.kron(np.ones([nt, 1]), np.cos(2 * theta))
-    Jtheta = np.kron(np.ones([nt, 1]), s) * np.kron(np.ones([nt, 1]), (xi**2 - 1)) * tmp
+    tmp = L[:, 0:np_].power(2) - L[:, np_:].power(2)
+    tmp = tmp.multiply(np.kron(np.ones([nt, 1]), np.sin(2 * theta)))
+    tmp = tmp - 2 * L[:, 0:np_].multiply(L[:, np_:].multiply(np.kron(np.ones([nt, 1]), np.cos(2 * theta))))
+    Jtheta = tmp.multiply(np.kron(np.ones([nt, 1]), s)).multiply(np.kron(np.ones([nt, 1]), (xi**2 - 1)))
 
+    Jtheta = Jtheta.toarray()
     Jtheta[ind] = Jtheta[ind] / Js[ind]
 
-    J = np.concatenate([Js, Jxi, Jtheta])
+    J = np.concatenate([Js, Jxi, Jtheta],axis = 1)
     return J
 
 
-def moy_bloc(xy, lclas):  # TODO VERIFY
+def moy_bloc(xy, lclas):
     # (C) 2005 Erwan Gloaguen, Bernard Giroux
 
     k = int(np.floor(xy.size / lclas))
 
-    m = np.mean(np.reshape(xy[0:k * lclas], (k, lclas)), axis=1).flatten()
-    m = np.hstack((m, np.mean(xy[(k - 1) * lclas:])))
+    m = np.mean(np.reshape(xy[0:k * lclas], (k, lclas)), axis=1)
+    m[k-1] = np.mean(xy[(k - 1) * lclas:])
 
     return m
 

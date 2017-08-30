@@ -165,10 +165,10 @@ class Model(Base):
                     in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis=0)
 
         if vlim != 0:   
-            l = ((model.grid.Tx-model.grid.Rx)**2+2).T
+            l = np.sqrt(np.sum((model.grid.Tx-model.grid.Rx)**2,axis = 1)).T
             vapp = l/tt
             in2 = vapp<vlim
-            #disp([num2str(sum(~in2&ind)),' rays with apparent velocity above ',num2str(vlim)])
+            print(str(np.sum(~in2&ind)) + " rays with apparent velocity above " + str(vlim))
             ind = ind & in2
          
         ind = np.equal((ind.astype(int) + in_vect.astype(int)), 2)

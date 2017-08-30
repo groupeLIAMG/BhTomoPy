@@ -59,13 +59,13 @@ class CovarUI(QtWidgets.QFrame):
     Cd = None              # experimental covariance
     xc = None              # grid's centers
 
-    triggerFctAdjustCov = QtCore.pyqtSignal()
-    FuncCounter = 0
+    triggerFctAdjustCov = QtCore.pyqtSignal() # Signal to update Popup while computing adjustCov
+    FuncCounter = 0 # Number of adjustCov call
 
     def __init__(self, parent=None):
         super(CovarUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Covariance")
-        self.triggerFctAdjustCov.connect(self.handleAdjustCov) # Signal for computing popup, to follow the progress
+        self.triggerFctAdjustCov.connect(self.handleAdjustCov) # Signal for computing popup, to follow the progress of adjust()
         self.initUI()
 
     def show(self):
@@ -552,18 +552,40 @@ class CovarUI(QtWidgets.QFrame):
         self.FuncCounter += 1
         self.progress_lbl.setText("Computing Iteration " + str(self.FuncCounter) + ".\nPlease wait...")
 
+    def refreshFigs(self):
+        """
+        Refresh the Covariance and the comparaison figure
+        """
+        g, gt = self.calculate()
+        n1 = range(0, len(gt))
+        n2 = range(0, len(g))
+        self.covariance_fig.plot(n2, g, n1, gt)
+
+        gmin = np.min(np.concatenate([g, gt]))
+        gmax = np.max(np.concatenate([g, gt]))
+        self.comparison_fig.plot(g, gt, gmin, gmax)
+
     def adjustInThread(self):
         try:
             self.FuncCounter = 0
             self.progress_lbl.setText("Computing Iteration " + "0" + ".\nPlease wait...")
             self.computing_form.show()
+            #self.adjust()
+            #self.computing_form.hide()
             self.compute_thread = ComputeThread(self.adjust)
-            self.compute_thread.finished.connect(self.computing_form.hide)
+            self.compute_thread.finished.connect(self.adjustFinished)
             self.compute_thread.start()
         except Exception as ex:
             print(type(ex))
             print(ex.args)
             print(ex)
+
+    def adjustFinished(self):
+        self.update_parameters()
+        self.refreshFigs()
+        self.flag_modified_covar()
+        database.modified = True
+        self.computing_form.hide()
 
     def adjust(self):
         cm = self.current_covar()
@@ -608,35 +630,21 @@ class CovarUI(QtWidgets.QFrame):
                     ifNotChekedAddToXi(self.xi_sill_checkbox,_covar_xi.sill) # Add xi Sill
                 if self.tilted_ellip_veloc_checkbox.isChecked():
                     _covar_tilt = cm.covar_tilt[n]
-                if len(_covar.range) == 2: 
-                    ifNotChekedAddToXi(self.tilt_range_X_checkbox,_covar_tilt.range[0]) # Add tilt Range X
-                    ifNotChekedAddToXi(self.tilt_range_Z_checkbox,_covar_tilt.range[1]) # Add tilt Range Z
-                    ifNotChekedAddToXi(self.tilt_theta_X_checkbox,_covar_tilt.angle[0]) # Add tilt Angle Theta X
-                    ifNotChekedAddToXi(self.tilt_sill_checkbox,_covar_tilt.sill) # Add tilt Sill
+                    if len(_covar.range) == 2: 
+                        ifNotChekedAddToXi(self.tilt_range_X_checkbox,_covar_tilt.range[0]) # Add tilt Range X
+                        ifNotChekedAddToXi(self.tilt_range_Z_checkbox,_covar_tilt.range[1]) # Add tilt Range Z
+                        ifNotChekedAddToXi(self.tilt_theta_X_checkbox,_covar_tilt.angle[0]) # Add tilt Angle Theta X
+                        ifNotChekedAddToXi(self.tilt_sill_checkbox,_covar_tilt.sill) # Add tilt Sill
         # Adding nugget effect
         ifNotChekedAddToXi(self.slowness_checkbox,cm.nugget_model) # Add slowness for the slowness covariance / amplitude for the amplitude covariance
         ifNotChekedAddToXi(self.tt_checkbox,cm.nugget_data) # Add traveltime for the slowness covariance / tau for the amplitude covariance
         if self.ellip_veloc_checkbox.isChecked():
             ifNotChekedAddToXi(self.xi_checkbox,cm.nugget_xi) # Add nugget xi
         if self.tilted_ellip_veloc_checkbox.isChecked():
-            ifNotChekedAddToXi(self.tilt_checkbox,calculate,cm.nugget_tilt) # Add nugget tilt
+            ifNotChekedAddToXi(self.tilt_checkbox,cm.nugget_tilt) # Add nugget tilt
 
         x0 = x0[:ix]
-        fmin(func=self.adjustCov,x0 = x0,xtol = 1e-12,ftol = 1e-12,maxfun = int(self.Iter_edit.text()),disp = 0)
-
-        self.update_parameters()
-
-        g, gt = self.calculate()
-        n1 = range(0, len(gt))
-        n2 = range(0, len(g))
-        self.covariance_fig.plot(n2, g, n1, gt)
-
-        gmin = np.min(np.concatenate([g, gt]))
-        gmax = np.max(np.concatenate([g, gt]))
-        self.comparison_fig.plot(g, gt, gmin, gmax)
-
-        self.flag_modified_covar()
-        database.modified = True
+        fmin(func=self.adjustCov,x0 = x0,xtol = 1e-12,ftol = 1e-12,maxiter=int(self.Iter_edit.text()), maxfun = int(self.Iter_edit.text()),disp = 0)
  
     def adjustCov(self, x0):
         cm = self.current_covar()
@@ -692,7 +700,7 @@ class CovarUI(QtWidgets.QFrame):
         if self.ellip_veloc_checkbox.isChecked():
             cm.nugget_xi = ifNotChekedChangeVariable(self.xi_checkbox,cm.nugget_xi) # Add nugget xi
         if self.tilted_ellip_veloc_checkbox.isChecked():
-            cm.nugget_tilt = ifNotChekedChangeVariable(self.tilt_checkbox,calculate,cm.nugget_tilt) # Add nugget tilt
+            cm.nugget_tilt = ifNotChekedChangeVariable(self.tilt_checkbox,cm.nugget_tilt) # Add nugget tilt
 
         g, gt = self.calculate()
 
@@ -711,7 +719,7 @@ class CovarUI(QtWidgets.QFrame):
             if self.ellip_veloc_checkbox.checkState():
                 items += [*self.xi_checkboxes,self.xi_checkbox]
                 if self.tilted_ellip_veloc_checkbox.checkState():
-                    items += [self.tilt_checkboxes,self.tilt_checkbox]
+                    items += [*self.tilt_checkboxes,self.tilt_checkbox]
 
         elif self.model.grid.type == '3D':
             items = [*self.slowness_3D_checkboxes]
@@ -735,7 +743,7 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_data(self):
         selectedMogs = [i.row() for i in self.mogs_list.selectedIndexes()]
-        if self.include_checkbox.checkState() and self.T_and_A_combo.currentIndex() == 0:
+        if self.Upper_limit_checkbox.checkState() and self.T_and_A_combo.currentIndex() == 0:
             vlim = float(self.velocity_edit.text())
         else:
             vlim = 0.0
@@ -750,7 +758,7 @@ class CovarUI(QtWidgets.QFrame):
             self.computeCd()
 
     def loadRays(self):
-        aniso = self.ellip_veloc_checkbox.checkState()
+        aniso = self.ellip_veloc_checkbox.isChecked()
         if self.curv_rays_combo.count() > 1:  # TODO implement curved rays
             # curved rays
 
@@ -789,31 +797,23 @@ class CovarUI(QtWidgets.QFrame):
             mta = s0 * np.sum(self.L, 1).getA()  # mean traveltime
         else:
             np_ = self.L.shape[1] / 2
-            l = np.sqrt(self.L[:, 0:np_] ** 2 + self.L[:, np_:] ** 2)
+            l = np.sqrt(self.L[:, 0:np_].power(2) + self.L[:, np_:].power(2))
             s0 = np.mean(self.data[:, 0] / np.sum(l, 1))
-            mta = s0 * np.sum(l, 1)
+            mta = s0 * np.sum(l, 1).getA()
 
         dt = self.data[:, 0].reshape((-1, 1)) - mta
 
         self.Cd = dt.dot(dt.T)
-        self.Cd = self.Cd.reshape((nt ** 2, 1), order='F')
+        self.Cd = self.Cd.reshape((nt ** 2, ), order='F')
 
     def compute(self):
         self.progress_lbl.setText("Computing.\nPlease wait...")
         self.computing_form.show()
-        self.compute_thread = ComputeThread(self.calculateAndShow)
+        #self.refreshFigs()
+        #self.computing_form.hide()
+        self.compute_thread = ComputeThread(self.refreshFigs)
         self.compute_thread.finished.connect(self.computing_form.hide)
         self.compute_thread.start()
-
-    def calculateAndShow(self):
-        g, gt = self.calculate()
-        n1 = range(0, len(gt))
-        n2 = range(0, len(g))
-        self.covariance_fig.plot(n2, g, n1, gt)
-
-        gmin = np.min(np.concatenate([g, gt]))
-        gmax = np.max(np.concatenate([g, gt]))
-        self.comparison_fig.plot(g, gt, gmin, gmax)
 
     def calculate(self):
         self.apply_booleans()
@@ -828,19 +828,19 @@ class CovarUI(QtWidgets.QFrame):
             if cm.use_xi:
                 if cm.use_tilt:
                     np_ = self.L.shape[1] / 2
-                    l = np.sqrt(self.L[:, 0:np_] ** 2 + self.L[:, (np_):] ** 2)
-                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
-                    xi0 = np.ones([np_, 1]) + 0.001       # add 1/1000 so that J_th != 0
-                    theta0 = np.zeros([np_, 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
+                    l = np.sqrt(self.L[:, 0:np_].power(2) + self.L[:, (np_):].power(2))
+                    s0 = np.mean(self.data[:, 0] / np.sum(l, 1)) + np.zeros([int(np_), 1])
+                    xi0 = np.ones([int(np_), 1]) + 0.001       # add 1/1000 so that J_th != 0
+                    theta0 = np.zeros([int(np_), 1]) + 0.0044  # add a quarter of a degree so that J_th != 0
                     J = covar.computeJ2(self.L, np.concatenate([s0, xi0, theta0]))
-                    Cm = J.dot(np.dot(Cm, J.T.toarray()))
+                    Cm = J.dot(np.dot(Cm.toarray(), J.T))
                 else:
                     np_ = self.L.shape[1] / 2
-                    l = np.sqrt(self.L[:, 0:np_] ** 2 + self.L[:, (np_):] ** 2)
-                    s0 = np.mean(self.data[:, 0] / sum(l, 1)) + np.zeros([np_, 1])
-                    xi0 = np.ones([np_, 1])
+                    l = np.sqrt(self.L[:, 0:np_].power(2) + self.L[:, (np_):].power(2))
+                    s0 = np.mean(self.data[:, 0] / np.sum(l, 1)) + np.zeros([int(np_), 1])
+                    xi0 = np.ones([int(np_), 1])
                     J = covar.computeJ(self.L, np.concatenate([s0, xi0]))
-                    Cm = J.dot(np.dot(Cm, J.T.toarray()))
+                    Cm = J.dot(np.dot(Cm.toarray(), J.T))
             else:
                 Cm = self.L.dot(Cm.dot(self.L.T.toarray()))
 
@@ -871,6 +871,7 @@ class CovarUI(QtWidgets.QFrame):
             gt = gt[0:N]
 
             return g,gt
+
     def show_stats(self):
         if self.model is not None:
             if self.mogs_list.selectedIndexes() != []:
@@ -1266,6 +1267,9 @@ class CovarUI(QtWidgets.QFrame):
         self.step_X_edit.textModified.connect(self.update_temp_grid)
         self.step_Y_edit.textModified.connect(self.update_temp_grid)
         self.step_Z_edit.textModified.connect(self.update_temp_grid)
+        self.ellip_veloc_checkbox.clicked.connect(self.update_temp_grid)
+
+        self.velocity_edit.textModified.connect(self.update_data)
 
         for item in (*self.slowness_checkboxes, *self.xi_checkboxes, *self.tilt_checkboxes, *self.slowness_3D_checkboxes, *self.nugget_checkboxes, self.tilt_checkbox, self.xi_checkbox):
             item.clicked.connect(self.fix_verif)
