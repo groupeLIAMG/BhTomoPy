@@ -111,9 +111,9 @@ class CovarUI(QtWidgets.QFrame):
         return utils_ui.saveasfile(database)
 
     def apply_booleans(self):
-        self.current_covar().use_xi = self.ellip_veloc_checkbox       .checkState()
-        self.current_covar().use_tilt = self.tilted_ellip_veloc_checkbox.checkState()
-        self.current_covar().use_c0 = self.include_checkbox           .checkState()
+        self.current_covar().use_xi = self.ellip_veloc_checkbox       .isChecked()
+        self.current_covar().use_tilt = self.tilted_ellip_veloc_checkbox.isChecked()
+        self.current_covar().use_c0 = self.include_checkbox           .isChecked()
         self.flag_modified_covar()
 
     def update_booleans(self):
@@ -233,7 +233,7 @@ class CovarUI(QtWidgets.QFrame):
                             item.setHidden(False)
                         self.ellip_veloc_checkbox.setDisabled(False)
 
-                        if self.ellip_veloc_checkbox.checkState():
+                        if self.ellip_veloc_checkbox.isChecked():
                             for item in (*self.xi_widget,):
                                 item.setHidden(False)
                             self.tilted_ellip_veloc_checkbox.setDisabled(False)
@@ -242,7 +242,7 @@ class CovarUI(QtWidgets.QFrame):
                             self.xi_edit    .setHidden(False)
                             self.xi_checkbox.setHidden(False)
 
-                            if self.tilted_ellip_veloc_checkbox.checkState():
+                            if self.tilted_ellip_veloc_checkbox.isChecked():
                                 for item in (*self.tilt_widget,):
                                     item.setHidden(False)
 
@@ -288,7 +288,7 @@ class CovarUI(QtWidgets.QFrame):
         self.updateHandler = False
 
     def auto_update(self):
-        if self.auto_update_checkbox.checkState():
+        if self.auto_update_checkbox.isChecked():
             self.compute()
 
     def update_model(self):
@@ -404,7 +404,7 @@ class CovarUI(QtWidgets.QFrame):
                 self.slowness_edit        .setText(str(covar_.nugget_model))
                 self.tt_edit              .setText(str(covar_.nugget_data))
 
-                if self.ellip_veloc_checkbox.checkState():
+                if self.ellip_veloc_checkbox.isChecked():
                     if covar_.covar_xi[ind] is None:
                         covar_.covar_xi[ind] = covar.CovarianceFactory.detDefault2D()
                     self.xi_type_combo  .setCurrentIndex(covar_.covar_xi[ind].type)
@@ -414,7 +414,7 @@ class CovarUI(QtWidgets.QFrame):
                     self.xi_sill_edit   .setText(str(covar_.covar_xi[ind].sill))
                     self.xi_edit        .setText(str(covar_.nugget_xi))
 
-                    if self.tilted_ellip_veloc_checkbox.checkState():
+                    if self.tilted_ellip_veloc_checkbox.isChecked():
                         if covar_.covar_tilt[ind] is None:
                             covar_.covar_tilt[ind] = covar.CovarianceFactory.detDefault2D()
                         self.tilt_type_combo  .setCurrentIndex(covar_.covar_tilt[ind].type)
@@ -454,7 +454,7 @@ class CovarUI(QtWidgets.QFrame):
             covar_.nugget_model = float(self.slowness_edit        .text())
             covar_.nugget_data = float(self.tt_edit              .text())
 
-            if self.ellip_veloc_checkbox.checkState():
+            if self.ellip_veloc_checkbox.isChecked():
 
                 self.loadRays()
                 self.computeCd()
@@ -467,7 +467,7 @@ class CovarUI(QtWidgets.QFrame):
                 covar_.covar_xi[ind].sill = float(self.xi_sill_edit   .text())
                 covar_.nugget_xi = float(self.xi_edit        .text())
 
-                if self.tilted_ellip_veloc_checkbox.checkState():
+                if self.tilted_ellip_veloc_checkbox.isChecked():
                     if covar_.covar_tilt[ind] is None:
                         covar_.covar_tilt[ind] = covar.CovarianceFactory.detDefault2D()
                     covar_.covar_tilt[ind].range[0] = float(self.tilt_range_X_edit.text())
@@ -716,15 +716,15 @@ class CovarUI(QtWidgets.QFrame):
     def fix_verif(self):
         if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
             items = [*self.slowness_checkboxes,*self.nugget_checkboxes]
-            if self.ellip_veloc_checkbox.checkState():
+            if self.ellip_veloc_checkbox.isChecked():
                 items += [*self.xi_checkboxes,self.xi_checkbox]
-                if self.tilted_ellip_veloc_checkbox.checkState():
+                if self.tilted_ellip_veloc_checkbox.isChecked():
                     items += [*self.tilt_checkboxes,self.tilt_checkbox]
 
         elif self.model.grid.type == '3D':
             items = [*self.slowness_3D_checkboxes]
 
-        if False in [item.checkState() for item in items]:
+        if False in [item.isChecked() for item in items]:
             self.btn_GO.setEnabled(True)
 
         else:
@@ -734,7 +734,7 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_velocity_display(self):
 
-        flag = self.Upper_limit_checkbox.checkState()
+        flag = self.Upper_limit_checkbox.isChecked()
         self.velocity_edit.setEnabled(flag)
         if flag:
             self.velocity_edit.setText('0.15')
@@ -743,7 +743,7 @@ class CovarUI(QtWidgets.QFrame):
 
     def update_data(self):
         selectedMogs = [i.row() for i in self.mogs_list.selectedIndexes()]
-        if self.Upper_limit_checkbox.checkState() and self.T_and_A_combo.currentIndex() == 0:
+        if self.Upper_limit_checkbox.isChecked() and self.T_and_A_combo.currentIndex() == 0:
             vlim = float(self.velocity_edit.text())
         else:
             vlim = 0.0
@@ -792,7 +792,7 @@ class CovarUI(QtWidgets.QFrame):
         # Computes experimental covariance
         nt = self.L.shape[0]
 
-        if not self.ellip_veloc_checkbox.checkState():
+        if not self.ellip_veloc_checkbox.isChecked():
             s0 = np.mean(self.data[:, 0] / np.sum(self.L.toarray(), 1))
             mta = s0 * np.sum(self.L, 1).getA()  # mean traveltime
         else:
@@ -1189,7 +1189,7 @@ class CovarUI(QtWidgets.QFrame):
                             ('setMaxHei', self.mogs_list, self.curv_rays_combo.sizeHint().height() * 3.6))
 
         self.Grid_groupbox = lay([Sub_Grid_Coord_Widget, Sub_Step_Widget],
-                                 'noMargins', ('groupbox', "Grid"))
+                                 ('groupbox', "Grid"))
 
         self.param_widget = lay([['',            self.slowness_param_edit,   '|',                            xi_param_edit,        '|',                      tilt_param_edit,        '|'],
                                  ['',            self.slowness_type_combo,   '|',                            self.xi_type_combo,   '|',                      self.tilt_type_combo,   '|'],
