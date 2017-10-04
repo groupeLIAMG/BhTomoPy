@@ -169,12 +169,13 @@ class InversionUI(QtWidgets.QFrame):
             self.num_cells_label.setText(str(self.model.grid.getNumberOfCells()))
 
     def update_params(self):
+        
+        self.lsqrParams.numItStraight = int(self.straight_ray_edit.text())
+        self.lsqrParams.numItCurved = int(self.curv_ray_edit.text())
+        self.lsqrParams.selectedMogs = self.mog_list.selectedIndexes()
+        self.lsqrParams.selectedMogs = [i.row() for i in self.lsqrParams.selectedMogs]
+        self.lsqrParams.useCont = self.use_const_checkbox.isChecked()
         if self.algo_combo.currentText() == 'LSQR Solver':
-            self.lsqrParams.selectedMogs = self.mog_list.selectedIndexes()
-            self.lsqrParams.selectedMogs = [i.row() for i in self.lsqrParams.selectedMogs]
-            self.lsqrParams.numItStraight = int(self.straight_ray_edit.text())
-            self.lsqrParams.numItCurved = int(self.curv_ray_edit.text())
-            self.lsqrParams.useCont = self.use_const_checkbox.isChecked()
             self.lsqrParams.tol = float(self.solver_tol_edit.text())
             self.lsqrParams.wCont = float(self.constraints_weight_edit.text())
             self.lsqrParams.alphax = float(self.smoothing_weight_x_edit.text())
@@ -184,7 +185,7 @@ class InversionUI(QtWidgets.QFrame):
             self.lsqrParams.nbreiter = float(self.max_iter_edit.text())
             self.lsqrParams.dv_max = 0.01 * float(self.veloc_var_edit.text())
 
-        elif self.algo_combo.currentText() == 'Geostatistical':
+        if self.algo_combo.currentText() == 'Geostatistical':
             covar_ = self.current_covar()
             ind = self.geostat_struct_combo.currentIndex()
 
@@ -793,6 +794,9 @@ class InversionUI(QtWidgets.QFrame):
         self.curv_ray_edit           = QtWidgets.QLineEdit("1")  # it to the argument
         self.Min_editi               = QtWidgets.QLineEdit('0.06')
         self.Max_editi               = QtWidgets.QLineEdit('0.12')
+        
+        self.straight_ray_edit.editingFinished.connect(self.update_params)
+        self.curv_ray_edit.editingFinished.connect(self.update_params)
 
         # - Edits' Disposition - #
         self.straight_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
