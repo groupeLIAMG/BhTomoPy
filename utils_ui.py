@@ -68,18 +68,16 @@ def chooseMOG(module, filename=None):
         nonlocal d
         nonlocal l0
         nonlocal b3
-        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
+        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database','','Database (*.db)')[0]
         if filename:
             if filename.find('.db') != -1:
 
                 database.load(module, filename)
                 l0.setText(os.path.basename(filename))
                 load_mogs()
-
             else:
                 QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
-                                              QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                                              QtWidgets.QMessageBox.NoButton)
+                                              QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton)
                 l0.setText('')
 
     def load_mogs():
@@ -92,9 +90,9 @@ def chooseMOG(module, filename=None):
                 b3.addItem(mog.name)
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS.',
-                                          QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                                          QtWidgets.QMessageBox.NoButton)
+                                          QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton)
             l0.setText('')
+        b1.setFocus()
 
     if str(module.engine.url) != 'sqlite:///:memory:':
         l0.setText(database.short_url(module))
@@ -156,14 +154,13 @@ def chooseModel(module, filename=None):
         nonlocal l0
         nonlocal b3
         if save_warning(module):
-            filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database')[0]
+            filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database','','Database (*.db)')[0]
             if filename:
                 if filename.find('.db') != -1:
 
                     database.load(module, filename)
                     l0.setText(os.path.basename(filename))
                     load_models()
-
                 else:
                     QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
                                                   QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
@@ -182,6 +179,7 @@ def chooseModel(module, filename=None):
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain Models.')
             l0.setText('')
+        b1.setFocus()
 
     if str(module.engine.url) != 'sqlite:///:memory:':
         l0.setText(database.short_url(module))

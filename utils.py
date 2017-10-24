@@ -29,10 +29,19 @@ import dis
 import numpy as np
 import scipy.signal
 import sqlalchemy.types as types
+from PyQt5.QtCore import QThread
 
 from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
 Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
 
+class ComputeThread(QThread): # Class that simplify the threading of a function. Simply create a thread for a giving function
+    def __init__(self, function_to_compute, *args):
+        QThread.__init__(self)
+        self.compute = function_to_compute
+        self.args = args
+
+    def run(self):
+        self.compute(*self.args)
 
 def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catching. 'Hook' solves this issue.
     initial_ctx = traceback.tb_next
@@ -66,28 +75,13 @@ def nargout():  # TODO FIXME either doesn't work as of 3.6 or doesn't work on wi
 
 
 def set_tick_arrangement(grid):
-
-    if grid.grx[0] < 0:
-        tick_range = grid.grx[0] - grid.grx[-1]
-    elif grid >= 0:
-        tick_range = grid.grx[-1] - grid.grx[0]
+    start = min(grid.grx[0],grid.grx[-1])
+    end = max(grid.grx[0],grid.grx[-1])
 
     nticks = 4
-    tick_step = np.round(tick_range / nticks)
+    tickstep = np.round((end-start)/nticks)
 
-    if grid.grx[0] < 0:
-        if 4 * tick_step < grid.grx[0]:
-            tick_arrangement = tick_step * np.arange(nticks)
-        else:
-            tick_arrangement = tick_step * np.arange(nticks + 1)
-
-    if grid.grx[0] >= 0:
-        if 4 * tick_step > grid.grx[-1]:
-            tick_arrangement = tick_step * np.arange(nticks)
-        else:
-            tick_arrangement = tick_step * np.arange(nticks + 1)
-
-    return tick_arrangement
+    return np.arange(np.round(start), end, tickstep)
 
 
 def detrend_rad(traces):

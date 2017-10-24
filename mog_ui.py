@@ -195,6 +195,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             database.delete(database, mog_)
         self.update_List_Widget()
         self.update_edits()
+        database.airshots_cleanup(database)
         database.modified = True
 
     def rename(self):
@@ -261,6 +262,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                     # The getText method returns a tuple containing the entered data and a boolean factor
                     # (i.e. if the ok button is clicked, it returns True)
                     if ok:
+                        if not distance:
+                            self.moglogSignal.emit('Error: you must pick distances for the airshot')
+                            return
+
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
                         distance_list = [float(i) for i in distance_list]
 
@@ -316,6 +321,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                     distance, ok = QtWidgets.QInputDialog.getText(self, 'Airshots After', 'Distance between Tx and Rx :')
 
                     if ok:
+                        if not distance:
+                            self.moglogSignal.emit('Error: you must pick distances for the airshot')
+                            return
+
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
                         distance_list = [float(i) for i in distance_list]
 
@@ -454,14 +463,14 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -MOG'
 
                 # Vertical boreholes
-                if len(Tx.fdata[:, 0]) == 2 and len(Tx.fdata[:, 1]) == 2:
+                if Tx is not None and len(Tx.fdata[:, 0]) == 2 and len(Tx.fdata[:, 1]) == 2:
                     if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05:
                         mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
                         mog.data.Tx_z = Tx.Z - mog.data.TxOffset - mog.Tx_z_orig
                         mog.TxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
 
-                if len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
+                if Rx is not None and len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
                     if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) < 1e-05:
                         mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
@@ -478,7 +487,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 QtWidgets.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
                                                   buttons=QtWidgets.QMessageBox.Ok)
 
-            if Tx != Rx:
+            if Tx is not None and Rx is not None and Tx != Rx:
                 self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
 
             flag_modified(mog, 'data')
@@ -903,7 +912,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # -------- Creation of the manager for the ZOPRay figure ------- #
         self.zopraysFig = ZOPRaysFig()
-        self.zopraysmanager = QtWidgets.QWidget()
+        self.zopraysmanager = QtWidgets.QDialog()
         self.zopraystool = NavigationToolbar2QT(self.zopraysFig, self)
         zopraysmanagergrid = QtWidgets.QGridLayout()
         zopraysmanagergrid.addWidget(self.zopraystool, 0, 0)
@@ -912,7 +921,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # -------- Creation of the manager for the Stats Amp figure ------- #
         self.statsampFig = StatsAmpFig()
-        self.statsampmanager = QtWidgets.QWidget()
+        self.statsampmanager = QtWidgets.QDialog()
         self.statsamptool = NavigationToolbar2QT(self.statsampFig, self)
         statsampmanagergrid = QtWidgets.QGridLayout()
         statsampmanagergrid.addWidget(self.statsamptool, 0, 0)
@@ -921,7 +930,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # ------- Creation of the manager for the Stats tt figure ------- #
         self.statsttFig = StatsttFig()
-        self.statsttmanager = QtWidgets.QWidget()
+        self.statsttmanager = QtWidgets.QDialog()
         self.statstttool = NavigationToolbar2QT(self.statsttFig, self)
         statsttmanagergrid = QtWidgets.QGridLayout()
         statsttmanagergrid.addWidget(self.statstttool, 0, 0)
@@ -1042,7 +1051,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         # -------- Creation of the manager for Prune Figure -------- #
         self.pruneFig = PruneFig()
         self.prunetool = NavigationToolbar2QT(self.pruneFig, self)
-        self.prunemanager = QtWidgets.QWidget()
+        self.prunemanager = QtWidgets.QDialog()
         prunemanagergrid = QtWidgets.QGridLayout()
         prunemanagergrid.addWidget(self.prunetool, 0, 0, 1, 3)
         prunemanagergrid.addWidget(self.pruneFig, 1, 0, 2, 2)
@@ -1139,7 +1148,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # -------- Creation of the manager for the Ray Coverage figure ------- #
         self.raycoverageFig = RayCoverageFig()
-        self.raymanager = QtWidgets.QWidget()
+        self.raymanager = QtWidgets.QDialog()
         self.raytool = NavigationToolbar2QT(self.raycoverageFig, self)
         raymanagergrid = QtWidgets.QGridLayout()
         raymanagergrid.addWidget(self.raytool, 0, 0, 1, 2)
@@ -1263,7 +1272,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         # ------- Creation of the manager for the ZOP figure ------- #
         self.zopFig = ZOPFig(self)
-        self.zopmanager = QtWidgets.QWidget()
+        self.zopmanager = QtWidgets.QDialog()
         zopmanagergrid = QtWidgets.QGridLayout()
         zopmanagergrid.addWidget(self.zopFig, 0, 0, 2, 5)
         zopmanagergrid.addWidget(control_group, 0, 5)
@@ -1274,7 +1283,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         # ------- Creation of the Manager for the raw Data figure ------- #
         self.rawdataFig = RawDataFig()
         self.rawdatatool = NavigationToolbar2QT(self.rawdataFig, self)
-        self.rawdatamanager = QtWidgets.QWidget()
+        self.rawdatamanager = QtWidgets.QDialog()
         rawdatamanagergrid = QtWidgets.QGridLayout()
         rawdatamanagergrid.addWidget(self.rawdatatool, 0, 0)
         rawdatamanagergrid.addWidget(self.rawdataFig, 1, 0)
@@ -1400,7 +1409,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         # ------ Creation of the Manager for the Spectra figure ------- #
         self.spectraFig = SpectraFig()
         self.spectratool = NavigationToolbar2QT(self.spectraFig, self)
-        self.spectramanager = QtWidgets.QWidget()
+        self.spectramanager = QtWidgets.QDialog()
         spectramanagergrid = QtWidgets.QGridLayout()
         spectramanagergrid.addWidget(self.spectratool, 0, 0)
         spectramanagergrid.addWidget(self.info_label, 0, 2)
@@ -1864,7 +1873,7 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
 
         self.draw()
 
-    def calculate_Vapp(self, mog, air):
+    def calculate_Vapp(self, mog):
 
         hyp = np.sqrt((mog.data.Tx_x - mog.data.Rx_x)**2 +
                       (mog.data.Tx_y - mog.data.Rx_y)**2 +
@@ -2114,6 +2123,9 @@ class RayCoverageFig(FigureCanvasQTAgg):
     def initFig(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
+    def plot_lines(self,xs,ys,zs,_color):
+         self.ax.plot(xs.T.flatten(),ys.T.flatten(),zs.T.flatten(),color=_color)
+
     def plot_ray_coverage(self, mog, n, show_type, entire_state):
         self.ax.cla()
         picked_tt = np.where(mog.tt != -1)[0]
@@ -2155,31 +2167,17 @@ class RayCoverageFig(FigureCanvasQTAgg):
 
         if entire_state:
             if show_type == 'Show picked and unpicked':
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, unpicked_tt],
-                                       Y=Tx_Rx_ys[:, unpicked_tt],
-                                       Z=Tx_Rx_zs[:, unpicked_tt],
-                                       color='red')
+                self.plot_lines(Tx_Rx_xs[:, unpicked_tt],Tx_Rx_ys[:, unpicked_tt],Tx_Rx_zs[:, unpicked_tt],'red')
 
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, picked_tt],
-                                       Y=Tx_Rx_ys[:, picked_tt],
-                                       Z=Tx_Rx_zs[:, picked_tt],
-                                       color='green')
-
-                self.draw()
+                self.plot_lines(Tx_Rx_xs[:, picked_tt],Tx_Rx_ys[:, picked_tt],Tx_Rx_zs[:, picked_tt],'green')
 
             elif show_type == 'Show picked only':
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, picked_tt],
-                                       Y=Tx_Rx_ys[:, picked_tt],
-                                       Z=Tx_Rx_zs[:, picked_tt],
-                                       color='green')
-                self.draw()
+                self.plot_lines(Tx_Rx_xs[:, picked_tt],Tx_Rx_ys[:, picked_tt],Tx_Rx_zs[:, picked_tt],'green')
 
             elif show_type == 'Show unpicked only':
-                self.ax.plot_wireframe(X=Tx_Rx_xs[:, unpicked_tt],
-                                       Y=Tx_Rx_ys[:, unpicked_tt],
-                                       Z=Tx_Rx_zs[:, unpicked_tt],
-                                       color='red')
-                self.draw()
+                self.plot_lines(Tx_Rx_xs[:, unpicked_tt],Tx_Rx_ys[:, unpicked_tt],Tx_Rx_zs[:, unpicked_tt],'red')
+
+            self.draw()
         else:
             Tx = np.unique(mog.data.Tx_z)
             ind_unpicked = np.where(Tx_Rx_zs[0, unpicked_tt] == Tx[n])[0]
@@ -2189,41 +2187,27 @@ class RayCoverageFig(FigureCanvasQTAgg):
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_unpicked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_unpicked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_unpicked],
-                                       color='red')
 
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_unpicked],tmp_Tx_Rx_ys[:, ind_unpicked],tmp_Tx_Rx_zs[:, ind_unpicked],'red')
+               
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_picked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_picked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_picked],
-                                       color='green')
-                self.draw()
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_picked],tmp_Tx_Rx_ys[:, ind_picked],tmp_Tx_Rx_zs[:, ind_picked],'green')
 
             elif show_type == 'Show picked only':
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, picked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, picked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, picked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_picked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_picked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_picked],
-                                       color='green')
-
-                self.draw()
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_picked],tmp_Tx_Rx_ys[:, ind_picked],tmp_Tx_Rx_zs[:, ind_picked],'green')
 
             elif show_type == 'Show unpicked only':
                 tmp_Tx_Rx_xs = Tx_Rx_xs[:, unpicked_tt]
                 tmp_Tx_Rx_ys = Tx_Rx_ys[:, unpicked_tt]
                 tmp_Tx_Rx_zs = Tx_Rx_zs[:, unpicked_tt]
-                self.ax.plot_wireframe(X=tmp_Tx_Rx_xs[:, ind_unpicked],
-                                       Y=tmp_Tx_Rx_ys[:, ind_unpicked],
-                                       Z=tmp_Tx_Rx_zs[:, ind_unpicked],
-                                       color='red')
+                self.plot_lines(tmp_Tx_Rx_xs[:, ind_unpicked],tmp_Tx_Rx_ys[:, ind_unpicked],tmp_Tx_Rx_zs[:, ind_unpicked],'red')
 
-                self.draw()
+            self.draw()
 
 
 class PruneFig(FigureCanvasQTAgg):

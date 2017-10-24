@@ -29,17 +29,18 @@ import scipy as spy
 from scipy.sparse import linalg
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import interpolate
-from inversion import invLSQR, InvLSQRParams
-from utils import set_tick_arrangement
+from inversion import invLSQR, InvLSQRParams, invGeostat
+from utils import set_tick_arrangement, ComputeThread
+import utils_ui
 from mog import Mog, AirShots
-# from utils_ui import chooseModel
 
 import database
-current_module = sys.modules[__name__]
-database.create_data_management(current_module)
 
 
 class InversionUI(QtWidgets.QFrame):
+    InvIterationDone = QtCore.pyqtSignal(int, np.ndarray,str)   # Signal when a iteration is done
+    InvDone = QtCore.pyqtSignal(int,str)                 # Signal when the inversion is done
+
     def __init__(self, parent=None):
         super(InversionUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Inversion")
@@ -49,13 +50,27 @@ class InversionUI(QtWidgets.QFrame):
         self.model_ind = ''
         self.initUI()
         self.initinvUI()
+        self.model = None
+
+        # Signals
+        self.InvIterationDone.connect(self.handleInvIterationDone) 
+        self.InvDone.connect(self.handleInvDone)
+
+    def handleInvIterationDone(self, noIter, tomo_s, type_inv):
+        self.algo_label.setText('{} inversion -'.format(type_inv))
+        self.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter))
+        self.gv.invFig.plot_lsqr_inv(tomo_s)
+    
+    def handleInvDone(self, noIter, type_inv):
+        self.algo_label.setText('{} inversion -'.format(type_inv))
+        self.noIter_label.setText('Finished, {} Iterations Done'.format(noIter))
 
     def savefile(self):
         if self.model_ind == '':
             # If there's no selected model
             return
         if self.tomo is None:
-            current_module.session.commit()
+            database.session.commit()
             return
         if self.algo_combo.currentText() == 'LSQR Solver':
             cov = '-LSQR'
@@ -69,23 +84,46 @@ class InversionUI(QtWidgets.QFrame):
                                                             text='tomo (insert date) {} {}'.format(dType, cov))
         if ok:
             inv_res_info = (inversion_name, self.tomo, self.lsqrParams)
-            current_module.session.query(Model).all()[self.model_ind].inv_res.append(inv_res_info)
-            print(current_module.session.query(Model).all()[self.model_ind].inv_res)
+            database.session.query(Model).all()[self.model_ind].inv_res.append(inv_res_info)
+            print(database.session.query(Model).all()[self.model_ind].inv_res)
 
-        current_module.session.commit()
+        database.session.commit()
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
+    def current_covar(self):
+        if self.model is not None and self.model.grid is not None:
+            if self.T_and_A_combo.currentIndex() == 0:
+                if self.model.tt_covar is None:
+                    self.model.tt_covar = covar.CovarianceModel(self.model.grid.type)
+                covariance = self.model.tt_covar
+            else:
+                if self.model.amp_covar is None:
+                    self.model.amp_covar = covar.CovarianceModel(self.model.grid.type)
+                covariance = self.model.amp_covar
+        return covariance
 
     def openfile(self):
-        # models, model = chooseModel(self.filename) # TODO: Is this necessary?
-        # if model:
+       new_model = utils_ui.chooseModel(database)
+       if new_model is not None:
+           self.set_current_model(new_model)
 
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database')[0]
-        database.load(current_module, filename)
+    def set_current_model(self, model):
+        if self.model is not None:
+            if utils_ui.save_warning(database):
+                self.model = model
+                if model.grid is not None:
+                    self.updateDatabaseInfos()
+        else:
+            self.model = model
+            if model.grid is not None:
+                self.updateDatabaseInfos()
 
-        self.model_ind = None
+    def updateDatabaseInfos(self):
+        """
+        Update the interface with the new database informations
+        """
         self.inv_frame.setHidden(True)
-        self.gv = Gridviewer(current_module.session.query(Model).all()[self.model_ind].grid, self)
+        self.gv = Gridviewer(self.model.grid, self)
         self.global_grid.addWidget(self.gv, 1, 1, 7, 2)
         self.update_data()
         self.update_grid()
@@ -94,8 +132,8 @@ class InversionUI(QtWidgets.QFrame):
     def update_previous(self):
         self.prev_inversion_combo.clear()
         self.prev_inv.clear()
-        if current_module.session.query(Model).count() != 0:
-            for result in current_module.session.query(Model).all()[self.model_ind].inv_res:
+        if database.session.query(Model).count() != 0:
+            for result in self.model.inv_res:
 
                 # result[0] == name
                 # result[1] == tomo
@@ -105,46 +143,92 @@ class InversionUI(QtWidgets.QFrame):
                 self.prev_inv.append(result)
 
     def update_data(self):
-        for mog in current_module.session.query(Model).all()[self.model_ind].mogs:
+        for mog in self.model.mogs:
             self.mog_list.addItem(mog.name)
         self.mog_list.setCurrentRow(0)
 
     def update_grid(self):
-        model = current_module.session.query(Model).all()[self.model_ind]
-        if np.all(model.grid.grx == 0) or np.all(model.grid.grx == 0):
+        if np.all(self.model.grid.grx == 0) or np.all(self.model.grid.grx == 0):
             QtWidgets.QMessageBox.warning(self, 'Warning', "Please create a Grid before Inversion",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
         else:
-            self.X_min_label.setText(str(np.round(model.grid.grx[0], 3)))
-            self.X_max_label.setText(str(np.round(model.grid.grx[-1], 3)))
-            self.step_Xi_label.setText(str(model.grid.dx))
+            self.X_min_label.setText(str(np.round(self.model.grid.grx[0], 3)))
+            self.X_max_label.setText(str(np.round(self.model.grid.grx[-1], 3)))
+            self.step_Xi_label.setText(str(self.model.grid.dx))
 
-            self.Z_min_label.setText(str(np.round(model.grid.grz[0], 3)))
-            self.Z_max_label.setText(str(np.round(model.grid.grz[-1], 3)))
-            self.step_Zi_label.setText(str(model.grid.dz))
+            self.Z_min_label.setText(str(np.round(self.model.grid.grz[0], 3)))
+            self.Z_max_label.setText(str(np.round(self.model.grid.grz[-1], 3)))
+            self.step_Zi_label.setText(str(self.model.grid.dz))
 
-            if model.grid.type == '3D':
-                self.Y_min_label.setText(str(np.round(model.grid.gry[0], 3)))
-                self.Y_max_label.setText(str(np.round(model.grid.gry[-1], 3)))
-                self.step_Yi_label.setText(str(model.grid.dy))
+            if self.model.grid.type == '3D':
+                self.Y_min_label.setText(str(np.round(self.model.grid.gry[0], 3)))
+                self.Y_max_label.setText(str(np.round(self.model.grid.gry[-1], 3)))
+                self.step_Yi_label.setText(str(self.model.grid.dy))
 
-            self.num_cells_label.setText(str(model.grid.getNumberOfCells()))
+            self.num_cells_label.setText(str(self.model.grid.getNumberOfCells()))
 
     def update_params(self):
-        self.lsqrParams.selectedMogs = self.mog_list.selectedIndexes()
-        self.lsqrParams.selectedMogs = [i.row() for i in self.lsqrParams.selectedMogs]
+        
         self.lsqrParams.numItStraight = int(self.straight_ray_edit.text())
         self.lsqrParams.numItCurved = int(self.curv_ray_edit.text())
+        self.lsqrParams.selectedMogs = self.mog_list.selectedIndexes()
+        self.lsqrParams.selectedMogs = [i.row() for i in self.lsqrParams.selectedMogs]
         self.lsqrParams.useCont = self.use_const_checkbox.isChecked()
-        self.lsqrParams.tol = float(self.solver_tol_edit.text())
-        self.lsqrParams.wCont = float(self.constraints_weight_edit.text())
-        self.lsqrParams.alphax = float(self.smoothing_weight_x_edit.text())
-        self.lsqrParams.alphay = float(self.smoothing_weight_y_edit.text())
-        self.lsqrParams.alphaz = float(self.smoothing_weight_z_edit.text())
-        self.lsqrParams.order = int(self.smoothing_order_combo.currentText())
-        self.lsqrParams.nbreiter = float(self.max_iter_edit.text())
-        self.lsqrParams.dv_max = 0.01 * float(self.veloc_var_edit.text())
+        if self.algo_combo.currentText() == 'LSQR Solver':
+            self.lsqrParams.tol = float(self.solver_tol_edit.text())
+            self.lsqrParams.wCont = float(self.constraints_weight_edit.text())
+            self.lsqrParams.alphax = float(self.smoothing_weight_x_edit.text())
+            self.lsqrParams.alphay = float(self.smoothing_weight_y_edit.text())
+            self.lsqrParams.alphaz = float(self.smoothing_weight_z_edit.text())
+            self.lsqrParams.order = int(self.smoothing_order_combo.currentText())
+            self.lsqrParams.nbreiter = float(self.max_iter_edit.text())
+            self.lsqrParams.dv_max = 0.01 * float(self.veloc_var_edit.text())
+
+        if self.algo_combo.currentText() == 'Geostatistical':
+            covar_ = self.current_covar()
+            ind = self.geostat_struct_combo.currentIndex()
+
+            if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                covar_.covar[ind].range[0] = float(self.slowness_range_X_edit.text())
+                covar_.covar[ind].range[1] = float(self.slowness_range_Z_edit.text())
+                covar_.covar[ind].angle[0] = float(self.slowness_theta_X_edit.text())
+                covar_.covar[ind].sill = float(self.slowness_sill_edit   .text())
+                covar_.nugget_model = float(self.slowness_edit        .text())
+                covar_.nugget_data = float(self.traveltime_edit              .text())
+
+                if self.ellip_veloc_checkbox.checkState():
+
+                    self.loadRays()
+                    self.computeCd()
+
+                    if covar_.covar_xi[ind] is None:
+                        covar_.covar_xi[ind] = covar.CovarianceFactory.detDefault2D()
+                    covar_.covar_xi[ind].range[0] = float(self.xi_range_X_edit.text())
+                    covar_.covar_xi[ind].range[1] = float(self.xi_range_Z_edit.text())
+                    covar_.covar_xi[ind].angle[0] = float(self.xi_theta_X_edit.text())
+                    covar_.covar_xi[ind].sill = float(self.xi_sill_edit   .text())
+                    covar_.nugget_xi = float(self.xi_edit        .text())
+
+                    if self.tilted_ellip_veloc_checkbox.checkState():
+                        if covar_.covar_tilt[ind] is None:
+                            covar_.covar_tilt[ind] = covar.CovarianceFactory.detDefault2D()
+                        covar_.covar_tilt[ind].range[0] = float(self.tilt_range_X_edit.text())
+                        covar_.covar_tilt[ind].range[1] = float(self.tilt_range_Z_edit.text())
+                        covar_.covar_tilt[ind].angle[0] = float(self.tilt_theta_X_edit.text())
+                        covar_.covar_tilt[ind].sill = float(self.tilt_sill_edit   .text())
+                        covar_.nugget_tilt = float(self.tilt_edit        .text())
+
+            elif self.model.grid.type == '3D':
+                covar_.covar[ind].range[0] = float(self.slowness_3D_range_X_edit.text())
+                covar_.covar[ind].range[1] = float(self.slowness_3D_range_Y_edit.text())
+                covar_.covar[ind].range[2] = float(self.slowness_3D_range_Z_edit.text())
+                covar_.covar[ind].angle[0] = float(self.slowness_3D_theta_X_edit.text())
+                covar_.covar[ind].angle[1] = float(self.slowness_3D_theta_Y_edit.text())
+                covar_.covar[ind].angle[2] = float(self.slowness_3D_theta_Z_edit.text())
+                covar_.covar[ind].sill = float(self.slowness_3D_sill_edit   .text())
+                covar_.nugget_model = float(self.slowness_edit           .text())
+                covar_.nugget_data = float(self.tt_edit                 .text())
 
     def update_input_params(self):
         self.straight_ray_edit.setText(str(self.lsqrParams.numItStraight))
@@ -160,9 +244,14 @@ class InversionUI(QtWidgets.QFrame):
         self.veloc_var_edit.setText(str(self.lsqrParams.dv_max))
         self.update_params()
 
+    def doInvLSQR_inThread(self, data, idata, L):
+        self.tomo = invLSQR(self.lsqrParams, data, idata, self.model.grid, L, None, self)
+
+    def doInvGeostatistic_inThread(self, data, idata, L):
+        self.tomo = invGeostat(self.lsqrParams, data, idata, self.model.grid,self.current_covar(), L, None, self)
+
     def doInv(self):
-        model = current_module.session.query(Model).all()[self.model_ind]
-        if self.model_ind == '':
+        if self.model is None:
             QtWidgets.QMessageBox.warning(self, 'Warning', "First, load a model in order to do Inversion",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
@@ -172,8 +261,8 @@ class InversionUI(QtWidgets.QFrame):
 
         elif self.T_and_A_combo.currentText() == 'Traveltime':
             self.lsqrParams.tomoAtt = 0
-            data, idata = Model.getModelData(model, current_module.session.query(AirShots).all(), self.lsqrParams.selectedMogs, 'tt')
-            data = np.concatenate((model.grid.Tx[idata, :], model.grid.Rx[idata, :], data, model.grid.TxCosDir[idata, :], model.grid.RxCosDir[idata, :]), axis=1)
+            data, idata = Model.getModelData(self.model, self.lsqrParams.selectedMogs, 'tt')
+            data = np.concatenate((self.model.grid.Tx[idata, :], self.model.grid.Rx[idata, :], data, self.model.grid.TxCosDir[idata, :], self.model.grid.RxCosDir[idata, :]), axis=1)
 
         # TODO: Faire les autres cas du self.T_and_A_combo
 
@@ -185,14 +274,13 @@ class InversionUI(QtWidgets.QFrame):
             # Change L and Rays
             pass
 
+        self.update_params()
         if self.algo_combo.currentText() == 'LSQR Solver':
-            self.update_params()
+            self.compute_thread = ComputeThread(self.doInvLSQR_inThread,data,idata,L)
+        elif self.algo_combo.currentText() == 'Geostatistic':
+           self.compute_thread = ComputeThread(self.doInvGeostatistic_inThread,data,idata,L)
 
-            self.tomo = invLSQR(self.lsqrParams, data, idata, model.grid, L, app, self)
-
-        if self.algo_combo.currentText() == 'Geostatistical':
-            # TODO: Faire l'inversion géostatistique
-            pass
+        self.compute_thread.start()
 
     def plot_inv(self):
         s = self.tomo.s
@@ -237,7 +325,7 @@ class InversionUI(QtWidgets.QFrame):
 
     def load_prev(self):
         n = self.prev_inversion_combo.currentIndex()
-        results = current_module.session.query(Model).all()[self.model_ind].inv_res[n]
+        results = self.model.inv_res[n]
         name = results[0]
         tomo = results[1]
         params = results[2]
@@ -259,7 +347,7 @@ class InversionUI(QtWidgets.QFrame):
 
     def delete_prev(self):
         n = self.prev_inversion_combo.currentIndex()
-        del current_module.session.query(Model).all()[self.model_ind].inv_res[n]
+        del self.model.inv_res[n]
         self.update_previous()
 
     def initinvUI(self):
@@ -296,10 +384,10 @@ class InversionUI(QtWidgets.QFrame):
         self.smoothing_weight_z_edit = QtWidgets.QLineEdit('10')
         self.veloc_var_edit          = QtWidgets.QLineEdit('50')
 
-        self.range_x_edit = QtWidgets.QLineEdit()
-        self.range_z_edit = QtWidgets.QLineEdit()
-        self.theta_x_edit = QtWidgets.QLineEdit()
-        self.sill_edit = QtWidgets.QLineEdit()
+        self.slowness_range_X_edit = QtWidgets.QLineEdit()
+        self.slowness_range_Z_edit = QtWidgets.QLineEdit()
+        self.slowness_theta_X_edit = QtWidgets.QLineEdit()
+        self.slowness_sill_edit = QtWidgets.QLineEdit()
 
         # - Edits' Disposition - #
         self.num_simulation_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -312,10 +400,10 @@ class InversionUI(QtWidgets.QFrame):
         self.smoothing_weight_y_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.smoothing_weight_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
         self.veloc_var_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.range_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.range_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.theta_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.sill_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.slowness_range_X_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.slowness_range_Z_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.slowness_theta_X_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.slowness_sill_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         self.num_simulation_edit.setFixedWidth(100)
         self.slowness_edit.setFixedWidth(100)
@@ -341,22 +429,22 @@ class InversionUI(QtWidgets.QFrame):
         self.veloc_var_edit.editingFinished.connect(self.update_params)
 
         # --- CheckBoxes --- #
-        include_checkbox                = QtWidgets.QCheckBox("Include Experimental Variance")
-        tilted_ellip_veloc_checkbox     = QtWidgets.QCheckBox("Tilted Elliptical Velocity Anisotropy")
-        simulations_checkbox            = QtWidgets.QCheckBox("Simulations")
-        ellip_veloc_checkbox            = QtWidgets.QCheckBox("Elliptical Velocity Anisotropy")
+        self.simulations_checkbox            = QtWidgets.QCheckBox("Simulations")
+        self.include_checkbox                = QtWidgets.QCheckBox("Include Experimental Variance")
+        self.tilted_ellip_veloc_checkbox     = QtWidgets.QCheckBox("Tilted Elliptical Velocity Anisotropy")
+        self.ellip_veloc_checkbox            = QtWidgets.QCheckBox("Elliptical Velocity Anisotropy")
 
         # --- ComboBoxes --- #
         self.geostat_struct_combo       = QtWidgets.QComboBox()
         self.smoothing_order_combo      = QtWidgets.QComboBox()
-        self.param_combo = QtWidgets.QComboBox()
+        self.slowness_type_combo = QtWidgets.QComboBox()
 
         # - Comboboxes Actions - #
         self.smoothing_order_combo.activated.connect(self.update_params)
 
         # --- Combobox's Items --- #
         params = ['Cubic', 'Sperical', 'Gaussian', 'Exponential', 'Linear', 'Thin Plate', 'Gravimetric', 'Magnetic', 'Hole Effect Sine', 'Hole Effect Cosine']
-        self.param_combo.addItems(params)
+        self.slowness_type_combo.addItems(params)
         self.geostat_struct_combo.addItem("Structure no 1")
         self.smoothing_order_combo.addItems(['2', '1'])
 
@@ -370,15 +458,15 @@ class InversionUI(QtWidgets.QFrame):
         sub_param_widget = QtWidgets.QWidget()
         sub_param_grid = QtWidgets.QGridLayout()
         sub_param_grid.addWidget(slownessFrame, 0, 1)
-        sub_param_grid.addWidget(self.param_combo, 1, 1)
+        sub_param_grid.addWidget(self.slowness_type_combo, 1, 1)
         sub_param_grid.addWidget(range_x_label, 2, 0)
         sub_param_grid.addWidget(range_z_label, 3, 0)
         sub_param_grid.addWidget(theta_x_label, 4, 0)
         sub_param_grid.addWidget(sill_label, 5, 0)
-        sub_param_grid.addWidget(self.range_x_edit, 2, 1)
-        sub_param_grid.addWidget(self.range_z_edit, 3, 1)
-        sub_param_grid.addWidget(self.theta_x_edit, 4, 1)
-        sub_param_grid.addWidget(self.sill_edit, 5, 1)
+        sub_param_grid.addWidget(self.slowness_range_X_edit, 2, 1)
+        sub_param_grid.addWidget(self.slowness_range_Z_edit, 3, 1)
+        sub_param_grid.addWidget(self.slowness_theta_X_edit, 4, 1)
+        sub_param_grid.addWidget(self.slowness_sill_edit, 5, 1)
         sub_param_widget.setLayout(sub_param_grid)
 
         # --- Scroll Area which contains the Geostatistical Parameters --- #
@@ -405,12 +493,12 @@ class InversionUI(QtWidgets.QFrame):
         # --- Geostatistical inversion Groupbox --- #
         Geostat_groupbox = QtWidgets.QGroupBox("Geostatistical inversion")
         Geostat_grid = QtWidgets.QGridLayout()
-        Geostat_grid.addWidget(simulations_checkbox, 0, 0)
-        Geostat_grid.addWidget(ellip_veloc_checkbox, 1, 0)
-        Geostat_grid.addWidget(include_checkbox, 2, 0)
+        Geostat_grid.addWidget(self.simulations_checkbox, 0, 0)
+        Geostat_grid.addWidget(self.ellip_veloc_checkbox, 1, 0)
+        Geostat_grid.addWidget(self.include_checkbox, 2, 0)
         Geostat_grid.addWidget(num_simulation_label, 0, 1)
         Geostat_grid.addWidget(self.num_simulation_edit, 0, 2)
-        Geostat_grid.addWidget(tilted_ellip_veloc_checkbox, 1, 1)
+        Geostat_grid.addWidget(self.tilted_ellip_veloc_checkbox, 1, 1)
         Geostat_grid.addWidget(self.geostat_struct_combo, 2, 1, 1, 2)
         Geostat_grid.addWidget(Param_groupbox, 3, 0, 1, 3)
         Geostat_grid.addWidget(Nug_groupbox, 4, 0, 1, 3)
@@ -438,26 +526,71 @@ class InversionUI(QtWidgets.QFrame):
         LSQR_grid.addWidget(self.veloc_var_edit, 7, 1)
         LSQR_group.setLayout(LSQR_grid)
 
+        current = self.Inv_Param_grid.layout()
+        widget = current.itemAtPosition(2, 0).widget()
+        widget.setHidden(True)
+        self.Inv_Param_grid.removeWidget(widget)
+
         if self.algo_combo.currentText() == 'LSQR Solver':
-            current = self.Inv_Param_grid.layout()
-            widget = current.itemAtPosition(2, 0).widget()
-
-            widget.setHidden(True)
-            self.Inv_Param_grid.removeWidget(widget)
-
             self.Inv_Param_grid.addWidget(LSQR_group, 2, 0, 1, 3)
-            self.repaint()
-
         else:
-            current = self.Inv_Param_grid.layout()
-            widget = current.itemAtPosition(2, 0).widget()
-            widget.setHidden(True)
-            self.Inv_Param_grid.removeWidget(widget)
             self.Inv_Param_grid.addWidget(Geostat_groupbox, 2, 0, 1, 3)
-            self.repaint()
+            self.updateInterfaceParams()
+        self.repaint
+
+    def updateInterfaceParams(self):
+        if self.algo_combo.currentText() == "Geostatistic" and self.model is not None:
+            covar_ = self.current_covar()
+            ind = self.geostat_struct_combo.currentIndex()
+
+            self.ellip_veloc_checkbox       .setCheckState(covar_.use_xi)
+            self.tilted_ellip_veloc_checkbox.setCheckState(covar_.use_tilt)
+            self.include_checkbox           .setCheckState(covar_.use_c0)
+
+            if ind != -1:
+                if self.model.grid.type == '2D' or self.model.grid.type == '2D+':
+                    self.slowness_type_combo  .setCurrentIndex(covar_.covar[ind].type)
+                    self.slowness_range_X_edit.setText(str(covar_.covar[ind].range[0]))
+                    self.slowness_range_Z_edit.setText(str(covar_.covar[ind].range[1]))
+                    self.slowness_theta_X_edit.setText(str(covar_.covar[ind].angle[0]))
+                    self.slowness_sill_edit   .setText(str(covar_.covar[ind].sill))
+                    self.slowness_edit        .setText(str(covar_.nugget_model))
+                    self.traveltime_edit              .setText(str(covar_.nugget_data))
+
+                    if self.ellip_veloc_checkbox.checkState():
+                        if covar_.covar_xi[ind] is None:
+                            covar_.covar_xi[ind] = covar.CovarianceFactory.detDefault2D()
+                        self.xi_type_combo  .setCurrentIndex(covar_.covar_xi[ind].type)
+                        self.xi_range_X_edit.setText(str(covar_.covar_xi[ind].range[0]))
+                        self.xi_range_Z_edit.setText(str(covar_.covar_xi[ind].range[1]))
+                        self.xi_theta_X_edit.setText(str(covar_.covar_xi[ind].angle[0]))
+                        self.xi_sill_edit   .setText(str(covar_.covar_xi[ind].sill))
+                        self.xi_edit        .setText(str(covar_.nugget_xi))
+
+                        if self.tilted_ellip_veloc_checkbox.checkState():
+                            if covar_.covar_tilt[ind] is None:
+                                covar_.covar_tilt[ind] = covar.CovarianceFactory.detDefault2D()
+                            self.tilt_type_combo  .setCurrentIndex(covar_.covar_tilt[ind].type)
+                            self.tilt_range_X_edit.setText(str(covar_.covar_tilt[ind].range[0]))
+                            self.tilt_range_Z_edit.setText(str(covar_.covar_tilt[ind].range[1]))
+                            self.tilt_theta_X_edit.setText(str(covar_.covar_tilt[ind].angle[0]))
+                            self.tilt_sill_edit   .setText(str(covar_.covar_tilt[ind].sill))
+                            self.tilt_edit        .setText(str(covar_.nugget_tilt))
+
+                elif self.model.grid.type == '3D':
+                    self.slowness_3D_type_combo  .setCurrentIndex(covar_.covar[ind].type)
+                    self.slowness_3D_range_X_edit.setText(str(covar_.covar[ind].range[0]))
+                    self.slowness_3D_range_Y_edit.setText(str(covar_.covar[ind].range[1]))
+                    self.slowness_3D_range_Z_edit.setText(str(covar_.covar[ind].range[2]))
+                    self.slowness_3D_theta_X_edit.setText(str(covar_.covar[ind].angle[0]))
+                    self.slowness_3D_theta_Y_edit.setText(str(covar_.covar[ind].angle[1]))
+                    self.slowness_3D_theta_Z_edit.setText(str(covar_.covar[ind].angle[2]))
+                    self.slowness_3D_sill_edit   .setText(str(covar_.covar[ind].sill))
+                    self.slowness_edit           .setText(str(covar_.nugget_model))
+                    self.traveltime_edit                 .setText(str(covar_.nugget_data))
 
     def update_Tx_elev(self):
-        mog = current_module.session.query(Mog).all()[self.mog_list.selectedIndexes()[0].row()]
+        mog = database.session.query(Mog).all()[self.mog_list.selectedIndexes()[0].row()]
         n = int(self.trace_num_edit.text()) - 1
         elev = np.unique(mog.data.Tx_z)[n]
 
@@ -661,6 +794,9 @@ class InversionUI(QtWidgets.QFrame):
         self.curv_ray_edit           = QtWidgets.QLineEdit("1")  # it to the argument
         self.Min_editi               = QtWidgets.QLineEdit('0.06')
         self.Max_editi               = QtWidgets.QLineEdit('0.12')
+        
+        self.straight_ray_edit.editingFinished.connect(self.update_params)
+        self.curv_ray_edit.editingFinished.connect(self.update_params)
 
         # - Edits' Disposition - #
         self.straight_ray_edit.setAlignment(QtCore.Qt.AlignHCenter)
@@ -950,8 +1086,11 @@ class InvFig(FigureCanvasQTAgg):
 
         self.ax3.cla()
         self.ax4.cla()
+        if self.ui.algo_combo.currentText() == 'LSQR Solver':
+             self.ax3.set_title('LSQR')
+        elif self.ui.algo_combo.currentText() == 'Geostatistic':
+            self.ax3.set_title('Geostatistic')
 
-        self.ax3.set_title('LSQR')
         self.ax3.set_xlabel('Distance [m]')
         self.ax3.set_ylabel('Elevation [m]')
         self.ax4.set_title('m/ns')

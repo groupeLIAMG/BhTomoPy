@@ -29,8 +29,8 @@ from sqlalchemy.orm.attributes import flag_modified
 from utils_ui import chooseMOG
 
 import database
-current_module = sys.modules[__name__]
-database.create_data_management(current_module)
+#current_module = sys.modules[__name__]
+#database.create_data_management(current_module)
 
 
 class ManualttUI(QtWidgets.QFrame):
@@ -65,6 +65,15 @@ class ManualttUI(QtWidgets.QFrame):
         n = int(self.Tnum_Edit.text())
         n -= 1
         self.Tnum_Edit.setText(str(n))
+        if self.mog is not None:
+            self.upperFig.plot_amplitude()    
+
+    def onScrollAmplitudeChange(self):
+        val = 10**(-int(self.amp_slider.value())/100)
+        self.A_min_Edit.setText(str(-val))
+        self.A_max_Edit.setText(str(val))
+        self.A_min_Edit.setCursorPosition(0)
+        self.A_max_Edit.setCursorPosition(0)
         self.update_control_center()
 
     def update_control_center(self):
@@ -186,7 +195,7 @@ class ManualttUI(QtWidgets.QFrame):
             flag_modified(self.mog.ap, 'et')
             flag_modified(self.mog.ap, 'tt_done')
 
-        current_module.session.commit()
+        database.session.commit()
 
 #         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy
 #             sfile['air'] = self.air
@@ -194,7 +203,7 @@ class ManualttUI(QtWidgets.QFrame):
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        item = chooseMOG(current_module, database.long_url(current_module))
+        item = chooseMOG(database)
         if item is not None:
             self.mog = item
             if self.mog.useAirShots == True:
@@ -242,9 +251,17 @@ class ManualttUI(QtWidgets.QFrame):
         self.upperFig = UpperFig(self)
         self.uppertool = NavigationToolbar2QT(self.upperFig, self)
         self.uppermanager = QtWidgets.QWidget()
+        self.amp_slider = QtWidgets.QScrollBar()
+        self.amp_slider.setMaximum(200)
+        self.amp_slider.setMinimum(-460)
+        self.amp_slider.setValue(-300)
+        self.amp_slider.setSingleStep(1)
+        self.amp_slider.setPageStep(10)
+        self.amp_slider.valueChanged.connect(self.onScrollAmplitudeChange)
         uppermanagergrid = QtWidgets.QGridLayout()
         uppermanagergrid.addWidget(self.uppertool, 0, 0)
         uppermanagergrid.addWidget(self.upperFig, 1, 0)
+        uppermanagergrid.addWidget(self.amp_slider, 1, 1)
         uppermanagergrid.setContentsMargins(0, 0, 0, 0)
         uppermanagergrid.setVerticalSpacing(3)
         self.uppermanager.setLayout(uppermanagergrid)

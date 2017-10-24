@@ -112,7 +112,6 @@ def save_as(module, file):
     """
 
     try:
-        airshots_cleanup(module)
 
         # TODO Reflecting the mapping instead of merging might make the code more efficient
 
@@ -163,7 +162,7 @@ def delete(module, item):
     module.modified = True
 
 
-def airshots_cleanup(module):  # TODO: Verify if this works
+def airshots_cleanup(module):
     """
     Deletes airshots that aren't associated with a mog.
     """
