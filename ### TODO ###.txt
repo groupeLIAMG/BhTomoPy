@@ -1,3 +1,16 @@
+As of November 07 2017...
+
+- Covar_ui is pretty completed. Still, some extensive tests need to be done to ensure that all is working properly.
+- Inversion is started. However, just a basic functionality is implemented. At least the basics are there.
+
+Still to do : 
+  - Complete the inversion module
+  - Think about how we want to handle changes in the database
+  - Discuss the possibility of implementing unit tests from now on
+  - Still, there is alot of #TODO in the code. Normally when modifying one module you should clear all the todos.
+  - Implement 3D version for all the modules. The only problem was a lack of good visualisation in 3D. Probably Bernard know a solution.
+
+
 As of June 30th 2017...
 
 Covar_ui is close to done:
