@@ -31,7 +31,8 @@ import numpy as np
 from scipy.special import erfcinv
 from scipy.sparse import csr_matrix
 from scipy import linalg
-# import pyfftw.interfaces.numpy_fft as np_fft
+
+import pyfftw.interfaces.numpy_fft as np_fft
 
 
 class Covariance(object):
