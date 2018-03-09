@@ -53,7 +53,12 @@ class ModelUI(QtWidgets.QWidget):
 
     def load_model(self, name):
         model = Model(name)
-        self.db.models.append(model)
+        try:
+            self.db.models.append(model)
+        except ValueError:
+            QtWidgets.QMessageBox.warning(self, 'Error', 'Model name already used',
+                                          buttons=QtWidgets.QMessageBox.Ok)
+            return
         self.model_list.setCurrentRow(len(self.db.models) - 1)
         self.modellogSignal.emit("Model {} has been added successfully".format(name))
         self.update_model_list()

@@ -84,7 +84,12 @@ class BoreholeUI(QtWidgets.QWidget):
         name, ok = QtWidgets.QInputDialog.getText(self, "Borehole creation", "Borehole name")
         if ok:
             bh = Borehole(str(name))
-            self.db.boreholes.append(bh)
+            try:
+                self.db.boreholes.append(bh)
+            except ValueError:
+                QtWidgets.QMessageBox.warning(self, 'Error', 'Borehole name already used',
+                                              buttons=QtWidgets.QMessageBox.Ok)
+                return
             self.update_List_Widget()
             self.bh_list.setCurrentRow(len(self.db.boreholes) - 1)
             self.update_List_Edits()

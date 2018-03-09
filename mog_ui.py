@@ -77,7 +77,19 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             mogdata.readRAMAC(basename)
 
             mog = Mog(rname, mogdata)
-            self.db.mogs.append(mog)
+            try:
+                self.db.mogs.append(mog)
+            except ValueError:
+                rname, ok = QtWidgets.QInputDialog.getText(self, 'Name already used', 'Enter name to store MOG :')
+                if ok:
+                    mog.name = rname
+                    try:
+                        self.db.mogs.append(mog)
+                    except ValueError:
+                        QtWidgets.QMessageBox.warning(self, 'Error', 'Name already used: aborting',
+                                                      buttons=QtWidgets.QMessageBox.Ok)
+                else:
+                    return
             
             self.update_List_Widget()
             self.MOG_list.setCurrentRow(len(self.db.mogs) - 1)
@@ -192,6 +204,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         if itemNo != -1:
             new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'new MOG name')
             if ok:
+                for mog in self.db.mogs:
+                    if mog.name is new_name:
+                        QtWidgets.QMessageBox.warning(self, 'Error', 'Name already used',
+                                              buttons=QtWidgets.QMessageBox.Ok)
+                        return
                 mog_ = self.db.mogs[itemNo]
                 self.moglogSignal.emit("MOG {} is now {}".format(mog_.name, new_name))
                 mog_.name = new_name
