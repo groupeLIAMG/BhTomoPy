@@ -114,9 +114,8 @@ def chooseMOG(filename=None):
     isOk = d.exec_()
 
     if isOk == 1:
-        mog_no = b3.currentIndex()
-        if mog_no != -1:
-            return db.get_mog(mog_no)
+        mog_name = b3.currentText()
+        return db.get_mog(mog_name)
 
 
 def chooseModel(filename=None):
@@ -196,9 +195,8 @@ def chooseModel(filename=None):
     isOk = d.exec_()
 
     if isOk == 1:
-        model_no = b3.currentIndex()
-        if model_no != -1:
-            return db.get_model(model_no)
+        model_name = b3.currentText()
+        return db.get_model(model_name)
 
 
 def save_warning(db):
