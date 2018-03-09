@@ -293,7 +293,20 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         else:
                             airshot_before.method = 'walkaway'
                         self.Air_Shot_Before_edit.setText(airshot_before.name[:-4])
-                        self.db.air_shots.append(airshot_before)
+                        try:
+                            self.db.air_shots.append(airshot_before)
+                        except ValueError:
+                            rname, ok = QtWidgets.QInputDialog.getText(self, 'Name already used',
+                                                                       'Enter name to store air shots data :')
+                            if ok:
+                                airshot_before.name = rname
+                                try:
+                                    self.db.air_shots.append(airshot_before)
+                                except ValueError:
+                                    QtWidgets.QMessageBox.warning(self, 'Error', 'Name already used: aborting',
+                                                                  buttons=QtWidgets.QMessageBox.Ok)
+                            else:
+                                return
                         self.db.mogs[itemNo].av = airshot_before
                         self.db.mogs[itemNo].modified = True
 
@@ -352,7 +365,20 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         else:
                             airshot_after.method = 'walkaway'
                         self.Air_Shot_After_edit.setText(airshot_after.name[:-4])
-                        self.db.air_shots.append(airshot_after)
+                        try:
+                            self.db.air_shots.append(airshot_after)
+                        except ValueError:
+                            rname, ok = QtWidgets.QInputDialog.getText(self, 'Name already used',
+                                                                       'Enter name to store air shots data :')
+                            if ok:
+                                airshot_after.name = rname
+                                try:
+                                    self.db.air_shots.append(airshot_after)
+                                except ValueError:
+                                    QtWidgets.QMessageBox.warning(self, 'Error', 'Name already used: aborting',
+                                                                  buttons=QtWidgets.QMessageBox.Ok)
+                            else:
+                                return
                         self.db.mogs[itemNo].av = airshot_after
                         self.db.mogs[itemNo].modified = True
 
