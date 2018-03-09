@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import os
+import re
 import numpy as np
 import h5py
 
@@ -49,7 +50,7 @@ class DbList(list):
         super(DbList, self).remove(item)
         self.modified = True
 
-# TODO: map Mog.Tx, Mog.Rx, Mog.av, Mog.ap and Model.mogs to stored objects
+
 class BhTomoDb():
     def __init__(self, fname=''):
         self.filename = fname
@@ -57,6 +58,16 @@ class BhTomoDb():
         self.boreholes = DbList()
         self.mogs = DbList()
         self.models = DbList()
+
+        # prepare for special cases
+        # Mog.av
+        # Mog.ap
+        # Mog.Tx
+        # Mog.Rx
+        # Model.mogs
+        self.p = re.compile('/mogs/.*/(av|ap|Tx|Rx)$')
+        self.p2 = re.compile('/mogs/.*/(av|ap|Tx|Rx)')
+        self.p3 = re.compile('/models/.*/_list_mogs')
 
     @property
     def filename(self):
@@ -74,17 +85,17 @@ class BhTomoDb():
     
     @property
     def modified(self):
-        modified = self.air_shots.modified or self.boreholes.modified or self.mogs.modified or self.models.modified
+        modified = self.air_shots.modified or self.boreholes.modified or self.mogs.modified\
+         or self.models.modified
         for obj in self.boreholes, self.air_shots, self.mogs, self.models:
             modified = modified or obj.modified
         return modified
-        
 
     def save(self, fname=None, obj=None):
         if fname is not None:
             self.filename = fname
             
-        # if empty file, create 4 mains groups
+        # if empty file, create 4 main groups
         self.f.require_group('/boreholes')
         self.f.require_group('/mogs')
         self.f.require_group('/models')
@@ -93,52 +104,36 @@ class BhTomoDb():
         if obj is not None:
             # obj should be an instance of either a Borehole, Mog, Model or AirShot
             if type(obj) is Borehole:
-                try:
-                    ind = self.boreholes.index(obj)
-                    group = self.f['/boreholes/'+str(ind)]
-                except:
-                    group = self.f.require_group('/boreholes'+str(len(self.boreholes)))
+                group = self.f.require_group('/boreholes/'+obj.name)
             elif type(obj) is Mog:
-                try:
-                    ind = self.mogs.index(obj)
-                    group = self.f['/mogs/'+str(ind)]
-                except:
-                    group = self.f.require_group('/mogs'+str(len(self.mogs)))
+                group = self.f.require_group('/mogs/'+obj.name)
             elif type(obj) is Model:
-                try:
-                    ind = self.models.index(obj)
-                    group = self.f['/models/'+str(ind)]
-                except:
-                    group = self.f.require_group('/models'+str(len(self.models)))
+                group = self.f.require_group('/models/'+obj.name)
             elif type(obj) is AirShots:
-                try:
-                    ind = self.air_shots.index(obj)
-                    group = self.f['/air_shots/'+str(ind)]
-                except:
-                    group = self.f.require_group('/air_shots'+str(len(self.air_shots)))
+                group = self.f.require_group('/air_shots/'+obj.name)
             else:
                 raise TypeError
             
-            self._saveObject(obj, group)
+            self._save_object(obj, group)
             self.f.flush()
             
         else:
             # save everything
             if self.boreholes.modified:
                 g = self.f.require_group('/boreholes')
-                self._saveList(self.boreholes, g)
+                self._save_list(self.boreholes, g)
 
             if self.mogs.modified:
                 g = self.f.require_group('/mogs')
-                self._saveList(self.mogs, g)
-
-            if self.models.modified:
-                g = self.f.require_group('/air_shots')
-                self._saveList(self.air_shots, g)
+                self._save_list(self.mogs, g)
 
             if self.air_shots.modified:
+                g = self.f.require_group('/air_shots')
+                self._save_list(self.air_shots, g)
+
+            if self.models.modified:
                 g = self.f.require_group('/models')
-                self._saveList(self.models, g)
+                self._save_list(self.models, g)
             
             self.f.flush()
             self.boreholes.modified = False
@@ -149,14 +144,15 @@ class BhTomoDb():
     def load(self, fname=None):
         if fname is not None:
             self.filename = fname
-        
+
+        # make sure we load boreholes & air_shots before mogs, and mogs before models        
+        self.load_air_shots()
         self.load_boreholes()
         self.load_mogs()
         self.load_models()
-        self.load_air_shots()
-        
-    def load_boreholes(self):
-        self.boreholes = DbList()
+
+    def get_boreholes(self):
+        boreholes = DbList()
         gr = self.f['/boreholes']
         for k in gr.keys():
             b = Borehole(gr[k].attrs['name'])
@@ -164,57 +160,44 @@ class BhTomoDb():
                 b.__dict__[kk] = gr[k].attrs[kk]
             for kk in gr[k].keys():
                 b.__dict__[kk] = gr[k][kk]
-            self.boreholes.append(b)
+            boreholes.append(b)
+        return boreholes
+        
+    def load_boreholes(self):
+        self.boreholes = self.get_boreholes()
 
-    def load_mogs(self):
-        self.mogs = DbList()
+    def get_mogs(self):
+        mogs = DbList()
         gr = self.f['/mogs']
         for k in gr.keys():
-            m = Mog()
-            for kk in gr[k].attrs.keys():
-                m.__dict__[kk] = gr[k].attrs[kk]
-            for kk in gr[k].keys():
-                if type(gr[k][kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                    m.__dict__[kk] = gr[k][kk]
-                elif type(gr[k][kk]) is h5py._hl.group.Group:  # @UndefinedVariable
-                    gr2 = gr[k][kk]
-                    if '_list_' in gr2.name:
-                        m.__dict__[kk] = self._loadList(gr2)
-                    else:
-                        m.__dict__[kk] = self._loadObject(gr2)
-            
-            self.mogs.append(m)
-            
-    def get_mog(self, index):
-        group = self.f['/mogs/'+str(index)]
-        return self._loadObject(group)
+            m = self._load_mog(gr[k])
+            mogs.append(m)
+        return mogs
 
-    def load_models(self):
-        self.models = DbList()
+    def load_mogs(self):
+        self.mogs = self.get_mogs()
+
+    def get_mog(self, name):
+        group = self.f['/mogs/'+name]
+        return self._load_mog(group)
+
+    def get_models(self):
+        models = DbList()
         gr = self.f['/models']
         for k in gr.keys():
-            m = Model()
-            for kk in gr[k].attrs.keys():
-                m.__dict__[kk] = gr[k].attrs[kk]
-            for kk in gr[k].keys():
-                if type(gr[k][kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                    m.__dict__[kk] = gr[k][kk]
-                elif type(gr[k][kk]) is h5py._hl.group.Group:  # @UndefinedVariable
-                    # we have either a list or a custom class
-                    gr2 = gr[k][kk]
-                    if '_list_' in gr2.name:
-                        m.__dict__[kk] = self._loadList(gr2)
-                    else:
-                        m.__dict__[kk] = self._loadObject(gr2)
-            
-            self.models.append(m)
-            
-    def get_model(self, index):
-        group = self.f['/model/'+str(index)]
-        return self._loadObject(group)
+            m = self._load_model(gr[k])
+            models.append(m)
+        return models
 
-    def load_air_shots(self):
-        self.air_shots = DbList()
+    def load_models(self):
+        self.models = self.get_models()
+
+    def get_model(self, name):
+        group = self.f['/models/'+name]
+        return self._load_model(group)
+
+    def get_air_shots(self):
+        air_shots = DbList()
         gr = self.f['/air_shots']
         for k in gr.keys():
             m = AirShots()
@@ -227,11 +210,14 @@ class BhTomoDb():
                     # we have either a list or a custom class
                     gr2 = gr[k][kk]
                     if '_list_' in gr2.name:
-                        m.__dict__[kk] = self._loadList(gr2)
+                        m.__dict__[kk] = self._load_list(gr2)
                     else:
-                        m.__dict__[kk] = self._loadObject(gr2)
-            
-            self.air_shots.append(m)
+                        m.__dict__[kk] = self._load_object(gr2)
+            air_shots.append(m)
+        return air_shots
+    
+    def load_air_shots(self):
+        self.air_shots = self.get_air_shots()
 
     def get_mog_names(self):
         names = []
@@ -247,28 +233,16 @@ class BhTomoDb():
             names.append(gr[k].attrs['name'])
         return names
     
-    def _loadObject(self, group):
-        klass = globals()[group.attrs['BhTomoPyClassName']]
-        obj = klass()
-        for k in group.attrs.keys():
-            obj.__dict__[k] = group.attrs[k]
-        for k in group.keys():
-            if type(group[k]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                obj.__dict__[k] = group[k]
-            elif type(group[k]) is h5py._hl.group.Group:  # @UndefinedVariable
-                if '_list_' in group[k].name:
-                    obj.__dict__[k] = self._loadList(group[k])
-                else:
-                    obj.__dict__[k] = self._loadObject(group[k])
-        return obj
-    
-    def _loadList(self, group):
-        lst = []
-        for k in group.keys():
-            lst.append(self._loadObject(group[k]))
-        return lst
+    def _save_object(self, obj, group):
 
-    def _saveObject(self, obj, group):
+        # check if special case        
+        if self.p.match(group.name) or self.p3.match(group.name):
+            # store name
+            group.attrs['name'] = obj.name
+            return
+        elif self.p2.match(group.name):
+            # skip
+            return
         
         if 'modified' in obj.__dict__.keys():
             if obj.modified == False:
@@ -309,23 +283,123 @@ class BhTomoDb():
                     group[k] = obj.__dict__[k]
             elif type(obj.__dict__[k]) is list:
                 g = group.require_group('_list_'+k)
-                self._saveList(obj.__dict__[k], g)
+                self._save_list(obj.__dict__[k], g)
             else:
                 #  must be one of BhTomoPy class
                 g = group.require_group(k)
                 g.attrs['BhTomoPyClassName'] = obj.__dict__[k].__class__.__name__
-                self._saveObject(obj.__dict__[k], g)
+                self._save_object(obj.__dict__[k], g)
 
-    def _saveList(self, lst, group):
+    def _save_list(self, lst, group):
         for n in range(len(lst)):
             # group name in index in list
-            g = group.require_group(str(n))
-            self._saveObject(lst[n], g)
+            g = group.require_group(lst[n].name)
+            self._save_object(lst[n], g)
 
+    def _load_object(self, group, caller=None):
+        
+        if caller is not None:
+            # check if special case        
+            if self.p.match(group.name):
+                name = group.attrs['name']
+                p = re.compile('/mogs/.*/([apvTRx]*)')
+                tmp = p.match(group.name)
+                if tmp:
+                    # air_shots
+                    att_name = group.name[tmp.regs[1][0]:tmp.regs[1][1]]
+                    if att_name == 'av' or att_name == 'ap':
+                        for obj in self.air_shots:
+                            if obj.name == name:
+                                break
+                        else:
+                            # air_shots not loaded
+                            air_shots = self.get_air_shots()
+                            for obj in air_shots:
+                                if obj.name == name:
+                                    break
+                            
+                    elif att_name == 'Tx' or att_name == 'Rx':
+                        for obj in self.boreholes:
+                            if obj.name == name:
+                                break
+                        else:
+                            boreholes = self.get_boreholes()
+                            for obj in boreholes:
+                                if obj.name == name:
+                                    break
+                    return obj
+                else:
+                    raise ValueError('Problem reading Mog attribute')
+                return
+            elif self.p3.match(group.name):
+                name = group.attrs['name']
+                for mog in self.mogs:
+                    if mog.name == name:
+                        break
+                else:
+                    mogs = self.get_mogs()
+                    for mog in mogs:
+                        if mog.name == name:
+                            break
+                caller.mogs.append(mog)
+                return
+
+        klass = globals()[group.attrs['BhTomoPyClassName']]
+        obj = klass()
+        for k in group.attrs.keys():
+            obj.__dict__[k] = group.attrs[k]
+        for k in group.keys():
+            if type(group[k]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
+                obj.__dict__[k] = group[k]
+            elif type(group[k]) is h5py._hl.group.Group:  # @UndefinedVariable
+                if '_list_' in group[k].name:
+                    obj.__dict__[k] = self._load_list(group[k])
+                else:
+                    obj.__dict__[k] = self._load_object(group[k])
+        return obj
+    
+    def _load_list(self, group, caller=None):
+        lst = []
+        for k in group.keys():
+            lst.append(self._load_object(group[k], caller))
+        return lst
+
+    def _load_mog(self, group):
+        m = Mog()
+        for kk in group.attrs.keys():
+            m.__dict__[kk] = group.attrs[kk]
+        for kk in group.keys():
+            if type(group[kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
+                m.__dict__[kk] = group[kk]
+            elif type(group[kk]) is h5py._hl.group.Group:  # @UndefinedVariable
+                gr2 = group[kk]
+                if '_list_' in gr2.name:
+                    m.__dict__[kk] = self._load_list(gr2)
+                else:
+                    m.__dict__[kk] = self._load_object(gr2, m)
+        return m
+
+    def _load_model(self, group):
+        m = Model()
+        for kk in group.attrs.keys():
+            m.__dict__[kk] = group.attrs[kk]
+        for kk in group.keys():
+            if type(group[kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
+                m.__dict__[kk] = group[kk]
+            elif type(group[kk]) is h5py._hl.group.Group:  # @UndefinedVariable
+                # we have either a list or a custom class
+                gr2 = group[kk]
+                if '_list_' in gr2.name:
+                    m.__dict__[kk] = self._load_list(gr2, m)
+                else:
+                    m.__dict__[kk] = self._load_object(gr2)
+        return m
+    
 
 if __name__ == '__main__':
 
-    os.remove('/tmp/test_db.h5')
+    if os.path.isfile('/tmp/test_db.h5'):
+        os.remove('/tmp/test_db.h5')
     db = BhTomoDb()
     db.filename = '/tmp/test_db.h5'
     db.boreholes.append(Borehole('BH1'))
@@ -342,6 +416,16 @@ if __name__ == '__main__':
     db.air_shots.append(AirShots('air2'))
     db.air_shots[1].data.readRAMAC('testData/air_shots/ap0302')
     
+    db.mogs[0].Tx = db.boreholes[0]
+    db.mogs[0].Rx = db.boreholes[1]
+    db.mogs[0].av = db.air_shots[0]
+    db.mogs[0].ap = db.air_shots[1]
+    db.mogs[1].av = db.air_shots[0]
+    db.mogs[1].ap = db.air_shots[1]
+
+    db.models[0].mogs.append(db.mogs[0])
+    db.models[0].mogs.append(db.mogs[1])
+    
     g = Grid2D(np.arange(10), np.arange(20))
     db.models[0].grid = g
     
@@ -357,12 +441,13 @@ if __name__ == '__main__':
     db.save(obj=db.mogs[0])
     db.save(obj=db.models[0])
     db.save(obj=db.air_shots[0])
-    
-    db.filename = '/tmp/test_db.h5'
-    db.load()
-    
+      
     print('Done')
     
     db2 = BhTomoDb()
     db2.filename = '/tmp/test_db.h5'
-    print(db2.get_mog_names())
+#    db2.load()
+    names = db2.get_model_names()
+    print(names)
+    mod = db2.get_model(names[0])
+    print(mod.mogs)
