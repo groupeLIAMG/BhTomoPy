@@ -20,29 +20,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from sqlalchemy import Column, String, Table, ForeignKey, PickleType
-from utils import Base
-from sqlalchemy.orm import relationship
 
 
-# Relationship definition
-
-model_mogs = Table('model_mogs', Base.metadata,
-                   Column('Mog_name', String, ForeignKey('Mog.name')),
-                   Column('Model_name', String, ForeignKey('Model.name')))
-
-
-class Model(Base):
-
-    __tablename__ = "Model"
-    name       = Column(String, primary_key=True)  # Model's name
-    grid       = Column(PickleType)    # Model's grid
-    tt_covar   = Column(PickleType)    # Model's Traveltime covariance model
-    amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
-    inv_res    = Column(PickleType)    # Results of inversion
-    tlinv_res  = Column(PickleType)    # Time-lapse inversion results
-
-    mogs = relationship("Mog", secondary=model_mogs)  # The mogs associated with the model (acts like a list).
+class Model():
+    def __init__(self, name=''):
+        self.name       = name
+        self.grid       = None
+        self.tt_covar   = None
+        self.amp_covar  = None
+        self.mogs       = []
+        self.inv_res    = []    # TODO: use DbList for this attribute
+        self.tlinv_res  = None
+        self.modified   = True
 
     @property
     def boreholes(self):
@@ -59,20 +48,11 @@ class Model(Base):
 
         return boreholes
 
-    def __init__(self, name=''):
-        self.name       = name
-        self.grid       = None
-        self.tt_covar   = None
-        self.amp_covar  = None
-        self.inv_res    = []
-        self.tlinv_res  = None
-
     @staticmethod
     def getModelData(model, selected_mogs, type1, vlim = 0, type2=''):
         data = np.array([])
         ind = np.array([])
-        type2 = ''
-
+        
         tt = np.array([])
         et = np.array([])
         in_vect = np.array([])
@@ -152,8 +132,11 @@ class Model(Base):
                     no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
 
 
-        if type2 == 'depth':
-            data, ind = getModelData(model, air, selected_mogs, type1)  # @UndefinedVariable
+        elif type1 == 'depth':
+            if type2 is '':
+                return data, ind
+            
+            _, ind = getModelData(model, air, selected_mogs, type2)  # @UndefinedVariable
             mog = mogs[0]
             tt = mog.Tx_z_orig.T
             et = mog.Rx_z_orig.T

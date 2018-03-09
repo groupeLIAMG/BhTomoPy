@@ -22,9 +22,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import sys
 from PyQt5 import QtWidgets, QtCore
 import matplotlib as mpl
-import pickle
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
+from utils_ui import MyQLabel
 
 class SemiAutottUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -314,18 +314,6 @@ class Fig(FigureCanvasQTAgg):
         ax2 = self.figure.add_axes([0.08, 0.06, 0.85, 0.3])
         ax1.yaxis.set_ticks_position('left')
         ax1.set_axisbelow(True)
-
-
-# --- Class for alignment --- #
-class MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
 
 
 if __name__ == '__main__':

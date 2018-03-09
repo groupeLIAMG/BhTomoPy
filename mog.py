@@ -18,12 +18,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
+import os
 import re
 import numpy as np
-from sqlalchemy import Column, String, Float, Boolean, SmallInteger, ForeignKey, Integer, PickleType
-from utils import Base
-from sqlalchemy import orm
 
 
 class MogData(object):
@@ -31,7 +28,7 @@ class MogData(object):
     Class to hold multi-offset gather (mog) data
     """
 
-    def __init__(self, name='', date=None):
+    def __init__(self, name='', date=''):
         self.ntrace      = 0     # number of traces
         self.nptsptrc    = 0     # number of points per trace
         self.rstepsz     = 0     # size of step used
@@ -41,12 +38,12 @@ class MogData(object):
         self.rdata       = 0     # raw data
         self.tdata       = None  # time data
         self.timestp     = 0     # matrix of range self.nptstrc containing all the time referencies
-        self.Tx_x        = [0]   # x position of the transmitter
-        self.Tx_y        = [0]   # y position of the transmitter
-        self.Tx_z        = [0]   # z position of the transmitter
-        self.Rx_x        = [0]   # x position of the receptor
-        self.Rx_y        = [0]   # y position of the receptor
-        self.Rx_z        = [0]   # z position of the receptor
+        self.Tx_x        = np.array([0.0])   # x position of the transmitter
+        self.Tx_y        = np.array([0.0])   # y position of the transmitter
+        self.Tx_z        = np.array([0.0])   # z position of the transmitter
+        self.Rx_x        = np.array([0.0])   # x position of the receptor
+        self.Rx_y        = np.array([0.0])   # y position of the receptor
+        self.Rx_z        = np.array([0.0])   # z position of the receptor
         self.antennas    = ''    # name of the antenna
         self.synthetique = 0     # if 1 results from numerical modelling and 0 for field data
         self.tunits      = 0     # time units
@@ -54,15 +51,14 @@ class MogData(object):
         self.TxOffset    = 0     # length of he transmittor which is above the surface
         self.RxOffset    = 0     # length of he receptor which is above the surface
         self.comment     = ''    # is defined by the presence of any comment in the file
-        self.date        = ''    # the date of the data sample
+        self.date        = date  # the date of the data sample
         self.name        = name
 
     def readRAMAC(self, basename):
         """
         loads data in Malå RAMAC format
         """
-        rname = basename.split('/')
-        rname = rname[-1]
+        rname = os.path.basename(basename)
 
         self.name = rname
         self.tunits = 'ns'
@@ -228,84 +224,27 @@ class PruneParams(object):
         self.thetaMax = 90
 
 
-class Mog(Base):  # Multi-Offset Gather
-
-    __tablename__ = "Mog"
-    name             = Column(String, primary_key=True)
-    pruneParams      = Column(PickleType)    # Object holding the parameters used in pruning
-    data             = Column(PickleType)    # Instance of MogData
-    tau_params       = Column(PickleType)    # Parameters used to set source amplitude (set in manual_amp_ui)
-    fw               = Column(PickleType)    # Numpy array holding wavelet transform frequency filtered traces (set in manual_*_ui)
-    f_et             = Column(Float)         # Standard deviation on frequency
-    amp_name_Ldc     = Column(String)        # Name of inversion to use in attenuation tomography (for obtaining matrix L)
-    type             = Column(SmallInteger)  # VRP or cross-hole (0 or 1, respectively)  # TODO this is unused yet
-    fac_dt           = Column(Float)         # Boolean: time step correction factor
-    user_fac_dt      = Column(Float)         # Time step correction factor defined by user
-    useAirShots      = Column(Boolean)       # Boolean holding whether or not AirShots are used
-    TxCosDir         = Column(PickleType)    # Direction cosine at Tx points
-    RxCosDir         = Column(PickleType)    # Direction cosine at Rx points
-
-    ID               = Column(Integer)       # Unique ID for mog
-    in_Rx_vect       = Column(PickleType)    # Indicates whether or not an element of the receiver is ignored  # TODO should be transferred to 'pruneParams'
-    in_Tx_vect       = Column(PickleType)    # idem.
-    in_vect          = Column(PickleType)    # idem.
-    date             = Column(String)        # Date of the mog's data
-    tt               = Column(PickleType)    # Arrival time
-    et               = Column(PickleType)    # Standard deviation of arrival time
-    tt_done          = Column(PickleType)    # Boolean indicator of arrival time
-
-    ttTx             = Column(PickleType)    # Travel time picked at the Tx np.array
-    ttTx_done        = Column(PickleType)    # Boolean indicator of the picked travel times
-
-    amp_tmin         = Column(PickleType)    # Lower bound of amplitude analysis
-    amp_tmax         = Column(PickleType)    # Upper bound of amplitude analysis
-    amp_done         = Column(PickleType)    # Boolean indicator
-    App              = Column(PickleType)    # Peak-to-peak amplitude
-    fcentroid        = Column(PickleType)    # Centroid frequency
-    scentroid        = Column(PickleType)    # Slowness for centroid frequency
-    tauApp           = Column(PickleType)    # Pseudo travel times for peak-to-peak method
-    tauApp_et        = Column(PickleType)    # Standard deviation
-    tauFce           = Column(PickleType)    # Pseudo travel times for centroid frequency method
-    tauFce_et        = Column(PickleType)    # Standard deviation
-    tauHyb           = Column(PickleType)    # Pseudo travel times for an hybrid
-    tauHyb_et        = Column(PickleType)    # Standard deviation
-    Tx_z_orig        = Column(PickleType)    # Depth of Tx points (from borehole collar)
-    Rx_z_orig        = Column(PickleType)    # Depth of Rx points (from borehole collar)
-
-    Tx_name = Column(String, ForeignKey('Borehole.name'))    # One shouldn't manipulate these columns.
-    Rx_name = Column(String, ForeignKey('Borehole.name'))    # Use the following Tx, Rx, av and ap instead.
-    av_name = Column(String, ForeignKey('Airshots.name'))
-    ap_name = Column(String, ForeignKey('Airshots.name'))
-    Tx = orm.relationship("Borehole", foreign_keys=Tx_name)  # Mog's transmitter borehole
-    Rx = orm.relationship("Borehole", foreign_keys=Rx_name)  # Mog's receiver borehole
-    av = orm.relationship("AirShots", foreign_keys=av_name)  # Mog's 'before' airshot
-    ap = orm.relationship("AirShots", foreign_keys=ap_name)  # Mog's 'after' airshot
+class Mog():  # Multi-Offset Gather
 
     def __init__(self, name='', data=MogData()):
-        self.pruneParams               = PruneParams()
-        self.name                      = name
-        self.data                      = data
-        self.tau_params                = np.array([])
-        self.fw                        = np.array([])
-        self.f_et                      = 1
-        self.amp_name_Ldc              = ''
-        self.type                      = 0
-        self.fac_dt                    = 1
-        self.user_fac_dt               = 0
-        self.pruneParams.stepTx        = 0
-        self.pruneParams.stepRx        = 0
-        self.pruneParams.round_factor  = 0
-        self.pruneParams.use_SNR       = 0
-        self.pruneParams.threshold_SNR = 0
-        self.pruneParams.zmin          = -1e99
-        self.pruneParams.zmax          = 1e99
-        self.pruneParams.thetaMin      = -90
-        self.pruneParams.thetaMax      = 90
-        self.useAirShots               = False
-        self.TxCosDir                  = np.array([])
-        self.RxCosDir                  = np.array([])
+        self.pruneParams              = PruneParams()
+        self.name                     = name
+        self.data                     = data
+        self.tau_params               = np.array([])
+        self.fw                       = np.array([])
+        self.f_et                     = 1
+        self.amp_name_Ldc             = ''
+        self.type                     = 0
+        self.fac_dt                   = 1
+        self.user_fac_dt              = 0
+        self.useAirShots              = False
+        self.av                       = None
+        self.ap                       = None
+        self.Tx                       = None
+        self.Rx                       = None
+        self.TxCosDir                 = np.array([])
+        self.RxCosDir                 = np.array([])
 
-        self.ID                       = Mog.getID()
         self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=bool)
         self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=bool)
         self.in_vect                  = np.ones(self.data.ntrace, dtype=bool)
@@ -338,6 +277,7 @@ class Mog(Base):  # Multi-Offset Gather
 
         self.pruneParams.zmin         = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax         = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+        self.modified                 = True
 
     def correction_t0(self, ndata, air_before, air_after):
         """
@@ -386,13 +326,9 @@ class Mog(Base):  # Multi-Offset Gather
         else:
             dt0 = t0ap - t0av
             ddt0 = dt0 / (ndata - 1)
-            t0 = t0av + ddt0 * np.arange(ndata)  # TODO pas sur de cette etape là
+            t0 = t0av + ddt0 * np.arange(ndata)  # TODO: pas sur de cette etape là
 
         return t0, fac_dt_av, fac_dt_ap
-
-    @staticmethod
-    def load_self(mog):
-        Mog.getID(mog.ID)
 
     @staticmethod
     def get_t0_fixed(shot, v):
@@ -405,23 +341,6 @@ class Mog(Base):  # Multi-Offset Gather
             times = sum(times[ind] * std_times[ind]) / sum(std_times[ind])
         t0 = times - float(shot.d_TxRx[0]) / v
         return t0
-
-    @staticmethod
-    def getID(*args):
-        nargin = len(args)
-        counter = 0
-        if nargin == 1:
-            if counter == 0:
-                counter = args[1]
-            elif counter < args[1]:
-                counter = args[1]
-        if counter == 0:
-            counter = 1
-        else:
-            counter += 1
-
-        ID = counter
-        return ID
 
     def getCorrectedTravelTimes(self):
 
@@ -454,21 +373,8 @@ class Mog(Base):  # Multi-Offset Gather
         return tt, t0
 
 
-class AirShots(Base):
-
-    __tablename__ = "Airshots"
-    name    = Column(String, primary_key=True)
-#     mog     = Column(PickleType)  # Deprecated ?
-    data    = Column(PickleType)  # MogData instance
-    d_TxRx  = Column(PickleType)  # Distance between Tx and Rx
-    fac_dt  = Column(Float)       # Time step correction factor computed from slope of t vs d
-    method  = Column(String)      # 'fixed_antenna' when single distance value between Tx & Rx or 'walkaway' when multiple distances
-    tt      = Column(PickleType)  # Arrival times
-    et      = Column(PickleType)  # Standard deviation of arrival times
-    tt_done = Column(PickleType)  # Boolean indicator for arrival times
-
+class AirShots():
     def __init__(self, name='', data=MogData()):
-        self.mog = Mog()
         self.name = name
         self.data = data
         self.d_TxRx = 0
@@ -477,6 +383,8 @@ class AirShots(Base):
         self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)
         self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool)
+        
+        self.modified = True
 
 
 if __name__ == '__main__':

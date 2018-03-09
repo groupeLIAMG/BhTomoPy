@@ -24,15 +24,11 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
-from utils_ui import chooseMOG
+from utils_ui import chooseMOG, MyQLabel
 import re
 import scipy as spy
 from scipy import signal
 from mog import Mog
-
-import database
-current_module = sys.modules[__name__]
-database.create_data_management(current_module)
 
 
 class ManualAmpUI(QtWidgets.QFrame):
@@ -735,18 +731,6 @@ class StatsFig1(FigureCanvasQTAgg):
 
         mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
         mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
-
-
-# --- Class For Alignment --- #
-class MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
 
 
 if __name__ == '__main__':

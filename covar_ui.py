@@ -26,9 +26,8 @@ from mog import Mog
 import covar
 import database
 import utils_ui
-from utils_ui import lay, inv_lay
+from utils_ui import lay, inv_lay, MyQLabel
 from utils import ComputeThread
-from sqlalchemy.orm.attributes import flag_modified
 from copy import deepcopy
 from math import ceil
 from scipy.optimize import fmin
@@ -45,19 +44,19 @@ tau = unicodedata.lookup("GREEK SMALL LETTER TAU")
 
 class CovarUI(QtWidgets.QFrame):
     
-    model = None           # current model
-    temp_grid = None       # the grid modified from covar_ui actually is only a temporary one.  The
-                           # original grid must not be modified.
-    updateHandler = False  # selected model may seldom be modified twice.  'updateHandler' prevents
-                           # functions from firing more than once.  TODO: use a QValidator instead.
+    model = None            # current model
+    temp_grid = None        # the grid modified from covar_ui actually is only a temporary one.  The
+                            # original grid must not be modified.
+    updateHandler = False   # selected model may seldom be modified twice.  'updateHandler' prevents
+                            # functions from firing more than once.  TODO: use a QValidator instead.
 
     updateHandlerParameters = False
-    data = None            # holds the model's data so that it does not need to be computed
-                           # more than once
-    idata = None           # idem.
-    L = None               # ray matrix
-    Cd = None              # experimental covariance
-    xc = None              # grid's centers
+    data = None             # holds the model's data so that it does not need to be computed
+                            # more than once
+    idata = None            # idem.
+    L = None                # ray matrix
+    Cd = None               # experimental covariance
+    xc = None               # grid's centers
 
     triggerFctAdjustCov = QtCore.pyqtSignal() # Signal to update Popup while computing adjustCov
     FuncCounter = 0 # Number of adjustCov call
@@ -909,16 +908,6 @@ class CovarUI(QtWidgets.QFrame):
         # --- Color for the labels --- #
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
-
-        class MyQLabel(QtWidgets.QLabel):  # allows a custom alignment
-            def __init__(self, label, ha='left', parent=None):
-                super(MyQLabel, self).__init__(label, parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
 
         class MyLineEdit(QtWidgets.QLineEdit):  # allows verifying if an edit's text has been modified
             textModified = QtCore.pyqtSignal(str, str)  # (before, after)

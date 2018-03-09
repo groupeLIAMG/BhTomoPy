@@ -31,7 +31,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import interpolate
 from inversion import invLSQR, InvLSQRParams, invGeostat
 from utils import set_tick_arrangement, ComputeThread
-import utils_ui
+from utils_ui import MyQLabel, chooseModel, save_warning
 from mog import Mog, AirShots
 
 import database
@@ -103,13 +103,13 @@ class InversionUI(QtWidgets.QFrame):
         return covariance
 
     def openfile(self):
-       new_model = utils_ui.chooseModel(database)
+       new_model = chooseModel(database)
        if new_model is not None:
            self.set_current_model(new_model)
 
     def set_current_model(self, model):
         if self.model is not None:
-            if utils_ui.save_warning(database):
+            if save_warning(database):
                 self.model = model
                 if model.grid is not None:
                     self.updateDatabaseInfos()
@@ -1280,7 +1280,7 @@ class ResidualsFig(FigureCanvasQTAgg):
         res = self.ui.tomo.invData.res[:, nIt - 1]
         vres = np.var(res)
 
-        depth, i = Model.getModelData(model, self.ui.air, self.ui.lsqrParams.selectedMogs, 'tt', type2='depth')
+        depth, i = Model.getModelData(model, self.ui.air, self.ui.lsqrParams.selectedMogs, 'depth', type2='tt')
         dTx = np.sort(np.unique(depth[:, 0]))
         print(dTx)
         dRx = np.sort(np.unique(depth[:, 1]))
@@ -1467,18 +1467,6 @@ class Gridviewer(QtWidgets.QWidget):
         self.y_plane_scroll = QtWidgets.QScrollBar(QtCore.Qt.Horizontal)
         self.ui.fig_grid.addWidget(y_plane_label, 0, 6)
         self.ui.fig_grid.addWidget(self.y_plane_scroll, 0, 7)
-
-
-# --- Class For Alignment --- #
-class MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
 
 
 if __name__ == '__main__':

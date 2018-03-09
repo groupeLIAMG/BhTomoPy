@@ -18,32 +18,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
+import os
 import sys
 import re
 import unicodedata
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
-import scipy as spy
+from scipy.signal import filtfilt, welch, cheb1ord, cheby1
 from scipy import interpolate
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.mplot3d import axes3d
-# from spectrum import arburg
+from mpl_toolkits.mplot3d import axes3d   # @UnusedImport
+from spectrum import arburg
 
 from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
-from utils_ui import chooseMOG
+from utils_ui import chooseMOG, MyQLabel
 from borehole import Borehole
-
-from sqlalchemy.orm.attributes import flag_modified
-
-import database
-current_module = sys.modules[__name__]
-database.create_data_management(current_module)
 
 
 class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
@@ -53,9 +47,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
     databaseSignal = QtCore.pyqtSignal(str)
     moglogSignal   = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        super(MOGUI, self).__init__()
+    def __init__(self, db, parent=None):
+        super(MOGUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/MOGs")
+        self.db = db
         self.initUI()
         self.data_rep = ''
 
@@ -76,24 +71,22 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             return
 
         try:
-            rname = basename.split('/')  # the split method gives back a list which contains all the strings that were
-            rname = rname[-1]            # separated by / and the name of file (i.e. rname) is the last item of this list
-            self.data_rep = basename[:-1 - len(rname)]
+            self.data_rep,rname = os.path.split(basename)
 
             mogdata = MogData(rname)
             mogdata.readRAMAC(basename)
 
             mog = Mog(rname, mogdata)
-            database.session.add(mog)
+            self.db.mogs.append(mog)
+            
             self.update_List_Widget()
-            self.MOG_list.setCurrentRow(database.session.query(Mog).count() - 1)
+            self.MOG_list.setCurrentRow(len(self.db.mogs) - 1)
             self.update_spectra_and_coverage_Tx_num_list()
             self.update_spectra_and_coverage_Tx_elev_value_label()
             self.update_edits()
             self.update_prune_edits_info()
             self.update_prune_info()
             self.moglogSignal.emit("{} Multi Offset-Gather has been loaded successfully".format(rname))
-            database.modified = True
 
         except Exception as e:
             QtWidgets.QMessageBox.warning(self, 'Warning', "MOG could not be opened : '" + str(e)[:42] + "...' [mog_ui 1]",
@@ -103,9 +96,9 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         """
         Updates the info either in the MOG's edits or in the info's labels
         """
-        item = self.MOG_list.currentItem()
-        if item is not None:
-            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
+            mog = self.db.mogs[itemNo]
 
             if mog is not None:
                 self.Rx_Offset_edit.clear()
@@ -144,7 +137,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                     self.Rx_combo.setCurrentIndex(self.Rx_combo.findText(mog.Rx.name))
 
         tot_traces = 0
-        for mog in database.session.query(Mog).all():
+        for mog in self.db.mogs:
             tot_traces += mog.data.ntrace
         self.ntraceSignal.emit(tot_traces)
 
@@ -174,53 +167,47 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         self.updateHandlerMog = False
 
-        item = self.MOG_list.currentItem()
-        if item is not None:
-            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        itemNo = self.MOG_list.currentItem()
+        if itemNo != -1:
+            mog = self.db.mogs[itemNo]
 
             mog.data.rnomfreq = float(self.Nominal_Frequency_edit.text())
             mog.data.RxOffset = float(self.Rx_Offset_edit.text())
             mog.data.TxOffset = float(self.Tx_Offset_edit.text())
             mog.data.date     = self.Date_edit.text()
-            flag_modified(mog, 'data')
             mog.user_fac_dt   = float(self.Correction_Factor_edit.text())
             mog.f_et          = float(self.Multiplication_Factor_edit.text())
 
     def del_MOG(self):
-        item = self.MOG_list.currentItem()
+        itemNo = self.MOG_list.currentRow()
 
-        if item is not None:
-            mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
-            self.moglogSignal.emit("MOG {} has been deleted".format(mog_.name))
-            database.delete(database, mog_)
+        if itemNo != -1:
+            mog_ = self.db.mogs[itemNo]
+            self.db.mogs.remove(mog_)
         self.update_List_Widget()
         self.update_edits()
-        database.airshots_cleanup(database)
-        database.modified = True
 
     def rename(self):
-        item = self.MOG_list.currentItem()
-        if item is not None:
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
             new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'new MOG name')
             if ok:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                mog_ = self.db.mogs[itemNo]
                 self.moglogSignal.emit("MOG {} is now {}".format(mog_.name, new_name))
                 mog_.name = new_name
                 self.update_List_Widget()
                 self.update_edits()
-                database.modified = True
+                mog_.modified = True
 
     def use_air(self):
-        item = self.MOG_list.currentItem()
-
-        if item is not None:
-            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
-
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
+            mog = self.db.mogs[itemNo]
             if self.Air_shots_checkbox.isChecked():
                 mog.useAirShots = 1
-
             else:
                 mog.useAirShots = 0
+            mog.modified = True
 
     def airBefore(self):
 
@@ -231,21 +218,24 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             return
         else:
             # We get the selected index of MOG_list to then be able to get the mog instance from MOGS
-            item = self.MOG_list.currentItem()
+            itemNo = self.MOG_list.currentRow()
 
-            if item is not None:
+            if itemNo != -1:
 
                 # then we get only the real name of the file (i.e. not the path behind it)
                 basename = filename[:-4]
-                rname = filename.split('/')
-                rname = rname[-1]
+                rname = os.path.basename(filename)
 
-                # then we verify if we've already applied the airshots
-                airshot = database.session.query(AirShots).filter(AirShots.name == basename).first()
-                if airshot is not None:
-                    # then we associate the index of the air shot to the selected mog
-                    database.session.query(Mog).filter(Mog.name == item.text()).av = airshot
-
+#                 # then we verify if we've already applied the airshots
+#                 airshot = database.session.query(AirShots).filter(AirShots.name == basename).first()
+#                 if airshot is not None:
+#                     # then we associate the index of the air shot to the selected mog
+#                     database.session.query(Mog).filter(Mog.name == item.text()).av = airshot
+                for airshot in self.db.air_shots:
+                    if airshot.name is rname:
+                        self.db.mogs[itemNo].av = airshot
+                        self.db.mogs[itemNo].modified = True
+                        break
                 else:
                     # because of the fact that Airshots files are either rd3, tlf or rad, we apply the method read
                     # ramac to get the informations from these files
@@ -286,9 +276,9 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         else:
                             airshot_before.method = 'walkaway'
                         self.Air_Shot_Before_edit.setText(airshot_before.name[:-4])
-                        database.session.add(airshot_before)
-                        database.session.query(Mog).filter(Mog.name == item.text()).first().av = airshot_before
-                        database.modified = True
+                        self.db.air_shots.append(airshot_before)
+                        self.db.mogs[itemNo].av = airshot_before
+                        self.db.mogs[itemNo].modified = True
 
     def airAfter(self):
         # As you can see, the airAfter method is almost the same as airBefore (refer to airBefore for any questions)
@@ -298,18 +288,18 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         if not filename:
             return
         else:
-            item = self.MOG_list.currentItem()
+            itemNo = self.MOG_list.currentRow()
 
-            if item is not None:
+            if itemNo != -1:
 
                 basename = filename[:-4]
-                rname = filename.split('/')
-                rname = rname[-1]
+                rname = os.path.basename(filename)
 
-                airshot = database.session.query(AirShots).filter(AirShots.name == basename).first()
-                if airshot is not None:
-                    database.session.query(Mog).filter(Mog.name == item.text()).ap = airshot
-
+                for airshot in self.db.air_shots:
+                    if airshot.name is rname:
+                        self.db.mogs[itemNo].ap = airshot
+                        self.db.mogs[itemNo].modified = True
+                        break
                 else:
                     try:
                         data = MogData()
@@ -345,16 +335,15 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         else:
                             airshot_after.method = 'walkaway'
                         self.Air_Shot_After_edit.setText(airshot_after.name[:-4])
-                        database.session.add(airshot_after)
-                        database.session.query(Mog).filter(Mog.name == item.text()).first().ap = airshot_after
-                        database.modified = True
+                        self.db.air_shots.append(airshot_after)
+                        self.db.mogs[itemNo].av = airshot_after
+                        self.db.mogs[itemNo].modified = True
 
     def update_spectra_and_coverage_Tx_num_list(self):
-        item = self.MOG_list.currentItem()
+        itemNo = self.MOG_list.currentRow()
         self.Tx_num_list.clear()
-
-        if item is not None:
-            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        if itemNo != -1:
+            mog = self.db.mogs[itemNo]
             unique_Tx_z = np.unique(mog.data.Tx_z)
 
             for Tx in range(len(unique_Tx_z)):
@@ -365,10 +354,9 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.trace_num_combo.setCurrentIndex(0)
 
     def update_spectra_and_coverage_Tx_elev_value_label(self):
-        item = self.MOG_list.currentItem()
-
-        if item is not None:
-            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
+            mog = self.db.mogs[itemNo]
             self.Tx_elev_value_label.clear()
             ind1 = self.Tx_num_list.selectedIndexes()
             ind2 = int(self.trace_num_edit.text())
@@ -384,8 +372,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 item = float(self.search_elev_edit.text())
             except:
                 pass
-            item_ = self.MOG_list.selectedIndexes()
-            mog = database.session.query(Mog).filter(Mog.name == item_.text()).first()
+            item_ = self.MOG_list.currentRow()
+            mog = self.db.mogs[item_]
             for i in range(len(mog.data.Tx_z)):
                 if mog.data.Tx_z[i] == item:
                     self.Tx_num_list.setCurrentRow(i + 1)
@@ -410,7 +398,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
     def update_List_Widget(self):
         self.MOG_list.clear()
-        for mog in database.session.query(Mog).all():
+        for mog in self.db.mogs:
             self.MOG_list.addItem(mog.name)
         self.mogInfoSignal.emit(len(self.MOG_list))
 
@@ -422,11 +410,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.Rx_combo.addItem(bh.name)
 
     def updateCoords(self):
-        item = self.MOG_list.currentItem()
-        if item is not None:
-            Tx_name = self.Tx_combo.currentText()
-            Rx_name = self.Rx_combo.currentText()
-            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
+            Tx_no = self.Tx_combo.currentIndex()
+            Rx_no = self.Rx_combo.currentIndex()
+            mog = self.db.mogs[itemNo]
 
             if 'true positions' in mog.data.comment:
 
@@ -450,8 +438,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 #     mog.TxCosDir[ind, 3] = l[n,3]
 
             # TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
-            Tx = database.session.query(Borehole).filter(Borehole.name == Tx_name).first()
-            Rx = database.session.query(Borehole).filter(Borehole.name == Rx_name).first()
+            Tx = self.db.boreholes[Tx_no]
+            Rx = self.db.boreholes[Rx_no]
             mog.Tx = Tx
             mog.Rx = Rx
             mog.data.Tx_x = np.ones(mog.data.ntrace)
@@ -468,14 +456,14 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
                         mog.data.Tx_z = Tx.Z - mog.data.TxOffset - mog.Tx_z_orig
-                        mog.TxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
+                        mog.TxCosDir = np.tile(np.array([0, 0, 1]), (mog.data.ntrace, 1))
 
                 if Rx is not None and len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
                     if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) < 1e-05:
                         mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
                         mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
                         mog.data.Rx_z = Rx.Z - mog.data.RxOffset - mog.Rx_z_orig
-                        mog.RxCosDir = np.matlib.repmat(np.array([0, 0, 1]), mog.data.ntrace, 1)
+                        mog.RxCosDir = np.tile(np.array([0, 0, 1]), (mog.data.ntrace, 1))
 
                 # TODO: Forages non verticaux
 
@@ -483,20 +471,18 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             elif self.Type_combo.currentText() == 'VSP/VRP':
                 mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
 
-            if Tx_name == Rx_name:
+            if Tx_no == Rx_no:
                 QtWidgets.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
                                                   buttons=QtWidgets.QMessageBox.Ok)
 
             if Tx is not None and Rx is not None and Tx != Rx:
                 self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
 
-            flag_modified(mog, 'data')
-
     def plot_rawdata(self):
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
+                mog_ = self.db.mogs[itemNo]
                 self.rawdataFig.plot_raw_data(mog_.data)
                 self.moglogSignal.emit(" MOG {}'s Raw Data has been plotted ". format(mog_.name))
                 self.rawdatamanager.showMaximized()
@@ -506,11 +492,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_spectra(self):
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
                 n                   = self.Tx_num_list.currentIndex().row()
-                mog                 = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                mog                 = self.db.mogs[itemNo]
                 Fmax                = float(self.f_max_edit.text())
                 filter_state        = self.filter_check.isChecked()
                 scale               = self.snr_combo.currentText()
@@ -524,11 +510,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_zop(self):
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
                 self.zopFig.plot_zop()
-                # mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                # mog_ = self.db.mogs[itemNo]
                 # self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ".format(mog_.name))
                 self.zopmanager.showMaximized()
         else:
@@ -536,10 +522,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_zop_rays(self):
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
+                mog_ = self.db.mogs[itemNo]
                 tol = float(self.tol_edit.text())
 
                 self.zopraysFig.plot_rays(mog_, tol)
@@ -549,10 +535,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_statstt(self):
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
+                mog_ = self.db.mogs[itemNo]
                 done = (mog_.tt_done.astype(int) + mog_.in_vect.astype(int)) - 1
 
                 if len(np.nonzero(done == 1)[0]) == 0:
@@ -568,11 +554,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_statsamp(self):
-
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
+                mog_ = self.db.mogs[itemNo]
                 self.statsampFig.plot_stats(mog_)
                 self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(mog_.name))
                 self.statsampmanager.showMaximized()
@@ -581,16 +566,15 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_ray_coverage(self):
-
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
                 coverage_ind = self.trace_num_combo.currentIndex()
                 show_type = self.show_type_combo.currentText()
                 entire_state = self.entire_coverage_check.isChecked()
                 n = int(self.trace_num_edit.text()) - 1
 
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                mog_ = self.db.mogs[itemNo]
                 self.raycoverageFig.plot_ray_coverage(mog_, n, show_type, entire_state)
                 # self.moglogSignal.emit("MOG {}'s Ray Coverage have been plotted".format(mog_.name))
                 self.raymanager.show()
@@ -599,10 +583,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def plot_prune(self):
-        if database.session.query(Mog).count() != 0:
-            item = self.MOG_list.currentItem()
-            if item is not None:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
+                mog_ = self.db.mogs[itemNo]
                 if mog_.Tx != 1 and mog_.Tx != 1:
                     self.pruneFig.plot_prune(mog_, 0)
                     self.moglogSignal.emit("MOG {}'s Prune have been plotted".format(mog_.name))
@@ -629,28 +613,29 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.plot_ray_coverage()
 
     def export_tt(self):
-        if database.session.query(Mog).count() != 0:
-            filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Export tt')
-            self.moglogSignal.emit('Exporting Traveltime file ...')
-
-            mog = database.session.query(Mog).filter(Mog.name == self.MOG_list.currentItem().text()).first()
-            ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
-            ind = np.where(ind == 2)[0]
-            export_file = open(filename, 'w')
-            data = np.array([ind, mog.tt[ind], mog.et[ind]]).T
-            np.savetxt(filename, data)
-            export_file.close()
-
-            self.moglogSignal.emit('File exported successfully ')
+        if len(self.db.mogs) > 0:
+            itemNo = self.MOG_list.currentRow()
+            if itemNo != -1:
+                filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Export tt')
+                self.moglogSignal.emit('Exporting Traveltime file ...')
+                mog = self.db.mogs[itemNo]
+                ind = np.not_equal(mog.tt, -1).astype(int) + np.equal(mog.in_vect, 1)
+                ind = np.where(ind == 2)[0]
+                export_file = open(filename, 'w')
+                data = np.array([ind, mog.tt[ind], mog.et[ind]]).T
+                np.savetxt(filename, data)
+                export_file.close()
+    
+                self.moglogSignal.emit('File exported successfully ')
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
     def export_tau(self):
-        if database.session.query(Mog).count() != 0:
+        if len(self.db.mogs) > 0:
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Export tau')[0]
             self.moglogSignal.emit('Exporting tau file ...')
-            # TODO
+            # TODO:
             self.moglogSignal.emit('File exported successfully ')
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
@@ -696,9 +681,9 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.updateHandlerPrune = False
 
         # First, we get the mog instance's informations
-        item = self.MOG_list.currentItem()
-        if item is not None:
-            mog = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
+            mog = self.db.mogs[itemNo]
 
             # List which contain the indexes of the skipped Tx and Rx
             inRx = []
@@ -803,10 +788,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             # and the applicatiomn of a round facotr modifies the data itself so we had to put it in the plotting
 
     def update_prune_edits_info(self):
-        item = self.MOG_list.currentItem()
-        if item is not None:
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
             try:
-                mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+                mog_ = self.db.mogs[itemNo]
                 self.min_ang_edit.setText(str(mog_.pruneParams.thetaMin))
                 self.max_ang_edit.setText(str(mog_.pruneParams.thetaMax))
 
@@ -822,10 +807,9 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                               buttons=QtWidgets.QMessageBox.Ok)
 
     def update_prune_info(self):
-        item = self.MOG_list.currentItem()
-
-        if item is not None:
-            mog_ = database.session.query(Mog).filter(Mog.name == item.text()).first()
+        itemNo = self.MOG_list.currentRow()
+        if itemNo != -1:
+            mog_ = self.db.mogs[itemNo]
             selected_angle = float(self.max_ang_edit.text()) - float(self.min_ang_edit.text())
             removed_Tx = mog_.data.ntrace - sum(mog_.in_Tx_vect)
             removed_Rx = mog_.data.ntrace - sum(mog_.in_Rx_vect)
@@ -855,41 +839,37 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                               buttons=QtWidgets.QMessageBox.Ok)
             return
 
-        for mog in database.session.query(Mog).all():
+        for mog in self.db.mogs:
             self.mergemog.ref_combo.addItem(str(mog.name))
 
-        self.mergemog.getcompat()
+        self.mergemog.getCompat()
 
     def start_delta_t(self):
-        self.deltat = DeltaTMOG(self)
+        self.deltat = DeltaTMOG(self.db, self)
 
         if len(self.MOG_list) == 0:
             QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
                                               buttons=QtWidgets.QMessageBox.Ok)
             return
 
-        for mog in database.session.query(Mog).all():
+        for mog in self.db.mogs:
             self.deltat.min_combo.addItem(str(mog.name))
 
-        self.deltat.getcompat()
+        self.deltat.getCompat()
 
     def import_mog(self):
-        item = chooseMOG(current_module)
-        current_module.session.close()
-        current_module.engine.dispose()
+        item = chooseMOG()
 
         if item is not None:
-            item = database.session.merge(item)
-            database.session.add(item)
+            self.db.mogs.append(item)
             self.update_List_Widget()
-            self.MOG_list.setCurrentRow(database.session.query(Mog).count() - 1)
+            self.MOG_list.setCurrentRow(len(self.db.mogs) - 1)
             self.update_spectra_and_coverage_Tx_num_list()
             self.update_spectra_and_coverage_Tx_elev_value_label()
             self.update_edits()
             self.update_prune_edits_info()
             self.update_prune_info()
             self.moglogSignal.emit("Mog '{}' was imported successfully".format(item.name))
-            database.modified = True
 
     def update_color_scale(self):
         if self.color_scale_combo.currentText() == 'Low':
@@ -898,12 +878,6 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.color_scale_edit.setText('7000')
         elif self.color_scale_combo.currentText() == 'High':
             self.color_scale_edit.setText('700')
-
-    def current_mog(self):
-
-        mog = self.MOG_list.currentItem()
-        if mog:
-            return database.session.query(Mog).filter(Mog.name == mog.text()).first()
 
     def initUI(self):
 
@@ -1592,17 +1566,6 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.setLayout(master_grid)
 
 
-class MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
-
-
 class RawDataFig(FigureCanvasQTAgg):
 
     def __init__(self):
@@ -1621,8 +1584,8 @@ class RawDataFig(FigureCanvasQTAgg):
         ax2 = self.figure.axes[1]
         ax1.cla()
         ax2.cla()
-        mpl.axes.Axes.set_xlabel(ax1, 'Trace No')
-        mpl.axes.Axes.set_ylabel(ax1, 'Time units[{}]'.format(mogd.tunits))
+        mpl.axes.Axes.set_xlabel(ax1, 'Trace No')     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(ax1, 'Time units[{}]'.format(mogd.tunits))     # @UndefinedVariable
         cmax = np.abs(max(mogd.rdata.flatten()))
         h = ax1.imshow(mogd.rdata, cmap='seismic', interpolation='none', aspect='auto', vmin=-cmax, vmax=cmax)
         mpl.colorbar.Colorbar(ax2, h)
@@ -1688,18 +1651,18 @@ class SpectraFig(FigureCanvasQTAgg):
             rp = 3
             rs = 40
 
-            nc, wn = spy.signal.cheb1ord(wp, ws, rp, rs)
+            nc, wn = cheb1ord(wp, ws, rp, rs)
 
-            b, a = spy.signal.cheby1(nc, 0.5, wn)
+            b, a = cheby1(nc, 0.5, wn)
             for nt in range(np.shape(traces)[1]):
-                traces[:, nt] = spy.signal.filtfilt(b, a, traces[:, nt], method='gust')
+                traces[:, nt] = filtfilt(b, a, traces[:, nt], method='gust')
 
         if method == 'Welch':
-            freq, tmp = spy.signal.welch(traces[:, 0], Fs)
+            freq, tmp = welch(traces[:, 0], Fs)
             Pxx = np.zeros((len(tmp), np.shape(traces)[1]))
             Pxx[:, 0] = tmp
             for nt in range(1, np.shape(traces)[1]):
-                freq, Pxx[:, nt] = spy.signal.welch(traces[:, nt], Fs)
+                freq, Pxx[:, nt] = welch(traces[:, nt], Fs)
             self.ax2.imshow(np.log10(Pxx).T[:, :Fmax],
                             cmap='plasma',
                             aspect='auto',
@@ -1767,13 +1730,13 @@ class SpectraFig(FigureCanvasQTAgg):
 
             self.ax3.set_xscale('log')
 
-        mpl.axes.Axes.set_title(self.ax1, 'Normalized amplitude')
-        mpl.axes.Axes.set_title(self.ax2, 'Log Power spectra')
-        mpl.axes.Axes.set_title(self.ax3, 'Signal-to-Noise Ratio')
-        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Rx elevation [{}]'.format(mog.data.cunits))
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Frequency [MHz]')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'SNR')
+        mpl.axes.Axes.set_title(self.ax1, 'Normalized amplitude')     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax2, 'Log Power spectra')     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax3, 'Signal-to-Noise Ratio')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(self.ax1, 'Rx elevation [{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Frequency [MHz]')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax3, 'SNR')     # @UndefinedVariable
 
         self.draw()
 
@@ -1794,11 +1757,11 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
         self.ax2.cla()
 
         ind = self.ui.MOG_list.selectedIndexes()
-        mog = database.session.query(Mog).all()[ind[0].row()]
+        mog = self.db.mogs[ind[0].row()]
 
-        mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))
-        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))     # @UndefinedVariable
 
         tol = float(self.ui.tol_edit.text())
         veloc_state = self.ui.veloc_check.isChecked()
@@ -1879,7 +1842,7 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
                       (mog.data.Tx_y - mog.data.Rx_y)**2 +
                       (mog.data.Tx_z - mog.data.Rx_z)**2)
 
-        tt, t0 = mog.getCorrectedTravelTimes()
+        tt, _ = mog.getCorrectedTravelTimes()
         et = mog.et
         vapp = hyp / tt
         in_minus = hyp / (tt - et)
@@ -2004,26 +1967,26 @@ class StatsttFig(FigureCanvasQTAgg):
         self.vappFig.show()
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
-        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
 
 
 class VAppFig(FigureCanvasQTAgg):  # Apparent Velocity Figure
@@ -2094,24 +2057,24 @@ class StatsAmpFig(FigureCanvasQTAgg):
         ind = np.nonzero(mog.amp_tmax != -1)[0] == np.nonzero(mog.tauApp != -1)[0]
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
-        mpl.axes.Axes.set_ylabel(self.ax4, r'$\tau_a$')
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
-        mpl.axes.Axes.set_title(self.ax4, 'Amplitude - Amplitude ratio')
-        mpl.axes.Axes.set_ylabel(self.ax5, r'$\tau_a$')
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Straight Ray Length[{}]'.format(mog.data.cunits))
-        mpl.axes.Axes.set_title(self.ax5, 'Amplitude - Centroid Frequency')
-        mpl.axes.Axes.set_ylabel(self.ax6, r'$\tau_a$')
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Straight Ray Length[{}]'.format(mog.data.cunits))
-        mpl.axes.Axes.set_title(self.ax6, 'Amplitude - Hybrid')
-        mpl.axes.Axes.set_ylabel(self.ax1, r'$\alpha_a$')
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
-        mpl.axes.Axes.set_title(self.ax1, 'Amplitude - Amplitude ratio')
-        mpl.axes.Axes.set_ylabel(self.ax2, r'$\alpha_a$')
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax2, 'Amplitude - Centroid Frequency')
-        mpl.axes.Axes.set_ylabel(self.ax3, r'$\alpha_a$')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')
+        mpl.axes.Axes.set_ylabel(self.ax4, r'$\tau_a$')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax4, 'Amplitude - Amplitude ratio')     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(self.ax5, r'$\tau_a$')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax5, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax5, 'Amplitude - Centroid Frequency')     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(self.ax6, r'$\tau_a$')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax6, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax6, 'Amplitude - Hybrid')     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(self.ax1, r'$\alpha_a$')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax1, 'Amplitude - Amplitude ratio')     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(self.ax2, r'$\alpha_a$')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax2, 'Amplitude - Centroid Frequency')     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(self.ax3, r'$\alpha_a$')     # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')     # @UndefinedVariable
 
 
 class RayCoverageFig(FigureCanvasQTAgg):
@@ -2124,7 +2087,7 @@ class RayCoverageFig(FigureCanvasQTAgg):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_lines(self,xs,ys,zs,_color):
-         self.ax.plot(xs.T.flatten(),ys.T.flatten(),zs.T.flatten(),color=_color)
+        self.ax.plot(xs.T.flatten(),ys.T.flatten(),zs.T.flatten(),color=_color)
 
     def plot_ray_coverage(self, mog, n, show_type, entire_state):
         self.ax.cla()
@@ -2258,28 +2221,24 @@ class PruneFig(FigureCanvasQTAgg):
         self.draw()
 
 
-class MergeMog(QtWidgets.QWidget):
+class MergeMog(QtWidgets.QWidget):   # TODO: make this work
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
 
-    def __init__(self, mog, parent=None):
-        super(MergeMog, self).__init__()
+    def __init__(self, mogUI, parent=None):
+        super(MergeMog, self).__init__(parent)
         self.setWindowTitle("Merge MOGs")
-        self.mog = mog
+        self.mogUI = mogUI
         self.initUI()
 
-    def getcompat(self):
+    def getCompat(self):
         self.comp_list.clear()
         n = self.ref_combo.currentIndex()
-        ref_mog = database.session.query(Mog).all()[n]
+        ref_mog = self.db.mogs[n]
         ids = []
         nc = 0
 
-        if n == database.session.query(Mog).count():
-            QtWidgets.QMessageBox.warning(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
-            return
-
-        for mog in database.session.query(Mog).all():
+        for mog in self.db.mogs:
             if mog != ref_mog:
                 test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
                 test2 = False
@@ -2302,7 +2261,7 @@ class MergeMog(QtWidgets.QWidget):
                     ids.append(mog.ID)
 
         if nc == 0:
-            dialog = QtWidgets.QMessageBox.information(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.information(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
 
         else:
             self.show()
@@ -2323,14 +2282,14 @@ class MergeMog(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, 'Warning', "Please enter a name for the new MOG", buttons=QtWidgets.QMessageBox.Ok)
             return
 
-        for i in range(database.session.query(Mog).count()):
-            if database.session.query(Mog).all()[i].name == merge_name:
-                merging_mog = database.session.query(Mog).all()[i]
+        for i in range(len(self.mogUI.db.mogs)):
+            if self.mogUI.db.mogs[i].name == merge_name:
+                merging_mog = self.mogUI.db.mogs[i]
                 merge_ind = i
         newName = self.new_edit.text()
-        refMog = database.session.query(Mog).filter(Mog.name == item).first()
+        refMog = None # database.session.query(Mog).filter(Mog.name == item).first()
         newMog = Mog(newName, refMog.data)
-        database.session.add(newMog)
+        self.mogUI.db.mogs.append(newMog)
 
         newMog.av           = refMog.av
         newMog.ap           = refMog.ap
@@ -2376,16 +2335,16 @@ class MergeMog(QtWidgets.QWidget):
                     " {} and {} have been merged and erased to create {}".format(merging_mog.name,
                                                                                  refMog.name,
                                                                                  newName))
-                database.delete(database, refMog)
-                database.delete(database, merging_mog)
-                self.mog.update_List_Widget()
+                self.mogUI.db.mogs.remove(refMog)
+                self.mogUI.db.mogs.remove(merging_mog)
+                self.mogUI.update_List_Widget()
                 self.close()
 
         else:
             self.mergemoglogSignal.emit("MOG {} have been created by the merge of {} and {}".format(newName,
                                                                                                     refMog.name,
                                                                                                     merging_mog.name))
-            self.mog.update_List_Widget()
+            self.mogUI.update_List_Widget()
             self.close()
 
     def initUI(self):
@@ -2406,7 +2365,7 @@ class MergeMog(QtWidgets.QWidget):
         self.ref_combo = QtWidgets.QComboBox()
 
         # --- ComboBoxes Actions --- #
-        self.ref_combo.activated.connect(self.getcompat)
+        self.ref_combo.activated.connect(self.getCompat)
 
         # --- Checkbox --- #
         self.erase_check = QtWidgets.QCheckBox('Erase MOGs after merge')
@@ -2438,23 +2397,24 @@ class MergeMog(QtWidgets.QWidget):
 
 
 class DeltaTMOG(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super(DeltaTMOG, self).__init__()
+    def __init__(self, db, parent=None):
+        super(DeltaTMOG, self).__init__(parent)
+        self.db = db
         char2 = unicodedata.lookup("GREEK CAPITAL LETTER DELTA")
         self.setWindowTitle("Create {}t MOG".format(char2))
         self.initUI()
 
-    def getcompat(self):
-        if database.session.query(Mog).count() != 0:
+    def getCompat(self):
+        if len(self.db.mogs) > 0:
             self.sub_combo.clear()
             n = self.min_combo.currentIndex()
-            ref_mog = database.session.query(Mog).all()[n]
+            ref_mog = self.db.mogs[n]
             ids = []
             nc = 0
-            if database.session.query(Mog).count() == 1:
+            if len(self.db.mogs) == 1:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database", buttons=QtWidgets.QMessageBox.Ok)
                 return
-            for mog in database.session.query(Mog).all():
+            for mog in self.db.mogs:
                 if mog != ref_mog:
                     test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
                     test2 = False
@@ -2495,7 +2455,7 @@ class DeltaTMOG(QtWidgets.QWidget):
 
         # Check if traveltimes were picked
         n = self.min_combo.currentIndex()
-        refMog = database.session.query(Mog).all()[n]
+        refMog = self.db.mogs[n]
         ind = refMog.tt == -1
         if np.any(ind):
             QtWidgets.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name),
@@ -2519,7 +2479,7 @@ class DeltaTMOG(QtWidgets.QWidget):
         self.sub_combo = QtWidgets.QComboBox()
 
         # --- ComboBoxes' Actions --- #
-        self.min_combo.activated.connect(self.getcompat)
+        self.min_combo.activated.connect(self.getCompat)
 
         # ------- Master grid's disposition ------- #
         master_grid = QtWidgets.QGridLayout()

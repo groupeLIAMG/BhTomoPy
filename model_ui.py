@@ -24,15 +24,14 @@ import sys
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.mplot3d import axes3d
+from mpl_toolkits.mplot3d import axes3d  # @UnusedImport
 import numpy as np
 import matplotlib as mpl
 from model import Model
 from mog import Mog
 from grid import Grid, Grid2D
 from events_ui import GridEdited
-from sqlalchemy.orm.attributes import flag_modified
-import database
+from utils_ui import MyQLabel
 
 
 class ModelUI(QtWidgets.QWidget):
@@ -40,9 +39,10 @@ class ModelUI(QtWidgets.QWidget):
     modelInfoSignal = QtCore.pyqtSignal(int)
     modellogSignal  = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        super(ModelUI, self).__init__()
+    def __init__(self, db, parent=None):
+        super(ModelUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Models")
+        self.db = db
         self.update_mog_combo()
         self.initUI()
 
@@ -50,30 +50,27 @@ class ModelUI(QtWidgets.QWidget):
         name, ok = QtWidgets.QInputDialog.getText(self, "Model creation", 'Model name')
         if ok:
             self.load_model(name)
-            database.modified = True
 
     def load_model(self, name):
         model = Model(name)
-        database.session.add(model)
-        self.model_list.setCurrentRow(0)
+        self.db.models.append(model)
+        self.model_list.setCurrentRow(len(self.db.models) - 1)
         self.modellogSignal.emit("Model {} has been added successfully".format(name))
         self.update_model_list()
-        database.modified = True
 
     def del_model(self):
         model = self.current_model()
         if model is not None:
             self.modellogSignal.emit("Model {} has been deleted successfully".format(model.name))
-            database.delete(database, self.current_model())
+            self.db.models.remove(model)
         self.update_model_list()
         self.model_mog_list.clear()
-        database.modified = True
 
     def current_model(self):
 
-        model = self.model_list.currentItem()
-        if model:
-            return database.session.query(Model).filter(Model.name == model.text()).first()
+        modelNo = self.model_list.currentRow()
+        if modelNo != -1:
+            return self.db.models[modelNo]
 
     def current_mog(self):
 
@@ -84,12 +81,12 @@ class ModelUI(QtWidgets.QWidget):
     def update_mog_combo(self):
         self.chooseMog = ChooseModelMOG(self)
         self.chooseMog.mog_combo.clear()
-        for mog in database.session.query(Mog).all():
+        for mog in self.db.mogs:
             self.chooseMog.mog_combo.addItem(mog.name)
 
     def add_mog(self):
         self.update_mog_combo()
-        if database.session.query(Model).count() != 0:
+        if len(self.db.models) != 0:
             self.chooseMog.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning',
@@ -102,7 +99,6 @@ class ModelUI(QtWidgets.QWidget):
         if model is not None and mog is not None:
             model.mogs.remove(mog)
             self.update_model_mog_list()
-            database.modified = True
 
     def update_model_mog_list(self):
         self.model_mog_list.clear()
@@ -113,7 +109,7 @@ class ModelUI(QtWidgets.QWidget):
 
     def update_model_list(self):
         self.model_list.clear()
-        for model in database.session.query(Model).all():
+        for model in self.db.models:
             self.model_list.addItem(model.name)
         self.modelInfoSignal.emit(len(self.model_list))  # sends the information to DatabaseUI
         self.model_list.setCurrentRow(0)
@@ -125,8 +121,7 @@ class ModelUI(QtWidgets.QWidget):
                 g, ok = self.gridEditor(model)
                 if g is not None and ok == 1:
                     model.grid = g
-                    flag_modified(model, 'grid')
-                    database.modified = True
+                    model.modified = True
             else:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "This model has no mogs.")
 
@@ -136,8 +131,7 @@ class ModelUI(QtWidgets.QWidget):
             g, ok = self.gridEditor(model, model.grid)
             if g is not None and ok == 1:
                 model.grid = g
-                flag_modified(model, 'grid')
-                database.modified = True
+                model.modified = True
 
     def gridEditor(self, model, grid=None):
 
@@ -281,7 +275,7 @@ class ModelUI(QtWidgets.QWidget):
 
     def prepare_grid_data(self):
         no = self.model_list.currentRow()
-        if no not in range(database.session.query(Model).count()):
+        if no not in range(len(self.db.models)):
             return None
 
         mogs = self.current_model().mogs
@@ -375,24 +369,25 @@ class ModelUI(QtWidgets.QWidget):
 
 class ChooseModelMOG(QtWidgets.QWidget):
 
-    def __init__(self, model, parent=None):
-        super(ChooseModelMOG, self).__init__()
+    def __init__(self, modelUI, parent=None):
+        super(ChooseModelMOG, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Choose MOGs")
-        self.model = model
+        self.modelUI = modelUI
         self.initUI()
 
     def add_mog(self):
-        model = self.model.model_list.currentItem().text()
-        mog = self.mog_combo.currentText()
-        self.load_mog(mog, model)
+        mog_name = self.mog_combo.currentText()
+        self.load_mog(mog_name)
 
-    def load_mog(self, mog, model):
-        self.model.model_mog_list.addItem(mog)
-        mog = database.session.query(Mog).filter(Mog.name == mog).first()
-        model = database.session.query(Model).filter(Model.name == model).first()
+    def load_mog(self, mog_name):
+        self.modelUI.model_mog_list.addItem(mog_name)
+        for mog in self.modelUI.db.mogs:
+            if mog.name == mog_name:
+                break
+        model = self.modelUI.current_model()
         model.mogs.append(mog)
-        database.modified = True
-        self.model.modellogSignal.emit("{} has been added to {}'s MOGs".format(mog.name, model.name))
+        model.modified = True
+        self.modelUI.modellogSignal.emit("{} has been added to {}'s MOGs".format(mog.name, model.name))
 
     def initUI(self):
         # ------- Widgets ------- #
@@ -1048,17 +1043,6 @@ class GridData(object):
         self.Rx_p       = np.array([])
         self.a          = 0
         self.x0         = 0
-
-
-class MyQLabel(QtWidgets.QLabel):
-            def __init__(self, label, ha='left', parent=None):
-                super(MyQLabel, self).__init__(label, parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
 
 
 if __name__ == '__main__':

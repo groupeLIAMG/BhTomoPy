@@ -18,18 +18,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
+import os
+import re
 import sys
 from PyQt5 import QtCore, QtWidgets
-from borehole import Borehole
 import numpy as np
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from mpl_toolkits.mplot3d import axes3d
-import time
-import database
+from mpl_toolkits.mplot3d import axes3d   # @UnusedImport
 
-from sqlalchemy.orm.attributes import flag_modified
+from borehole import Borehole
+from utils_ui import MyQLabel
+from database import BhTomoDb
 
 
 class BoreholeUI(QtWidgets.QWidget):
@@ -39,10 +39,13 @@ class BoreholeUI(QtWidgets.QWidget):
     bhUpdateSignal = QtCore.pyqtSignal(list)  # this signal sends the information to update the Tx and Rx comboboxes in MogUI
     bhInfoSignal = QtCore.pyqtSignal(int)     # this signal sends the information to update the number of boreholes in infoUI
 
-    def __init__(self, parent=None):
-        super(BoreholeUI, self).__init__()
+    def __init__(self, db, parent=None):
+        super(BoreholeUI, self).__init__(parent)
+        self.db = db
         self.setWindowTitle("BhTomoPy/Borehole")
         self.initUI()
+        self.update_List_Widget()
+        self.update_List_Edits()
 
     def import_bhole(self):
         """
@@ -57,11 +60,10 @@ class BoreholeUI(QtWidgets.QWidget):
 
     def load_bh(self, filename):
 
-        rname             = filename.split('/')
-        rname             = rname[-1]
+        rname             = os.path.basename(filename)
         rname             = rname.strip('.xyz')
         bh                = Borehole(str(rname))
-        database.session.add(bh)
+        self.db.boreholes.append(bh)
         bh.fdata          = np.loadtxt(filename)
         bh.X              = bh.fdata[0, 0]
         bh.Y              = bh.fdata[0, 1]
@@ -70,10 +72,9 @@ class BoreholeUI(QtWidgets.QWidget):
         bh.Ymax           = bh.fdata[-1, 1]
         bh.Zmax           = bh.fdata[-1, 2]
         self.update_List_Widget()
-        self.bh_list.setCurrentRow(database.session.query(Borehole).count() - 1)
+        self.bh_list.setCurrentRow(len(self.db.boreholes) - 1)
         self.update_List_Edits()
         self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
-        database.modified = True
 
     def add_bhole(self):
         """
@@ -83,12 +84,11 @@ class BoreholeUI(QtWidgets.QWidget):
         name, ok = QtWidgets.QInputDialog.getText(self, "Borehole creation", "Borehole name")
         if ok:
             bh = Borehole(str(name))
-            database.session.add(bh)
+            self.db.boreholes.append(bh)
             self.update_List_Widget()
-            self.bh_list.setCurrentRow(database.session.query(Borehole).count() - 1)
+            self.bh_list.setCurrentRow(len(self.db.boreholes) - 1)
             self.update_List_Edits()
             self.bhlogSignal.emit("{} borehole has been added successfully".format(name))
-            database.modified = True
 
     def update_List_Widget(self):
         """
@@ -96,10 +96,10 @@ class BoreholeUI(QtWidgets.QWidget):
         length of bh_list to DatabaseUI
         """
         self.bh_list.clear()
-        for bh in database.session.query(Borehole).all():
+        for bh in self.db.boreholes:
             self.bh_list.addItem(bh.name)
         self.bhInfoSignal.emit(len(self.bh_list))
-        self.bhUpdateSignal.emit(database.session.query(Borehole).all())  # TODO rework
+        self.bhUpdateSignal.emit(self.db.boreholes)  # TODO rework
 
     def update_List_Edits(self):
         """
@@ -130,9 +130,9 @@ class BoreholeUI(QtWidgets.QWidget):
 
     def current_borehole(self):
 
-        borehole = self.bh_list.currentItem()
-        if borehole is not None:
-            return database.session.query(Borehole).filter(Borehole.name == borehole.text()).first()
+        row = self.bh_list.currentRow()
+        if row != -1:
+            return self.db.boreholes[row]
 
     def del_bhole(self):
         """
@@ -141,24 +141,15 @@ class BoreholeUI(QtWidgets.QWidget):
         item = self.current_borehole()
         if item:
             self.bhlogSignal.emit("{} has been deleted".format(item.name))
-            database.delete(database, item)
+            self.db.boreholes.remove(item)
 
             self.update_List_Widget()
             self.update_List_Edits()
-
-            database.modified = True
-
-    updateHandler = False  # focus may be lost twice due to setFocus and/or the QMessageBox. 'updateHandler' prevents that.
 
     def update_bhole_data(self):
         """
         Updates the borehole's attributes from the coordinates edits
         """
-        if self.updateHandler:
-            return
-
-        self.updateHandler = True
-        import re
 
         exp = re.compile("^-?[0-9]+([\.,][0-9]+)?$")  # float number, with or without decimals, and allowing negatives
 
@@ -198,18 +189,17 @@ class BoreholeUI(QtWidgets.QWidget):
             bh.fdata[-1, 0] = bh.Xmax
             bh.fdata[-1, 1] = bh.Ymax
             bh.fdata[-1, 2] = bh.Zmax
-            flag_modified(bh, 'fdata')
-            database.modified = True
+            bh.modified = True
 
     def plot(self):
         """
         Plots all the Borehole instances in boreholes
         """
-        if database.session.query(Borehole).count() != 0:
+        if len(self.db.boreholes) != 0:
             self.bholeFig = BoreholeFig()
-            self.bholeFig.plot_bholes(database.session.query(Borehole).all())
+            self.bholeFig.plot_bholes(self.db.boreholes)
 
-            for bh in database.session.query(Borehole).all():
+            for bh in self.db.boreholes:
                 self.bhlogSignal.emit("{}'s trajectory has been plotted".format(bh.name))
             self.bholeFig.show()
 
@@ -223,8 +213,7 @@ class BoreholeUI(QtWidgets.QWidget):
         if item:
             acont = Cont()
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
-            rname = filename.split('/')
-            rname = rname[-1]
+            rname = os.path.basename(filename)
             rname = rname[:-4]
             if ".con" in filename:
                 bh = item
@@ -244,7 +233,7 @@ class BoreholeUI(QtWidgets.QWidget):
 
                 bh.acont = acont
                 self.bhlogSignal.emit("{} Attenuation Constraints have been applied to Borehole {} ".format(rname, bh.name))
-                database.modified = True
+                bh.modified = True
             else:
                 self.bhlogSignal.emit("Error: the file's extension must be *.con")
 
@@ -256,8 +245,7 @@ class BoreholeUI(QtWidgets.QWidget):
         scont = Cont()
         if bh:
             filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')[0]
-            rname = filename.split('/')
-            rname = rname[-1]
+            rname = os.path.basename(filename)
             rname = rname[:-4]
             if ".con" in filename:
                 cont = np.loadtxt(filename)
@@ -277,22 +265,11 @@ class BoreholeUI(QtWidgets.QWidget):
 
                 bh.scont = scont
                 self.bhlogSignal.emit("{} Slowness Constraints have been applied to Borehole {} ".format(rname, bh.name))
-                database.modified = True
+                bh.modified = True
             else:
                 self.bhlogSignal.emit("Error: the file's extension must be *.con")
 
     def initUI(self):
-
-        # --- Class For Alignment --- #
-        class MyQLabel(QtWidgets.QLabel):
-            def __init__(self, label, ha='left', parent=None):
-                super(MyQLabel, self).__init__(label, parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
 
         # ------- Widget Creation ------- #
         # --- Buttons Set--- #
@@ -444,7 +421,9 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
 
-    bh_ui = BoreholeUI()
+    db = BhTomoDb('/tmp/test_db.h5')
+    db.load()
+    bh_ui = BoreholeUI(db)
     bh_ui.show()
 
     sys.exit(app.exec_())

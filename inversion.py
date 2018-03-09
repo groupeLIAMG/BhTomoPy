@@ -89,7 +89,7 @@ def invGeostat(params, data, idata, grid, cm, L, app=None, ui=None):
     ui: the InversionUI QWidget
     """
 
-     # First we call a Tomo class instance. It will hold the data we will process along the way.
+    # First we call a Tomo class instance. It will hold the data we will process along the way.
     tomo = Tomo()
 
     if data.shape[1] >= 9:

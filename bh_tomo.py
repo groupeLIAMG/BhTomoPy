@@ -19,8 +19,11 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
 import sys
+
 from PyQt5 import QtGui, QtCore, QtWidgets
+
 from database_ui import DatabaseUI
 from manual_tt_ui import ManualttUI
 from covar_ui import CovarUI
@@ -28,19 +31,15 @@ from inversion_ui import InversionUI
 from interp_ui import InterpretationUI
 from semi_auto_tt_ui import SemiAutottUI
 from manual_amp_ui import ManualAmpUI
-from utils_ui import save_warning
-import os
-
-import database
-database.create_data_management(database)
 
 
 class BhTomoPy(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
-        super(BhTomoPy, self).__init__()
+        super(BhTomoPy, self).__init__(parent)
         self.setWindowTitle("BhTomoPy")
 
+        self.dbname = ''
         self.database = DatabaseUI()
         self.manual_tt = ManualttUI()
         self.semi_tt = SemiAutottUI()
@@ -56,15 +55,8 @@ class BhTomoPy(QtWidgets.QWidget):
     def choosedb(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose Database')[0]
         if filename:
-            if filename[-3:] == '.db':
-                self.loaddb(filename)
-            else:
-                QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
-
-    def loaddb(self, filename):
-        # Allows loading databases from the main
-        database.load(database, filename)
-        self.current_db.setText(os.path.basename(filename))
+            self.dbname = filename
+            self.current_db.setText(os.path.basename(filename))
 
     def show(self):
         super(BhTomoPy, self).show()
@@ -86,16 +78,6 @@ class BhTomoPy(QtWidgets.QWidget):
         self.setFixedSize(self.size())
         self.__h1 = self.size().height()
         self.__h2 = self.tt_tool.size().height() + self.tl_tool.size().height()
-
-    def hide(self):
-        self.setHidden(True)
-
-    def unhide(self):
-        self.setHidden(False)
-        url = database.short_url(database)
-        if url == ":memory:":
-            url = ''
-        self.current_db.setText(url)
 
     def initUI(self):
 
@@ -135,21 +117,13 @@ class BhTomoPy(QtWidgets.QWidget):
         # btn_Nano_Fluid.setDisabled(True)
 
         # - Buttons Actions - #
-        btn_Database.clicked.connect(self.database.show)
-        btn_Manual_Traveltime_Picking.clicked.connect(self.manual_tt.showMaximized)
-        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(self.semi_tt.showMaximized)
-        btn_Cov_Mod.clicked.connect(self.covar.show)
-        btn_Inversion.clicked.connect(self.inv.show)
-        btn_Interpretation.clicked.connect(self.interp.show)
-        btn_Manual_Amplitude_Picking.clicked.connect(self.manual_amp.showMaximized)
-
-        for item in (btn_Database, btn_Manual_Traveltime_Picking, btn_Semi_Automatic_Traveltime_Picking,
-                     btn_Cov_Mod, btn_Inversion, btn_Interpretation, btn_Manual_Amplitude_Picking):
-            item.clicked.connect(self.hide)
-
-        for item in (self.database, self.manual_tt, self.semi_tt, self.covar, self.inv, self.interp, self.manual_amp):
-            item.closeEvent = self.one_form_at_a_time(database)  # overwrites the forms' closing event for a custom one
-            # TODO: some forms may be linked to different data management modules (i.e. not database)
+        btn_Database.clicked.connect(lambda: self.database.show(self.dbname))
+        btn_Manual_Traveltime_Picking.clicked.connect(lambda: self.manual_tt.showMaximized(self.dbname))
+        btn_Semi_Automatic_Traveltime_Picking.clicked.connect(lambda: self.semi_tt.showMaximized(self.dbname))
+        btn_Cov_Mod.clicked.connect(lambda: self.covar.show(self.dbname))
+        btn_Inversion.clicked.connect(lambda: self.inv.show(self.dbname))
+        btn_Interpretation.clicked.connect(lambda: self.interp.show(self.dbname))
+        btn_Manual_Amplitude_Picking.clicked.connect(lambda: self.manual_amp.showMaximized(self.dbname))
 
         # --- Image --- #
         pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
@@ -249,27 +223,6 @@ class BhTomoPy(QtWidgets.QWidget):
         # shrink or expand height to fit the toolbox
         h = self.__h1 + x - self.__h2
         self.setFixedHeight(h)
-
-    def one_form_at_a_time(self, module=None):
-        # creates a custom handler for the closing of a form so that only one form can be open at a time and
-        # that the current loaded information can be saved. 'module' refers to the data management module
-        # the form is linked to.
-
-        if module is not None:
-            def handler(event):
-                ok = save_warning(module)
-                if ok:
-                    self.unhide()
-                    event.accept()
-                else:
-                    event.ignore()
-
-        else:
-            def handler(event):
-                self.unhide()
-                event.accept()
-
-        return handler
 
 
 class MyQToolBox(QtWidgets.QWidget):

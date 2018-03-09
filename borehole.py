@@ -20,29 +20,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from sqlalchemy import Column, Float, String, PickleType
-from utils import Base
 
 
-class Borehole(Base):
+class Borehole():
     """
     Class holding borehole data
     """
-
-    __tablename__ = "Borehole"
-    name      = Column(String, primary_key=True)           # borehole's name (BH)
-    X         = Column(Float)            # X, Y and Z: the BH's top cartesian coordinates
-    Y         = Column(Float)
-    Z         = Column(Float)
-    Xmax      = Column(Float)            # Xmax, Ymax and Zmax : the BH's bottom cartesian coordinates
-    Ymax      = Column(Float)
-    Zmax      = Column(Float)
-    Z_surf    = Column(Float)            # BH's surface height
-    Z_water   = Column(Float)            # Elevation of the water table  # N.B.: This is obsolete and therefore optional, as for the diameter
-    scont     = Column(PickleType)       # Matrix containing the slowness for each point of the BH's trajectory
-    acont     = Column(PickleType)       # Matrix containing the attenuation for each point of the BH's trajectory
-    fdata     = Column(PickleType)       # Matrix containing the BH's trajectory in space
-
     def __init__(self, name=''):
 
         self.name      = name
@@ -53,9 +36,11 @@ class Borehole(Base):
         self.Ymax      = 0.0
         self.Zmax      = 0.0
         self.Z_surf    = 0.0
+        self.Z_water   = 0.0
         self.scont     = np.array([])
         self.acont     = np.array([])
         self.fdata     = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+        self.modified  = True
 
     @staticmethod
     def project(fdata, ldepth):
@@ -132,13 +117,13 @@ class Borehole(Base):
             # the closest upper point's coordinates
         return x, y, z, c
 
-# if __name__ == '__main__':
-#     fdatatest=np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]], dtype=np.float64)
-#     ldepthtest = np.array([1, 2, 3, 4, 5], dtype=np.float64)
-#     bh1 = Borehole('BH1',0.0, 0.0, 0.0, 4.0, 4.0, 4.0)
-#     bh1.fdata = fdatatest
-#     x,y,z,c = Borehole.project(fdatatest,ldepthtest)
-#     print(x)
-#     print(y)
-#     print(z)
-#     print(c)
+if __name__ == '__main__':
+    fdatatest = np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]], dtype=np.float64)
+    ldepthtest = np.array([1, 2, 3, 4, 5], dtype=np.float64)
+    bh1 = Borehole('BH1')
+    bh1.fdata = fdatatest
+    x,y,z,c = Borehole.project(fdatatest,ldepthtest)
+    print(x)
+    print(y)
+    print(z)
+    print(c)

@@ -22,17 +22,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
 import sys
 import inspect
 import dis
 import numpy as np
 import scipy.signal
-import sqlalchemy.types as types
 from PyQt5.QtCore import QThread
-
-from sqlalchemy.ext.declarative import declarative_base  # Base creates the objects' mapping (i.e. their association with the tables).
-Base = declarative_base()                                # Must be present in the child-most module in order not to cause inter-dependencies
 
 class ComputeThread(QThread): # Class that simplify the threading of a function. Simply create a thread for a giving function
     def __init__(self, function_to_compute, *args):
@@ -53,21 +48,26 @@ def Hook(Type, value, traceback):  # PyQt5 overrides Eclipse's exception catchin
 sys.excepthook = Hook
 
 
-def nargout():  # TODO FIXME either doesn't work as of 3.6 or doesn't work on windows
+
+def nargout():
     """
     Returns how many values the caller is expecting
 
     taken from
     http://stackoverflow.com/questions/16488872/python-check-for-the-number-of-output-arguments-a-function-is-called-with
     """
+    if sys.version_info[1] > 5:
+        off = 1
+    else:
+        off = 0
     f = inspect.currentframe()
     f = f.f_back.f_back
     c = f.f_code
     i = f.f_lasti
     bytecode = c.co_code
-    instruction = bytecode[i + 3]
+    instruction = bytecode[i + 3 - off]
     if instruction == dis.opmap['UNPACK_SEQUENCE']:
-        howmany = bytecode[i + 4]
+        howmany = bytecode[i + 4 - off]
         return howmany
     elif instruction == dis.opmap['POP_TOP']:
         return 0
@@ -139,17 +139,16 @@ def data_select(data, freq, dt, L=100, threshold=5, medfilt_len=10):
     return SNR
 
 
-def f():  # test
-
-    nout = nargout()
-    print(nout)
-    if nout == 1:
-        return 1
-    elif nout == 2:
-        return 1, 2
-
 
 if __name__ == "__main__":
+
+    def f():  # test
+        nout = nargout()
+        print(nout)
+        if nout == 1:
+            return 1
+        elif nout == 2:
+            return 1, 2
 
     f()
     a = f()
