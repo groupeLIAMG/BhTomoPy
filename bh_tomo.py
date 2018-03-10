@@ -118,7 +118,7 @@ class BhTomoPy(QtWidgets.QWidget):
 
         # - Buttons Actions - #
         btn_Database.clicked.connect(lambda: self.database.show(self.dbname))
-        btn_Manual_Traveltime_Picking.clicked.connect(lambda: self.manual_tt.showMaximized(self.dbname))
+        btn_Manual_Traveltime_Picking.clicked.connect(lambda: self.manual_tt.show(self.dbname))
         btn_Semi_Automatic_Traveltime_Picking.clicked.connect(lambda: self.semi_tt.showMaximized(self.dbname))
         btn_Cov_Mod.clicked.connect(lambda: self.covar.show(self.dbname))
         btn_Inversion.clicked.connect(lambda: self.inv.show(self.dbname))
@@ -126,11 +126,9 @@ class BhTomoPy(QtWidgets.QWidget):
         btn_Manual_Amplitude_Picking.clicked.connect(lambda: self.manual_amp.showMaximized(self.dbname))
 
         # --- Image --- #
-        pic = QtGui.QPixmap(os.getcwd() + "/BH TOMO2.png")
+        pic = QtGui.QPixmap(os.getcwd() + "/BhTomoPy.png")
         image_label = QtWidgets.QLabel()
-        image_label.setPixmap(pic.scaled(250, 250,
-                                         QtCore.Qt.IgnoreAspectRatio,
-                                         QtCore.Qt.FastTransformation))
+        image_label.setPixmap(pic)
         image_label.setAlignment(QtCore.Qt.AlignCenter)
 
 #         # --- Title --- #
