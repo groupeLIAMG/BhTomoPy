@@ -28,7 +28,6 @@ from mpl_toolkits.mplot3d import axes3d  # @UnusedImport
 import numpy as np
 import matplotlib as mpl
 from model import Model
-from mog import Mog
 from grid import Grid, Grid2D
 from events_ui import GridEdited
 from utils_ui import MyQLabel
