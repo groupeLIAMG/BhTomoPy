@@ -75,10 +75,11 @@ class BhTomoDb():
 
     @filename.setter
     def filename(self, fname):
-        self._filename = fname
-        if fname is not '':
+        # TODO: check if db is modified before making the change
+        if fname != '':
             self.f = h5py.File(fname, 'a')
-            
+        self._filename = fname
+
     @property
     def name(self):
         return os.path.basename(self._filename)

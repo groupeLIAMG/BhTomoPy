@@ -133,7 +133,7 @@ class Model():
 
 
         elif type1 == 'depth':
-            if type2 is '':
+            if type2 == '':
                 return data, ind
             
             _, ind = getModelData(model, air, selected_mogs, type2)  # @UndefinedVariable

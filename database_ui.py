@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import time
 import os
 import sys
+
 from PyQt5 import QtGui, QtWidgets, QtCore
 from borehole_ui import BoreholeUI
 from database import BhTomoDb
@@ -119,7 +120,7 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def show(self, dbname):
         super(DatabaseUI, self).show()
-        if dbname is not '':
+        if dbname != '':
             self.db.load(dbname)
 
         # Gets initial geometry of the widget:
@@ -152,7 +153,7 @@ class DatabaseUI(QtWidgets.QWidget):
     def savefile(self):
 
         try:
-            if self.db.filename is '':
+            if self.db.filename == '':
                 self.saveasfile()
                 return
             

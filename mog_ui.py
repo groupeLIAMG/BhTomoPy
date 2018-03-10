@@ -205,7 +205,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             new_name, ok = QtWidgets.QInputDialog.getText(self, "Rename", 'new MOG name')
             if ok:
                 for mog in self.db.mogs:
-                    if mog.name is new_name:
+                    if mog.name == new_name:
                         QtWidgets.QMessageBox.warning(self, 'Error', 'Name already used',
                                               buttons=QtWidgets.QMessageBox.Ok)
                         return

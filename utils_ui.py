@@ -143,7 +143,7 @@ def chooseModel(filename=None):
 
     b2.move(10, 100)
     b1.move(20 + b1.minimumWidth(), 100)
-    
+
     db = BhTomoDb()
 
     def cancel():
@@ -267,11 +267,11 @@ def save_warning(db):
 
     else:
         return True
-    
+
 def savefile(db):
 
     try:
-        if db.filename is '':
+        if db.filename == '':
             return saveasfile(db)
 
         db.save()
