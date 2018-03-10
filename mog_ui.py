@@ -34,10 +34,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d   # @UnusedImport
 from spectrum import arburg
 
+from database import BhTomoDb
 from mog import MogData, Mog, AirShots
 from utils import compute_SNR, data_select
-from utils_ui import chooseMOG, MyQLabel
-from borehole import Borehole
+from utils_ui import MyQLabel, choose_mog
 
 
 class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
@@ -867,7 +867,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.value_ray_angle_removed_label.setText(str(np.round(((180 - selected_angle) / 180) * 100)))
             self.value_traces_kept_label.setText(str(round(kept_traces, 2)))
 
-            # TODO: updater le label qui contient la valeur du S/M ration lorsque la fonction computeSNR sera finie
+            # TODO: updater le label qui contient la valeur du S/M ratio lorsque la fonction computeSNR sera finie
 
     def start_merge(self):
         self.mergemog = MergeMog(self)
@@ -901,7 +901,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.deltat.getCompat()
 
     def import_mog(self):
-        item = chooseMOG()
+        item = choose_mog(self.db)
 
         if item is not None:
             self.db.mogs.append(item)
@@ -2542,8 +2542,8 @@ class DeltaTMOG(QtWidgets.QWidget):
 if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
-
-    MOGUI_ui = MOGUI()
+    
+    MOGUI_ui = MOGUI(BhTomoDb())
     MOGUI_ui.show()
 
     MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')

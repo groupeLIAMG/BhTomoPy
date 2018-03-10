@@ -22,9 +22,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
-from PyQt5 import QtWidgets, QtCore
 import os
+from PyQt5 import QtWidgets, QtCore
+
 from database import BhTomoDb
 
 
@@ -39,7 +39,7 @@ class MyQLabel(QtWidgets.QLabel):
             self.setAlignment(QtCore.Qt.AlignLeft)
 
 
-def chooseMOG(filename=None):
+def choose_mog(_db=None):
     d = QtWidgets.QDialog()
 
     l0 = QtWidgets.QLabel(parent=d)
@@ -64,8 +64,11 @@ def chooseMOG(filename=None):
 
     b2.move(10, 100)
     b1.move(20 + b1.minimumWidth(), 100)
-    
-    db = BhTomoDb()
+
+    if _db is None:
+        db = BhTomoDb()
+    else:
+        db = _db
 
     def cancel():
         nonlocal d
@@ -83,7 +86,6 @@ def chooseMOG(filename=None):
         if filename:
             db.filename = filename
             l0.setText(os.path.basename(filename))
-            load_mogs()
         else:
             l0.setText('')
 
@@ -97,9 +99,8 @@ def chooseMOG(filename=None):
             l0.setText('')
         b1.setFocus()
 
-    if filename is not None:
-        db.filename = filename
-        l0.setText(os.path.basename(filename))
+    if db.filename != '':
+        l0.setText(os.path.basename(db.filename))
         load_mogs()
     else:
         l0.setText('')
@@ -115,8 +116,11 @@ def chooseMOG(filename=None):
 
     if isOk == 1:
         mog_name = b3.currentText()
-        return db.get_mog(mog_name)
+        return db.get_mog(mog_name), db
 
+def save_mog(mog, db):
+    # TODO: make sure all boreholes and air_shots held in Tx, Rx, av & ap are in db, raise ReferenceError if not
+    db.save_mog(mog)
 
 def chooseModel(filename=None):
     d = QtWidgets.QDialog()

@@ -24,24 +24,22 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
-from utils_ui import chooseMOG, MyQLabel
-import re
 import scipy as spy
 from scipy import signal
+
+from database import BhTomoDb
 from mog import Mog
+from utils_ui import MyQLabel, choose_mog, save_mog
 
 
 class ManualAmpUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        super(ManualAmpUI, self).__init__()
+        super(ManualAmpUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
-        self.mogs = []
-#        self.air = []
-#        self.boreholes = []
-#        self.models = []
         self.mog = 0
+        self.db = BhTomoDb()
         self.initUI()
 
         # self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
@@ -65,19 +63,13 @@ class ManualAmpUI(QtWidgets.QFrame):
     def update_control_center(self):
         n = int(self.Tnum_Edit.text()) - 1
 
-#        ind = self.openmain.mog_combo.currentIndex()
-#        self.mog = self.mogs[ind]
-
-        if len(self.mogs) == 0:
-            return
-        else:
-            self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
-            self.xTx_label.setText(str(self.mog.data.Tx_x[n]))
-            self.yRx_label.setText(str(self.mog.data.Rx_y[n]))
-            self.yTx_label.setText(str(self.mog.data.Tx_y[n]))
-            self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
-            self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
-            self.ntrace_label.setText(str(self.mog.data.ntrace))
+        self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
+        self.xTx_label.setText(str(self.mog.data.Tx_x[n]))
+        self.yRx_label.setText(str(self.mog.data.Rx_y[n]))
+        self.yTx_label.setText(str(self.mog.data.Tx_y[n]))
+        self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
+        self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
+        self.ntrace_label.setText(str(self.mog.data.ntrace))
 
         self.update_settings_edits()
         self.upperFig.plot_amplitude()
@@ -108,22 +100,23 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText('1')
 
     def plot_stats(self):
-        # ind = self.openmain.mog_combo.currentIndex()
-        # mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(self.mog)
         self.statsFig1.showMaximized()
 
     def savefile(self):
-        current_module.session.commit()
-        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtWidgets.QMessageBox.Ok)
+        try:
+            save_mog(self.mog, self.db)
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                              buttons=QtWidgets.QMessageBox.Ok)
+        except ReferenceError as e:
+            QtWidgets.QMessageBox.Warning(self, 'Success', str(e),
+                                              buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
 
-        item = chooseMOG(current_module, database.long_url(current_module))
+        item, self.db = choose_mog(self.db)
         if item is not None:
-            self.mogs = current_module.session.query(Mog).all()
             self.mog = item
             self.update_control_center()
 
@@ -711,26 +704,26 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax3.plot(theta, et, marker='o', ls='None')
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
-        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
 
 
 if __name__ == '__main__':

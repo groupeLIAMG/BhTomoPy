@@ -25,20 +25,18 @@ import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 import numpy as np
 
-from utils_ui import chooseMOG, MyQLabel
-
-import database
-#current_module = sys.modules[__name__]
-#database.create_data_management(current_module)
+from database import BhTomoDb
+from utils_ui import MyQLabel, choose_mog, save_mog
 
 
 class ManualttUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        super(ManualttUI, self).__init__()
+        super(ManualttUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
         self.mog = None
+        self.db = BhTomoDb()
         self.initUI()
 
         # Signals of communication between Upper and Lower Figures
@@ -46,6 +44,16 @@ class ManualttUI(QtWidgets.QFrame):
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
         self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
+
+    def show(self, filename):
+        if filename != '':
+            self.db.filename = filename
+        super(ManualttUI, self).show()
+
+    def showMaximized(self, filename):
+        if filename != '':
+            self.db.filename = filename
+        super(ManualttUI, self).showMaximized()
 
     def next_trace(self):
         n = int(self.Tnum_Edit.text())
@@ -183,26 +191,16 @@ class ManualttUI(QtWidgets.QFrame):
         self.statsFig1.showMaximized()
 
     def savefile(self):
-        flag_modified(self.mog, 'tt')
-        flag_modified(self.mog, 'et')
-        flag_modified(self.mog, 'tt_done')
-        if self.mog.useAirShots:
-            flag_modified(self.mog.av, 'tt')
-            flag_modified(self.mog.av, 'et')
-            flag_modified(self.mog.av, 'tt_done')
-            flag_modified(self.mog.ap, 'tt')
-            flag_modified(self.mog.ap, 'et')
-            flag_modified(self.mog.ap, 'tt_done')
-
-        database.session.commit()
-
-#         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy
-#             sfile['air'] = self.air
-        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtWidgets.QMessageBox.Ok)
+        try:
+            save_mog(self.mog, self.db)
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                              buttons=QtWidgets.QMessageBox.Ok)
+        except ReferenceError as e:
+            QtWidgets.QMessageBox.Warning(self, 'Success', str(e),
+                                              buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        item = chooseMOG(database)
+        item, self.db = choose_mog(self.db)
         if item is not None:
             self.mog = item
             if self.mog.useAirShots == True:
@@ -726,7 +724,7 @@ class UpperFig(FigureCanvasQTAgg):
         if self.tt.Wave_checkbox.isChecked():
             ind, wavelet = self.wavelet_filtering(self.tt.mog.data.rdata)
 
-        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))
+        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))    # @UndefinedVariable
 
         self.draw()
 
@@ -741,10 +739,12 @@ class UpperFig(FigureCanvasQTAgg):
         ind_max = np.zeros(ntrace)
         inc_wb = np.round(ntrace / 100)
         for n in range(ntrace):
-            trace2 = self.denoise(rdata[:, n], wavelet, N)
+            pass # TODO:
+#            trace2 = self.denoise(rdata[:, n], wavelet, N)
 
     def denoise(self, trace, wavelet, N):
-        swc = swt(trace, N, wavelet)
+        pass   # TODO:
+#        swc = swt(trace, N, wavelet)
 
     def onclick(self, event):
 
@@ -1083,8 +1083,8 @@ class LowerFig(FigureCanvasQTAgg):
             self.shot_gather.set_extent([0, airshot_after.data.ntrace - 1, t_max, t_min])
             self.draw()
 
-        mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
+        mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')    # @UndefinedVariable
 
     def calculate_Vapp(self):
         mog = self.tt.mog
@@ -1224,26 +1224,26 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax3.plot(theta, et, marker='o', ls='None')
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
 
-        mpl.axes.Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+        mpl.axes.Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
+        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
+        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
+        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
 
 
 if __name__ == '__main__':

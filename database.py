@@ -141,7 +141,19 @@ class BhTomoDb():
             self.mogs.modified = False
             self.models.modified = False
             self.air_shots.modified = False
-            
+
+    def save_mog(self, mog):
+        # TODO: make sure all boreholes and air_shots held in Tx, Rx, av & ap are in db
+        group = self.f.require_group('/mogs/'+mog.name)
+        self._save_object(mog, group)
+        self.f.flush()
+        
+    def save_model(self, model):
+        # TODO: make sure all mogs held in model.mogs are in db
+        group = self.f.require_group('/models/'+model.name)
+        self._save_object(model, group)
+        self.f.flush()
+        
     def load(self, fname=None):
         if fname is not None:
             self.filename = fname
