@@ -125,16 +125,17 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 self.Multiplication_Factor_edit.setText(str(mog.f_et))
                 self.Date_edit.setText(mog.data.date)
 
-                if mog.av is not None and mog.ap is not None:
+                if mog.av is not None:
                     self.Air_Shot_Before_edit.setText(mog.av.name[:-4])
-                    self.Air_Shot_After_edit.setText(mog.ap.name[:-4])
                 else:
                     self.Air_Shot_Before_edit.setText('')
+                if mog.ap is not None:
+                    self.Air_Shot_After_edit.setText(mog.ap.name[:-4])
+                else:
                     self.Air_Shot_After_edit.setText('')
 
                 if mog.useAirShots:
                     self.Air_shots_checkbox.setChecked(True)
-
                 else:
                     self.Air_shots_checkbox.setChecked(False)
 
@@ -238,6 +239,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             itemNo = self.MOG_list.currentRow()
 
             if itemNo != -1:
+                mog = self.db.mogs[itemNo]
 
                 # then we get only the real name of the file (i.e. not the path behind it)
                 basename = filename[:-4]
@@ -249,9 +251,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 #                     # then we associate the index of the air shot to the selected mog
 #                     database.session.query(Mog).filter(Mog.name == item.text()).av = airshot
                 for airshot in self.db.air_shots:
-                    if airshot.name is rname:
-                        self.db.mogs[itemNo].av = airshot
-                        self.db.mogs[itemNo].modified = True
+                    if airshot.name == rname:
+                        mog.av = airshot
+                        self.Air_Shot_Before_edit.setText(airshot.name[:-4])
+                        mog.modified = True
                         break
                 else:
                     # because of the fact that Airshots files are either rd3, tlf or rad, we apply the method read
@@ -293,22 +296,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         else:
                             airshot_before.method = 'walkaway'
                         self.Air_Shot_Before_edit.setText(airshot_before.name[:-4])
-                        try:
-                            self.db.air_shots.append(airshot_before)
-                        except ValueError:
-                            rname, ok = QtWidgets.QInputDialog.getText(self, 'Name already used',
-                                                                       'Enter name to store air shots data :')
-                            if ok:
-                                airshot_before.name = rname
-                                try:
-                                    self.db.air_shots.append(airshot_before)
-                                except ValueError:
-                                    QtWidgets.QMessageBox.warning(self, 'Error', 'Name already used: aborting',
-                                                                  buttons=QtWidgets.QMessageBox.Ok)
-                            else:
-                                return
-                        self.db.mogs[itemNo].av = airshot_before
-                        self.db.mogs[itemNo].modified = True
+                        self.db.air_shots.append(airshot_before)
+                        
+                        mog.av = airshot_before
+                        mog.modified = True
 
     def airAfter(self):
         # As you can see, the airAfter method is almost the same as airBefore (refer to airBefore for any questions)
@@ -321,14 +312,16 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             itemNo = self.MOG_list.currentRow()
 
             if itemNo != -1:
-
+                mog = self.db.mogs[itemNo]
+                
                 basename = filename[:-4]
                 rname = os.path.basename(filename)
 
                 for airshot in self.db.air_shots:
-                    if airshot.name is rname:
-                        self.db.mogs[itemNo].ap = airshot
-                        self.db.mogs[itemNo].modified = True
+                    if airshot.name == rname:
+                        mog.ap = airshot
+                        self.Air_Shot_After_edit.setText(airshot.name[:-4])
+                        mog.modified = True
                         break
                 else:
                     try:
@@ -365,22 +358,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         else:
                             airshot_after.method = 'walkaway'
                         self.Air_Shot_After_edit.setText(airshot_after.name[:-4])
-                        try:
-                            self.db.air_shots.append(airshot_after)
-                        except ValueError:
-                            rname, ok = QtWidgets.QInputDialog.getText(self, 'Name already used',
-                                                                       'Enter name to store air shots data :')
-                            if ok:
-                                airshot_after.name = rname
-                                try:
-                                    self.db.air_shots.append(airshot_after)
-                                except ValueError:
-                                    QtWidgets.QMessageBox.warning(self, 'Error', 'Name already used: aborting',
-                                                                  buttons=QtWidgets.QMessageBox.Ok)
-                            else:
-                                return
-                        self.db.mogs[itemNo].av = airshot_after
-                        self.db.mogs[itemNo].modified = True
+
+                        self.db.air_shots.append(airshot_after)
+                        
+                        mog.ap = airshot_after
+                        mog.modified = True
 
     def update_spectra_and_coverage_Tx_num_list(self):
         itemNo = self.MOG_list.currentRow()
