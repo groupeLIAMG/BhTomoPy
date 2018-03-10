@@ -274,7 +274,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                             return
 
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
-                        distance_list = [float(i) for i in distance_list]
+                        distance_list = np.array([float(i) for i in distance_list])
 
                         if len(distance_list) > 1:
                             if len(distance_list) != data.ntrace:
@@ -346,7 +346,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                             return
 
                         distance_list = re.findall(r"[-+]?\d*\.\d+|\d+", distance)
-                        distance_list = [float(i) for i in distance_list]
+                        distance_list = np.array([float(i) for i in distance_list])
 
                         if len(distance_list) > 1:
                             if len(distance_list) != data.ntrace:
