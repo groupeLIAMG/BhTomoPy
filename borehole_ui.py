@@ -139,19 +139,26 @@ class BoreholeUI(QtWidgets.QWidget):
         if row != -1:
             return self.db.boreholes[row]
 
-    def del_bhole(self):
+    def delete_borehole(self):
         """
         Deletes a borehole instance from boreholes
         """
         item = self.current_borehole()
         if item:
-            self.bhlogSignal.emit("{} has been deleted".format(item.name))
-            self.db.boreholes.remove(item)
+            # check if borehole is used by mogs
+            for mog in self.db.mogs:
+                if mog.Tx is item or mog.Rx is item:
+                    QtWidgets.QMessageBox.warning(self, 'Warning', 'Borehole {0:s} used by MOG {1:s}'.format(item.name, mog.name),
+                                                  buttons=QtWidgets.QMessageBox.Ok)
+                    break
+            else:
+                self.db.boreholes.remove(item)
+                self.bhlogSignal.emit("{} has been deleted".format(item.name))
 
-            self.update_List_Widget()
-            self.update_List_Edits()
+                self.update_list_widget()
+                self.update_list_edits()
 
-    def update_bhole_data(self):
+    def update_borehole_data(self):
         """
         Updates the borehole's attributes from the coordinates edits
         """
