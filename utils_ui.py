@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import os
+import sys
 from PyQt5 import QtWidgets, QtCore
 
 from database import BhTomoDb
@@ -122,7 +123,7 @@ def save_mog(mog, db):
     # TODO: make sure all boreholes and air_shots held in Tx, Rx, av & ap are in db, raise ReferenceError if not
     db.save_mog(mog)
 
-def chooseModel(filename=None):
+def chooseModel(_db=None):
     d = QtWidgets.QDialog()
 
     l0 = QtWidgets.QLabel(parent=d)
@@ -148,7 +149,10 @@ def chooseModel(filename=None):
     b2.move(10, 100)
     b1.move(20 + b1.minimumWidth(), 100)
 
-    db = BhTomoDb()
+    if _db is None:
+        db = BhTomoDb()
+    else:
+        db = _db
 
     def cancel():
         nonlocal d
@@ -166,7 +170,6 @@ def chooseModel(filename=None):
         if filename:
             db.filename = filename
             l0.setText(os.path.basename(filename))
-            load_models()
         else:
             l0.setText('')
 
@@ -183,9 +186,8 @@ def chooseModel(filename=None):
             l0.setText('')
         b1.setFocus()
 
-    if filename is not None:
-        db.filename = filename
-        l0.setText(os.path.basename(filename))
+    if db.filename != '':
+        l0.setText(os.path.basename(db.filename))
         load_models()
     else:
         l0.setText('')
@@ -200,7 +202,7 @@ def chooseModel(filename=None):
 
     if isOk == 1:
         model_name = b3.currentText()
-        return db.get_model(model_name)
+        return db.get_model(model_name), db
 
 
 def save_warning(db):
@@ -647,3 +649,14 @@ def verif_dims(layout):
     for row in layout[1:]:
         if len(row) != len(layout[0]):
             raise IndexError("Layout has wrong dimensions.")
+        
+        
+if __name__ == '__main__':
+    
+    app = QtWidgets.QApplication(sys.argv)
+
+    mog, db = choose_mog()
+
+    sys.exit(app.exec_())
+    
+    
