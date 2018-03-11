@@ -152,7 +152,7 @@ class BhTomoPy(QtWidgets.QWidget):
         sub_image_widget = QtWidgets.QWidget()
         sub_image_grid = QtWidgets.QGridLayout()
         sub_image_grid.addWidget(image_label, 0, 0)
-        sub_image_grid.setContentsMargins(50, 0, 50, 0)
+        sub_image_grid.setContentsMargins(20, 0, 20, 0)
         sub_image_widget.setLayout(sub_image_grid)
 
         # --- Traveltime ToolBox --- #
