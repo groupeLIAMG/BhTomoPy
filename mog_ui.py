@@ -91,7 +91,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 else:
                     return
             
-            self.update_List_Widget()
+            self.update_list_widget()
             self.MOG_list.setCurrentRow(len(self.db.mogs) - 1)
             self.update_spectra_and_coverage_Tx_num_list()
             self.update_spectra_and_coverage_Tx_elev_value_label()
@@ -197,7 +197,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         if itemNo != -1:
             mog_ = self.db.mogs[itemNo]
             self.db.mogs.remove(mog_)
-        self.update_List_Widget()
+        self.update_list_widget()
         self.update_edits()
 
     def rename(self):
@@ -213,7 +213,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 mog_ = self.db.mogs[itemNo]
                 self.moglogSignal.emit("MOG {} is now {}".format(mog_.name, new_name))
                 mog_.name = new_name
-                self.update_List_Widget()
+                self.update_list_widget()
                 self.update_edits()
                 mog_.modified = True
 
@@ -421,7 +421,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 self.search_info_label.setText('This data contains only {} traces, {} is out of range'.format(len(self.Tx_num_list) - 1, int(item)))
                 self.search_info_label.setPalette(red)
 
-    def update_List_Widget(self):
+    def update_list_widget(self):
         self.MOG_list.clear()
         for mog in self.db.mogs:
             self.MOG_list.addItem(mog.name)
@@ -887,7 +887,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         if item is not None:
             self.db.mogs.append(item)
-            self.update_List_Widget()
+            self.update_list_widget()
             self.MOG_list.setCurrentRow(len(self.db.mogs) - 1)
             self.update_spectra_and_coverage_Tx_num_list()
             self.update_spectra_and_coverage_Tx_elev_value_label()
@@ -2362,14 +2362,14 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
                                                                                  newName))
                 self.mogUI.db.mogs.remove(refMog)
                 self.mogUI.db.mogs.remove(merging_mog)
-                self.mogUI.update_List_Widget()
+                self.mogUI.update_list_widget()
                 self.close()
 
         else:
             self.mergemoglogSignal.emit("MOG {} have been created by the merge of {} and {}".format(newName,
                                                                                                     refMog.name,
                                                                                                     merging_mog.name))
-            self.mogUI.update_List_Widget()
+            self.mogUI.update_list_widget()
             self.close()
 
     def initUI(self):

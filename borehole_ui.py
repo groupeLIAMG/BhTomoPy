@@ -44,21 +44,21 @@ class BoreholeUI(QtWidgets.QWidget):
         self.db = db
         self.setWindowTitle("BhTomoPy/Borehole")
         self.initUI()
-        self.update_List_Widget()
-        self.update_List_Edits()
+        self.update_list_widget()
+        self.update_list_edits()
 
-    def import_bhole(self):
+    def import_borehole(self):
         """
         This method opens a QFileDialog, takes the name that the user has selected and updates the borehole's informations
         """
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import Borehole')[0]
         try:
             if filename:
-                self.load_bh(filename)
+                self.load_borehole(filename)
         except:
             self.bhlogSignal.emit('Error: Borehole file must have *.xyz extension')
 
-    def load_bh(self, filename):
+    def load_borehole(self, filename):
 
         rname             = os.path.basename(filename)
         rname             = rname.strip('.xyz')
@@ -71,12 +71,12 @@ class BoreholeUI(QtWidgets.QWidget):
         bh.Xmax           = bh.fdata[-1, 0]
         bh.Ymax           = bh.fdata[-1, 1]
         bh.Zmax           = bh.fdata[-1, 2]
-        self.update_List_Widget()
+        self.update_list_widget()
         self.bh_list.setCurrentRow(len(self.db.boreholes) - 1)
-        self.update_List_Edits()
+        self.update_list_edits()
         self.bhlogSignal.emit("{}.xyz has been loaded successfully".format(rname))
 
-    def add_bhole(self):
+    def add_borehole(self):
         """
         This method will create an instance of Borehole and initialize it, while showing the value of all its
         attributes in the coordinates edits
@@ -90,12 +90,12 @@ class BoreholeUI(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.warning(self, 'Error', 'Borehole name already used',
                                               buttons=QtWidgets.QMessageBox.Ok)
                 return
-            self.update_List_Widget()
+            self.update_list_widget()
             self.bh_list.setCurrentRow(len(self.db.boreholes) - 1)
-            self.update_List_Edits()
+            self.update_list_edits()
             self.bhlogSignal.emit("{} borehole has been added successfully".format(name))
 
-    def update_List_Widget(self):
+    def update_list_widget(self):
         """
         Updates the information in the bh_list, then emits the instances contained in boreholes and the
         length of bh_list to DatabaseUI
@@ -106,7 +106,7 @@ class BoreholeUI(QtWidgets.QWidget):
         self.bhInfoSignal.emit(len(self.bh_list))
         self.bhUpdateSignal.emit(self.db.boreholes)  # TODO rework
 
-    def update_List_Edits(self):
+    def update_list_edits(self):
         """
         Updates the coordinates edits information with the attributes of the Borehole class instance
         """
@@ -316,22 +316,22 @@ class BoreholeUI(QtWidgets.QWidget):
         self.Z_water_edit        = QtWidgets.QLineEdit()
 
         # --- List Actions --- #
-        self.bh_list.itemSelectionChanged.connect(self.update_List_Edits)
+        self.bh_list.itemSelectionChanged.connect(self.update_list_edits)
 
         # --- Edits Actions --- #
-        self.X_edit.editingFinished.connect(self.update_bhole_data)
-        self.Y_edit.editingFinished.connect(self.update_bhole_data)
-        self.Z_edit.editingFinished.connect(self.update_bhole_data)
-        self.Xmax_edit.editingFinished.connect(self.update_bhole_data)
-        self.Ymax_edit.editingFinished.connect(self.update_bhole_data)
-        self.Zmax_edit.editingFinished.connect(self.update_bhole_data)
-        self.Z_surf_edit.editingFinished.connect(self.update_bhole_data)
-        self.Z_water_edit.editingFinished.connect(self.update_bhole_data)
+        self.X_edit.editingFinished.connect(self.update_borehole_data)
+        self.Y_edit.editingFinished.connect(self.update_borehole_data)
+        self.Z_edit.editingFinished.connect(self.update_borehole_data)
+        self.Xmax_edit.editingFinished.connect(self.update_borehole_data)
+        self.Ymax_edit.editingFinished.connect(self.update_borehole_data)
+        self.Zmax_edit.editingFinished.connect(self.update_borehole_data)
+        self.Z_surf_edit.editingFinished.connect(self.update_borehole_data)
+        self.Z_water_edit.editingFinished.connect(self.update_borehole_data)
 
         # --- Buttons Actions --- #
-        btn_Add.clicked.connect(self.add_bhole)
-        btn_Remove.clicked.connect(self.del_bhole)
-        btn_Import.clicked.connect(self.import_bhole)
+        btn_Add.clicked.connect(self.add_borehole)
+        btn_Remove.clicked.connect(self.delete_borehole)
+        btn_Import.clicked.connect(self.import_borehole)
         btn_Plot.clicked.connect(self.plot)
         btn_Constraints_atten.clicked.connect(self.attenuation_constraints)
         btn_Constraints_veloc.clicked.connect(self.slowness_constraints)

@@ -100,11 +100,11 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def update_widgets(self):
 
-            self.bh.update_List_Widget()
+            self.bh.update_list_widget()
             self.bh.bh_list.setCurrentRow(0)
-            self.bh.update_List_Edits()
+            self.bh.update_list_edits()
 
-            self.mog.update_List_Widget()
+            self.mog.update_list_widget()
             self.mog.update_edits()
             self.mog.MOG_list.setCurrentRow(0)
             self.mog.update_spectra_and_coverage_Tx_num_list()
@@ -329,8 +329,8 @@ if __name__ == '__main__':
     Database_ui.show('')
 
     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
-    Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
+    Database_ui.bh.load_borehole('testData/testConstraints/F3.xyz')
+    Database_ui.bh.load_borehole('testData/testConstraints/F2.xyz')
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
     Database_ui.model.load_model("t0302's model")
