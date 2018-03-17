@@ -30,9 +30,9 @@ class InterpretationUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(InterpretationUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Inversion")
-        self.initUI()
+        self.init_UI()
 
-    def initUI(self):
+    def init_UI(self):
 
         # --- Importation of the greek letters --- #
         char1 = lookup("GREEK SMALL LETTER ALPHA")

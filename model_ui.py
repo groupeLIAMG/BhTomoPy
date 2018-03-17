@@ -43,7 +43,7 @@ class ModelUI(QtWidgets.QWidget):
         self.setWindowTitle("BhTomoPy/Models")
         self.db = db
         self.update_mog_combo()
-        self.initUI()
+        self.init_UI()
 
     def add_model(self):
         name, ok = QtWidgets.QInputDialog.getText(self, "Model creation", 'Model name')
@@ -312,7 +312,7 @@ class ModelUI(QtWidgets.QWidget):
 
         return data
 
-    def initUI(self):
+    def init_UI(self):
 
         # ------- Widgets Creation ------- #
 
@@ -377,7 +377,7 @@ class ChooseModelMOG(QtWidgets.QWidget):
         super(ChooseModelMOG, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Choose MOGs")
         self.modelUI = modelUI
-        self.initUI()
+        self.init_UI()
 
     def add_mog(self):
         mog_name = self.mog_combo.currentText()
@@ -393,7 +393,7 @@ class ChooseModelMOG(QtWidgets.QWidget):
         model.modified = True
         self.modelUI.modellogSignal.emit("{} has been added to {}'s MOGs".format(mog.name, model.name))
 
-    def initUI(self):
+    def init_UI(self):
         # ------- Widgets ------- #
         # --- ComboBox --- #
         self.mog_combo = QtWidgets.QComboBox()
@@ -434,7 +434,7 @@ class Grid2DUI(QtWidgets.QWidget):
             self.dx = self.grid.grx[1] - self.grid.grx[0]
             self.dz = self.grid.grz[1] - self.grid.grz[0]
 
-        self.initUI()
+        self.init_UI()
         self.update_bh_origin()
         self.updateProj()
 
@@ -554,7 +554,7 @@ class Grid2DUI(QtWidgets.QWidget):
 
         return grid, data
 
-    def initUI(self):
+    def init_UI(self):
 
         # ------- Manager for the Best fit plane Figure ------- #
         self.bestfitplaneFig = BestFitPlaneFig(self.data)
@@ -664,13 +664,13 @@ class GridInfoUI(QtWidgets.QFrame):
 
     def __init__(self, parent=None):
         super(GridInfoUI, self).__init__()
-        self.initUI()
+        self.init_UI()
 
     def customEvent(self, event, *args, **kwargs):
         if event.type() == GridEdited._type:
             self.num_cell_label.setText(str(event.data.getNumberOfCells()))
 
-    def initUI(self):
+    def init_UI(self):
 
         # -------- Widgets -------- #
         # --- Labels --- #
@@ -703,9 +703,9 @@ class BestFitPlaneFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
         super(BestFitPlaneFig, self).__init__(fig)
         self.data = data
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
 
         # horizontal configruation
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
@@ -758,9 +758,9 @@ class BoreholesFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(BoreholesFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_boreholes(self, mogs, view):
@@ -810,9 +810,9 @@ class GridViewFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(GridViewFig, self).__init__(fig)
         self.gUI = gUI
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.1, 0.1, 0.85, 0.85])
         self.ax.grid(True)
 
@@ -913,9 +913,9 @@ class ConstraintsEditorUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(ConstraintsEditorUI, self).__init__()
         self.constraintsFig = ConstraintsFig(self)
-        self.initUI()
+        self.init_UI()
 
-    def initUI(self):
+    def init_UI(self):
         # -------- Widgets ------- #
         # --- Buttons --- #
         edit_btn                 = QtWidgets.QPushButton('Edit')
@@ -1013,9 +1013,9 @@ class ConstraintsFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(ConstraintsFig, self).__init__(fig)
         self.constraints_editor = ConstraintsEditor
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size=0.5, pad=0.1)

@@ -51,7 +51,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         super(MOGUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/MOGs")
         self.db = db
-        self.initUI()
+        self.init_UI()
         self.data_rep = ''
 
     def add_MOG(self):
@@ -237,7 +237,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 mog.useAirShots = 0
             mog.modified = True
 
-    def airBefore(self):
+    def air_before(self):
 
         # then we get the filename to process
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot before survey')[0]
@@ -444,7 +444,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.Tx_combo.addItem(bh.name)
             self.Rx_combo.addItem(bh.name)
 
-    def updateCoords(self):
+    def update_coords(self):
         itemNo = self.MOG_list.currentRow()
         if itemNo != -1:
             Tx_no = self.Tx_combo.currentIndex()
@@ -569,7 +569,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
-    def plot_statstt(self):
+    def plot_stats_tt(self):
         if len(self.db.mogs) > 0:
             itemNo = self.MOG_list.currentRow()
             if itemNo != -1:
@@ -588,7 +588,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
 
-    def plot_statsamp(self):
+    def plot_stats_amp(self):
         if len(self.db.mogs) > 0:
             itemNo = self.MOG_list.currentRow()
             if itemNo != -1:
@@ -914,7 +914,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         elif self.color_scale_combo.currentText() == 'High':
             self.color_scale_edit.setText('700')
 
-    def initUI(self):
+    def init_UI(self):
 
         char1 = unicodedata.lookup("GREEK SMALL LETTER TAU")
         char2 = unicodedata.lookup("GREEK CAPITAL LETTER DELTA")
@@ -1464,8 +1464,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.Type_combo.addItem("VSP/VRP")
 
         # - ComboBoxes Actions -#
-        self.Tx_combo.activated.connect(self.updateCoords)
-        self.Rx_combo.activated.connect(self.updateCoords)
+        self.Tx_combo.activated.connect(self.update_coords)
+        self.Rx_combo.activated.connect(self.update_coords)
 
         # --- CheckBox --- #
         self.Air_shots_checkbox    = QtWidgets.QCheckBox("Use Air Shots")
@@ -1513,12 +1513,12 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         btn_Remove_MOG.clicked.connect(self.del_MOG)
         btn_Raw_Data.clicked.connect(self.plot_rawdata)
         btn_Spectra.clicked.connect(self.plot_spectra)
-        btn_Air_Shot_Before.clicked.connect(self.airBefore)
-        btn_Air_Shot_After.clicked.connect(self.airAfter)
+        btn_Air_Shot_Before.clicked.connect(self.air_before)
+        btn_Air_Shot_After.clicked.connect(self.air_after)
         btn_Merge.clicked.connect(self.start_merge)
         btn_Trace_ZOP.clicked.connect(self.plot_zop)
-        btn_Stats_tt.clicked.connect(self.plot_statstt)
-        btn_Stats_Ampl.clicked.connect(self.plot_statsamp)
+        btn_Stats_tt.clicked.connect(self.plot_stats_tt)
+        btn_Stats_Ampl.clicked.connect(self.plot_stats_amp)
         btn_Ray_Coverage.clicked.connect(self.plot_ray_coverage)
         btn_Export_tt.clicked.connect(self.export_tt)
         btn_export_tau.clicked.connect(self.export_tau)
@@ -1606,9 +1606,9 @@ class RawDataFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor='white')
         super(RawDataFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         ax = self.figure.add_axes([0.05, 0.08, 0.9, 0.9])
         divider = make_axes_locatable(ax)
         divider.append_axes('right', size=0.5, pad=0.1)
@@ -1632,9 +1632,9 @@ class SpectraFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor='white')
         super(SpectraFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax1 = self.figure.add_axes([0.08, 0.06, 0.3, 0.9])
         self.ax2 = self.figure.add_axes([0.42, 0.06, 0.3, 0.9])
         self.ax3 = self.figure.add_axes([0.78, 0.06, 0.2, 0.9])
@@ -1781,9 +1781,9 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
         fig = mpl.figure.Figure(facecolor='white')
         super(ZOPFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax1 = self.figure.add_axes([0.08, 0.06, 0.4, 0.9])
         self.ax2 = self.figure.add_axes([0.6, 0.06, 0.3, 0.85])
 
@@ -1889,9 +1889,9 @@ class ZOPRaysFig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(ZOPRaysFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_rays(self, mog, offset_tol):
@@ -1955,9 +1955,9 @@ class StatsttFig(FigureCanvasQTAgg):
 
         fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
         super(StatsttFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
 
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
@@ -2028,9 +2028,9 @@ class VAppFig(FigureCanvasQTAgg):  # Apparent Velocity Figure
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(VAppFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_vapp(self, mog, vapp, ind):
@@ -2067,9 +2067,9 @@ class StatsAmpFig(FigureCanvasQTAgg):
 
         fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
         super(StatsAmpFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
 
         # horizontal configuration
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
@@ -2116,9 +2116,9 @@ class RayCoverageFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(RayCoverageFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_lines(self,xs,ys,zs,_color):
@@ -2212,9 +2212,9 @@ class PruneFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
         super(PruneFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
 
     def plot_prune(self, mog, round_factor):
@@ -2264,7 +2264,7 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
         super(MergeMog, self).__init__(parent)
         self.setWindowTitle("Merge MOGs")
         self.mogUI = mogUI
-        self.initUI()
+        self.init_UI()
 
     def getCompat(self):
         self.comp_list.clear()
@@ -2382,7 +2382,7 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
             self.mogUI.update_list_widget()
             self.close()
 
-    def initUI(self):
+    def init_UI(self):
 
         # ------- Widgets ------- #
         # --- Labels --- #
@@ -2437,7 +2437,7 @@ class DeltaTMOG(QtWidgets.QWidget):
         self.db = db
         char2 = unicodedata.lookup("GREEK CAPITAL LETTER DELTA")
         self.setWindowTitle("Create {}t MOG".format(char2))
-        self.initUI()
+        self.init_UI()
 
     def getCompat(self):
         if len(self.db.mogs) > 0:
@@ -2496,7 +2496,7 @@ class DeltaTMOG(QtWidgets.QWidget):
             QtWidgets.QMessageBox.warning(self, 'Warning', "Traveltimes were not picked for {}".format(refMog.name),
                                           buttons=QtWidgets.QMessageBox.Ok)
 
-    def initUI(self):
+    def init_UI(self):
         # ------- Widgets ------- #
         # --- Buttons --- #
         cancel_btn = QtWidgets.QPushButton('Cancel')

@@ -43,7 +43,7 @@ class BoreholeUI(QtWidgets.QWidget):
         super(BoreholeUI, self).__init__(parent)
         self.db = db
         self.setWindowTitle("BhTomoPy/Borehole")
-        self.initUI()
+        self.init_UI()
         self.update_list_widget()
         self.update_list_edits()
 
@@ -154,7 +154,10 @@ class BoreholeUI(QtWidgets.QWidget):
             else:
                 self.db.boreholes.remove(item)
                 self.bhlogSignal.emit("{} has been deleted".format(item.name))
-
+                if len(self.db.boreholes) > 0:
+                    self.bh_list.setCurrentRow(0)
+                else:
+                    self.bh_list.setCurrentRow(-1)
                 self.update_list_widget()
                 self.update_list_edits()
 
@@ -281,7 +284,7 @@ class BoreholeUI(QtWidgets.QWidget):
             else:
                 self.bhlogSignal.emit("Error: the file's extension must be *.con")
 
-    def initUI(self):
+    def init_UI(self):
 
         # ------- Widget Creation ------- #
         # --- Buttons Set--- #
@@ -398,9 +401,9 @@ class BoreholeFig(FigureCanvasQTAgg):
         fig_width, fig_height = 6, 8
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(BoreholeFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         ax = self.figure.add_axes([0.05, 0.05, 0.9, 0.9], projection='3d')
         ax.set_axisbelow(True)
 

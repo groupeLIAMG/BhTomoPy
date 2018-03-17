@@ -65,7 +65,7 @@ class CovarUI(QtWidgets.QFrame):
         super(CovarUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Covariance")
         self.triggerFctAdjustCov.connect(self.handleAdjustCov) # Signal for computing popup, to follow the progress of adjust()
-        self.initUI()
+        self.init_UI()
 
     def show(self):
         super(CovarUI, self).show()
@@ -903,7 +903,7 @@ class CovarUI(QtWidgets.QFrame):
         self.comparison_fig.clear_()
         self.statistics_fig.clear_()
 
-    def initUI(self):
+    def init_UI(self):
 
         # --- Color for the labels --- #
         palette = QtGui.QPalette()
@@ -1304,9 +1304,9 @@ class StatisticsFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure()
         super(StatisticsFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax1 = self.figure.add_subplot(311)
         self.ax2 = self.figure.add_subplot(312)
         self.ax3 = self.figure.add_subplot(313)
@@ -1356,9 +1356,9 @@ class CovarianceFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(CovarianceFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_subplot(111)
         self.ax.set_ylabel("Covariance")
         self.ax.set_xlabel("Bin Number")
@@ -1381,9 +1381,9 @@ class ComparisonFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
         fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
         super(ComparisonFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_subplot(111)
         self.ax.set_ylabel("Model Covariance")
         self.ax.set_xlabel("Experimental Covariance")

@@ -30,9 +30,9 @@ class SemiAutottUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Semi Automatic Traveltime Picking")
-        self.initUI()
+        self.init_UI()
 
-    def initUI(self):
+    def init_UI(self):
 
         # ------ Creation of the Manager for the Upper figure ------- #
         self.Fig = Fig()
@@ -307,9 +307,9 @@ class Fig(FigureCanvasQTAgg):
     def __init__(self):
         fig = mpl.figure.Figure(facecolor='white')
         super(Fig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         ax1 = self.figure.add_axes([0.08, 0.45, 0.85, 0.5])
         ax2 = self.figure.add_axes([0.08, 0.06, 0.85, 0.3])
         ax1.yaxis.set_ticks_position('left')

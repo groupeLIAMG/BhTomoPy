@@ -42,7 +42,7 @@ class DatabaseUI(QtWidgets.QWidget):
         self.model = ModelUI(self.db)
         self.info = InfoUI()
         self.mergemog = MergeMog(self.mog)
-        self.initUI()
+        self.init_UI()
         self.action_list = []
 
         # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
@@ -178,7 +178,7 @@ class DatabaseUI(QtWidgets.QWidget):
             self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
 
 
-    def initUI(self):
+    def init_UI(self):
 
         # --- Log Widget --- #
         self.log = QtWidgets.QTextEdit()
@@ -261,7 +261,7 @@ class InfoUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(InfoUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Info")
-        self.initUI()
+        self.init_UI()
 
     # ------- Updating the information ------- #
     def update_database(self, name):
@@ -279,7 +279,7 @@ class InfoUI(QtWidgets.QFrame):
     def update_trace(self, value):
         self.num_traces_label.setText(str(value))
 
-    def initUI(self):
+    def init_UI(self):
 
         # --- Widget --- #
         self.database_label = QtWidgets.QLabel("Database : ")

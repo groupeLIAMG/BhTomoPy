@@ -40,7 +40,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
         self.mog = 0
         self.db = BhTomoDb()
-        self.initUI()
+        self.init_UI()
 
         # self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
@@ -139,7 +139,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         except:
             QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename), buttons=QtWidgets.QMessageBox.Ok)
 
-    def initUI(self):
+    def init_UI(self):
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
 
@@ -454,14 +454,14 @@ class UpperFig(FigureCanvasQTAgg):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(UpperFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
         self.trc_number = 0
         self.ui = ui
         self.mpl_connect('button_press_event', self.onclick)
         # self.mpl_connect('key_press_event', self.press)
         self.isTracingOn = False
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
 
         self.ax.yaxis.set_ticks_position('left')
@@ -546,13 +546,13 @@ class LowerFig(FigureCanvasQTAgg):
         fig_width, fig_height = 4, 4
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(LowerFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
         self.ui = ui
         self.trace_number = 0
         self.mpl_connect('button_press_event', self.onclick)
         self.isTracingOn = False
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.07, 0.05, 0.9, 0.85])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
@@ -660,9 +660,9 @@ class StatsFig1(FigureCanvasQTAgg):
 
         fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
         super(StatsFig1, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
 
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])

@@ -47,12 +47,12 @@ class BhTomoPy(QtWidgets.QWidget):
         self.inv = InversionUI()
         self.interp = InterpretationUI()
         self.manual_amp = ManualAmpUI()
-        self.initUI()
+        self.init_UI()
 
         self.setSizePolicy(QtWidgets.QSizePolicy.Minimum,
                            QtWidgets.QSizePolicy.Minimum)
 
-    def choosedb(self):
+    def choose_db(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Choose Database')[0]
         if filename:
             self.dbname = filename
@@ -79,13 +79,13 @@ class BhTomoPy(QtWidgets.QWidget):
         self.__h1 = self.size().height()
         self.__h2 = self.tt_tool.size().height() + self.tl_tool.size().height()
 
-    def initUI(self):
+    def init_UI(self):
 
         # ------- Widgets ------- #
         # --- Actions --- #
         ChooseDbAction = QtWidgets.QAction('Choose Database', self)
         ChooseDbAction.setShortcut('Ctrl+O')
-        ChooseDbAction.triggered.connect(self.choosedb)
+        ChooseDbAction.triggered.connect(self.choose_db)
 
         ConvertDbAction = QtWidgets.QAction('Convert Database', self)
         ConvertDbAction.setShortcut('Ctrl+C')
@@ -175,7 +175,7 @@ class BhTomoPy(QtWidgets.QWidget):
         tt_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
                          QtGui.QIcon('Icons/triangle_down.png'))
         tt_tool.addItem(travel_time_tool, 'Travel Time Picking')
-        tt_tool.sizeChanged.connect(self.fitHeight)
+        tt_tool.sizeChanged.connect(self.fit_height)
         self.tt_tool = tt_tool
 
         # --- Time Lapse ToolBox --- #
@@ -183,7 +183,7 @@ class BhTomoPy(QtWidgets.QWidget):
         tl_tool.setIcons(QtGui.QIcon('Icons/triangle_right.png'),
                          QtGui.QIcon('Icons/triangle_down.png'))
         tl_tool.addItem(time_lapse_tool, 'Time Lapse')
-        tl_tool.sizeChanged.connect(self.fitHeight)
+        tl_tool.sizeChanged.connect(self.fit_height)
         self.tl_tool = tl_tool
 
         # --- Connecting mutual closing --- #
@@ -217,7 +217,7 @@ class BhTomoPy(QtWidgets.QWidget):
 
         self.setLayout(master_grid)
 
-    def fitHeight(self, x):
+    def fit_height(self, x):
         # shrink or expand height to fit the toolbox
         h = self.__h1 + x - self.__h2
         self.setFixedHeight(h)

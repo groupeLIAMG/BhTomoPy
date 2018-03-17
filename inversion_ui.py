@@ -48,7 +48,7 @@ class InversionUI(QtWidgets.QFrame):
         self.tomo = None
         self.prev_inv = []
         self.model_ind = ''
-        self.initUI()
+        self.init_UI()
         self.initinvUI()
         self.model = None
 
@@ -611,7 +611,7 @@ class InversionUI(QtWidgets.QFrame):
         self.trace_num_edit.setText(str(n))
         self.plot_rays()
 
-    def initUI(self):
+    def init_UI(self):
 
         # -------- Widgets in RaysFig -------- #
         # --- Edit --- #
@@ -1054,9 +1054,9 @@ class InvFig(FigureCanvasQTAgg):
         super(InvFig, self).__init__(fig)
         self.gv = gv
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.06, 0.25, 0.9])
         self.ax3 = self.figure.add_axes([0.375, 0.06, 0.25, 0.9])
         self.ax5 = self.figure.add_axes([0.7, 0.06, 0.25, 0.9])
@@ -1129,9 +1129,9 @@ class RaysFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(RaysFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.25, 0.1, 0.5, 0.85])
 
     def plot_rays(self):
@@ -1191,9 +1191,9 @@ class RayDensityFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(RayDensityFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.1, 0.9, 0.85])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size=0.5, pad=0.1)
@@ -1229,9 +1229,9 @@ class ResidualsFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(ResidualsFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax1 = self.figure.add_axes([0.05, 0.55, 0.4, 0.4])
         self.ax2 = self.figure.add_axes([0.55, 0.55, 0.4, 0.4])
         self.ax3 = self.figure.add_axes([0.05, 0.05, 0.4, 0.4])
@@ -1333,9 +1333,9 @@ class TomoFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(TomoFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.07, 0.9, 0.9])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size=0.5, pad=0.1)
@@ -1375,9 +1375,9 @@ class PrevInvFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(PrevInvFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.1, 0.9, 0.85])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size=0.5, pad=0.1)
@@ -1423,9 +1423,9 @@ class SimulationsFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(PrevInvFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.07, 0.07, 0.3, 0.9])
         self.ax2 = self.figure.add_axes([0.07, 0.07, 0.6, 0.9])
         divider = make_axes_locatable(self.ax)
