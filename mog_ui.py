@@ -126,11 +126,11 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 self.Date_edit.setText(mog.data.date)
 
                 if mog.av is not None:
-                    self.Air_Shot_Before_edit.setText(mog.av.name[:-4])
+                    self.Air_Shot_Before_edit.setText(mog.av.name)
                 else:
                     self.Air_Shot_Before_edit.setText('')
                 if mog.ap is not None:
-                    self.Air_Shot_After_edit.setText(mog.ap.name[:-4])
+                    self.Air_Shot_After_edit.setText(mog.ap.name)
                 else:
                     self.Air_Shot_After_edit.setText('')
 
@@ -243,7 +243,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
                 # then we get only the real name of the file (i.e. not the path behind it)
                 basename = filename[:-4]
-                rname = os.path.basename(filename)
+                rname = os.path.basename(basename)
 
 #                 # then we verify if we've already applied the airshots
 #                 airshot = database.session.query(AirShots).filter(AirShots.name == basename).first()
@@ -253,7 +253,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 for airshot in self.db.air_shots:
                     if airshot.name == rname:
                         mog.av = airshot
-                        self.Air_Shot_Before_edit.setText(airshot.name[:-4])
+                        self.Air_Shot_Before_edit.setText(airshot.name)
                         mog.modified = True
                         break
                 else:
@@ -295,14 +295,14 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                             airshot_before.method = 'fixed_antenna'
                         else:
                             airshot_before.method = 'walkaway'
-                        self.Air_Shot_Before_edit.setText(airshot_before.name[:-4])
+                        self.Air_Shot_Before_edit.setText(airshot_before.name)
                         self.db.air_shots.append(airshot_before)
                         
                         mog.av = airshot_before
                         mog.modified = True
 
-    def airAfter(self):
-        # As you can see, the airAfter method is almost the same as airBefore (refer to airBefore for any questions)
+    def air_after(self):
+        # As you can see, the air_after method is almost the same as air_before (refer to air_before for any questions)
 
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open t0 air shot after survey')[0]
 
@@ -315,12 +315,12 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 mog = self.db.mogs[itemNo]
                 
                 basename = filename[:-4]
-                rname = os.path.basename(filename)
+                rname = os.path.basename(basename)
 
                 for airshot in self.db.air_shots:
                     if airshot.name == rname:
                         mog.ap = airshot
-                        self.Air_Shot_After_edit.setText(airshot.name[:-4])
+                        self.Air_Shot_After_edit.setText(airshot.name)
                         mog.modified = True
                         break
                 else:
@@ -357,7 +357,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                             airshot_after.method = 'fixed_antenna'
                         else:
                             airshot_after.method = 'walkaway'
-                        self.Air_Shot_After_edit.setText(airshot_after.name[:-4])
+                        self.Air_Shot_After_edit.setText(airshot_after.name)
 
                         self.db.air_shots.append(airshot_after)
                         
