@@ -196,9 +196,19 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
         if itemNo != -1:
             mog_ = self.db.mogs[itemNo]
-            self.db.mogs.remove(mog_)
-        self.update_list_widget()
-        self.update_edits()
+            for model in self.db.models:
+                if mog_ in model.mogs:
+                    QtWidgets.QMessageBox.warning(self, 'Warning', 'MOG {0:s} used by Model {1:s}'.format(mog_.name, model.name),
+                                                  buttons=QtWidgets.QMessageBox.Ok)
+                    break
+            else:
+                self.db.mogs.remove(mog_)
+                if len(self.db.mogs) > 0:
+                    self.MOG_list.setCurrentRow(0)
+                else:
+                    self.MOG_list.setCurrentRow(-1)
+                self.update_list_widget()
+                self.update_edits()
 
     def rename(self):
         itemNo = self.MOG_list.currentRow()
