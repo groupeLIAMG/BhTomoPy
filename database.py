@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 import os
 import re
+import shutil
 import numpy as np
 import h5py
 
@@ -77,7 +78,13 @@ class BhTomoDb():
     def filename(self, fname):
         # TODO: check if db is modified before making the change
         if fname != '':
-            self.f = h5py.File(fname, 'a')
+            try:
+                self.f = h5py.File(fname, 'a')
+                # we must reset modified to True otherwise nothing will be saved in new file
+                for obj in self.boreholes + self.air_shots + self.mogs + self.models:
+                    obj.modified = True
+            except Exception as e:
+                raise e
         self._filename = fname
 
     @property
@@ -88,7 +95,7 @@ class BhTomoDb():
     def modified(self):
         modified = self.air_shots.modified or self.boreholes.modified or self.mogs.modified\
          or self.models.modified
-        for obj in self.boreholes, self.air_shots, self.mogs, self.models:
+        for obj in self.boreholes + self.air_shots + self.mogs + self.models:
             modified = modified or obj.modified
         return modified
 
@@ -120,21 +127,25 @@ class BhTomoDb():
             
         else:
             # save everything
+            g = self.f.require_group('/boreholes')
+            self._save_list(self.boreholes, g)
             if self.boreholes.modified:
-                g = self.f.require_group('/boreholes')
-                self._save_list(self.boreholes, g)
+                self._cleanup_list(self.boreholes, g)
 
-            if self.mogs.modified:
-                g = self.f.require_group('/mogs')
-                self._save_list(self.mogs, g)
-
+            g = self.f.require_group('/air_shots')
+            self._save_list(self.air_shots, g)
             if self.air_shots.modified:
-                g = self.f.require_group('/air_shots')
-                self._save_list(self.air_shots, g)
+                self._cleanup_list(self.air_shots, g)
 
+            g = self.f.require_group('/mogs')
+            self._save_list(self.mogs, g)
+            if self.mogs.modified:
+                self._cleanup_list(self.mogs, g)
+
+            g = self.f.require_group('/models')
+            self._save_list(self.models, g)
             if self.models.modified:
-                g = self.f.require_group('/models')
-                self._save_list(self.models, g)
+                self._cleanup_list(self.models, g)
             
             self.f.flush()
             self.boreholes.modified = False
@@ -158,9 +169,9 @@ class BhTomoDb():
         if fname is not None:
             self.filename = fname
 
-        # make sure we load boreholes & air_shots before mogs, and mogs before models        
-        self.load_air_shots()
+        # make sure we load boreholes & air_shots before mogs, and mogs before models
         self.load_boreholes()
+        self.load_air_shots()
         self.load_mogs()
         self.load_models()
 
@@ -233,18 +244,12 @@ class BhTomoDb():
         self.air_shots = self.get_air_shots()
 
     def get_mog_names(self):
-        names = []
         gr = self.f['/mogs']
-        for k in gr.keys():
-            names.append(gr[k].attrs['name'])
-        return names
+        return [gr[k].attrs['name'] for k in gr.keys()]
 
     def get_model_names(self):
-        names = []
         gr = self.f['/models']
-        for k in gr.keys():
-            names.append(gr[k].attrs['name'])
-        return names
+        return [gr[k].attrs['name'] for k in gr.keys()]
     
     def _save_object(self, obj, group):
 
@@ -309,6 +314,12 @@ class BhTomoDb():
             g = group.require_group(lst[n].name)
             self._save_object(lst[n], g)
 
+    def _cleanup_list(self, lst, group):
+        names = [obj.name for obj in lst]
+        for k in group.keys():
+            if k not in names:
+                del(group[k])  # TODO: limitation in h5py/hdf5 -> group is removed, but space is not reclaimed from file
+
     def _load_object(self, group, caller=None):
         
         if caller is not None:
@@ -363,7 +374,7 @@ class BhTomoDb():
             obj.__dict__[k] = group.attrs[k]
         for k in group.keys():
             if type(group[k]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                obj.__dict__[k] = group[k]
+                obj.__dict__[k] = np.asarray(group[k])
             elif type(group[k]) is h5py._hl.group.Group:  # @UndefinedVariable
                 if '_list_' in group[k].name:
                     obj.__dict__[k] = self._load_list(group[k])
@@ -383,7 +394,7 @@ class BhTomoDb():
             m.__dict__[kk] = group.attrs[kk]
         for kk in group.keys():
             if type(group[kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                m.__dict__[kk] = group[kk]
+                m.__dict__[kk] = np.asarray(group[kk])
             elif type(group[kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                 gr2 = group[kk]
                 if '_list_' in gr2.name:
@@ -398,7 +409,7 @@ class BhTomoDb():
             m.__dict__[kk] = group.attrs[kk]
         for kk in group.keys():
             if type(group[kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                m.__dict__[kk] = group[kk]
+                m.__dict__[kk] = np.asarray(group[kk])
             elif type(group[kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                 # we have either a list or a custom class
                 gr2 = group[kk]
@@ -417,6 +428,8 @@ if __name__ == '__main__':
     db.filename = '/tmp/test_db.h5'
     db.boreholes.append(Borehole('BH1'))
     db.boreholes.append(Borehole('BH2'))
+    bh3 = Borehole('BH3')
+    db.boreholes.append(bh3)
     
     md = MogData()
     md.readRAMAC('testData/formats/ramac/t0302')
@@ -447,14 +460,20 @@ if __name__ == '__main__':
     print(db.modified)
     
     db.save()
+    db.f.close()
+    shutil.copyfile('/tmp/test_db.h5', '/tmp/test_db2.h5')
     
+    db.filename = '/tmp/test_db.h5'
+    db.boreholes.remove(bh3)
+
     print(db.modified)
+    db.save()
+    print(db.modified)
+
+    db.filename = '/tmp/test_db3.h5'
+    db.save()
     
-    db.save(obj=db.boreholes[0])
-    db.save(obj=db.mogs[0])
-    db.save(obj=db.models[0])
-    db.save(obj=db.air_shots[0])
-      
+    del(db)
     print('Done')
     
     db2 = BhTomoDb()
@@ -464,3 +483,8 @@ if __name__ == '__main__':
     print(names)
     mod = db2.get_model(names[0])
     print(mod.mogs)
+    print(db2.get_mog_names())
+    
+    db2.load()
+    for bh in db2.boreholes:
+        print(bh.name)
