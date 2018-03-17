@@ -1620,7 +1620,7 @@ class RawDataFig(FigureCanvasQTAgg):
         ax1.cla()
         ax2.cla()
         mpl.axes.Axes.set_xlabel(ax1, 'Trace No')     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(ax1, 'Time units[{}]'.format(mogd.tunits))     # @UndefinedVariable
+        mpl.axes.Axes.set_ylabel(ax1, 'Time [{}]'.format(mogd.tunits))     # @UndefinedVariable
         cmax = np.abs(max(mogd.rdata.flatten()))
         h = ax1.imshow(mogd.rdata, cmap='seismic', interpolation='none', aspect='auto', vmin=-cmax, vmax=cmax)
         mpl.colorbar.Colorbar(ax2, h)
