@@ -66,11 +66,7 @@ class MogData(object):
 
         self.readRAD(basename)
         self.readRD3(basename)
-        try:
-            self.readTLF(basename)
-        except IOError as e:
-            print(str(e) + ' [mog err1]')
-
+        
         self.TxOffset = 0
         self.RxOffset = 0
 
@@ -83,13 +79,19 @@ class MogData(object):
                 self.TxOffset = 0.325
                 self.RxOffset = 0.365
 
-        self.Tx_z = self.Tx_z[:self.ntrace]
-        self.Rx_z = self.Rx_z[:self.ntrace]
-
         self.Tx_y = np.zeros(self.ntrace)
         self.Rx_y = np.zeros(self.ntrace)
         self.Tx_x = np.zeros(self.ntrace)
         self.Rx_x = np.zeros(self.ntrace)
+        
+        try:
+            self.readTLF(basename)
+        except IOError as e:
+            raise e
+
+        self.Tx_z = self.Tx_z[:self.ntrace]
+        self.Rx_z = self.Rx_z[:self.ntrace]
+
 
     def readRAD(self, basename):
         """
