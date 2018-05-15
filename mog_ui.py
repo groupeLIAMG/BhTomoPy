@@ -29,6 +29,7 @@ from scipy.signal import filtfilt, welch, cheb1ord, cheby1
 from scipy import interpolate
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d   # @UnusedImport
@@ -2044,15 +2045,23 @@ class VAppFig(FigureCanvasQTAgg):  # Apparent Velocity Figure
         print(vmin, 'vmin')
         X = np.concatenate((Tx, Rx), axis=0)
 
-        c = np.array([[0, 0, 1],
-                      [0, 1, 0],
-                      [1, 0, 0]])
+        c = np.array([[0.0, 0.0, 1.0],
+              [0.9, 0.9, 0.9],
+              [1.0, 0.0, 0.0]])
 
         c = interpolate.interp1d(np.arange(-100, 101, 100).T, c.T)(np.arange(-100, 101, 2).T)
+        ind = c<0.0
+        c[ind] = 0.0
+
         m = 200 / (vmax - vmin)
         b = -100 - m * vmin
 
-        # TODO: mettre une colorbar qui affiche le scaling de la vitesse apparente
+        colors = [(0.0, 0.0, 1.0), (0.9, 0.9, 0.9), (1.0, 0.0, 0.0)]  # R -> G -> B
+        cm = LinearSegmentedColormap.from_list(
+                'my_map', colors, N=200)
+        fake = [[vmax, vmin],[vmin, vmax]]
+        self.ax.imshow(fake, cmap=cm)  # to have a mappable object for the colorbar
+        # TODO: add the colorbar
         for n in range(len(vapp)):
             p = m * vapp[n] + b
 
