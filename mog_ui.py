@@ -75,7 +75,13 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             self.data_rep,rname = os.path.split(basename)
 
             mogdata = MogData(rname)
-            mogdata.readRAMAC(basename)
+            try:
+                mogdata.readRAMAC(basename)
+            except IOError:
+                position_input = PositionInputDialog(mogdata)
+                ans = position_input.exec()
+                if ans == QtWidgets.QDialog.Rejected:
+                    return
 
             mog = Mog(rname, mogdata)
             try:
@@ -863,9 +869,6 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             # TODO: updater le label qui contient la valeur du S/M ratio lorsque la fonction computeSNR sera finie
 
     def start_merge(self):
-        self.mergemog = MergeMog(self)
-        self.mergemog.ref_combo.clear()
-
         if len(self.MOG_list) == 0:
             QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
                                               buttons=QtWidgets.QMessageBox.Ok)
@@ -875,18 +878,21 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                                               buttons=QtWidgets.QMessageBox.Ok)
             return
 
+        self.mergemog = MergeMog(self)
+        self.mergemog.ref_combo.clear()
+
         for mog in self.db.mogs:
             self.mergemog.ref_combo.addItem(str(mog.name))
 
         self.mergemog.getCompat()
 
     def start_delta_t(self):
-        self.deltat = DeltaTMOG(self.db, self)
-
         if len(self.MOG_list) == 0:
             QtWidgets.QMessageBox.information(self, 'Warning', "No MOG in Database",
                                               buttons=QtWidgets.QMessageBox.Ok)
             return
+
+        self.deltat = DeltaTMOG(self.db)
 
         for mog in self.db.mogs:
             self.deltat.min_combo.addItem(str(mog.name))
@@ -2252,7 +2258,6 @@ class PruneFig(FigureCanvasQTAgg):
         Rx_ys = mog.data.Rx_y[:num_Rx]
 
         self.ax.scatter(Tx_xs, Tx_ys, -Tx_zs, c='g', marker='o', label='Tx')
-
         self.ax.scatter(Rx_xs, Rx_ys, -Rx_zs, c='b', marker='*', label='Rx')
 
         l = self.ax.legend(ncol=1, bbox_to_anchor=(0, 1), loc='upper left', borderpad=0)
@@ -2265,12 +2270,111 @@ class PruneFig(FigureCanvasQTAgg):
         self.draw()
 
 
+class PositionInputDialog(QtWidgets.QDialog):
+    def __init__(self, mogdata):
+        super(PositionInputDialog, self).__init__()
+        self.setWindowTitle("Antenna Position")
+        self.mogdata = mogdata
+        self.init_UI()
+        
+    def init_UI(self):
+        
+        zstart = 0.0
+        dz = 0.2
+        zend = zstart + dz*(self.mogdata.ntrace-1)
+        
+        # --- Buttons --- #
+        btn_cancel = QtWidgets.QPushButton('Cancel')
+        btn_ok = QtWidgets.QPushButton('Ok')
+
+        fixed_group_box = QtWidgets.QGroupBox("Fixed Antenna")
+        moving_group_box = QtWidgets.QGroupBox("Moving Antenna")
+        
+        fgrid = QtWidgets.QGridLayout()
+        self.edt_fix_pos = QtWidgets.QLineEdit()
+        self.edt_fix_pos.setAlignment(QtCore.Qt.AlignCenter)
+        self.fixed_type = QtWidgets.QComboBox()
+        self.fixed_type.addItems(['Transmitter', 'Receiver'])
+        fgrid.addWidget(QtWidgets.QLabel('Position'), 0, 0)
+        fgrid.addWidget(self.edt_fix_pos, 0, 1)
+        fgrid.addWidget(self.fixed_type, 1, 0, 1, 2)
+        
+        mgrid = QtWidgets.QGridLayout()
+        start_label = QtWidgets.QLabel('Start Position')
+        start_label.setAlignment(QtCore.Qt.AlignRight)
+        self.edt_mov_pos = QtWidgets.QLineEdit('{0:g}'.format(zstart))
+        self.edt_mov_pos.setAlignment(QtCore.Qt.AlignCenter)
+        inc_label = QtWidgets.QLabel('Increment')
+        inc_label.setAlignment(QtCore.Qt.AlignRight)
+        self.edt_mov_inc = QtWidgets.QLineEdit('{0:g}'.format(dz))
+        self.edt_mov_inc.setAlignment(QtCore.Qt.AlignCenter)
+        stop_label = QtWidgets.QLabel('Stop Position')
+        stop_label.setAlignment(QtCore.Qt.AlignRight)
+        self.edt_mov_stop = QtWidgets.QLabel('{0:g}'.format(zend))
+        self.edt_mov_stop.setAlignment(QtCore.Qt.AlignCenter)
+        dir_label = QtWidgets.QLabel('Direction')
+        dir_label.setAlignment(QtCore.Qt.AlignRight)
+        self.direction = QtWidgets.QComboBox()
+        self.direction.addItems(['Downward', 'upward'])
+        mgrid.addWidget(start_label, 0, 0)
+        mgrid.addWidget(self.edt_mov_pos, 0, 1)
+        mgrid.addWidget(inc_label, 1, 0)
+        mgrid.addWidget(self.edt_mov_inc, 1, 1)
+        mgrid.addWidget(stop_label, 2, 0)
+        mgrid.addWidget(self.edt_mov_stop, 2, 1)
+        mgrid.addWidget(dir_label, 3, 0)
+        mgrid.addWidget(self.direction, 3, 1) 
+        
+        fixed_group_box.setLayout(fgrid)
+        moving_group_box.setLayout(mgrid)
+        
+        btn_cancel.clicked.connect(self.reject)
+        btn_ok.clicked.connect(self.process)
+        
+        self.direction.currentIndexChanged.connect(self.update_end_pos)
+        self.edt_mov_pos.editingFinished.connect(self.update_end_pos)
+        self.edt_mov_inc.editingFinished.connect(self.update_end_pos)
+        
+        grid = QtWidgets.QGridLayout()
+        grid.addWidget(fixed_group_box, 0, 0)
+        grid.addWidget(moving_group_box, 0, 1)
+        grid.addWidget(btn_cancel, 1, 0)
+        grid.addWidget(btn_ok, 1, 1)
+        
+        self.setLayout(grid)
+        
+    def update_end_pos(self):
+        zstart = float(self.edt_mov_pos.text())
+        dz = float(self.edt_mov_inc.text())
+        sign = 1.0
+        if self.direction.currentIndex() == 1:
+            sign = -1.0
+        
+        zend = zstart + sign*dz*(self.mogdata.ntrace-1)
+        self.edt_mov_stop.setText('{0:g}'.format(zend))
+        
+    def process(self):
+        zfixed = float(self.edt_fix_pos.text()) + np.zeros((self.mogdata.ntrace,))
+        sign = 1.0
+        if self.direction.currentIndex() == 1:
+            sign = -1.0
+        zstart = float(self.edt_mov_pos.text())
+        dz = float(self.edt_mov_inc.text())
+        zmoving = zstart + sign*dz*np.arange(self.mogdata.ntrace)
+        if self.fixed_type.currentIndex() == 0:
+            self.mogdata.Tx_z = zfixed
+            self.mogdata.Rx_z = zmoving
+        else:
+            self.mogdata.Tx_z = zmoving
+            self.mogdata.Rx_z = zfixed
+        self.accept()
+
 class MergeMog(QtWidgets.QWidget):   # TODO: make this work
 
     mergemoglogSignal = QtCore.pyqtSignal(str)
 
-    def __init__(self, mogUI, parent=None):
-        super(MergeMog, self).__init__(parent)
+    def __init__(self, mogUI):
+        super(MergeMog, self).__init__()
         self.setWindowTitle("Merge MOGs")
         self.mogUI = mogUI
         self.init_UI()
@@ -2278,11 +2382,10 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
     def getCompat(self):
         self.comp_list.clear()
         n = self.ref_combo.currentIndex()
-        ref_mog = self.db.mogs[n]
-        ids = []
+        ref_mog = self.mogUI.db.mogs[n]
         nc = 0
 
-        for mog in self.db.mogs:
+        for mog in self.mogUI.db.mogs:
             if mog != ref_mog:
                 test1 = ref_mog.Tx == mog.Tx and ref_mog.Rx == mog.Rx
                 test2 = False
@@ -2302,7 +2405,6 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
                 if test1 and test2 and test3 and test4 and test5:
                     nc += 1
                     self.comp_list.addItem("{}".format(mog.name))
-                    ids.append(mog.ID)
 
         if nc == 0:
             QtWidgets.QMessageBox.information(self, 'Warning', "No compatible MOG found", buttons=QtWidgets.QMessageBox.Ok)
@@ -2441,8 +2543,8 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
 
 
 class DeltaTMOG(QtWidgets.QWidget):
-    def __init__(self, db, parent=None):
-        super(DeltaTMOG, self).__init__(parent)
+    def __init__(self, db):
+        super(DeltaTMOG, self).__init__()
         self.db = db
         char2 = unicodedata.lookup("GREEK CAPITAL LETTER DELTA")
         self.setWindowTitle("Create {}t MOG".format(char2))
@@ -2453,7 +2555,6 @@ class DeltaTMOG(QtWidgets.QWidget):
             self.sub_combo.clear()
             n = self.min_combo.currentIndex()
             ref_mog = self.db.mogs[n]
-            ids = []
             nc = 0
             if len(self.db.mogs) == 1:
                 QtWidgets.QMessageBox.warning(self, 'Warning', "Only 1 MOG in Database", buttons=QtWidgets.QMessageBox.Ok)
@@ -2478,7 +2579,6 @@ class DeltaTMOG(QtWidgets.QWidget):
                     if test1 and test2 and test3 and test4 and test5:
                         nc += 1
                         self.sub_combo.addItem(mog.name)
-                        ids.append(mog.ID)
 
                 else:
                     pass
@@ -2547,6 +2647,6 @@ if __name__ == '__main__':
     MOGUI_ui = MOGUI(BhTomoDb())
     MOGUI_ui.show()
 
-    MOGUI_ui.load_file_MOG('testData/formats/ramac/t0302.rad')
+    MOGUI_ui.load_file_MOG('/Users/giroux/GitHub/BhTomoPy/testData/formats/ramac/t0102_no_tlf.rad')
 
     sys.exit(app.exec_())
