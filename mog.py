@@ -332,18 +332,6 @@ class Mog():  # Multi-Offset Gather
 
         return t0, fac_dt_av, fac_dt_ap
 
-    @staticmethod
-    def get_t0_fixed(shot, v):
-        times = shot.tt
-        std_times = shot.et
-        ind = np.where(times != -1.0)[0]
-        if np.all(std_times == -1.0):
-            times = np.mean(times[ind])
-        else:
-            times = sum(times[ind] * std_times[ind]) / sum(std_times[ind])
-        t0 = times - float(shot.d_TxRx[0]) / v
-        return t0
-
     def getCorrectedTravelTimes(self):
 
         if self.data.synthetique == 1:
@@ -374,6 +362,130 @@ class Mog():  # Multi-Offset Gather
 
         return tt, t0
 
+    @staticmethod
+    def get_t0_fixed(shot, v):
+        times = shot.tt
+        std_times = shot.et
+        ind = np.where(times != -1.0)[0]
+        if np.all(std_times == -1.0):
+            times = np.mean(times[ind])
+        else:
+            times = sum(times[ind] * std_times[ind]) / sum(std_times[ind])
+        t0 = times - float(shot.d_TxRx[0]) / v
+        return t0
+
+    @staticmethod
+    def merge_mogs(mog_list, name):
+        # we assume all mogs in list are compatible
+        new_mog = Mog(name)
+        
+        mog = mog_list[0]
+        new_mog.av = mog.av
+        new_mog.ap = mog.ap
+        new_mog.Tx = mog.Tx
+        new_mog.Rx = mog.Rx
+        new_mog.f_et = mog.f_et
+        new_mog.type = mog.type
+        new_mog.fac_dt = mog.fac_dt
+        new_mog.user_fac_dt = mog.user_fac_dt
+        new_mog.useAirShots = mog.useAirShots
+        new_mog.date = mog.data.date
+        
+        new_mog.data.nptsptrc = mog.data.nptsptrc
+        new_mog.data.rstepsz = mog.data.rstepsz
+        new_mog.data.rnomfreq = mog.data.rnomfreq
+        new_mog.data.csurvmod = mog.data.csurvmod
+        new_mog.data.timec = mog.data.timec
+        new_mog.data.tdata = mog.data.tdata
+        new_mog.data.timestp = mog.data.timestp
+        new_mog.data.antennas = mog.data.antennas
+        new_mog.data.synthetique = mog.data.synthetique
+        new_mog.data.tunits = mog.data.tunits
+        new_mog.data.cunits = mog.data.cunits
+        new_mog.data.TxOffset = mog.data.TxOffset
+        new_mog.data.RxOffset = mog.data.RxOffset
+        new_mog.data.comment = mog.data.comment
+        new_mog.data.date = mog.data.date
+
+        new_mog.tau_params = mog.tau_params.copy()
+        new_mog.fw = mog.fw.copy()
+        new_mog.TxCosDir = mog.TxCosDir.copy()
+        new_mog.RxCosDir = mog.RxCosDir.copy()
+        new_mog.in_Rx_vect = mog.in_Rx_vect.copy()
+        new_mog.in_Tx_vect = mog.in_Tx_vect.copy()
+        new_mog.in_vect = mog.in_vect.copy()
+        new_mog.tt = mog.tt.copy()
+        new_mog.et = mog.et.copy()
+        new_mog.tt_done = mog.tt_done.copy()
+        new_mog.ttTx = mog.ttTx.copy()
+        new_mog.ttTx_done = mog.ttTx_done.copy()
+        new_mog.amp_tmin = mog.amp_tmin.copy()
+        new_mog.amp_tmax = mog.amp_tmax.copy()
+        new_mog.amp_done = mog.amp_done.copy()
+        new_mog.App = mog.App.copy()
+        new_mog.fcentroid = mog.fcentroid.copy()
+        new_mog.scentroid = mog.scentroid.copy()
+        new_mog.tauApp = mog.tauApp.copy()
+        new_mog.tauApp_et = mog.tauApp_et.copy()
+        new_mog.tauFce = mog.tauFce.copy()
+        new_mog.tauFce_et = mog.tauFce_et.copy()
+        new_mog.tauHyb = mog.tauHyb.copy()
+        new_mog.tauHyb_et = mog.tauHyb_et.copy()
+        new_mog.Tx_z_orig = mog.Tx_z_orig.copy()
+        new_mog.Rx_z_orig = mog.Rx_z_orig.copy()
+        
+        new_mog.data.ntrace = mog.data.ntrace
+        new_mog.data.rdata = mog.data.rdata.copy()
+        new_mog.data.Tx_x = mog.data.Tx_x.copy()
+        new_mog.data.Tx_y = mog.data.Tx_y.copy() 
+        new_mog.data.Tx_z = mog.data.Tx_z.copy()
+        new_mog.data.Rx_x = mog.data.Rx_x.copy()
+        new_mog.data.Rx_y = mog.data.Rx_y.copy()
+        new_mog.data.Rx_z = mog.data.Rx_z.copy()
+
+        for n in range(1, len(mog_list)):
+            mog = mog_list[n]
+            
+            new_mog.tau_params = np.r_[new_mog.tau_params, mog.tau_params]
+            new_mog.fw = np.r_[new_mog.fw, mog.fw]
+            new_mog.TxCosDir = np.c_[new_mog.TxCosDir, mog.TxCosDir]
+            new_mog.RxCosDir = np.c_[new_mog.RxCosDir, mog.RxCosDir]
+            new_mog.in_Rx_vect = np.r_[new_mog.in_Rx_vect, mog.in_Rx_vect]
+            new_mog.in_Tx_vect = np.r_[new_mog.in_Tx_vect, mog.in_Tx_vect]
+            new_mog.in_vect = np.r_[new_mog.in_vect, mog.in_vect]
+            new_mog.tt = np.r_[new_mog.tt, mog.tt]
+            new_mog.et = np.r_[new_mog.et, mog.et]
+            new_mog.tt_done = np.r_[new_mog.tt_done, mog.tt_done]
+            new_mog.ttTx = np.r_[new_mog.ttTx, mog.ttTx]
+            new_mog.ttTx_done = np.r_[new_mog.ttTx_done, mog.ttTx_done]
+            new_mog.amp_tmin = np.r_[new_mog.amp_tmin, mog.amp_tmin]
+            new_mog.amp_tmax = np.r_[new_mog.amp_tmax, mog.amp_tmax]
+            new_mog.amp_done = np.r_[new_mog.amp_done, mog.amp_done]
+            new_mog.App = np.r_[new_mog.App, mog.App]
+            new_mog.fcentroid = np.r_[new_mog.fcentroid, mog.fcentroid]
+            new_mog.scentroid = np.r_[new_mog.scentroid, mog.scentroid]
+            new_mog.tauApp = np.r_[new_mog.tauApp, mog.tauApp]
+            new_mog.tauApp_et = np.r_[new_mog.tauApp_et, mog.tauApp_et]
+            new_mog.tauFce = np.r_[new_mog.tauFce, mog.tauFce]
+            new_mog.tauFce_et = np.r_[new_mog.tauFce_et, mog.tauFce_et]
+            new_mog.tauHyb = np.r_[new_mog.tauHyb, mog.tauHyb]
+            new_mog.tauHyb_et = np.r_[new_mog.tauHyb_et, mog.tauHyb_et]
+            new_mog.Tx_z_orig = np.r_[new_mog.Tx_z_orig, mog.Tx_z_orig]
+            new_mog.Rx_z_orig = np.r_[new_mog.Rx_z_orig, mog.Rx_z_orig]
+            
+            new_mog.data.ntrace += mog.data.ntrace
+            new_mog.data.rdata = np.c_[new_mog.data.rdata, mog.data.rdata]
+            new_mog.data.Tx_x = np.r_[new_mog.data.Tx_x, mog.data.Tx_x]
+            new_mog.data.Tx_y = np.r_[new_mog.data.Tx_y, mog.data.Tx_y]
+            new_mog.data.Tx_z = np.r_[new_mog.data.Tx_z, mog.data.Tx_z]
+            new_mog.data.Rx_x = np.r_[new_mog.data.Rx_x, mog.data.Rx_x]
+            new_mog.data.Rx_y = np.r_[new_mog.data.Rx_y, mog.data.Rx_y]
+            new_mog.data.Rx_z = np.r_[new_mog.data.Rx_z, mog.data.Rx_z]
+
+        new_mog.pruneParams.zmin = min(np.array([new_mog.data.Tx_z, new_mog.data.Rx_z]).flatten())
+        new_mog.pruneParams.zmax = max(np.array([new_mog.data.Tx_z, new_mog.data.Rx_z]).flatten())
+        
+        return new_mog
 
 class AirShots():
     def __init__(self, name='', data=MogData()):
