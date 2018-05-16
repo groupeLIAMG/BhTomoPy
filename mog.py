@@ -45,8 +45,8 @@ class MogData(object):
         self.Rx_y        = np.array([0.0])   # y position of the receptor
         self.Rx_z        = np.array([0.0])   # z position of the receptor
         self.antennas    = ''    # name of the antenna
-        self.synthetique = 0     # if 1 results from numerical modelling and 0 for field data
-        self.tunits      = 0     # time units
+        self.synthetique = False # if 1 results from numerical modelling and 0 for field data
+        self.tunits      = ''    # time units
         self.cunits      = ''    # coordinates units
         self.TxOffset    = 0     # length of he transmittor which is above the surface
         self.RxOffset    = 0     # length of he receptor which is above the surface

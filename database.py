@@ -279,7 +279,7 @@ class BhTomoDb():
                 continue
             elif type(obj.__dict__[k]) is str:
                 group.attrs[k] = obj.__dict__[k]
-            elif type(obj.__dict__[k]) is bool:
+            elif type(obj.__dict__[k]) is bool or type(obj.__dict__[k]) is np.bool_:
                 group.attrs[k] = obj.__dict__[k]
             elif type(obj.__dict__[k]) is float:
                 group.attrs[k] = obj.__dict__[k]
