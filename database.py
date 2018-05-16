@@ -183,7 +183,7 @@ class BhTomoDb():
             for kk in gr[k].attrs.keys():
                 b.__dict__[kk] = gr[k].attrs[kk]
             for kk in gr[k].keys():
-                b.__dict__[kk] = gr[k][kk]
+                b.__dict__[kk] = np.asarray(gr[k][kk])
             boreholes.append(b)
         return boreholes
         
@@ -229,7 +229,7 @@ class BhTomoDb():
                 m.__dict__[kk] = gr[k].attrs[kk]
             for kk in gr[k].keys():
                 if type(gr[k][kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                    m.__dict__[kk] = gr[k][kk]
+                    m.__dict__[kk] = np.asarray(gr[k][kk])
                 elif type(gr[k][kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                     # we have either a list or a custom class
                     gr2 = gr[k][kk]
@@ -261,7 +261,7 @@ class BhTomoDb():
         elif self.p2.match(group.name):
             # skip
             return
-        
+
         if 'modified' in obj.__dict__.keys():
             if obj.modified == False:
                 # no need to save
