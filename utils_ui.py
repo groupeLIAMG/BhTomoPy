@@ -91,7 +91,7 @@ def choose_mog(_db=None):
             l0.setText('')
 
     def load_mogs():
-        names = db.load_mog_names()
+        names = db.get_mog_names()
         if len(names) > 0:
             b3.addItems(names)
         else:
