@@ -1419,15 +1419,15 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         self.MOG_list.itemSelectionChanged.connect(self.update_edits)
 
         # --- ComboBoxes --- #
-        self.Type_combo = QtWidgets.QComboBox()
+        self.mog_type = QtWidgets.QComboBox()
         self.Tx_combo = QtWidgets.QComboBox()
         self.Rx_combo = QtWidgets.QComboBox()
 
         # - ComboBoxes Dispostion -#
-        self.Type_combo.addItem("Crosshole")
-        self.Type_combo.addItem("VSP/VRP")
+        self.mog_type.addItems(("Crosshole", "VSP/VRP"))
 
         # - ComboBoxes Actions -#
+        self.mog_type.activated.connect(self.update_coords)
         self.Tx_combo.activated.connect(self.update_coords)
         self.Rx_combo.activated.connect(self.update_coords)
 
@@ -1497,7 +1497,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
         Sub_AirShots_Grid.addWidget(Type_label, 0, 1)
         Sub_AirShots_Grid.addWidget(Tx_label, 1, 1)
         Sub_AirShots_Grid.addWidget(Rx_label, 2, 1)
-        Sub_AirShots_Grid.addWidget(self.Type_combo, 0, 2)
+        Sub_AirShots_Grid.addWidget(self.mog_type, 0, 2)
         Sub_AirShots_Grid.addWidget(self.Tx_combo, 1, 2)
         Sub_AirShots_Grid.addWidget(self.Rx_combo, 2, 2)
         Sub_AirShots_Grid.addWidget(self.Air_shots_checkbox, 3, 0)
@@ -2371,7 +2371,6 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
 
     def doMerge(self):
 
-        item = self.ref_combo.currentText()
         merge_name = self.comp_list.currentItem().text()
         if len(self.comp_list) == 0:
             self.dialog.setText("No compatible MOG found")
@@ -2389,8 +2388,9 @@ class MergeMog(QtWidgets.QWidget):   # TODO: make this work
             if self.mogUI.db.mogs[i].name == merge_name:
                 merging_mog = self.mogUI.db.mogs[i]
                 merge_ind = i
+
         newName = self.new_edit.text()
-        refMog = None # database.session.query(Mog).filter(Mog.name == item).first()
+        refMog = self.mogUI.db.mogs[self.ref_combo.currentIndex()]
         newMog = Mog(newName, refMog.data)
         self.mogUI.db.mogs.append(newMog)
 

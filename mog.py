@@ -107,7 +107,7 @@ class MogData(object):
                 try:
                     file = open(basename + ".RAD", 'r')
                 except Exception as e:
-                    raise IOError("Cannot open RAD file '" + str(e)[:42] + "...' [mog 2]")
+                    raise IOError(str(e))
 
         # knowing the file's contents, we make sure to read every line while looking for keywords. When we've found one of
         # these keyword, we either search the int('\d+'), the float(r"[-+]?\d*\.\d+|\d+") or a str by getting the
@@ -258,7 +258,7 @@ class Mog():  # Multi-Offset Gather
 
         if self.data.tdata is None:
             self.ttTx                 = np.array([])
-            self.ttTx_done            = np.array([])
+            self.ttTx_done            = np.array([], dtype=bool)
         else:
             self.ttTx                 = np.zeros(self.data.ntrace)
             self.ttTx_done            = np.zeros(self.data.ntrace, dtype=bool)
@@ -466,7 +466,8 @@ class Mog():  # Multi-Offset Gather
     @staticmethod
     def merge_mogs(mog_list, name):
         # we assume all mogs in list are compatible
-        new_mog = Mog(name)
+        mdata = MogData()  # mogdata must be instantiated explicitely
+        new_mog = Mog(name, mdata)
         
         mog = mog_list[0]
         new_mog.av = mog.av
