@@ -22,6 +22,7 @@ import os
 import re
 import numpy as np
 
+from borehole import Borehole
 
 class MogData(object):
     """
@@ -361,6 +362,94 @@ class Mog():  # Multi-Offset Gather
         tt = self.fac_dt * self.tt - t0
 
         return tt, t0
+    
+    def update_coords(self):
+        
+        if 'true positions' in self.data.comment:
+            Tx = np.vstack((self.data.Tx_x, self.data.Tx_y, self.data.Tx_z)).T
+            self.TxCosDir = np.zeros(Tx.shape)
+            tmp = np.unique(Tx, axis=0)
+            tmp = np.sort(tmp, axis=0)
+            tmp = tmp[::-1, :]
+            v = -np.diff(tmp, axis=0)
+            d = np.sqrt(np.sum(v*v, axis=1))
+            l = v/np.kron(d.reshape(-1,1), np.ones((3,)))
+            l = np.vstack((l, l[-1, :]))
+            for n in range(tmp.shape[0]):
+                ind = Tx[:, 0] == tmp[n, 0]
+                ind = np.logical_and(ind, Tx[:, 1] == tmp[n, 1])
+                ind = np.logical_and(ind, Tx[:, 2] == tmp[n, 2])
+                self.TxCosDir[ind, :] = l[n, :]
+                
+            Rx = np.vstack((self.data.Rx_x, self.data.Rx_y, self.data.Rx_z)).T
+            self.RxCosDir = np.zeros(Rx.shape)
+            tmp = np.unique(Rx, axis=0)
+            tmp = np.sort(tmp, axis=0)
+            tmp = tmp[::-1, :]
+            v = -np.diff(tmp, axis=0)
+            d = np.sqrt(np.sum(v*v, axis=1))
+            l = v/np.kron(d.reshape(-1,1), np.ones((3,)))
+            l = np.vstack((l, l[-1, :]))
+            for n in range(tmp.shape[0]):
+                ind = Rx[:, 0] == tmp[n, 0]
+                ind = np.logical_and(ind, Rx[:, 1] == tmp[n, 1])
+                ind = np.logical_and(ind, Rx[:, 2] == tmp[n, 2])
+                self.RxCosDir[ind, :] = l[n, :]
+            return
+
+        if self.Tx is None or self.Rx is None:
+            return
+        
+        if self.Tx == self.Rx:
+            raise RuntimeWarning('Tx et Rx are in the same well: coordinates not updated')
+        
+        if self.type == 0:  # Crosshole
+            self.data.csurvmod = 'SURVEY MODE        = Trans. - MOG'
+            if np.abs(self.Tx.X-self.Tx.Xmax) < 1.0e-5 and np.abs(self.Tx.Y-self.Tx.Ymax) < 1.0e-5:
+                # forage vertical
+                self.data.Tx_x = self.Tx.fdata[0, 0] * np.ones(self.data.ntrace)
+                self.data.Tx_y = self.Tx.fdata[0, 1] * np.ones(self.data.ntrace)
+                self.data.Tx_z = self.Tx.Z - self.data.TxOffset - self.Tx_z_orig
+                self.TxCosDir = np.tile(np.array([0, 0, 1]), (self.data.ntrace, 1))
+            else:
+                self.data.Tx_x, self.data.Tx_y, self.data.Tx_z = Borehole.project(self.Tx.fdata, self.Tx_z_orig+self.data.TxOffset)
+
+            if np.abs(self.Rx.X-self.Rx.Xmax) < 1.0e-5 and np.abs(self.Rx.Y-self.Rx.Ymax) < 1.0e-5:
+                # forage vertical
+                self.data.Rx_x = self.Rx.fdata[0, 0] * np.ones(self.data.ntrace)
+                self.data.Rx_y = self.Rx.fdata[0, 1] * np.ones(self.data.ntrace)
+                self.data.Rx_z = self.Rx.Z - self.data.RxOffset - self.Rx_z_orig
+                self.RxCosDir = np.tile(np.array([0, 0, 1]), (self.data.ntrace, 1))
+            else:
+                self.data.Rx_x, self.data.Rx_y, self.data.Rx_z = Borehole.project(self.Rx.fdata, self.Rx_z_orig+self.data.RxOffset)
+
+        elif self.type == 1:  # VSP
+            # Rx
+            if np.abs(self.Rx.X-self.Rx.Xmax) < 1.0e-5 and np.abs(self.Rx.Y-self.Rx.Ymax) < 1.0e-5:
+                # forage vertical
+                self.data.Rx_x = self.Rx.fdata[0, 0] * np.ones(self.data.ntrace)
+                self.data.Rx_y = self.Rx.fdata[0, 1] * np.ones(self.data.ntrace)
+                self.data.Rx_z = self.Rx.Z - self.data.RxOffset - self.Rx_z_orig
+                self.RxCosDir = np.tile(np.array([0, 0, 1]), (self.data.ntrace, 1))
+            else:
+                self.data.Rx_x, self.data.Rx_y, self.data.Rx_z = Borehole.project(self.Rx.fdata, self.Rx_z_orig+self.data.RxOffset)
+
+            # Tx on surface
+            theta = np.arctan2( self.Tx.Y - self.Rx.Y, self.Tx.X - self.Rx.X )
+            self.data.Tx_x = self.Rx.X + self.Tx_z_orig*np.cos(theta)
+            self.data.Tx_y = self.Rx.Y + self.Tx_z_orig*np.sin(theta)
+            # z -> on assume que z varie lineairement entre les deux trous
+            l = np.sqrt( (self.Tx.Y - self.Rx.Y)**2 + (self.Tx.X - self.Rx.X)**2 )
+            dz = self.Tx.Z_surf - self.Rx.Z_surf
+            self.data.Tx_z = self.Rx.Z_surf + dz*self.Tx_z_orig/l
+                        
+            d = np.sqrt(np.sum((self.Tx.fdata[1, :]-self.Tx.fdata[0, :])**2))
+            # cosinus directeurs
+            l = (self.Tx.fdata[1, :] - self.Tx.fdata[0, :])/d
+            self.TxCosDir = np.tile(l, (self.data.ntrace, 1))
+            
+        else:
+            raise RuntimeWarning('Mog type undefined: coordinates not updated')
 
     @staticmethod
     def get_t0_fixed(shot, v):

@@ -457,68 +457,25 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             Tx_no = self.Tx_combo.currentIndex()
             Rx_no = self.Rx_combo.currentIndex()
             mog = self.db.mogs[itemNo]
+            mog.type = self.mog_type.currentIndex()
 
-            if 'true positions' in mog.data.comment:
-
-                Tx = np.concatenate((mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z), axis=1)
-                mog.TxCosDir = np.zeros(np.shape(Tx))
-
-                # Equivalent of unique(Tx, 'rows') of the Matlab version
-                b = np.ascontiguousarray(Tx).view(np.dtype((np.void, Tx.dtype.itemsize * Tx.shape[1])))
-                tmp = np.unique(b).view(Tx.dtype).reshape(-1, Tx.shape[1])
-                tmp = np.sort(tmp, axis=0)
-                tmp = tmp[::-1]
-                v = -np.diff(tmp, axis=0)
-                d = np.sqrt(np.sum(v**2, axis=1))
-                l = v / np.kron(d, np.array([1, 1, 1]))
-
-                # TODO: finir la condition pour 'true positions'
-                # for n in range(np.shape(tmp)[0]):
-                #     ind = Tx[:,1] == tmp[n, 1] and Tx[:,2] == tmp[n, 2] and Tx[:,3] == tmp[n, 3]
-                #     mog.TxCosDir[ind, 1] = l[n,1]
-                #     mog.TxCosDir[ind, 2] = l[n,2]
-                #     mog.TxCosDir[ind, 3] = l[n,3]
-
-            # TODO: Faire une routine dans boreholeUI pour updater les Tx et Rx des MOGS s'ils sont modifiés
-            Tx = self.db.boreholes[Tx_no]
-            Rx = self.db.boreholes[Rx_no]
-            mog.Tx = Tx
-            mog.Rx = Rx
-            mog.data.Tx_x = np.ones(mog.data.ntrace)
-            mog.data.Tx_y = np.ones(mog.data.ntrace)
-            mog.data.Rx_x = np.ones(mog.data.ntrace)
-            mog.data.Rx_y = np.ones(mog.data.ntrace)
-
-            if self.Type_combo.currentText() == 'Crosshole':
-                mog.data.csurvmod = 'SURVEY MODE       = Trans. -MOG'
-
-                # Vertical boreholes
-                if Tx is not None and len(Tx.fdata[:, 0]) == 2 and len(Tx.fdata[:, 1]) == 2:
-                    if abs(Tx.fdata[0, 0] - Tx.fdata[-1, 0]) < 1e-05 and abs(Tx.fdata[0, 1] - Tx.fdata[-1, 1]) < 1e-05:
-                        mog.data.Tx_x = Tx.fdata[0, 0] * np.ones(mog.data.ntrace)
-                        mog.data.Tx_y = Tx.fdata[0, 1] * np.ones(mog.data.ntrace)
-                        mog.data.Tx_z = Tx.Z - mog.data.TxOffset - mog.Tx_z_orig
-                        mog.TxCosDir = np.tile(np.array([0, 0, 1]), (mog.data.ntrace, 1))
-
-                if Rx is not None and len(Rx.fdata[:, 0]) == 2 and len(Rx.fdata[:, 1]) == 2:
-                    if abs(Rx.fdata[0, 0] - Rx.fdata[-1, 0]) < 1e-05 and abs(Rx.fdata[0, 1] - Rx.fdata[-1, 1]) < 1e-05:
-                        mog.data.Rx_x = Rx.fdata[0, 0] * np.ones(mog.data.ntrace)
-                        mog.data.Rx_y = Rx.fdata[0, 1] * np.ones(mog.data.ntrace)
-                        mog.data.Rx_z = Rx.Z - mog.data.RxOffset - mog.Rx_z_orig
-                        mog.RxCosDir = np.tile(np.array([0, 0, 1]), (mog.data.ntrace, 1))
-
-                # TODO: Forages non verticaux
-
-            # TODO: faire la condition pour le mode VRP
-            elif self.Type_combo.currentText() == 'VSP/VRP':
-                mog.data.csurvmod = 'SURVEY MODE       = Trans. -VRP'
-
-            if Tx_no == Rx_no:
-                QtWidgets.QMessageBox.information(self, 'Warning', 'Both Tx and Rx are in the same well',
+            if Tx_no != -1:
+                mog.Tx = self.db.boreholes[Tx_no]
+            else:
+                mog.Tx = None
+            if Rx_no != -1:
+                mog.Rx = self.db.boreholes[Rx_no]
+            else:
+                mog.Rx = None
+            
+            try:
+                mog.update_coords()
+            except Exception as e:
+                QtWidgets.QMessageBox.information(self, 'Warning', str(e),
                                                   buttons=QtWidgets.QMessageBox.Ok)
+                return
 
-            if Tx is not None and Rx is not None and Tx != Rx:
-                self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, Tx.name, Rx.name))
+            self.moglogSignal.emit("{}'s Tx and Rx are now {} and {}".format(mog.name, mog.Tx.name, mog.Rx.name))
 
     def plot_rawdata(self):
         if len(self.db.mogs) > 0:
