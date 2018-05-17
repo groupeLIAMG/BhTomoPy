@@ -22,7 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg #, NavigationToolbar2QT
 import numpy as np
 
 from database import BhTomoDb
@@ -85,15 +85,10 @@ class ManualttUI(QtWidgets.QFrame):
 
     def update_control_center(self):
         n = int(self.Tnum_Edit.text()) - 1
-#        ind = self.openmain.mog_combo.currentIndex()
 
-#        self.mog = self.mogs[ind]
         if self.mog is None:
             return
 
-#         if len(self.mogs) == 0:
-#             return
-#         else:
         if self.main_data_radio.isChecked():
             done = np.round(len(self.mog.tt[self.mog.tt != -1]) / len(self.mog.tt) * 100)
             self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
@@ -209,6 +204,10 @@ class ManualttUI(QtWidgets.QFrame):
             else:
                 self.t0_before_radio.setEnabled(False)
                 self.t0_after_radio.setEnabled(False)
+                
+            # reset t min/max
+            self.t_min_Edit.setText('0')
+            self.t_max_Edit.setText('{0:g}'.format(self.mog.data.timestp[-1]))
             self.update_control_center()
 
     def import_tt_file(self):
@@ -246,7 +245,7 @@ class ManualttUI(QtWidgets.QFrame):
 
         # ------ Creation of the Manager for the Upper figure ------- #
         self.upperFig = UpperFig(self)
-        self.uppertool = NavigationToolbar2QT(self.upperFig, self)
+#        self.uppertool = NavigationToolbar2QT(self.upperFig, self)
         self.uppermanager = QtWidgets.QWidget()
         self.amp_slider = QtWidgets.QScrollBar()
         self.amp_slider.setMaximum(200)
@@ -256,11 +255,12 @@ class ManualttUI(QtWidgets.QFrame):
         self.amp_slider.setPageStep(10)
         self.amp_slider.valueChanged.connect(self.onScrollAmplitudeChange)
         uppermanagergrid = QtWidgets.QGridLayout()
-        uppermanagergrid.addWidget(self.uppertool, 0, 0)
+#        uppermanagergrid.addWidget(self.uppertool, 0, 0)
         uppermanagergrid.addWidget(self.upperFig, 1, 0)
         uppermanagergrid.addWidget(self.amp_slider, 1, 1)
-        uppermanagergrid.setContentsMargins(0, 0, 0, 0)
-        uppermanagergrid.setVerticalSpacing(3)
+        uppermanagergrid.setHorizontalSpacing(0)
+        uppermanagergrid.setContentsMargins(11, 11, 1, 11)
+        uppermanagergrid.setRowMinimumHeight(1, 350)
         self.uppermanager.setLayout(uppermanagergrid)
 
         # ------ Creation of the Manager for the Lower figure ------- #
@@ -268,7 +268,7 @@ class ManualttUI(QtWidgets.QFrame):
         self.lowermanager = QtWidgets.QWidget()
         lowermanagergrid = QtWidgets.QGridLayout()
         lowermanagergrid.addWidget(self.lowerFig, 0, 0)
-        lowermanagergrid.setContentsMargins(0, 0, 0, 0)
+#        lowermanagergrid.setContentsMargins(0, 0, 0, 0)
         self.lowermanager.setLayout(lowermanagergrid)
 
         # ------- Widgets Creation ------- #
@@ -326,7 +326,6 @@ class ManualttUI(QtWidgets.QFrame):
         # --- Actions --- #
         openAction = QtWidgets.QAction('Open main data file', self)
         openAction.setShortcut('Ctrl+O')
-#        openAction.triggered.connect(self.openmain.show)
         openAction.triggered.connect(self.openfile)
 
         saveAction = QtWidgets.QAction('Save', self)
@@ -352,13 +351,13 @@ class ManualttUI(QtWidgets.QFrame):
         # - Edits' Disposition - #
         self.Tnum_Edit.setFixedWidth(100)
         self.Tnum_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.t_min_Edit.setFixedWidth(50)
+        self.t_min_Edit.setFixedWidth(60)
         self.t_min_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.t_max_Edit.setFixedWidth(50)
+        self.t_max_Edit.setFixedWidth(60)
         self.t_max_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.A_min_Edit.setFixedWidth(50)
+        self.A_min_Edit.setFixedWidth(60)
         self.A_min_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.A_max_Edit.setFixedWidth(50)
+        self.A_max_Edit.setFixedWidth(60)
         self.A_max_Edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         # - Edits' Actions - #
@@ -391,11 +390,9 @@ class ManualttUI(QtWidgets.QFrame):
 
         # - Radio Buttons' Disposition - #
         self.main_data_radio.setChecked(True)
-        # self.t0_before_radio.setChecked(True)
         self.tt_picking_radio.setChecked(True)
 
         # - Radio Buttons' Actions - #
-
         self.main_data_radio.toggled.connect(self.reinit_tnum)
         self.t0_before_radio.toggled.connect(self.reinit_tnum)
         self.t0_after_radio.toggled.connect(self.reinit_tnum)
@@ -403,6 +400,7 @@ class ManualttUI(QtWidgets.QFrame):
         self.main_data_radio.toggled.connect(self.update_control_center)
         self.t0_before_radio.toggled.connect(self.update_control_center)
         self.t0_after_radio.toggled.connect(self.update_control_center)
+        
         # --- Text Edits --- #
         info_Tedit = QtWidgets.QTextEdit()
         info_Tedit.setReadOnly(True)
@@ -447,49 +445,25 @@ class ManualttUI(QtWidgets.QFrame):
         Sub_picked_widget.setLayout(Sub_picked_grid)
         Sub_picked_widget.setStyleSheet(" Background: white ")
 
-        # --- Trace Subwidget --- #
-        Sub_Trace_Widget = QtWidgets.QWidget()
-        Sub_Trace_Grid = QtWidgets.QGridLayout()
-        Sub_Trace_Grid.addWidget(trc_Label, 0, 0)
-        Sub_Trace_Grid.addWidget(self.Tnum_Edit, 0, 1)
-        Sub_Trace_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_Trace_Widget.setLayout(Sub_Trace_Grid)
-
-        # --- Prev Next SubWidget --- #
-        sub_prev_next_widget = QtWidgets.QWidget()
-        sub_prev_next_grid = QtWidgets.QGridLayout()
-        sub_prev_next_grid.addWidget(btn_Prev, 0, 0)
-        sub_prev_next_grid.addWidget(btn_Next, 0, 1)
-        sub_prev_next_grid.setContentsMargins(0, 0, 0, 0)
-        sub_prev_next_widget.setLayout(sub_prev_next_grid)
-
         # --- Left Part SubWidget --- #
         Sub_left_Part_Widget = QtWidgets.QWidget()
         Sub_left_Part_Grid = QtWidgets.QGridLayout()
         Sub_left_Part_Grid.addWidget(Sub_Info_widget, 0, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(Sub_picked_widget, 1, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(Sub_Trace_Widget, 2, 0)
-        Sub_left_Part_Grid.addWidget(sub_prev_next_widget, 3, 0)
-        Sub_left_Part_Grid.addWidget(btn_Next_Pick, 5, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(btn_Reini, 6, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 7, 0)
-        Sub_left_Part_Grid.addWidget(self.veloc_checkbox, 8, 0)
-        Sub_left_Part_Grid.addWidget(self.lim_checkbox, 9, 0)
-        Sub_left_Part_Grid.setContentsMargins(0, 0, 0, 0)
+        Sub_left_Part_Grid.addWidget(trc_Label, 2, 0)
+        Sub_left_Part_Grid.addWidget(self.Tnum_Edit, 2, 1)
+        Sub_left_Part_Grid.addWidget(btn_Prev, 3, 0)
+        Sub_left_Part_Grid.addWidget(btn_Next, 3, 1)
+        Sub_left_Part_Grid.addWidget(btn_Next_Pick, 4, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(btn_Reini, 5, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 6, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(self.veloc_checkbox, 7, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(self.lim_checkbox, 8, 0, 1, 2)
+        Sub_left_Part_Grid.setColumnMinimumWidth(0, 100)
+        Sub_left_Part_Grid.setColumnMinimumWidth(1, 100)
+        Sub_left_Part_Grid.setColumnStretch(0, 1)
+        Sub_left_Part_Grid.setColumnStretch(1, 1)
         Sub_left_Part_Widget.setLayout(Sub_left_Part_Grid)
-
-        # --- upper right subWidget --- #
-        Sub_upper_right_Widget = QtWidgets.QWidget()
-        Sub_upper_right_Grid = QtWidgets.QGridLayout()
-        Sub_upper_right_Grid.addWidget(self.pick_checkbox, 0, 0)
-        Sub_upper_right_Grid.addWidget(self.main_data_radio, 1, 0)
-        Sub_upper_right_Grid.addWidget(self.t0_before_radio, 2, 0)
-        Sub_upper_right_Grid.addWidget(self.t0_after_radio, 3, 0)
-        Sub_upper_right_Grid.addWidget(self.pick_combo, 4, 0, 1, 2)
-        Sub_upper_right_Grid.addWidget(btn_Upper, 6, 0, 1, 2)
-        Sub_upper_right_Grid.addWidget(btn_Conti, 7, 0, 1, 2)
-        Sub_upper_right_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_upper_right_Widget.setLayout(Sub_upper_right_Grid)
 
         # --- Contiguous Trace Groupbox --- #
         Conti_Groupbox = QtWidgets.QGroupBox("Shot Gather")
@@ -497,61 +471,48 @@ class ManualttUI(QtWidgets.QFrame):
         Conti_Grid.addWidget(self.tt_picking_radio, 0, 0)
         Conti_Grid.addWidget(self.trace_selec_radio, 1, 0)
         Conti_Grid.setColumnStretch(1, 100)
-        Conti_Grid.setContentsMargins(0, 0, 0, 0)
         Conti_Groupbox.setLayout(Conti_Grid)
 
-        # --- Time and Amplitude Labels SubWidget --- #
-        Sub_T_and_A_Labels_Widget = QtWidgets.QWidget()
-        Sub_T_and_A_Labels_Grid = QtWidgets.QGridLayout()
-        Sub_T_and_A_Labels_Grid.addWidget(t_min_label, 0, 0)
-        Sub_T_and_A_Labels_Grid.addWidget(t_max_label, 0, 1)
-        Sub_T_and_A_Labels_Grid.addWidget(A_min_label, 0, 2)
-        Sub_T_and_A_Labels_Grid.addWidget(A_max_label, 0, 3)
-        Sub_T_and_A_Labels_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_T_and_A_Labels_Widget.setLayout(Sub_T_and_A_Labels_Grid)
-
-        # --- Time and Amplitude Edits SubWidget --- #
-        Sub_T_and_A_Edits_Widget = QtWidgets.QWidget()
-        Sub_T_and_A_Edits_Grid = QtWidgets.QGridLayout()
-        Sub_T_and_A_Edits_Grid.addWidget(self.t_min_Edit, 0, 0)
-        Sub_T_and_A_Edits_Grid.addWidget(self.t_max_Edit, 0, 1)
-        Sub_T_and_A_Edits_Grid.addWidget(self.A_min_Edit, 0, 2)
-        Sub_T_and_A_Edits_Grid.addWidget(self.A_max_Edit, 0, 3)
-        Sub_T_and_A_Edits_Grid.addWidget(btn_Stats, 1, 0, 1, 4)
-        Sub_T_and_A_Edits_Grid.addWidget(self.save_checkbox, 2, 0, 1, 4)
-        Sub_T_and_A_Edits_Grid.addWidget(self.jump_checkbox, 3, 0, 1, 4)
-        Sub_T_and_A_Edits_Grid.setHorizontalSpacing(0)
-        Sub_T_and_A_Edits_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_T_and_A_Edits_Widget.setLayout(Sub_T_and_A_Edits_Grid)
-
-        # --- Time and Ampitude Labels and Edits SubWidget --- #
-        Sub_T_and_A_Widget = QtWidgets.QWidget()
-        Sub_T_and_A_Grid   = QtWidgets.QGridLayout()
-        Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Labels_Widget, 0, 0)
-        Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Edits_Widget, 1, 0)
-        Sub_T_and_A_Grid.setRowStretch(3, 100)
-        Sub_T_and_A_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_T_and_A_Widget.setLayout(Sub_T_and_A_Grid)
+        # --- upper right subWidget --- #
+        Sub_right_Widget = QtWidgets.QWidget()
+        Sub_right_Grid = QtWidgets.QGridLayout()
+        Sub_right_Grid.addWidget(self.pick_checkbox, 0, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.main_data_radio, 1, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.t0_before_radio, 2, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.t0_after_radio, 3, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.pick_combo, 4, 0, 1, 4)
+        Sub_right_Grid.addWidget(btn_Upper, 5, 0, 1, 4)
+        Sub_right_Grid.addWidget(btn_Conti, 6, 0, 1, 4)
+        Sub_right_Grid.addWidget(Conti_Groupbox, 7, 0, 1, 4)
+        Sub_right_Grid.addWidget(t_min_label, 8, 0)
+        Sub_right_Grid.addWidget(t_max_label, 8, 1)
+        Sub_right_Grid.addWidget(A_min_label, 8, 2)
+        Sub_right_Grid.addWidget(A_max_label, 8, 3)
+        Sub_right_Grid.addWidget(self.t_min_Edit, 9, 0)
+        Sub_right_Grid.addWidget(self.t_max_Edit, 9, 1)
+        Sub_right_Grid.addWidget(self.A_min_Edit, 9, 2)
+        Sub_right_Grid.addWidget(self.A_max_Edit, 9, 3)
+        Sub_right_Grid.addWidget(btn_Stats, 10, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.save_checkbox, 11, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.jump_checkbox, 12, 0, 1, 4)
+        Sub_right_Widget.setLayout(Sub_right_Grid)
 
         # --- Control Center SubWidget --- #
         Control_Center_GroupBox = QtWidgets.QGroupBox("Control Center")
         Control_Center_Grid = QtWidgets.QGridLayout()
         Control_Center_Grid.addWidget(Sub_left_Part_Widget, 0, 0, 4, 1)
-        Control_Center_Grid.addWidget(Sub_upper_right_Widget, 0, 1)
-        Control_Center_Grid.addWidget(Conti_Groupbox, 1, 1)
-        Control_Center_Grid.addWidget(Sub_T_and_A_Widget, 2, 1)
+        Control_Center_Grid.addWidget(Sub_right_Widget, 0, 1)
         Control_Center_GroupBox.setLayout(Control_Center_Grid)
 
         # --- Master Grid Disposition --- #
         master_grid = QtWidgets.QGridLayout()
-        master_grid.addWidget(self.tool, 0, 0, 1, 3)
-        master_grid.addWidget(self.uppermanager, 1, 0, 1, 3)
-        master_grid.addWidget(self.lowermanager, 2, 0, 1, 2)
-        master_grid.addWidget(Control_Center_GroupBox, 2, 2)
+        master_grid.addWidget(self.tool, 0, 0, 1, 2)
+        master_grid.addWidget(self.uppermanager, 1, 0, 1, 2)
+        master_grid.addWidget(self.lowermanager, 2, 0)
+        master_grid.addWidget(Control_Center_GroupBox, 2, 1)
         master_grid.setRowStretch(1, 100)
-        master_grid.setColumnStretch(1, 100)
-        master_grid.setContentsMargins(10, 10, 10, 10)
-        master_grid.setVerticalSpacing(0)
+        master_grid.setColumnStretch(0, 100)
+        master_grid.setColumnMinimumWidth(0, 750)
         self.setLayout(master_grid)
 
     def upper_trace_isClicked(self):
@@ -587,12 +548,13 @@ class UpperFig(FigureCanvasQTAgg):
         self.isTracingOn = False
 
     def init_figure(self):
-        self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
+        self.ax = self.figure.add_axes([0.08, 0.13, 0.9, 0.85])
         self.ax2 = self.ax.twiny()
 
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
         self.ax.set_ylabel('Amplitude')
+        self.ax.set_xlabel('Time')
 
         self.ax2.yaxis.set_ticks_position('none')
         self.ax2.xaxis.set_ticks_position('none')
@@ -867,9 +829,11 @@ class LowerFig(FigureCanvasQTAgg):
         self.isTracingOn = False
 
     def init_figure(self):
-        self.ax = self.figure.add_axes([0.07, 0.05, 0.9, 0.85])
+        self.ax = self.figure.add_axes([0.1, 0.12, 0.88, 0.86])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
+        self.ax.set_ylabel('Time')
+        self.ax.set_xlabel('Trace no')
 
         self.shot_gather        = self.ax.imshow(np.zeros((2, 2)),
                                                  interpolation='none',
@@ -1255,7 +1219,7 @@ if __name__ == '__main__':
     # manual_ui.update_a_and_t_edits()
     # manual_ui.upperFig.plot_amplitude()
     # manual_ui.lowerFig.plot_trace_data()
-    manual_ui.showMaximized()
+    manual_ui.show('/Users/giroux/JacquesCloud/Projets/Pau/DATA_SUSSARGUES/sussargues.h5')
     # manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
     sys.exit(app.exec_())
