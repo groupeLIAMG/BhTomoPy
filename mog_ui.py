@@ -547,7 +547,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 else:
                     self.statsttFig.plot_stats(mog_)
                     self.moglogSignal.emit("MOG {}'s Traveltime statistics have been plotted".format(mog_.name))
-                    self.statsttmanager.showMaximized()
+                    self.statsttmanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
@@ -1945,7 +1945,7 @@ class StatsttFig(FigureCanvasQTAgg):
 
         dz = mog.data.Rx_z[ind] - mog.data.Tx_z[ind]
 
-        theta = 180 / np.pi * np.arcsin(dz / hyp)
+        theta = 180.0 / np.pi * np.arcsin(dz / hyp)
 
         vapp = hyp / tt
         # n = np.arange(len(ind))
