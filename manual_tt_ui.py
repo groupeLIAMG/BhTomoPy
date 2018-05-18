@@ -99,8 +99,8 @@ class ManualttUI(QtWidgets.QFrame):
             self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
             self.ntrace_label.setText(str(self.mog.data.ntrace))
             self.percent_done_label.setText(str(done))
-            self.time.setText(str(np.round(self.mog.tt[n], 4)))
-            self.incertitude_value_label.setText(str(np.round(self.mog.et[n], 4)))
+            pt = 'Picked time: {0:g} ± {1:g}'.format(self.mog.tt[n], self.mog.et[n])
+            self.picked_time.setText(pt)
 
         if self.t0_before_radio.isChecked():
             airshot_before = self.mog.av
@@ -113,8 +113,8 @@ class ManualttUI(QtWidgets.QFrame):
             self.zTx_label.setText(str(airshot_before.data.Tx_z[n]))
             self.ntrace_label.setText(str(airshot_before.data.ntrace))
             self.percent_done_label.setText(str(done))
-            self.time.setText(str(np.round(airshot_before.tt[n], 4)))
-            self.incertitude_value_label.setText(str(np.round(airshot_before.et[n], 4)))
+            pt = 'Picked time: {0:g} ± {1:g}'.format(airshot_before.tt[n], airshot_before.et[n])
+            self.picked_time.setText(pt)
 
         if self.t0_after_radio.isChecked():
             airshot_after = self.mog.ap
@@ -127,8 +127,8 @@ class ManualttUI(QtWidgets.QFrame):
             self.zTx_label.setText(str(airshot_after.data.Tx_z[n]))
             self.ntrace_label.setText(str(airshot_after.data.ntrace))
             self.percent_done_label.setText(str(done))
-            self.time.setText(str(np.round(airshot_after.tt[n], 4)))
-            self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
+            pt = 'Picked time: {0:g} ± {1:g}'.format(airshot_after.tt[n], airshot_after.et[n])
+            self.picked_time.setText(pt)
 
 #         self.check_save()  TODO ?
         self.update_a_and_t_edits()
@@ -312,16 +312,10 @@ class ManualttUI(QtWidgets.QFrame):
         self.ntrace_label = MyQLabel("", ha='right')
         self.percent_done_label = MyQLabel('', ha='right')
         trace_label = MyQLabel("traces", ha='left')
-        picked_label = MyQLabel("Picked Time:", ha='right')
-        self.time = QtWidgets.QLabel("")
-        incertitude_label = QtWidgets.QLabel("±")
-        self.incertitude_value_label = QtWidgets.QLabel("")
+        self.picked_time = QtWidgets.QLabel("Picked Time:")
 
         # --- Setting Labels color --- #
-        picked_label.setPalette(blue_palette)
-        self.time.setPalette(blue_palette)
-        incertitude_label.setPalette(blue_palette)
-        self.incertitude_value_label.setPalette(blue_palette)
+        self.picked_time.setPalette(blue_palette)
 
         # --- Actions --- #
         openAction = QtWidgets.QAction('Open main data file', self)
@@ -438,10 +432,7 @@ class ManualttUI(QtWidgets.QFrame):
         # --- Picked Time SubWidget --- #
         Sub_picked_widget = QtWidgets.QWidget()
         Sub_picked_grid = QtWidgets.QGridLayout()
-        Sub_picked_grid.addWidget(picked_label, 0, 0)
-        Sub_picked_grid.addWidget(self.time, 0, 1)
-        Sub_picked_grid.addWidget(incertitude_label, 0, 2)
-        Sub_picked_grid.addWidget(self.incertitude_value_label, 0, 3)
+        Sub_picked_grid.addWidget(self.picked_time, 0, 0)
         Sub_picked_widget.setLayout(Sub_picked_grid)
         Sub_picked_widget.setStyleSheet(" Background: white ")
 
