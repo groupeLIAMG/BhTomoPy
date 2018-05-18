@@ -121,7 +121,10 @@ class DatabaseUI(QtWidgets.QWidget):
     def show(self, dbname):
         super(DatabaseUI, self).show()
         if dbname != '':
-            self.db.load(dbname)
+            try:
+                self.db.load(dbname)
+            except Exception as e:
+                    QtWidgets.QMessageBox.warning(self, 'Error', str(e))
 
         # Gets initial geometry of the widget:
         qr = self.frameGeometry()
