@@ -282,14 +282,13 @@ class Mog():  # Multi-Offset Gather
         self.pruneParams.zmax         = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.modified                 = True
 
-    def correction_t0(self, ndata, air_before, air_after):
+    def correction_t0(self, ndata, air_before, air_after, show):
         """
         :param ndata:
         :param air_before: instance of class Airshots
         :param air_after: instance of class Airshots
         """
 
-#        show = False  # TODO
         fac_dt_av = 1
         fac_dt_ap = 1
         if not self.useAirShots:
@@ -307,29 +306,29 @@ class Mog():  # Multi-Offset Gather
             if 'fixed_antenna' in air_before.method:
                 t0av = self.get_t0_fixed(air_before, v_air)
             if 'walkaway' in air_before.method:
-                pass  # TODO: get_t0_wa
+                t0av, fac_dt_av = self.get_t0_walkaway(air_before, v_air, show)
 
         if air_after.name != '':
             if 'fixed_antenna' in air_before.method:
                 t0ap = self.get_t0_fixed(air_after, v_air)
 
             if 'walkaway' in air_before.method:
-                pass  # TODO: get_t0_wa
+                t0ap, fac_dt_ap = self.get_t0_walkaway(air_after, v_air, show)
 
         if np.isnan(t0av) or np.isnan(t0ap):
             t0 = np.zeros((1, ndata))
             raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
 
         if np.all(t0av == 0) and np.all(t0ap == 0):
-            t0 = np.zeros((1, ndata))
+            t0 = np.zeros((ndata, ))
         elif t0av == 0:
-            t0 = t0ap + np.zeros((1, ndata))
+            t0 = t0ap + np.zeros((ndata, ))
         elif t0ap == 0:
-            t0 = t0av + np.zeros((1, ndata))
+            t0 = t0av + np.zeros((ndata, ))
         else:
             dt0 = t0ap - t0av
             ddt0 = dt0 / (ndata - 1)
-            t0 = t0av + ddt0 * np.arange(ndata)  # TODO: pas sur de cette etape là
+            t0 = t0av + ddt0 * np.arange(ndata)
 
         return t0, fac_dt_av, fac_dt_ap
 
@@ -340,7 +339,7 @@ class Mog():  # Multi-Offset Gather
             t0 = np.zeros(np.shape(tt))
             return tt, t0
 
-        t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), self.av, self.ap)
+        t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), self.av, self.ap, True)
 
         if self.av is not None:
             self.av.fac_dt = fac_dt_av
@@ -462,6 +461,66 @@ class Mog():  # Multi-Offset Gather
             times = sum(times[ind] * std_times[ind]) / sum(std_times[ind])
         t0 = times - float(shot.d_TxRx[0]) / v
         return t0
+    
+    @staticmethod
+    def get_t0_walkaway(shot, v, show):
+        if show:
+            import matplotlib.pyplot as plt
+        ind = shot.tt != -1.0
+        times = shot.tt[np.logical_and(shot.tt_done, ind)]
+        std_times = shot.et[np.logical_and(shot.tt_done, ind)]
+        d = shot.d_TxRx[np.logical_and(shot.tt_done, ind)]
+        slown = 1.0/v
+        if np.all(std_times == -1.0):
+            b = np.linalg.lstsq(np.vstack((d, np.ones((d.size, )))).T, times, rcond=None)[0]
+            t0 = b[1]
+            fac = slown/b[0]
+            if show:
+                plt.figure('Air shot '+shot.name)
+                plt.subplot(121)
+                plt.plot(d, times, 'o')
+                dd = np.hstack(([0.0], d))
+                plt.plot(dd, dd*b[0] + b[1])
+                plt.xlabel('Distance')
+                plt.ylabel('Time')
+                plt.title('Correction factor: {0:g}'.format(fac))
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                
+                plt.subplot(122)
+                plt.plot(d, times*fac, 'o')
+                plt.plot(dd, slown*dd+b[1]*fac,'g')
+                plt.xlabel('Distance')
+                plt.title('After $\Delta t$ correction')
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                plt.show(block=False)
+        else:
+            W = np.diag(1/std_times**2)
+            x = np.vstack((d, np.ones((d.size, )))).T
+            b = np.linalg.lstsq(x.T.dot(W.dot(x)), x.T.dot(W.dot(times)), rcond=None)[0]
+            t0 = b[1]
+            fac = slown/b[0]
+            if show:
+                plt.figure('Air shot '+shot.name)
+                plt.subplot(121)
+                plt.plot(d, times, 'o')
+                plt.errorbar(d, times, yerr=std_times)
+                d = np.hstack(([0.0], d))
+                plt.plot(dd, dd*b[0] + b[1])
+                plt.xlabel('Distance')
+                plt.ylabel('Time')
+                plt.title('Correction factor: {0:g}'.format(fac))
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                
+                plt.subplot(122)
+                plt.plot(d, times*fac, 'o')
+                plt.errorbar(d, times*fac, yerr=std_times)
+                plt.plot(dd, slown*dd+b[1]*fac,'g')
+                plt.xlabel('Distance')
+                plt.title('After $\Delta t$ correction')
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                plt.show(block=False)
+        
+        return t0, fac
 
     @staticmethod
     def merge_mogs(mog_list, name):
