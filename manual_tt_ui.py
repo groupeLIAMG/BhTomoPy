@@ -40,9 +40,9 @@ class ManualttUI(QtWidgets.QFrame):
         self.init_UI()
 
         # Signals of communication between Upper and Lower Figures
-        self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
+        self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_traces)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
-        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
+        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_trace)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
 
     def show(self, filename):
@@ -132,8 +132,8 @@ class ManualttUI(QtWidgets.QFrame):
 
 #         self.check_save()  TODO ?
         self.update_a_and_t_edits()
-        self.upperFig.plot_amplitude()
-        self.lowerFig.plot_trace_data()
+        self.upperFig.plot_trace()
+        self.lowerFig.plot_traces()
 
     def update_a_and_t_edits(self):
         n = int(self.Tnum_Edit.text())
@@ -355,10 +355,10 @@ class ManualttUI(QtWidgets.QFrame):
 
         # - Edits' Actions - #
         self.Tnum_Edit.editingFinished.connect(self.update_control_center)
-        self.t_min_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
-        self.t_max_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
-        self.A_min_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
-        self.A_max_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
+        self.t_min_Edit.editingFinished.connect(self.upperFig.plot_trace)
+        self.t_max_Edit.editingFinished.connect(self.upperFig.plot_trace)
+        self.A_min_Edit.editingFinished.connect(self.upperFig.plot_trace)
+        self.A_max_Edit.editingFinished.connect(self.upperFig.plot_trace)
 
         # --- Checkboxes --- #
         self.Wave_checkbox = QtWidgets.QCheckBox("Wavelet tranf. denoising")
@@ -371,7 +371,7 @@ class ManualttUI(QtWidgets.QFrame):
 
         # - CheckBoxes' Actions - #
         self.lim_checkbox.stateChanged.connect(self.update_a_and_t_edits)
-        self.lim_checkbox.stateChanged.connect(self.upperFig.plot_amplitude)
+        self.lim_checkbox.stateChanged.connect(self.upperFig.plot_trace)
         self.veloc_checkbox.stateChanged.connect(self.update_control_center)
 
         # --- Radio Buttons --- #
@@ -574,7 +574,7 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax2.get_xaxis().set_visible(False)
         self.ax2.get_yaxis().set_visible(False)
 
-    def plot_amplitude(self):
+    def plot_trace(self):
 
         self.picket1.set_visible(True)
         self.picket2.set_visible(True)
@@ -887,7 +887,7 @@ class LowerFig(FigureCanvasQTAgg):
         self.picked_et_circle2.set_visible(False)
         self.vapp_plot.set_visible(False)
 
-    def plot_trace_data(self):
+    def plot_traces(self):
 
         self.shot_gather.set_visible(True)
         self.picked_square.set_visible(True)
@@ -1207,8 +1207,8 @@ if __name__ == '__main__':
     manual_ui = ManualttUI()
     # manual_ui.update_control_center()
     # manual_ui.update_a_and_t_edits()
-    # manual_ui.upperFig.plot_amplitude()
-    # manual_ui.lowerFig.plot_trace_data()
+    # manual_ui.upperFig.plot_trace()
+    # manual_ui.lowerFig.plot_traces()
     manual_ui.show('/Users/giroux/JacquesCloud/Projets/Pau/DATA_SUSSARGUES/sussargues.h5')
     # manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 

@@ -44,7 +44,7 @@ class ManualAmpUI(QtWidgets.QFrame):
 
         # self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
-        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
+        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_trace)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
 
     def next_trace(self):
@@ -72,7 +72,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.ntrace_label.setText(str(self.mog.data.ntrace))
 
         self.update_settings_edits()
-        self.upperFig.plot_amplitude()
+        self.upperFig.plot_trace()
         self.lowerFig.plot_spectra()
 
     def update_settings_edits(self):
@@ -486,7 +486,7 @@ class UpperFig(FigureCanvasQTAgg):
         self.pick_amp_tmin.set_visible(False)
         self.trace.set_visible(False)
 
-    def plot_amplitude(self):
+    def plot_trace(self):
         self.pick_amp_tmax.set_visible(True)
         self.pick_amp_tmin.set_visible(True)
         self.trace.set_visible(True)
