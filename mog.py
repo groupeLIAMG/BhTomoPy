@@ -164,7 +164,7 @@ class MogData(object):
                 except Exception as e:
                     raise IOError("Cannot open RD3 file '" + str(e)[:42] + "...' [mog 3]")
 
-        self.rdata = np.fromfile(file, dtype='int16', count=self.nptsptrc * self.ntrace)
+        self.rdata = np.asfarray(np.fromfile(file, dtype='int16', count=self.nptsptrc * self.ntrace))
         self.rdata.resize((self.ntrace, self.nptsptrc))
         self.rdata = self.rdata.T
 
