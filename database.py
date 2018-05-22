@@ -294,11 +294,13 @@ class BhTomoDb():
                     if group[k].shape != obj.__dict__[k].shape:
                         # we have to delete previous dataset because new one is not same size
                         del(group[k])
-                        group[k] = obj.__dict__[k]
+                        #group[k] = obj.__dict__[k]
+                        group.create_dataset(k, data=obj.__dict__[k], compression='gzip')
                     else:
                         group[k][...] = obj.__dict__[k]
                 except:
-                    group[k] = obj.__dict__[k]
+                    #group[k] = obj.__dict__[k]
+                    group.create_dataset(k, data=obj.__dict__[k], compression='gzip')
             elif type(obj.__dict__[k]) is list:
                 g = group.require_group('_list_'+k)
                 self._save_list(obj.__dict__[k], g)
