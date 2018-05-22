@@ -321,6 +321,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     Semi_ui = SemiAutottUI()
-    Semi_ui.showMaximized()
+    Semi_ui.show()
 
     sys.exit(app.exec_())

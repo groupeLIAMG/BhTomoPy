@@ -522,7 +522,7 @@ class Grid2DUI(QtWidgets.QWidget):
 
     def plot_adjustment(self):
         self.bestfitplaneFig.plot_stats()
-        self.bestfitplanemanager.showMaximized()
+        self.bestfitplanemanager.show()
 
     @staticmethod
     def build_grid(data):

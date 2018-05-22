@@ -312,7 +312,7 @@ class InversionUI(QtWidgets.QFrame):
             return
 
         self.residualsFig.plot_residuals()
-        self.residuals_manager.showMaximized()
+        self.residuals_manager.show()
 
     def plot_tomo(self):
         if self.tomo is None:
@@ -1477,8 +1477,8 @@ if __name__ == '__main__':
 #    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
 #    inv_ui.openmain.load_file('test_constraints_backup.p')
 #    inv_ui.openmain.ok()
-    inv_ui.showMaximized()
+    inv_ui.show()
     # residuals = ResidualsFig(inv_ui)
-    # residuals.showMaximized()
+    # residuals.show()
 
     sys.exit(app.exec_())

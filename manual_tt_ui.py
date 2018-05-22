@@ -178,12 +178,11 @@ class ManualttUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText('1')
 
     def plot_stats(self):
-
         # ind = self.openmain.mog_combo.currentIndex()
         # mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(self.mog)
-        self.statsFig1.showMaximized()
+        self.statsFig1.show()
 
     def savefile(self):
         try:

@@ -484,7 +484,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 mog_ = self.db.mogs[itemNo]
                 self.rawdataFig.plot_raw_data(mog_.data)
                 self.moglogSignal.emit(" MOG {}'s Raw Data has been plotted ". format(mog_.name))
-                self.rawdatamanager.showMaximized()
+                self.rawdatamanager.show()
 
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
@@ -503,7 +503,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 
                 self.spectraFig.plot_spectra(mog, n, Fmax, filter_state, scale, estimation_method)
                 # self.moglogSignal.emit(" MOG {}'s Spectra has been plotted ". format(mog.name))
-                self.spectramanager.showMaximized()
+                self.spectramanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
@@ -515,7 +515,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 self.zopFig.plot_zop()
                 # mog_ = self.db.mogs[itemNo]
                 # self.moglogSignal.emit(" MOG {}'s Zero-Offset Profile has been plotted ".format(mog_.name))
-                self.zopmanager.showMaximized()
+                self.zopmanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)
@@ -559,7 +559,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                 mog_ = self.db.mogs[itemNo]
                 self.statsampFig.plot_stats(mog_)
                 self.moglogSignal.emit("MOG {}'s Amplitude statistics have been plotted".format(mog_.name))
-                self.statsampmanager.showMaximized()
+                self.statsampmanager.show()
         else:
             QtWidgets.QMessageBox.warning(self, 'Warning', "No MOGs in Database",
                                           buttons=QtWidgets.QMessageBox.Ok)

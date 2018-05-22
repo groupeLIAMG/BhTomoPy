@@ -102,7 +102,7 @@ class ManualAmpUI(QtWidgets.QFrame):
     def plot_stats(self):
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(self.mog)
-        self.statsFig1.showMaximized()
+        self.statsFig1.show()
 
     def savefile(self):
         try:
@@ -733,7 +733,7 @@ if __name__ == '__main__':
     manual_ui = ManualAmpUI()
 #    manual_ui.update_control_center()
 #    manual_ui.update_settings_edits()
-    manual_ui.showMaximized()
+    manual_ui.show()
     # manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
     sys.exit(app.exec_())
