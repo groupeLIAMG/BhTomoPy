@@ -409,7 +409,7 @@ class Mog():  # Multi-Offset Gather
                 self.data.Tx_x = self.Tx.fdata[0, 0] * np.ones(self.data.ntrace)
                 self.data.Tx_y = self.Tx.fdata[0, 1] * np.ones(self.data.ntrace)
                 self.data.Tx_z = self.Tx.Z - self.data.TxOffset - self.Tx_z_orig
-                self.TxCosDir = np.tile(np.array([0, 0, 1]), (self.data.ntrace, 1))
+                self.TxCosDir = np.tile(np.array([0.0, 0.0, 1.0]), (self.data.ntrace, 1))
             else:
                 self.data.Tx_x, self.data.Tx_y, self.data.Tx_z = Borehole.project(self.Tx.fdata, self.Tx_z_orig+self.data.TxOffset)
 
@@ -418,7 +418,7 @@ class Mog():  # Multi-Offset Gather
                 self.data.Rx_x = self.Rx.fdata[0, 0] * np.ones(self.data.ntrace)
                 self.data.Rx_y = self.Rx.fdata[0, 1] * np.ones(self.data.ntrace)
                 self.data.Rx_z = self.Rx.Z - self.data.RxOffset - self.Rx_z_orig
-                self.RxCosDir = np.tile(np.array([0, 0, 1]), (self.data.ntrace, 1))
+                self.RxCosDir = np.tile(np.array([0.0, 0.0, 1.0]), (self.data.ntrace, 1))
             else:
                 self.data.Rx_x, self.data.Rx_y, self.data.Rx_z = Borehole.project(self.Rx.fdata, self.Rx_z_orig+self.data.RxOffset)
 
@@ -429,7 +429,7 @@ class Mog():  # Multi-Offset Gather
                 self.data.Rx_x = self.Rx.fdata[0, 0] * np.ones(self.data.ntrace)
                 self.data.Rx_y = self.Rx.fdata[0, 1] * np.ones(self.data.ntrace)
                 self.data.Rx_z = self.Rx.Z - self.data.RxOffset - self.Rx_z_orig
-                self.RxCosDir = np.tile(np.array([0, 0, 1]), (self.data.ntrace, 1))
+                self.RxCosDir = np.tile(np.array([0.0, 0.0, 1.0]), (self.data.ntrace, 1))
             else:
                 self.data.Rx_x, self.data.Rx_y, self.data.Rx_z = Borehole.project(self.Rx.fdata, self.Rx_z_orig+self.data.RxOffset)
 
