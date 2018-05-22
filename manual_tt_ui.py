@@ -56,24 +56,22 @@ class ManualttUI(QtWidgets.QFrame):
         super(ManualttUI, self).showMaximized()
 
     def next_trace(self):
-        n = int(self.Tnum_Edit.text())
-        n += 1
-        if self.main_data_radio.isChecked():
-            self.mog.tt_done[n - 2] = 1
-        elif self.t0_before_radio.isChecked():
-            self.mog.av.tt_done[n - 2] = 1
-        elif self.t0_after_radio.isChecked():
-            self.mog.ap.tt_done[n - 2] = 1
+        n = int(self.Tnum_Edit.text()) + 1
+#         if self.main_data_radio.isChecked():
+#             self.mog.tt_done[n - 2] = 1
+#         elif self.t0_before_radio.isChecked():
+#             self.mog.av.tt_done[n - 2] = 1
+#         elif self.t0_after_radio.isChecked():
+#             self.mog.ap.tt_done[n - 2] = 1
 
         self.Tnum_Edit.setText(str(n))
         self.update_control_center()
 
     def prev_trace(self):
-        n = int(self.Tnum_Edit.text())
-        n -= 1
+        n = int(self.Tnum_Edit.text()) - 1
         self.Tnum_Edit.setText(str(n))
         if self.mog is not None:
-            self.upperFig.plot_amplitude()    
+            self.upperFig.plot_trace()    
 
     def onScrollAmplitudeChange(self):
         val = 10**(-int(self.amp_slider.value())/100)
@@ -84,10 +82,11 @@ class ManualttUI(QtWidgets.QFrame):
         self.update_control_center()
 
     def update_control_center(self):
-        n = int(self.Tnum_Edit.text()) - 1
 
         if self.mog is None:
             return
+
+        n = int(self.Tnum_Edit.text()) - 1
 
         if self.main_data_radio.isChecked():
             done = np.round(len(self.mog.tt[self.mog.tt != -1]) / len(self.mog.tt) * 100)
@@ -531,10 +530,9 @@ class UpperFig(FigureCanvasQTAgg):
         fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(UpperFig, self).__init__(fig)
         self.init_figure()
+        self.mpl_connect('button_press_event', self.onclick)
         self.trc_number = 0
         self.tt = tt
-        self.mpl_connect('button_press_event', self.onclick)
-        # self.mpl_connect('key_press_event', self.press)
         self.isTracingOn = False
 
     def init_figure(self):
@@ -549,24 +547,10 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax2.yaxis.set_ticks_position('none')
         self.ax2.xaxis.set_ticks_position('none')
 
-        self.trace, = self.ax.plot([],  # TODO: comma?
-                                   [],
-                                   color='b')
-
-        self.picktt  = self.ax2.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='g')
-
-        self.picket1 = self.ax2.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='r')
-
-        self.picket2 = self.ax2.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='r')
+        self.trace, = self.ax.plot([], [], color='b')
+        self.picktt  = self.ax2.axvline(-100, ymin=0, ymax=1, color='g')
+        self.picket1 = self.ax2.axvline(-100, ymin=0, ymax=1, color='r')
+        self.picket2 = self.ax2.axvline(-100, ymin=0, ymax=1, color='r')
 
         self.picket1.set_visible(False)
         self.picket2.set_visible(False)
@@ -595,12 +579,7 @@ class UpperFig(FigureCanvasQTAgg):
             if self.tt.mog.tt[self.trc_number] != -1:
                 self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.mog.et[self.trc_number] != -1.0:
-                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                           self.tt.mog.et[self.trc_number])
-                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                           self.tt.mog.et[self.trc_number])
-                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
+                if self.tt.pick_combo.currentIndex() == 1 and self.tt.mog.et[self.trc_number] != -1.0:
                     self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
                                            self.tt.mog.et[self.trc_number])
                     self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
@@ -611,45 +590,35 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picket1.set_xdata(-100)
                 self.picket2.set_xdata(-100)
 
-        if self.tt.t0_before_radio.isChecked():
-            airshot_before = self.tt.mog.av
-            trace = airshot_before.data.rdata[:, n - 1]
+        elif self.tt.t0_before_radio.isChecked():
+            airshot = self.tt.mog.av
+            trace = airshot.data.rdata[:, n - 1]
 
-            if self.tt.mog.av.tt[self.trc_number] != -1:
-                self.picktt.set_xdata(airshot_before.tt[self.trc_number])
+            if airshot.tt[self.trc_number] != -1:
+                self.picktt.set_xdata(airshot.tt[self.trc_number])
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.mog.av.tt[self.trc_number] != -1.0:
-                    self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
-                                           airshot_before.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
-                                           airshot_before.et[self.trc_number])
-                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
-                    self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
-                                           airshot_before.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
-                                           airshot_before.et[self.trc_number])
+                if self.tt.pick_combo.currentIndex() == 1 and airshot.tt[self.trc_number] != -1.0:
+                    self.picket1.set_xdata(airshot.tt[self.trc_number] -
+                                           airshot.et[self.trc_number])
+                    self.picket2.set_xdata(airshot.tt[self.trc_number] +
+                                           airshot.et[self.trc_number])
 
             else:
                 self.picktt.set_xdata(-100)
                 self.picket1.set_xdata(-100)
                 self.picket2.set_xdata(-100)
 
-        if self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.mog.ap
-            trace = airshot_after.data.rdata[:, n - 1]
-            if airshot_after.tt[self.trc_number] != -1:
-                self.picktt.set_xdata(airshot_after.tt[self.trc_number])
+        elif self.tt.t0_after_radio.isChecked():
+            airshot = self.tt.mog.ap
+            trace = airshot.data.rdata[:, n - 1]
+            if airshot.tt[self.trc_number] != -1:
+                self.picktt.set_xdata(airshot.tt[self.trc_number])
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and airshot_after.tt[self.trc_number] != -1.0:
-                    self.picket1.set_xdata(airshot_after.tt[self.trc_number] -
-                                           airshot_after.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_after.tt[self.trc_number] +
-                                           airshot_after.et[self.trc_number])
-                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
-                    self.picket1.set_xdata(airshot_after.tt[self.trc_number] -
-                                           airshot_after.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_after.tt[self.trc_number] +
-                                           airshot_after.et[self.trc_number])
+                if self.tt.pick_combo.currentIndex() == 1 and airshot.tt[self.trc_number] != -1.0:
+                    self.picket1.set_xdata(airshot.tt[self.trc_number] -
+                                           airshot.et[self.trc_number])
+                    self.picket2.set_xdata(airshot.tt[self.trc_number] +
+                                           airshot.et[self.trc_number])
 
             else:
                 self.picktt.set_xdata(-100)
@@ -657,13 +626,10 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picket2.set_xdata(-100)
 
         if not self.tt.lim_checkbox.isChecked():
-
             self.ax.set_ylim(A_min, A_max)
         else:
             self.ax.set_ylim(min(trace.flatten()), max(trace.flatten()))
 
-        self.ax2.set_xlim(t_min, t_max)
-        self.ax.set_xlim(t_min, t_max)
         if self.tt.main_data_radio.isChecked():
             self.trace.set_xdata(self.tt.mog.data.timestp)
         if self.tt.t0_before_radio.isChecked():
@@ -671,6 +637,8 @@ class UpperFig(FigureCanvasQTAgg):
         if self.tt.t0_after_radio.isChecked():
             self.trace.set_xdata(self.tt.mog.ap.data.timestp)
         self.trace.set_ydata(trace)
+        self.ax2.set_xlim(t_min, t_max)
+        self.ax.set_xlim(t_min, t_max)
 
         # TODO
         if self.tt.Wave_checkbox.isChecked():
@@ -679,25 +647,7 @@ class UpperFig(FigureCanvasQTAgg):
         mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))    # @UndefinedVariable
 
         self.draw()
-
-    def wavelet_filtering(self, rdata):
-        shape = np.shape(rdata)
-        nptsptrc, ntrace = shape[0], shape[1]
-        N = 3
-        npts = np.ceil(nptsptrc / 2**N) * 2**N
-        d = npts - nptsptrc
-        rdata = np.array([[rdata],
-                          [rdata[-1 - d: -1, :]]])
-        ind_max = np.zeros(ntrace)
-        inc_wb = np.round(ntrace / 100)
-        for n in range(ntrace):
-            pass # TODO:
-#            trace2 = self.denoise(rdata[:, n], wavelet, N)
-
-    def denoise(self, trace, wavelet, N):
-        pass   # TODO:
-#        swc = swt(trace, N, wavelet)
-
+        
     def onclick(self, event):
 
         if self.isTracingOn is False:
@@ -714,57 +664,37 @@ class UpperFig(FigureCanvasQTAgg):
                     self.tt.mog.tt[self.trc_number] = event.xdata
                     self.tt.mog.tt_done[self.trc_number] = 1
 
-                if self.tt.t0_before_radio.isChecked():
+                elif self.tt.t0_before_radio.isChecked():
                     self.tt.mog.av.tt[self.trc_number] = event.xdata
                     self.tt.mog.av.tt_done[self.trc_number] = 1
                     self.ax2.set_xlim(x_lim[0], x_lim[-1])
                     self.ax.set_ylim(y_lim[0], y_lim[-1])
 
-                if self.tt.t0_after_radio.isChecked():
+                elif self.tt.t0_after_radio.isChecked():
                     self.tt.mog.ap.tt[self.trc_number] = event.xdata
                     self.tt.mog.ap.tt_done[self.trc_number] = 1
                     self.ax2.set_xlim(x_lim[0], x_lim[-1])
                     self.ax.set_ylim(y_lim[0], y_lim[-1])
 
-                if self.tt.pick_combo.currentText() == "Simple Picking":
-                    if self.tt.main_data_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                self.picktt.set_xdata(event.xdata)
 
-                    if self.tt.t0_before_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.av.tt[self.trc_number])
-
-                    if self.tt.t0_after_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.ap.tt[self.trc_number])
-
-                elif self.tt.pick_combo.currentText() == "Pick with std deviation":
+                if self.tt.pick_combo.currentindex() == 1:
 
                     if self.tt.main_data_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                               self.tt.mog.et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                               self.tt.mog.et[self.trc_number])
-
-                    if self.tt.t0_before_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.av.tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.mog.av.tt[self.trc_number] -
-                                               self.tt.mog.av.et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.mog.av.tt[self.trc_number] +
-                                               self.tt.mog.av.et[self.trc_number])
-
-                    if self.tt.t0_after_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.ap.tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.mog.ap.tt[self.trc_number] -
-                                               self.tt.mog.ap.et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.mog.ap.tt[self.trc_number] +
-                                               self.tt.mog.ap.et[self.trc_number])
+                        et = self.tt.mog.et[self.trc_number]
+                    elif self.tt.t0_before_radio.isChecked():
+                        et = self.tt.mog.av.et[self.trc_number]
+                    elif self.tt.t0_after_radio.isChecked():
+                        et = self.tt.mog.ap.et[self.trc_number]
+                        
+                    self.picket1.set_xdata(event.xdata - et)
+                    self.picket2.set_xdata(event.xdata + et)
 
             self.UpperTracePickedSignal.emit(True)
 
         elif event.button == 2:
 
             if self.tt.jump_checkbox.isChecked():
-
                 self.tt.next_trace_to_pick()
             else:
                 self.tt.next_trace()
@@ -775,10 +705,10 @@ class UpperFig(FigureCanvasQTAgg):
                 if self.tt.main_data_radio.isChecked():
                     self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
 
-                if self.tt.t0_before_radio.isChecked():
+                elif self.tt.t0_before_radio.isChecked():
                     self.tt.mog.av.et[self.trc_number] = np.abs(self.tt.mog.av.tt[self.trc_number] - event.xdata)
 
-                if self.tt.t0_after_radio.isChecked():
+                elif self.tt.t0_after_radio.isChecked():
                     self.tt.mog.ap.et[self.trc_number] = np.abs(self.tt.mog.ap.tt[self.trc_number] - event.xdata)
 
                 y_lim = self.ax.get_ylim()
@@ -803,7 +733,23 @@ class UpperFig(FigureCanvasQTAgg):
 
             self.UpperTracePickedSignal.emit(True)
 
-        self.draw()
+
+    def wavelet_filtering(self, rdata):
+        nptsptrc, ntrace = rdata.shape
+        N = 3
+        npts = np.ceil(nptsptrc / 2**N) * 2**N
+        d = npts - nptsptrc
+        rdata = np.array([[rdata],
+                          [rdata[-1 - d: -1, :]]])
+        ind_max = np.zeros(ntrace)
+        inc_wb = np.round(ntrace / 100)
+        for n in range(ntrace):
+            pass # TODO:
+#            trace2 = self.denoise(rdata[:, n], wavelet, N)
+
+    def denoise(self, trace, wavelet, N):
+        pass   # TODO:
+#        swc = swt(trace, N, wavelet)
 
 
 class LowerFig(FigureCanvasQTAgg):
@@ -903,6 +849,8 @@ class LowerFig(FigureCanvasQTAgg):
 
         t_min = float(self.tt.t_min_Edit.text())
         t_max = float(self.tt.t_max_Edit.text())
+        self.ax.set_ylim(t_min, t_max)
+        self.ax.invert_yaxis()
 
         if self.tt.main_data_radio.isChecked():
             current_trc = mog.data.Tx_z[n]
@@ -1111,14 +1059,12 @@ class LowerFig(FigureCanvasQTAgg):
 
         elif event.button == 2:
             if self.tt.jump_checkbox.isChecked():
-
                 self.tt.next_trace_to_pick()
             else:
                 self.tt.next_trace()
 
         elif event.button == 3:
             if self.x is not None and self.y is not None:
-
                 if self.tt.main_data_radio.isChecked():
                     self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.ydata)
                 elif self.tt.t0_before_radio.isChecked():
