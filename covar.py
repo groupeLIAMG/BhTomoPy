@@ -679,7 +679,7 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
     # removal of lines and columns in K and K0 corresponding to missing values
     z = t.flatten(order='F')
     iz = np.logical_not(np.isnan(z))
-    iz2 = np.hstack((iz, np.ones((nc,), dtype=bool)))
+    iz2 = np.hstack((iz, np.ones((nc,), dtype=np.int8)))
     nz = np.sum(iz)
 
     if nz == 0:

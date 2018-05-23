@@ -287,6 +287,8 @@ class BhTomoDb():
                 group.attrs[k] = obj.__dict__[k]
             elif type(obj.__dict__[k]) is np.float64:
                 group.attrs[k] = obj.__dict__[k]
+            elif type(obj.__dict__[k]) is np.int8:
+                group.attrs[k] = obj.__dict__[k]
             elif type(obj.__dict__[k]) is np.int64:
                 group.attrs[k] = obj.__dict__[k]
             elif type(obj.__dict__[k]) is np.ndarray:

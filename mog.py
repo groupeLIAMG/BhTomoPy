@@ -248,24 +248,24 @@ class Mog():  # Multi-Offset Gather
         self.TxCosDir                 = np.array([])
         self.RxCosDir                 = np.array([])
 
-        self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=bool)
-        self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=bool)
-        self.in_vect                  = np.ones(self.data.ntrace, dtype=bool)
+        self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=np.int8)
+        self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=np.int8)
+        self.in_vect                  = np.ones(self.data.ntrace, dtype=np.int8)
         self.date                     = self.data.date
         self.tt                       = -1 * np.ones(self.data.ntrace, dtype=float)
         self.et                       = -1 * np.ones(self.data.ntrace, dtype=float)
-        self.tt_done                  = np.zeros(self.data.ntrace, dtype=bool)
+        self.tt_done                  = np.zeros(self.data.ntrace, dtype=np.int8)
 
         if self.data.tdata is None:
             self.ttTx                 = np.array([])
-            self.ttTx_done            = np.array([], dtype=bool)
+            self.ttTx_done            = np.array([], dtype=np.int8)
         else:
             self.ttTx                 = np.zeros(self.data.ntrace)
-            self.ttTx_done            = np.zeros(self.data.ntrace, dtype=bool)
+            self.ttTx_done            = np.zeros(self.data.ntrace, dtype=np.int8)
 
         self.amp_tmin                 = -1 * np.ones(self.data.ntrace, dtype=float)
         self.amp_tmax                 = -1 * np.ones(self.data.ntrace, dtype=float)
-        self.amp_done                 = np.zeros(self.data.ntrace, dtype=bool)
+        self.amp_done                 = np.zeros(self.data.ntrace, dtype=np.int8)
         self.App                      = np.zeros(self.data.ntrace, dtype=float)
         self.fcentroid                = np.zeros(self.data.ntrace, dtype=float)
         self.scentroid                = np.zeros(self.data.ntrace, dtype=float)
@@ -640,12 +640,12 @@ class AirShots():
     def __init__(self, name='', data=MogData()):
         self.name = name
         self.data = data
-        self.d_TxRx = 0
-        self.fac_dt = 1
+        self.d_TxRx = 0.0
+        self.fac_dt = 1.0
 
         self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)
         self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)
-        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool)
+        self.tt_done = np.zeros((1, self.data.ntrace), dtype=np.int8)
         
         self.modified = True
 

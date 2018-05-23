@@ -304,10 +304,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         airshot_before.data = data
                         airshot_before.tt = -1 * np.ones(data.ntrace)  # tt stands for the travel time vector
                         airshot_before.et = -1 * np.ones(data.ntrace)  # to be defined
-                        airshot_before.tt_done = np.zeros(data.ntrace, dtype=bool)  # the tt_done is a zeros array and whenever a ray arrives, its value will be changed to one
+                        airshot_before.tt_done = np.zeros(data.ntrace, dtype=np.int8)  # the tt_done is a zeros array and whenever a ray arrives, its value will be changed to one
                         airshot_before.d_TxRx = distance_list  # Contains all the positions for which the airshots have been made
                         airshot_before.fac_dt = 1
-                        airshot_before.in_vect = np.ones(data.ntrace, dtype=bool)
+                        airshot_before.in_vect = np.ones(data.ntrace, dtype=np.int8)
                         if len(distance_list) == 1:
                             airshot_before.method = 'fixed_antenna'
                         else:
@@ -366,10 +366,10 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
                         airshot_after.data = data
                         airshot_after.tt = -1 * np.ones(data.ntrace)
                         airshot_after.et = -1 * np.ones(data.ntrace)
-                        airshot_after.tt_done = np.zeros(data.ntrace, dtype=bool)
+                        airshot_after.tt_done = np.zeros(data.ntrace, dtype=np.int8)
                         airshot_after.d_TxRx = distance_list
                         airshot_after.fac_dt = 1
-                        airshot_after.in_vect = np.ones(data.ntrace, dtype=bool)
+                        airshot_after.in_vect = np.ones(data.ntrace, dtype=np.int8)
                         if len(distance_list) == 1:
                             airshot_after.method = 'fixed_antenna'
                         else:
@@ -689,8 +689,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             inTx = []
 
             # Reinitialisation of the boolean vectors before modification
-            mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype=bool)
-            mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype=bool)
+            mog.in_Rx_vect = np.ones(mog.data.ntrace, dtype=np.int8)
+            mog.in_Tx_vect = np.ones(mog.data.ntrace, dtype=np.int8)
 
             # Information from all the edits of the prune widget
             new_min = float(self.min_elev_edit.text())
@@ -724,8 +724,8 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
             mog.in_Rx_vect = (min_Rx.astype(int) + max_Rx.astype(int) - 1).astype(bool)
 
             # We then append a False boolean vector to fit the lenght of ntrace
-            mog.in_Tx_vect = np.append(mog.in_Tx_vect, np.ones(mog.data.ntrace - len(min_Tx), dtype=bool))
-            mog.in_Rx_vect = np.append(mog.in_Rx_vect, np.ones(mog.data.ntrace - len(min_Rx), dtype=bool))
+            mog.in_Tx_vect = np.append(mog.in_Tx_vect, np.ones(mog.data.ntrace - len(min_Tx), dtype=np.int8))
+            mog.in_Rx_vect = np.append(mog.in_Rx_vect, np.ones(mog.data.ntrace - len(min_Rx), dtype=np.int8))
 
             # -These steps are for the skipping of Txs and Rxs---------------------------------------------------------------
 
