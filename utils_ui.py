@@ -40,8 +40,8 @@ class MyQLabel(QtWidgets.QLabel):
             self.setAlignment(QtCore.Qt.AlignLeft)
 
 
-def choose_mog(_db=None):
-    d = QtWidgets.QDialog()
+def choose_mog(_db=None, parent=None):
+    d = QtWidgets.QDialog(parent)
 
     l0 = QtWidgets.QLabel(parent=d)
     l0.setAlignment(QtCore.Qt.AlignCenter)
