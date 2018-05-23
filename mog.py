@@ -32,12 +32,12 @@ class MogData(object):
     def __init__(self, name='', date=''):
         self.ntrace      = 0     # number of traces
         self.nptsptrc    = 0     # number of points per trace
-        self.rstepsz     = 0     # size of step used
+        self.rstepsz     = 0.0   # size of step used
         self.rnomfreq    = 0     # nominal frequency of antenna
         self.csurvmod    = ''    # survey mode
         self.timec       = 0     # the step of time data
         self.rdata       = 0     # raw data
-        self.tdata       = None  # time data
+        self.tdata       = 0     # time data
         self.timestp     = 0     # matrix of range self.nptstrc containing all the time referencies
         self.Tx_x        = np.array([0.0])   # x position of the transmitter
         self.Tx_y        = np.array([0.0])   # y position of the transmitter
@@ -46,11 +46,11 @@ class MogData(object):
         self.Rx_y        = np.array([0.0])   # y position of the receptor
         self.Rx_z        = np.array([0.0])   # z position of the receptor
         self.antennas    = ''    # name of the antenna
-        self.synthetique = False # if 1 results from numerical modelling and 0 for field data
+        self.synthetique = 0     # if 1 results from numerical modelling and 0 for field data
         self.tunits      = ''    # time units
         self.cunits      = ''    # coordinates units
-        self.TxOffset    = 0     # length of he transmittor which is above the surface
-        self.RxOffset    = 0     # length of he receptor which is above the surface
+        self.TxOffset    = 0.0   # length of he transmittor which is above the surface
+        self.RxOffset    = 0.0   # length of he receptor which is above the surface
         self.comment     = ''    # is defined by the presence of any comment in the file
         self.date        = date  # the date of the data sample
         self.name        = name
@@ -216,15 +216,15 @@ class MogData(object):
 
 class PruneParams(object):
     def __init__(self):
-        self.stepTx = 0
-        self.stepRx = 0
-        self.round_factor = 0
+        self.stepTx = 0.0
+        self.stepRx = 0.0
+        self.round_factor = 0.0
         self.use_SNR = 0
-        self.threshold_SNR = 0
-        self.zmin = -1e99
-        self.zmax = 1e99
-        self.thetaMin = -90
-        self.thetaMax = 90
+        self.threshold_SNR = 0.0
+        self.zmin = -1.0e99
+        self.zmax = 1.0e99
+        self.thetaMin = -90.0
+        self.thetaMax = 90.0
 
 
 class Mog():  # Multi-Offset Gather
@@ -235,12 +235,12 @@ class Mog():  # Multi-Offset Gather
         self.data                     = data
         self.tau_params               = np.array([])
         self.fw                       = np.array([])
-        self.f_et                     = 1
+        self.f_et                     = 1.0
         self.amp_name_Ldc             = ''
         self.type                     = 0
-        self.fac_dt                   = 1
+        self.fac_dt                   = 1.0
         self.user_fac_dt              = 0
-        self.useAirShots              = False
+        self.useAirShots              = 0
         self.av                       = None
         self.ap                       = None
         self.Tx                       = None
