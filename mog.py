@@ -245,8 +245,8 @@ class Mog():  # Multi-Offset Gather
         self.ap                       = None
         self.Tx                       = None
         self.Rx                       = None
-        self.TxCosDir                 = np.array([])
-        self.RxCosDir                 = np.array([])
+        self.TxCosDir                 = np.zeros((self.data.ntrace, 3), dtype=float)
+        self.RxCosDir                 = np.zeros((self.data.ntrace, 3), dtype=float)
 
         self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=np.int8)
         self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=np.int8)
@@ -256,7 +256,7 @@ class Mog():  # Multi-Offset Gather
         self.et                       = -1 * np.ones(self.data.ntrace, dtype=float)
         self.tt_done                  = np.zeros(self.data.ntrace, dtype=np.int8)
 
-        if self.data.tdata is None:
+        if self.data.tdata is None or self.data.tdata == 0:
             self.ttTx                 = np.array([])
             self.ttTx_done            = np.array([], dtype=np.int8)
         else:
@@ -449,6 +449,48 @@ class Mog():  # Multi-Offset Gather
             
         else:
             raise RuntimeWarning('Mog type undefined: coordinates not updated')
+        
+    def sort_by_Tx(self):
+            uTx_z = np.sort(np.unique(self.Tx_z_orig))
+            ind = np.zeros((self.data.ntrace,), dtype=np.int64)
+            start = 0
+            for n in np.arange(uTx_z.size):
+                nos = np.nonzero(uTx_z[n] == self.Tx_z_orig)[0]
+                nfound = len(nos)
+                ind[start+np.arange(nfound)] = nos
+                start = start+nfound
+
+            self.tt = self.tt[ind]
+            self.et = self.et[ind]
+            self.tt_done = self.tt_done[ind]
+            if self.ttTx.size > 0:
+                self.ttTx = self.ttTx[ind]
+                self.ttTx_done = self.ttTx_done[ind]
+            self.amp_tmin = self.amp_tmin[ind]
+            self.amp_tmax = self.amp_tmax[ind]
+            self.amp_done = self.amp_done[ind]
+            self.App = self.App[ind]
+            self.fcentroid = self.fcentroid[ind]
+            self.scentroid = self.scentroid[ind]
+            self.tauApp = self.tauApp[ind]
+            self.tauApp_et = self.tauApp_et[ind]
+            self.tauFce = self.tauFce[ind]
+            self.tauFce_et = self.tauFce_et[ind]
+            self.tauHyb = self.tauHyb[ind]
+            self.tauHyb_et = self.tauHyb_et[ind]
+            self.Tx_z_orig = self.Tx_z_orig[ind]
+            self.Rx_z_orig = self.Rx_z_orig[ind]
+            self.in_vect = self.in_vect[ind]
+            self.TxCosDir = self.TxCosDir[ind, :]
+            self.RxCosDir = self.RxCosDir[ind, :]
+            self.data.rdata = self.data.rdata[:, ind]
+            self.data.Tx_x = self.data.Tx_x[ind]
+            self.data.Tx_y = self.data.Tx_y[ind]
+            self.data.Tx_z = self.data.Tx_z[ind]
+            self.data.Rx_x = self.data.Rx_x[ind]
+            self.data.Rx_y = self.data.Rx_y[ind]
+            self.data.Rx_z = self.data.Rx_z[ind]
+
 
     @staticmethod
     def get_t0_fixed(shot, v):
@@ -523,7 +565,7 @@ class Mog():  # Multi-Offset Gather
         return t0, fac
 
     @staticmethod
-    def merge_mogs(mog_list, name):
+    def merge_mogs(mog_list, name, sort=True):
         # we assume all mogs in list are compatible
         mdata = MogData()  # mogdata must be instantiated explicitely
         new_mog = Mog(name, mdata)
@@ -597,8 +639,8 @@ class Mog():  # Multi-Offset Gather
             
             new_mog.tau_params = np.r_[new_mog.tau_params, mog.tau_params]
             new_mog.fw = np.r_[new_mog.fw, mog.fw]
-            new_mog.TxCosDir = np.c_[new_mog.TxCosDir, mog.TxCosDir]
-            new_mog.RxCosDir = np.c_[new_mog.RxCosDir, mog.RxCosDir]
+            new_mog.TxCosDir = np.r_[new_mog.TxCosDir, mog.TxCosDir]
+            new_mog.RxCosDir = np.r_[new_mog.RxCosDir, mog.RxCosDir]
             new_mog.in_Rx_vect = np.r_[new_mog.in_Rx_vect, mog.in_Rx_vect]
             new_mog.in_Tx_vect = np.r_[new_mog.in_Tx_vect, mog.in_Tx_vect]
             new_mog.in_vect = np.r_[new_mog.in_vect, mog.in_vect]
@@ -634,6 +676,8 @@ class Mog():  # Multi-Offset Gather
         new_mog.pruneParams.zmin = min(np.array([new_mog.data.Tx_z, new_mog.data.Rx_z]).flatten())
         new_mog.pruneParams.zmax = max(np.array([new_mog.data.Tx_z, new_mog.data.Rx_z]).flatten())
         
+        if sort:
+            new_mog.sort_by_Tx()
         return new_mog
 
 class AirShots():

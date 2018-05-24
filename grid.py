@@ -28,7 +28,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import h5py
 
-from cutils import cgrid2d
+from cutils import cgrid2d  #@UnresolvedImport
 
 from utils import nargout
 import covar
