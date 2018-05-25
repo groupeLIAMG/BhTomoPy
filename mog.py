@@ -248,24 +248,24 @@ class Mog():  # Multi-Offset Gather
         self.TxCosDir                 = np.zeros((self.data.ntrace, 3), dtype=float)
         self.RxCosDir                 = np.zeros((self.data.ntrace, 3), dtype=float)
 
-        self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=np.int8)
-        self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=np.int8)
-        self.in_vect                  = np.ones(self.data.ntrace, dtype=np.int8)
+        self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=bool)
+        self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=bool)
+        self.in_vect                  = np.ones(self.data.ntrace, dtype=bool)
         self.date                     = self.data.date
         self.tt                       = -1 * np.ones(self.data.ntrace, dtype=float)
         self.et                       = -1 * np.ones(self.data.ntrace, dtype=float)
-        self.tt_done                  = np.zeros(self.data.ntrace, dtype=np.int8)
+        self.tt_done                  = np.zeros(self.data.ntrace, dtype=bool)
 
         if self.data.tdata is None or self.data.tdata == 0:
             self.ttTx                 = np.array([])
-            self.ttTx_done            = np.array([], dtype=np.int8)
+            self.ttTx_done            = np.array([], dtype=bool)
         else:
             self.ttTx                 = np.zeros(self.data.ntrace)
-            self.ttTx_done            = np.zeros(self.data.ntrace, dtype=np.int8)
+            self.ttTx_done            = np.zeros(self.data.ntrace, dtype=bool)
 
         self.amp_tmin                 = -1 * np.ones(self.data.ntrace, dtype=float)
         self.amp_tmax                 = -1 * np.ones(self.data.ntrace, dtype=float)
-        self.amp_done                 = np.zeros(self.data.ntrace, dtype=np.int8)
+        self.amp_done                 = np.zeros(self.data.ntrace, dtype=bool)
         self.App                      = np.zeros(self.data.ntrace, dtype=float)
         self.fcentroid                = np.zeros(self.data.ntrace, dtype=float)
         self.scentroid                = np.zeros(self.data.ntrace, dtype=float)
@@ -689,7 +689,7 @@ class AirShots():
 
         self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)
         self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)
-        self.tt_done = np.zeros((1, self.data.ntrace), dtype=np.int8)
+        self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool)
         
         self.modified = True
 

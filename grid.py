@@ -409,7 +409,7 @@ class Grid2D(Grid):
             L: ray projection matrix, ndata by ncell (ndata x 2*ncell for anisotropic media)
         """
         if ind is None:
-            ind = np.ones((self.Tx.shape[0],), dtype=np.int8)
+            ind = np.ones((self.Tx.shape[0],), dtype=bool)
 
         small = 0.00001
         if dx is None or dx == 0:

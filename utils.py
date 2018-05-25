@@ -113,7 +113,7 @@ def data_select(data, freq, dt, L=100, threshold=5, medfilt_len=10):
     shape = np.shape(data)
     M = shape[1]
     std_sig = np.zeros(M).T
-    ind_data_select = np.zeros(M, dtype=np.int8).T
+    ind_data_select = np.zeros(M, dtype=bool).T
     ind_max = np.zeros(M).T
     nb_p = np.round(1 / (dt * freq))
     width = 60

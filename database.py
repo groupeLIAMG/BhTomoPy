@@ -229,7 +229,10 @@ class BhTomoDb():
                 m.__dict__[kk] = gr[k].attrs[kk]
             for kk in gr[k].keys():
                 if type(gr[k][kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                    m.__dict__[kk] = np.asarray(gr[k][kk])
+                    if gr[k][kk].dtype is np.dtype('int8'):
+                        m.__dict__[kk] = np.asarray(gr[k][kk]).astype(bool)
+                    else:
+                        m.__dict__[kk] = np.asarray(gr[k][kk])
                 elif type(gr[k][kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                     # we have either a list or a custom class
                     gr2 = gr[k][kk]
@@ -297,12 +300,22 @@ class BhTomoDb():
                         # we have to delete previous dataset because new one is not same size
                         del(group[k])
                         #group[k] = obj.__dict__[k]
-                        group.create_dataset(k, data=obj.__dict__[k], compression='gzip')
+                        if obj.__dict__[k].dtype is np.dtype('bool'):
+                            # for some reason, bools are not stored in file, so we cast to int8 instead
+                            group.create_dataset(k, data=obj.__dict__[k].astype(np.int8), compression='gzip')
+                        else:
+                            group.create_dataset(k, data=obj.__dict__[k], compression='gzip')
                     else:
-                        group[k][...] = obj.__dict__[k]
+                        if obj.__dict__[k].dtype is np.dtype('bool'):
+                            group[k][...] = obj.__dict__[k].astype(np.int8)
+                        else:
+                            group[k][...] = obj.__dict__[k]
                 except:
                     #group[k] = obj.__dict__[k]
-                    group.create_dataset(k, data=obj.__dict__[k], compression='gzip')
+                    if obj.__dict__[k].dtype is np.dtype('bool'):
+                        group.create_dataset(k, data=obj.__dict__[k].astype(np.int8), compression='gzip')
+                    else:
+                        group.create_dataset(k, data=obj.__dict__[k], compression='gzip')
             elif type(obj.__dict__[k]) is list:
                 g = group.require_group('_list_'+k)
                 self._save_list(obj.__dict__[k], g)
@@ -378,7 +391,10 @@ class BhTomoDb():
             obj.__dict__[k] = group.attrs[k]
         for k in group.keys():
             if type(group[k]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                obj.__dict__[k] = np.asarray(group[k])
+                if group[k].dtype is np.dtype('int8'):
+                    obj.__dict__[k] = np.asarray(group[k]).astype(bool)
+                else:
+                    obj.__dict__[k] = np.asarray(group[k])
             elif type(group[k]) is h5py._hl.group.Group:  # @UndefinedVariable
                 if '_list_' in group[k].name:
                     obj.__dict__[k] = self._load_list(group[k])
@@ -398,7 +414,10 @@ class BhTomoDb():
             m.__dict__[kk] = group.attrs[kk]
         for kk in group.keys():
             if type(group[kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                m.__dict__[kk] = np.asarray(group[kk])
+                if group[kk].dtype is np.dtype('int8'):
+                    m.__dict__[kk] = np.asarray(group[kk]).astype(bool)
+                else:
+                    m.__dict__[kk] = np.asarray(group[kk])
             elif type(group[kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                 gr2 = group[kk]
                 if '_list_' in gr2.name:
@@ -413,7 +432,10 @@ class BhTomoDb():
             m.__dict__[kk] = group.attrs[kk]
         for kk in group.keys():
             if type(group[kk]) is h5py._hl.dataset.Dataset:  # @UndefinedVariable
-                m.__dict__[kk] = np.asarray(group[kk])
+                if group[kk].dtype is np.dtype('int8'):
+                    m.__dict__[kk] = np.asarray(group[kk]).astype(bool)
+                else:
+                    m.__dict__[kk] = np.asarray(group[kk])
             elif type(group[kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                 # we have either a list or a custom class
                 gr2 = group[kk]
