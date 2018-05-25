@@ -33,7 +33,7 @@ class MyQLabel(QtWidgets.QLabel):
     def __init__(self, label, ha='left', parent=None):
         super(MyQLabel, self).__init__(label, parent)
         if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
+            self.setAlignment(QtCore.Qt.AlignHCenter)
         elif ha == 'right':
             self.setAlignment(QtCore.Qt.AlignRight)
         else:
