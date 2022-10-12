@@ -22,33 +22,34 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.colorbar import Colorbar
+from matplotlib.figure import Figure
 import numpy as np
-import matplotlib as mpl
-from model import Model
-import scipy as spy
-from scipy.sparse import linalg
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import interpolate
+
+from model import Model
 from inversion import invLSQR, InvLSQRParams, invGeostat
 from utils import set_tick_arrangement, ComputeThread
-import utils_ui
-from mog import Mog, AirShots
-
-import database
+from utils_ui import MyQLabel, chooseModel, save_warning
+from mog import Mog
+from database import BhTomoDb
+import covar
 
 
 class InversionUI(QtWidgets.QFrame):
-    InvIterationDone = QtCore.pyqtSignal(int, np.ndarray,str)   # Signal when a iteration is done
-    InvDone = QtCore.pyqtSignal(int,str)                 # Signal when the inversion is done
+    InvIterationDone = QtCore.pyqtSignal(int, np.ndarray, str)   # Signal when a iteration is done
+    InvDone = QtCore.pyqtSignal(int, str)                 # Signal when the inversion is done
 
     def __init__(self, parent=None):
-        super(InversionUI, self).__init__()
+        super(InversionUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Inversion")
+        self.db = BhTomoDb()
         self.lsqrParams = InvLSQRParams()
         self.tomo = None
         self.prev_inv = []
         self.model_ind = ''
-        self.initUI()
+        self.init_UI()
         self.initinvUI()
         self.model = None
 
@@ -56,6 +57,27 @@ class InversionUI(QtWidgets.QFrame):
         self.InvIterationDone.connect(self.handleInvIterationDone) 
         self.InvDone.connect(self.handleInvDone)
 
+    def show(self, dbname):
+        super(InversionUI, self).show()
+        if dbname != '':
+            try:
+                self.db.filename = dbname
+            except Exception as e:
+                    QtWidgets.QMessageBox.warning(self, 'Error', str(e))
+
+        # Gets initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Shows it at the center of the screen
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+
+        # Moves the window's center at the center of the screen
+        qr.moveCenter(cp)
+        # Then moves it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
+        
     def handleInvIterationDone(self, noIter, tomo_s, type_inv):
         self.algo_label.setText('{} inversion -'.format(type_inv))
         self.noIter_label.setText('Ray Tracing, Iteration {}'.format(noIter))
@@ -70,7 +92,6 @@ class InversionUI(QtWidgets.QFrame):
             # If there's no selected model
             return
         if self.tomo is None:
-            database.session.commit()
             return
         if self.algo_combo.currentText() == 'LSQR Solver':
             cov = '-LSQR'
@@ -84,10 +105,9 @@ class InversionUI(QtWidgets.QFrame):
                                                             text='tomo (insert date) {} {}'.format(dType, cov))
         if ok:
             inv_res_info = (inversion_name, self.tomo, self.lsqrParams)
-            database.session.query(Model).all()[self.model_ind].inv_res.append(inv_res_info)
-            print(database.session.query(Model).all()[self.model_ind].inv_res)
+            self.model.inv_res.append(inv_res_info)
+            self.db.save_model(self.model)
 
-        database.session.commit()
         QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
     def current_covar(self):
@@ -103,13 +123,13 @@ class InversionUI(QtWidgets.QFrame):
         return covariance
 
     def openfile(self):
-       new_model = utils_ui.chooseModel(database)
-       if new_model is not None:
-           self.set_current_model(new_model)
+        new_model, self.db = chooseModel(self.db)
+        if new_model is not None:
+            self.set_current_model(new_model)
 
     def set_current_model(self, model):
         if self.model is not None:
-            if utils_ui.save_warning(database):
+            if self.model.modified and save_warning(self.db):
                 self.model = model
                 if model.grid is not None:
                     self.updateDatabaseInfos()
@@ -132,7 +152,7 @@ class InversionUI(QtWidgets.QFrame):
     def update_previous(self):
         self.prev_inversion_combo.clear()
         self.prev_inv.clear()
-        if database.session.query(Model).count() != 0:
+        if self.model is not None:
             for result in self.model.inv_res:
 
                 # result[0] == name
@@ -278,7 +298,7 @@ class InversionUI(QtWidgets.QFrame):
         if self.algo_combo.currentText() == 'LSQR Solver':
             self.compute_thread = ComputeThread(self.doInvLSQR_inThread,data,idata,L)
         elif self.algo_combo.currentText() == 'Geostatistic':
-           self.compute_thread = ComputeThread(self.doInvGeostatistic_inThread,data,idata,L)
+            self.compute_thread = ComputeThread(self.doInvGeostatistic_inThread,data,idata,L)
 
         self.compute_thread.start()
 
@@ -312,7 +332,7 @@ class InversionUI(QtWidgets.QFrame):
             return
 
         self.residualsFig.plot_residuals()
-        self.residuals_manager.showMaximized()
+        self.residuals_manager.show()
 
     def plot_tomo(self):
         if self.tomo is None:
@@ -555,7 +575,7 @@ class InversionUI(QtWidgets.QFrame):
                     self.slowness_theta_X_edit.setText(str(covar_.covar[ind].angle[0]))
                     self.slowness_sill_edit   .setText(str(covar_.covar[ind].sill))
                     self.slowness_edit        .setText(str(covar_.nugget_model))
-                    self.traveltime_edit              .setText(str(covar_.nugget_data))
+                    self.traveltime_edit       .setText(str(covar_.nugget_data))
 
                     if self.ellip_veloc_checkbox.checkState():
                         if covar_.covar_xi[ind] is None:
@@ -587,10 +607,10 @@ class InversionUI(QtWidgets.QFrame):
                     self.slowness_3D_theta_Z_edit.setText(str(covar_.covar[ind].angle[2]))
                     self.slowness_3D_sill_edit   .setText(str(covar_.covar[ind].sill))
                     self.slowness_edit           .setText(str(covar_.nugget_model))
-                    self.traveltime_edit                 .setText(str(covar_.nugget_data))
+                    self.traveltime_edit          .setText(str(covar_.nugget_data))
 
     def update_Tx_elev(self):
-        mog = database.session.query(Mog).all()[self.mog_list.selectedIndexes()[0].row()]
+        mog = self.model.mogs[self.mog_list.selectedIndexes()[0].row()]
         n = int(self.trace_num_edit.text()) - 1
         elev = np.unique(mog.data.Tx_z)[n]
 
@@ -611,7 +631,7 @@ class InversionUI(QtWidgets.QFrame):
         self.trace_num_edit.setText(str(n))
         self.plot_rays()
 
-    def initUI(self):
+    def init_UI(self):
 
         # -------- Widgets in RaysFig -------- #
         # --- Edit --- #
@@ -1050,13 +1070,13 @@ class InversionUI(QtWidgets.QFrame):
 class InvFig(FigureCanvasQTAgg):
     def __init__(self, gv, ui):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(InvFig, self).__init__(fig)
         self.gv = gv
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.06, 0.25, 0.9])
         self.ax3 = self.figure.add_axes([0.375, 0.06, 0.25, 0.9])
         self.ax5 = self.figure.add_axes([0.7, 0.06, 0.25, 0.9])
@@ -1087,7 +1107,7 @@ class InvFig(FigureCanvasQTAgg):
         self.ax3.cla()
         self.ax4.cla()
         if self.ui.algo_combo.currentText() == 'LSQR Solver':
-             self.ax3.set_title('LSQR')
+            self.ax3.set_title('LSQR')
         elif self.ui.algo_combo.currentText() == 'Geostatistic':
             self.ax3.set_title('Geostatistic')
 
@@ -1110,7 +1130,7 @@ class InvFig(FigureCanvasQTAgg):
         h = self.ax3.imshow(np.abs(1 / slowness), interpolation='none', cmap=cmap, vmax=cmax, vmin=cmin,
                             extent=[grid.grx[0], grid.grx[-1], grid.grz[-1], grid.grz[0]])
 
-        mpl.colorbar.Colorbar(self.ax4, h)
+        Colorbar(self.ax4, h)
 
         for tick in self.ax3.xaxis.get_major_ticks():
             tick.label.set_fontsize(8)
@@ -1126,12 +1146,12 @@ class InvFig(FigureCanvasQTAgg):
 class RaysFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig_width, fig_height = 4, 10
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(RaysFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.25, 0.1, 0.5, 0.85])
 
     def plot_rays(self):
@@ -1188,12 +1208,12 @@ class RaysFig(FigureCanvasQTAgg):
 class RayDensityFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig_width, fig_height = 6, 10
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(RayDensityFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.1, 0.9, 0.85])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size=0.5, pad=0.1)
@@ -1210,7 +1230,7 @@ class RayDensityFig(FigureCanvasQTAgg):
 
         h = self.ax.imshow(rd, interpolation='none', cmap='inferno',
                            extent=[grid.grx[0], grid.grx[-1], grid.grz[-1], grid.grz[0]])
-        mpl.colorbar.Colorbar(self.ax2, h)
+        Colorbar(self.ax2, h)
 
         tick_arrangement = set_tick_arrangement(grid)
 
@@ -1226,12 +1246,12 @@ class RayDensityFig(FigureCanvasQTAgg):
 class ResidualsFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig_width, fig_height = 10, 10
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(ResidualsFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax1 = self.figure.add_axes([0.05, 0.55, 0.4, 0.4])
         self.ax2 = self.figure.add_axes([0.55, 0.55, 0.4, 0.4])
         self.ax3 = self.figure.add_axes([0.05, 0.05, 0.4, 0.4])
@@ -1280,7 +1300,7 @@ class ResidualsFig(FigureCanvasQTAgg):
         res = self.ui.tomo.invData.res[:, nIt - 1]
         vres = np.var(res)
 
-        depth, i = Model.getModelData(model, self.ui.air, self.ui.lsqrParams.selectedMogs, 'tt', type2='depth')
+        depth, i = Model.getModelData(model, self.ui.air, self.ui.lsqrParams.selectedMogs, 'depth', type2='tt')
         dTx = np.sort(np.unique(depth[:, 0]))
         print(dTx)
         dRx = np.sort(np.unique(depth[:, 1]))
@@ -1317,7 +1337,7 @@ class ResidualsFig(FigureCanvasQTAgg):
 
         h = self.ax4.imshow(imdata, aspect='auto', interpolation='none', cmap='seismic')
 
-        mpl.colorbar.Colorbar(self.ax5, h)
+        Colorbar(self.ax5, h)
 
         self.draw()
 
@@ -1330,12 +1350,12 @@ class ResidualsFig(FigureCanvasQTAgg):
 class TomoFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig_width, fig_height = 6, 10
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(TomoFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.07, 0.9, 0.9])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size=0.5, pad=0.1)
@@ -1356,7 +1376,7 @@ class TomoFig(FigureCanvasQTAgg):
 
         h = self.ax.imshow(1 / s, interpolation='none', cmap='inferno', vmax=cmax, vmin=cmin,
                            extent=[grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
-        mpl.colorbar.Colorbar(self.ax2, h)
+        Colorbar(self.ax2, h)
 
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(7)
@@ -1372,12 +1392,12 @@ class TomoFig(FigureCanvasQTAgg):
 class PrevInvFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig_width, fig_height = 6, 10
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(PrevInvFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.1, 0.9, 0.85])
         divider = make_axes_locatable(self.ax)
         divider.append_axes('right', size=0.5, pad=0.1)
@@ -1401,7 +1421,7 @@ class PrevInvFig(FigureCanvasQTAgg):
 
         h = self.ax.imshow(1 / s, interpolation='none', cmap='inferno', vmax=cmax, vmin=cmin,
                            extent=[grid.grx[0], grid.grx[-1], grid.grz[0], grid.grz[-1]])
-        mpl.colorbar.Colorbar(self.ax2, h)
+        Colorbar(self.ax2, h)
 
         for tick in self.ax.xaxis.get_major_ticks():
             tick.label.set_fontsize(7)
@@ -1420,12 +1440,12 @@ class PrevInvFig(FigureCanvasQTAgg):
 class SimulationsFig(FigureCanvasQTAgg):
     def __init__(self, ui):
         fig_width, fig_height = 6, 10
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), dpi=80, facecolor='white')
         super(PrevInvFig, self).__init__(fig)
         self.ui = ui
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.07, 0.07, 0.3, 0.9])
         self.ax2 = self.figure.add_axes([0.07, 0.07, 0.6, 0.9])
         divider = make_axes_locatable(self.ax)
@@ -1469,18 +1489,6 @@ class Gridviewer(QtWidgets.QWidget):
         self.ui.fig_grid.addWidget(self.y_plane_scroll, 0, 7)
 
 
-# --- Class For Alignment --- #
-class MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
-
-
 if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
@@ -1489,8 +1497,8 @@ if __name__ == '__main__':
 #    inv_ui.openmain.load_file('C:\\Users\\Utilisateur\\PycharmProjects\\BhTomoPy\\test_constraints.p')
 #    inv_ui.openmain.load_file('test_constraints_backup.p')
 #    inv_ui.openmain.ok()
-    inv_ui.showMaximized()
+    inv_ui.show()
     # residuals = ResidualsFig(inv_ui)
-    # residuals.showMaximized()
+    # residuals.show()
 
     sys.exit(app.exec_())

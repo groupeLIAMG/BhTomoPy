@@ -20,29 +20,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
-from sqlalchemy import Column, String, Table, ForeignKey, PickleType
-from utils import Base
-from sqlalchemy.orm import relationship
 
 
-# Relationship definition
-
-model_mogs = Table('model_mogs', Base.metadata,
-                   Column('Mog_name', String, ForeignKey('Mog.name')),
-                   Column('Model_name', String, ForeignKey('Model.name')))
-
-
-class Model(Base):
-
-    __tablename__ = "Model"
-    name       = Column(String, primary_key=True)  # Model's name
-    grid       = Column(PickleType)    # Model's grid
-    tt_covar   = Column(PickleType)    # Model's Traveltime covariance model
-    amp_covar  = Column(PickleType)    # Model's Amplitude covariance model
-    inv_res    = Column(PickleType)    # Results of inversion
-    tlinv_res  = Column(PickleType)    # Time-lapse inversion results
-
-    mogs = relationship("Mog", secondary=model_mogs)  # The mogs associated with the model (acts like a list).
+class Model:
+    def __init__(self, name=''):
+        self.name       = name
+        self.grid       = None
+        self.tt_covar   = None
+        self.amp_covar  = None
+        self.mogs       = []
+        self.inv_res    = []    # TODO: use DbList for this attribute
+        self.tlinv_res  = None
+        self.modified   = True
 
     @property
     def boreholes(self):
@@ -59,20 +48,11 @@ class Model(Base):
 
         return boreholes
 
-    def __init__(self, name=''):
-        self.name       = name
-        self.grid       = None
-        self.tt_covar   = None
-        self.amp_covar  = None
-        self.inv_res    = []
-        self.tlinv_res  = None
-
     @staticmethod
-    def getModelData(model, selected_mogs, type1, vlim = 0, type2=''):
+    def getModelData(model, selected_mogs, type1, vlim=0, type2=''):
         data = np.array([])
         ind = np.array([])
-        type2 = ''
-
+        
         tt = np.array([])
         et = np.array([])
         in_vect = np.array([])
@@ -151,9 +131,11 @@ class Model(Base):
                     in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
                     no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
 
-
-        if type2 == 'depth':
-            data, ind = getModelData(model, air, selected_mogs, type1)  # @UndefinedVariable
+        elif type1 == 'depth':
+            if type2 == '':
+                return data, ind
+            
+            _, ind = Model.getModelData(model, selected_mogs, type2)  # @UndefinedVariable
             mog = mogs[0]
             tt = mog.Tx_z_orig.T
             et = mog.Rx_z_orig.T
@@ -163,9 +145,11 @@ class Model(Base):
                     tt = np.concatenate((tt, mogs[n].Tx_z_orig.T), axis=0)
                     et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis=0)
                     in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis=0)
+        else:
+            raise ValueError
 
         if vlim != 0:   
-            l = np.sqrt(np.sum((model.grid.Tx-model.grid.Rx)**2,axis = 1)).T
+            l = np.sqrt(np.sum((model.grid.Tx-model.grid.Rx)**2, axis=1)).T
             vapp = l/tt
             in2 = vapp<vlim
             print(str(np.sum(~in2&ind)) + " rays with apparent velocity above " + str(vlim))

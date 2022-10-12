@@ -22,16 +22,26 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
-from PyQt5 import QtWidgets, QtCore
 import os
-import database
-from mog import Mog
-from model import Model
+import sys
+from PyQt5 import QtWidgets, QtCore
+
+from database import BhTomoDb
 
 
-def chooseMOG(module, filename=None):
-    d = QtWidgets.QDialog()
+class MyQLabel(QtWidgets.QLabel):
+    def __init__(self, label, ha='left', parent=None):
+        super(MyQLabel, self).__init__(label, parent)
+        if ha == 'center':
+            self.setAlignment(QtCore.Qt.AlignHCenter)
+        elif ha == 'right':
+            self.setAlignment(QtCore.Qt.AlignRight)
+        else:
+            self.setAlignment(QtCore.Qt.AlignLeft)
+
+
+def choose_mog(_db=None, parent=None):
+    d = QtWidgets.QDialog(parent)
 
     l0 = QtWidgets.QLabel(parent=d)
     l0.setAlignment(QtCore.Qt.AlignCenter)
@@ -56,6 +66,11 @@ def chooseMOG(module, filename=None):
     b2.move(10, 100)
     b1.move(20 + b1.minimumWidth(), 100)
 
+    if _db is None:
+        db = BhTomoDb()
+    else:
+        db = _db
+
     def cancel():
         nonlocal d
         d.done(0)
@@ -68,34 +83,25 @@ def chooseMOG(module, filename=None):
         nonlocal d
         nonlocal l0
         nonlocal b3
-        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database','','Database (*.db)')[0]
+        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database','','Database (*.h5)')[0]
         if filename:
-            if filename.find('.db') != -1:
-
-                database.load(module, filename)
-                l0.setText(os.path.basename(filename))
-                load_mogs()
-            else:
-                QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
-                                              QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton)
-                l0.setText('')
+            db.filename = filename
+            l0.setText(os.path.basename(filename))
+        else:
+            l0.setText('')
 
     def load_mogs():
-        nonlocal b3
-        nonlocal l0
-        b3.clear()
-        mogs = module.session.query(Mog).all()
-        if mogs:
-            for mog in mogs:
-                b3.addItem(mog.name)
+        names = db.get_mog_names()
+        if len(names) > 0:
+            b3.addItems(names)
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain MOGS.',
                                           QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton)
             l0.setText('')
         b1.setFocus()
 
-    if str(module.engine.url) != 'sqlite:///:memory:':
-        l0.setText(database.short_url(module))
+    if db.filename != '':
+        l0.setText(os.path.basename(db.filename))
         load_mogs()
     else:
         l0.setText('')
@@ -110,12 +116,14 @@ def chooseMOG(module, filename=None):
     isOk = d.exec_()
 
     if isOk == 1:
-        mog_no = b3.currentIndex()
-        if mog_no != -1:
-            return module.session.query(Mog).filter(Mog.name == str(b3.currentText())).first()
+        mog_name = b3.currentText()
+        return db.get_mog(mog_name), db
 
+def save_mog(mog, db):
+    # TODO: make sure all boreholes and air_shots held in Tx, Rx, av & ap are in db, raise ReferenceError if not
+    db.save_mog(mog)
 
-def chooseModel(module, filename=None):
+def chooseModel(_db=None):
     d = QtWidgets.QDialog()
 
     l0 = QtWidgets.QLabel(parent=d)
@@ -141,6 +149,11 @@ def chooseModel(module, filename=None):
     b2.move(10, 100)
     b1.move(20 + b1.minimumWidth(), 100)
 
+    if _db is None:
+        db = BhTomoDb()
+    else:
+        db = _db
+
     def cancel():
         nonlocal d
         d.done(0)
@@ -153,36 +166,28 @@ def chooseModel(module, filename=None):
         nonlocal d
         nonlocal l0
         nonlocal b3
-        if save_warning(module):
-            filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database','','Database (*.db)')[0]
-            if filename:
-                if filename.find('.db') != -1:
-
-                    database.load(module, filename)
-                    l0.setText(os.path.basename(filename))
-                    load_models()
-                else:
-                    QtWidgets.QMessageBox.warning(b3, '', 'Database not in *.db format',
-                                                  QtWidgets.QMessageBox.Cancel, QtWidgets.QMessageBox.NoButton,
-                                                  QtWidgets.QMessageBox.NoButton)
-                    l0.setText('')
+        filename = QtWidgets.QFileDialog.getOpenFileName(d, 'Choose Database','','Database (*.h5)')[0]
+        if filename:
+            db.filename = filename
+            l0.setText(os.path.basename(filename))
+        else:
+            l0.setText('')
 
     def load_models():
         nonlocal b3
         nonlocal l0
 
         b3.clear()
-        models = module.session.query(Model).all()
-        if models:
-            for model in models:
-                b3.addItem(model.name)
+        names = db.get_model_names()
+        if len(names) > 0:
+            b3.addItems(names)
         else:
             QtWidgets.QMessageBox.warning(b3, '', 'File does not contain Models.')
             l0.setText('')
         b1.setFocus()
 
-    if str(module.engine.url) != 'sqlite:///:memory:':
-        l0.setText(database.short_url(module))
+    if db.filename != '':
+        l0.setText(os.path.basename(db.filename))
         load_models()
     else:
         l0.setText('')
@@ -196,13 +201,12 @@ def chooseModel(module, filename=None):
     isOk = d.exec_()
 
     if isOk == 1:
-        model_no = b3.currentIndex()
-        if model_no != -1:
-            return module.session.query(Model).filter(Model.name == str(b3.currentText())).first()
+        model_name = b3.currentText()
+        return db.get_model(model_name), db
 
 
-def save_warning(module):
-    if module.modified:  # if any data has been modified, warn the user. Otherwise, proceed.
+def save_warning(db):
+    if db.modified:  # if any data has been modified, warn the user. Otherwise, proceed.
         d = QtWidgets.QDialog()
 
         l0 = QtWidgets.QLabel(parent=d)
@@ -259,11 +263,10 @@ def save_warning(module):
         if ok == 0:
             ok = False
         elif ok == 1:
-            ok = savefile(module)
+            ok = savefile(db)
         elif ok == 2:
-            ok = saveasfile(module)
+            ok = saveasfile(db)
         elif ok == 3:
-            module.modified = False
             ok = True
 
         return ok  # returns False if action has to be reverted. Returns True otherwise.
@@ -271,17 +274,15 @@ def save_warning(module):
     else:
         return True
 
-
-def savefile(module):
+def savefile(db):
 
     try:
-        if str(module.engine.url) == 'sqlite:///:memory:':
-            return saveasfile(module)
+        if db.filename == '':
+            return saveasfile(db)
 
-        module.session.commit()
+        db.save()
         QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
                                           buttons=QtWidgets.QMessageBox.Ok)
-        module.modified = False
         return True
 
     except Exception as e:
@@ -291,21 +292,15 @@ def savefile(module):
     return False
 
 
-def saveasfile(module):
-    filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Database as ...', filter='Database (*.db)', )[0]
+def saveasfile(db):
+    filename = QtWidgets.QFileDialog.getSaveFileName(None, 'Save Database as ...', filter='Database (*.h5)', )[0]
 
     if filename:
-        if os.path.basename(filename) != database.long_url(module):
-            database.save_as(module, filename)
-            module.modified = False
-            return True
-
-        else:
-            module.session.commit()
-            QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
-                                              buttons=QtWidgets.QMessageBox.Ok)
-            module.modified = False
-            return True
+        db.filename = filename
+        db.save()
+        QtWidgets.QMessageBox.information(None, 'Success', "Database was saved successfully",
+                                          buttons=QtWidgets.QMessageBox.Ok)
+        return True
 
     return False
 
@@ -654,3 +649,14 @@ def verif_dims(layout):
     for row in layout[1:]:
         if len(row) != len(layout[0]):
             raise IndexError("Layout has wrong dimensions.")
+        
+        
+if __name__ == '__main__':
+    
+    app = QtWidgets.QApplication(sys.argv)
+
+    mog, db = choose_mog()
+
+    sys.exit(app.exec_())
+    
+    

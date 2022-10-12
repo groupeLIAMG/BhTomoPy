@@ -89,7 +89,7 @@ def invGeostat(params, data, idata, grid, cm, L, app=None, ui=None):
     ui: the InversionUI QWidget
     """
 
-     # First we call a Tomo class instance. It will hold the data we will process along the way.
+    # First we call a Tomo class instance. It will hold the data we will process along the way.
     tomo = Tomo()
 
     if data.shape[1] >= 9:
@@ -123,13 +123,13 @@ def invGeostat(params, data, idata, grid, cm, L, app=None, ui=None):
     if np.size(data[0,:])>7 and cm.use_c0==1:
         if (data[:,7] != 0).all():
             c0=data[:,7]**2
-    
+
     for noIter in range(params.numItCurved + params.numItStraight + 1):
         if noIter == 1:
             l_moy = np.mean(data[:,6]/np.sum(L.A,axis = 1))
         else:
             l_moy = np.mean(tomo.s)
-        mta = np.sum(L.A*l_moy,axis =1) 
+        mta = np.sum(L.A*l_moy,axis =1)
         dt = data[:,6] - mta
 
         #TODO: Add Simulation param
@@ -141,7 +141,7 @@ def invGeostat(params, data, idata, grid, cm, L, app=None, ui=None):
             Cd = L*Cm*L.T + cm.nugget_data*np.eye(np.size(L.A[:,0]))
         else:
             Cd = L*Cm*L.T + cm.nugget_data*np.diag(c0)
-        
+
         Cdm = L*Cm
 
         if doSim == 0:
@@ -157,7 +157,7 @@ def invGeostat(params, data, idata, grid, cm, L, app=None, ui=None):
             else:
                 Gamma = np.linalg.solve(Cd,dt).reshape(-1, 1).T
                 m = Gamma.dot(Cdm).T
-            
+
             if params.tomoAtt == 1:
                 #neative attenuation set to zero
                 m[m<-l_moy] = -l_moy
@@ -189,9 +189,9 @@ def invGeostat(params, data, idata, grid, cm, L, app=None, ui=None):
         print('Geostatistic Inversion - Finished, {} Iterations Done'.format(noIter))
 
     return tomo
-  
 
-def invLSQR(params, data, idata, grid, L, app=None, ui=None):
+
+def invLSQR(params, data, idata, grid, L=None, app=None, ui=None):
     """
     Input:
     params:  Instance of lsqrParams class whose parameters have been
@@ -243,7 +243,7 @@ def invLSQR(params, data, idata, grid, L, app=None, ui=None):
     if data.shape[1] >= 9:
         tomo.no_trace = data[:, 8]
 
-    if np.all(L == 0):
+    if L is None:
         # We get the straights rays for the first iteration
         L = grid.getForwardStraightRays(idata)
 
@@ -262,35 +262,32 @@ def invLSQR(params, data, idata, grid, L, app=None, ui=None):
     # These will smoothen the subsequent slowness/velocity model
     Dx, Dy, Dz = grid.derivative(params.order)
 
-    for noIter in range(params.numItCurved + params.numItStraight + 1):
+    for noIter in range(params.numItCurved + params.numItStraight):
         if ui is not None and app is not None:
             ui.gv.noIter = noIter
             app.processEvents()
 
+        if ui is not None:
+            ui.InvIterationDone.emit(noIter,tomo.s, "LSQR")
+        else:
+            print('LSQR Inversion - Ray Tracing, Iteration {}'.format(noIter + 1))
+
         if noIter == 0:
             # Calculating the mean slowness from the picked tts and the ray lenghts
             mean_s = np.mean(data[:, 6] / L.sum(axis=1))
+            mta = L.sum(axis=1) * mean_s
         else:
             mean_s = np.mean(tomo.s)
+            mta = L @ tomo.s
 
-        # Making sur to have a b array whit (m,) shape
-        mta = L.sum(axis=1) * mean_s
-        mta = np.hstack(mta).T
-
-        tmp = mta.flat
-        tmp = list(tmp)
-
-        mta = np.asarray(tmp)
-
-        dt = data[:, 6] - mta
-        dt = dt.T
+        dt = data[:, 6] - mta.flatten()
 
         if noIter == 0:
             s_o = mean_s * np.ones(L.shape[1]).T
 
         A = spy.sparse.vstack([L, Dx * params.alphax, Dz * params.alphaz])
 
-        b = np.concatenate((dt, np.zeros(Dx.shape[0]), np.zeros(Dz.shape[0])))
+        b = np.concatenate((dt.T, np.zeros(Dx.shape[0]+Dz.shape[0]).reshape((-1,1)))).flatten()
 
         if not np.all(cont == 0) and params.useCont == 1:
             # TODO: faire les modifications aux matrices A et b avec les contraintes
@@ -312,16 +309,8 @@ def invLSQR(params, data, idata, grid, L, app=None, ui=None):
 
         tomo.s = x + mean_s
 
-        # Applying the resulting model to Tx and Rx to get new tt and L and the trajectory of curved rays
-        tt, L, tomo.rays = grid.raytrace(tomo.s, data[:, 0:3], data[:, 3:6])
-
-        if ui is not None:
-            ui.InvIterationDone.emit(noIter,tomo.s, "LSQR")
-        else:
-            print('LSQR Inversion - Ray Tracing, Iteration {}'.format(noIter + 1))
-
         if params.saveInvData == 1:
-            tt = L * tomo.s
+            tt = L @ tomo.s
             if noIter == 0:
                 tomo.invData.res = np.array([data[:, 6] - tt]).T
                 tomo.invData.s = np.array([tomo.s]).T
@@ -329,6 +318,9 @@ def invLSQR(params, data, idata, grid, L, app=None, ui=None):
             else:
                 tomo.invData.res = np.concatenate((tomo.invData.res, np.array([data[:, 6] - tt]).T), axis=1)
                 tomo.invData.s = np.concatenate((tomo.invData.s, np.array([tomo.s]).T), axis=1)
+
+        # Applying the resulting model to Tx and Rx to get new tt and L and the trajectory of curved rays
+        tt, tomo.rays, L = grid.raytrace(tomo.s, data[:, 0:3:2], data[:, 3:6:2])
 
         tomo.L = L
 
@@ -345,7 +337,7 @@ def invLSQR(params, data, idata, grid, L, app=None, ui=None):
     if ui is not None:
         ui.InvDone.emit(noIter, "LSQR")
     else:
-        print('LSQR Inversion - Finished, {} Iterations Done'.format(noIter))
+        print('LSQR Inversion - Finished, {} Iterations Done'.format(noIter + 1))
 
     return tomo
 

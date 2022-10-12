@@ -24,14 +24,15 @@ from PyQt5 import QtGui, QtWidgets, QtCore
 import matplotlib as mpl
 from unicodedata import *
 
+from utils_ui import MyQLabel
 
 class InterpretationUI(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super(InterpretationUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Inversion")
-        self.initUI()
+        self.init_UI()
 
-    def initUI(self):
+    def init_UI(self):
 
         # --- Importation of the greek letters --- #
         char1 = lookup("GREEK SMALL LETTER ALPHA")
@@ -45,17 +46,6 @@ class InterpretationUI(QtWidgets.QFrame):
         # --- Color for the labels --- #
         palette = QtGui.QPalette()
         palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.red)
-
-        # --- Class For Alignment --- #
-        class MyQLabel(QtWidgets.QLabel):
-            def __init__(self, label, ha='left', parent=None):
-                super(MyQLabel, self).__init__(label, parent)
-                if ha == 'center':
-                    self.setAlignment(QtCore.Qt.AlignCenter)
-                elif ha == 'right':
-                    self.setAlignment(QtCore.Qt.AlignRight)
-                else:
-                    self.setAlignment(QtCore.Qt.AlignLeft)
 
         # ------- Widgets Creation ------- #
 

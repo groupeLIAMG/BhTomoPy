@@ -21,18 +21,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from PyQt5 import QtWidgets, QtCore
-import matplotlib as mpl
-import pickle
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
+from utils_ui import MyQLabel
 
 class SemiAutottUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(SemiAutottUI, self).__init__()
         self.setWindowTitle("BhTomoPy/Semi Automatic Traveltime Picking")
-        self.initUI()
+        self.init_UI()
 
-    def initUI(self):
+    def init_UI(self):
 
         # ------ Creation of the Manager for the Upper figure ------- #
         self.Fig = Fig()
@@ -305,27 +305,15 @@ class SemiAutottUI(QtWidgets.QWidget):
 
 class Fig(FigureCanvasQTAgg):
     def __init__(self):
-        fig = mpl.figure.Figure(facecolor='white')
+        fig = Figure(facecolor='white')
         super(Fig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
         ax1 = self.figure.add_axes([0.08, 0.45, 0.85, 0.5])
         ax2 = self.figure.add_axes([0.08, 0.06, 0.85, 0.3])
         ax1.yaxis.set_ticks_position('left')
         ax1.set_axisbelow(True)
-
-
-# --- Class for alignment --- #
-class MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
 
 
 if __name__ == '__main__':
@@ -333,6 +321,6 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     Semi_ui = SemiAutottUI()
-    Semi_ui.showMaximized()
+    Semi_ui.show()
 
     sys.exit(app.exec_())

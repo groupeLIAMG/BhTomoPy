@@ -19,29 +19,30 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
 
-import sys
-from PyQt5 import QtGui, QtWidgets, QtCore
-from borehole_ui import BoreholeUI
-from model_ui import ModelUI
-from mog_ui import MOGUI, MergeMog
-from info_ui import InfoUI
 import time
 import os
-import database
-import utils_ui
+import sys
+
+from PyQt5 import QtGui, QtWidgets, QtCore
+from borehole_ui import BoreholeUI
+from database import BhTomoDb
+from model_ui import ModelUI
+from mog_ui import MOGUI, MergeMog
+from utils_ui import MyQLabel, auto_create_scrollbar, save_warning
 
 
 class DatabaseUI(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        super(DatabaseUI, self).__init__()
+        super(DatabaseUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Database")
         # --- Other Modules Instances --- #
-        self.bh = BoreholeUI()
-        self.mog = MOGUI()
-        self.model = ModelUI()
+        self.db = BhTomoDb()
+        self.bh = BoreholeUI(self.db)
+        self.mog = MOGUI(self.db)
+        self.model = ModelUI(self.db)
         self.info = InfoUI()
         self.mergemog = MergeMog(self.mog)
-        self.initUI()
+        self.init_UI()
         self.action_list = []
 
         # DatabaseUI receives the signals, which were emitted by different modules, and transmits the signal to the other
@@ -99,11 +100,11 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def update_widgets(self):
 
-            self.bh.update_List_Widget()
+            self.bh.update_list_widget()
             self.bh.bh_list.setCurrentRow(0)
-            self.bh.update_List_Edits()
+            self.bh.update_list_edits()
 
-            self.mog.update_List_Widget()
+            self.mog.update_list_widget()
             self.mog.update_edits()
             self.mog.MOG_list.setCurrentRow(0)
             self.mog.update_spectra_and_coverage_Tx_num_list()
@@ -115,11 +116,15 @@ class DatabaseUI(QtWidgets.QWidget):
             self.model.update_model_list()
             self.model.update_model_mog_list()
 
-            if str(database.engine.url) != 'sqlite:///:memory:':
-                self.update_database_info(database.short_url(database))
+            self.update_database_info(self.db.name)
 
-    def show(self):
+    def show(self, dbname):
         super(DatabaseUI, self).show()
+        if dbname != '':
+            try:
+                self.db.load(dbname)
+            except Exception as e:
+                    QtWidgets.QMessageBox.warning(self, 'Error', str(e))
 
         # Gets initial geometry of the widget:
         qr = self.frameGeometry()
@@ -139,29 +144,23 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def openfile(self):  # TODO: On Windows, access to folders containing special characters fails. May be due to the fact that Windows doesn't use Unicode.
 
-        if utils_ui.save_warning(database):
-            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database','','Database (*.db)')[0]
+        if save_warning(self.db):
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open Database','','Database (*.h5)')[0]
 
             if filename:
-                if filename[-3:] != '.db':
-                    QtWidgets.QMessageBox.warning(self, 'Warning', "Database has wrong extension.", buttons=QtWidgets.QMessageBox.Ok)
-                else:
-                    database.load(database, filename)
-                    self.update_database_info(os.path.basename(filename))
-                    self.update_widgets()
-                    self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
+                self.db.load(filename)
+                self.update_database_info(os.path.basename(filename))
+                self.update_widgets()
+                self.update_log("Database '{}' was loaded successfully".format(os.path.basename(filename)))
 
     def savefile(self):
 
         try:
-            if str(database.engine.url) == 'sqlite:///:memory:':
+            if self.db.filename == '':
                 self.saveasfile()
                 return
             
-            database.session.commit()
-            database.modified = False
-
-#             self.model.gridui.update_model_grid()  # TODO Is that deprecated?
+            self.db.save()
 
             self.update_log("Database was saved successfully")
             QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
@@ -173,20 +172,16 @@ class DatabaseUI(QtWidgets.QWidget):
 
     def saveasfile(self):
         filename = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Database as ...',
-                                                         filter='Database (*.db)', )[0]
+                                                         filter='Database (*.h5)', )[0]
 
         if filename:
-            if filename != database.long_url(database):
-                database.save_as(database, filename)
+            self.db.save(filename)
 
-                self.update_database_info(os.path.basename(filename))
-                self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
+            self.update_database_info(os.path.basename(filename))
+            self.update_log("Database '{}' was saved successfully".format(os.path.basename(filename)))
 
-            else:
-                database.session.commit()
-                database.modified = False
 
-    def initUI(self):
+    def init_UI(self):
 
         # --- Log Widget --- #
         self.log = QtWidgets.QTextEdit()
@@ -205,6 +200,10 @@ class DatabaseUI(QtWidgets.QWidget):
         saveasAction = QtWidgets.QAction('Save as', self)
         saveasAction.setShortcut('Ctrl+A')
         saveasAction.triggered.connect(self.saveasfile)
+        
+        exportBHAction = QtWidgets.QAction('Export boreholes', self)
+        exportBHAction.setShortcut('Ctrl+B')
+        exportBHAction.triggered.connect(self.bh.export_boreholes)
 
         # --- Menubar --- #
         self.menu = QtWidgets.QMenuBar()
@@ -212,6 +211,7 @@ class DatabaseUI(QtWidgets.QWidget):
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
         filemenu.addAction(saveasAction)
+        filemenu.addAction(exportBHAction)
 
         # --- GroupBoxes --- #
         # - Boreholes GroupBox - #
@@ -252,7 +252,7 @@ class DatabaseUI(QtWidgets.QWidget):
 
         # - Scroll bar - #
 
-        scrollbar = utils_ui.auto_create_scrollbar(sub_big_widget)
+        scrollbar = auto_create_scrollbar(sub_big_widget)
 
         # --- Grid --- #
         master_grid = QtWidgets.QGridLayout()
@@ -262,6 +262,58 @@ class DatabaseUI(QtWidgets.QWidget):
         master_grid.setContentsMargins(0, 0, 0, 0)
         master_grid.setVerticalSpacing(5)
 
+        self.setLayout(master_grid)
+
+
+class InfoUI(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        super(InfoUI, self).__init__()
+        self.setWindowTitle("BhTomoPy/Info")
+        self.init_UI()
+
+    # ------- Updating the information ------- #
+    def update_database(self, name):
+        self.live_database_label.setText(name)
+
+    def update_borehole(self, value):
+        self.num_boreholes_label.setText(str(value))
+
+    def update_mog(self, value):
+        self.num_mogs_label.setText(str(value))
+
+    def update_model(self, value):
+        self.num_models_label.setText(str(value))
+
+    def update_trace(self, value):
+        self.num_traces_label.setText(str(value))
+
+    def init_UI(self):
+
+        # --- Widget --- #
+        self.database_label = QtWidgets.QLabel("Database : ")
+        self.live_database_label = MyQLabel('', ha='left')
+        self.boreholes_label = QtWidgets.QLabel(" Borehole(s)")
+        self.num_boreholes_label = MyQLabel('0', ha='right')
+        self.mogs_label = QtWidgets.QLabel(" MOG(s)")
+        self.num_mogs_label = MyQLabel('0', ha='right')
+        self.models_label = QtWidgets.QLabel(" Model(s)")
+        self.num_models_label = MyQLabel('0', ha='right')
+        self.traces_label = QtWidgets.QLabel(" Traces")
+        self.num_traces_label = MyQLabel('0', ha='right')
+
+        # --- Grid --- #
+        master_grid = QtWidgets.QGridLayout()
+        master_grid.addWidget(self.database_label, 0, 0)
+        master_grid.addWidget(self.live_database_label, 0, 1)
+        master_grid.addWidget(self.num_boreholes_label, 2, 0)
+        master_grid.addWidget(self.boreholes_label, 2, 1)
+        master_grid.addWidget(self.num_mogs_label, 3, 0)
+        master_grid.addWidget(self.mogs_label, 3, 1)
+        master_grid.addWidget(self.num_models_label, 4, 0)
+        master_grid.addWidget(self.models_label, 4, 1)
+        master_grid.addWidget(self.num_traces_label, 6, 0)
+        master_grid.addWidget(self.traces_label, 6, 1)
+        master_grid.setAlignment(QtCore.Qt.AlignCenter)
         self.setLayout(master_grid)
 
 
@@ -280,19 +332,17 @@ if __name__ == '__main__':
 
     app = QtWidgets.QApplication(sys.argv)
 
-    database.create_data_management(database)
-
     Database_ui = DatabaseUI()
-    Database_ui.show()
+    Database_ui.show('/Users/giroux/Desktop/sussargues2D.h5')
 
-    Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.bh.load_bh('testData/testConstraints/F3.xyz')
-    Database_ui.bh.load_bh('testData/testConstraints/F2.xyz')
-    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
-    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
-    Database_ui.model.load_model("t0302's model")
-    Database_ui.model.load_model("test")
-    Database_ui.model.load_model("test2")
+#     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
+#     Database_ui.bh.load_borehole('testData/testConstraints/F3.xyz')
+#     Database_ui.bh.load_borehole('testData/testConstraints/F2.xyz')
+#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
+#     Database_ui.model.load_model("t0302's model")
+#     Database_ui.model.load_model("test")
+#     Database_ui.model.load_model("test2")
 #     Database_ui.mog.plot_spectra()
 #     Database_ui.mog.plot_zop()
 

@@ -1,0 +1,45 @@
+As of June 30th 2017...
+
+Covar_ui is close to done:
+
+- Some validation tests for amplitude covariance are still missing (for instance, curved rays must be loaded to access that functionality);
+- No tests were made on the interface for 3D grids;
+- Experimental covariance isn't implemented;
+- No tests were run on anisotropic covariance models.
+
+In order to successfully create a covariance model, some preliminary steps are required. First, on must create the model in database_ui 
+and add at least one mog to it. The latter must have boreholes associated with it. Second, one should create the model's grid (N.B.: don't 
+forget clicking on 'Done' on the grid editor). Finally, one must also indicate the arrival times for each of the traces from the manual_tt_ui
+(which can be achieved easily by importing testData\tt.dat). Every feature of covar_ui should then be accessible.
+
+Random tasks:
+
+- Model.getModelData seems to be missing supported types (for instance, 'tt' is supported, but 'amp' isn't). These exist in Model.m
+  within the Matlab code;
+- Model.getModelData also doesn't support an upper limit velocity ('vlim');
+- All dependencies from object to object should be cleared once it refers to a deleted object. One should study how the 'relationships'
+  are implemented between the Borehole, Mog, AirShots and Model classes in order to achieve this;
+- Data management is not fully viable: whenever a stored class' attribute's name is modified, the database is deprecated, which
+  is quite a problem. One could solve this issue by completing 'convert_database' from the module 'database', although this is neither urgent
+  nor easy to do. Some resources on this subject might exist on the web.
+
+Data management through SQLAlchemy has been fully implemented in database_ui and covar_ui, and the main submodules.
+Some other modules still lack this implementation, though. One should consider close to every *.bh, *.mog, *.model and
+*.air attributes deprecated if applied to a user interface. Those should be replaced by a call into the database by
+the means of <module>.session.query(<Class>).
+
+Quite often, a specific class's attribute may fail to save. This is due to the issue described in database.save_as's documentation.
+One should consider solving this issue as soon as possible, as the errors it causes are hard to debug, and the solving of this
+issue would result in much less confusing code.
+
+Be wary of the tools such as auto_create_scrollbar() and lay() in utils_ui, as they provide a way of reducing the
+quantity of code for a specified task and improving readability.
+
+Arguments unpacking is used thoroughly in covar_ui and utils_ui, so one should become comfortable with this functionality
+of Python. The star ('*') is used to separate an iterable into different arguments. Therefore, 'print(*['a', 'b', 'c'])' reads
+as 'print('a', 'b', 'c')'.
+
+The code is fully PEP 8 compatible, exception made for the extra spaces before and after operators and for lines too long,
+which are ignored for the purpose of readability. (Full list of ignored errors: E202, E221, E241, E501, E722, E741)
+
+Finally, one should refer to the TODO annotations for specific tasks. Those may require a better understanding of BhTomoPy, though.

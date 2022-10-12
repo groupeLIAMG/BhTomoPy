@@ -21,36 +21,33 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
-import matplotlib as mpl
+
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.figure import Figure
+
 import numpy as np
-from utils_ui import chooseMOG
-import re
 import scipy as spy
 from scipy import signal
-from mog import Mog
 
-import database
-current_module = sys.modules[__name__]
-database.create_data_management(current_module)
+from database import BhTomoDb
+from mog import Mog
+from utils_ui import MyQLabel, choose_mog, save_mog
 
 
 class ManualAmpUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        super(ManualAmpUI, self).__init__()
+        super(ManualAmpUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
-        self.mogs = []
-#        self.air = []
-#        self.boreholes = []
-#        self.models = []
         self.mog = 0
-        self.initUI()
+        self.db = BhTomoDb()
+        self.init_UI()
 
         # self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
-        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
+        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_trace)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
 
     def next_trace(self):
@@ -69,22 +66,16 @@ class ManualAmpUI(QtWidgets.QFrame):
     def update_control_center(self):
         n = int(self.Tnum_Edit.text()) - 1
 
-#        ind = self.openmain.mog_combo.currentIndex()
-#        self.mog = self.mogs[ind]
-
-        if len(self.mogs) == 0:
-            return
-        else:
-            self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
-            self.xTx_label.setText(str(self.mog.data.Tx_x[n]))
-            self.yRx_label.setText(str(self.mog.data.Rx_y[n]))
-            self.yTx_label.setText(str(self.mog.data.Tx_y[n]))
-            self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
-            self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
-            self.ntrace_label.setText(str(self.mog.data.ntrace))
+        self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
+        self.xTx_label.setText(str(self.mog.data.Tx_x[n]))
+        self.yRx_label.setText(str(self.mog.data.Rx_y[n]))
+        self.yTx_label.setText(str(self.mog.data.Tx_y[n]))
+        self.zRx_label.setText(str(np.round(self.mog.data.Rx_z[n], 3)))
+        self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
+        self.ntrace_label.setText(str(self.mog.data.ntrace))
 
         self.update_settings_edits()
-        self.upperFig.plot_amplitude()
+        self.upperFig.plot_trace()
         self.lowerFig.plot_spectra()
 
     def update_settings_edits(self):
@@ -112,22 +103,23 @@ class ManualAmpUI(QtWidgets.QFrame):
         self.Tnum_Edit.setText('1')
 
     def plot_stats(self):
-        # ind = self.openmain.mog_combo.currentIndex()
-        # mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(self.mog)
-        self.statsFig1.showMaximized()
+        self.statsFig1.show()
 
     def savefile(self):
-        current_module.session.commit()
-        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtWidgets.QMessageBox.Ok)
+        try:
+            save_mog(self.mog, self.db)
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                              buttons=QtWidgets.QMessageBox.Ok)
+        except ReferenceError as e:
+            QtWidgets.QMessageBox.Warning(self, 'Success', str(e),
+                                              buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
 
-        item = chooseMOG(current_module, database.long_url(current_module))
+        item, self.db = choose_mog(self.db)
         if item is not None:
-            self.mogs = current_module.session.query(Mog).all()
             self.mog = item
             self.update_control_center()
 
@@ -150,7 +142,7 @@ class ManualAmpUI(QtWidgets.QFrame):
         except:
             QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename), buttons=QtWidgets.QMessageBox.Ok)
 
-    def initUI(self):
+    def init_UI(self):
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
 
@@ -463,16 +455,16 @@ class UpperFig(FigureCanvasQTAgg):
 
     def __init__(self, ui):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(UpperFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
         self.trc_number = 0
         self.ui = ui
         self.mpl_connect('button_press_event', self.onclick)
         # self.mpl_connect('key_press_event', self.press)
         self.isTracingOn = False
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
 
         self.ax.yaxis.set_ticks_position('left')
@@ -497,7 +489,7 @@ class UpperFig(FigureCanvasQTAgg):
         self.pick_amp_tmin.set_visible(False)
         self.trace.set_visible(False)
 
-    def plot_amplitude(self):
+    def plot_trace(self):
         self.pick_amp_tmax.set_visible(True)
         self.pick_amp_tmin.set_visible(True)
         self.trace.set_visible(True)
@@ -555,15 +547,15 @@ class LowerFig(FigureCanvasQTAgg):
 
     def __init__(self, ui):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(LowerFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
         self.ui = ui
         self.trace_number = 0
         self.mpl_connect('button_press_event', self.onclick)
         self.isTracingOn = False
 
-    def initFig(self):
+    def init_figure(self):
         self.ax = self.figure.add_axes([0.07, 0.05, 0.9, 0.85])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
@@ -669,11 +661,11 @@ class LowerFig(FigureCanvasQTAgg):
 class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
+        fig = Figure(figsize=(100, 100), facecolor='white')
         super(StatsFig1, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
 
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
@@ -715,38 +707,26 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax3.plot(theta, et, marker='o', ls='None')
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
-        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+        Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+        Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+        Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
+        Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
-
-
-# --- Class For Alignment --- #
-class MyQLabel(QtWidgets.QLabel):
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
+        Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
 
 
 if __name__ == '__main__':
@@ -756,7 +736,7 @@ if __name__ == '__main__':
     manual_ui = ManualAmpUI()
 #    manual_ui.update_control_center()
 #    manual_ui.update_settings_edits()
-    manual_ui.showMaximized()
+    manual_ui.show()
     # manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
     sys.exit(app.exec_())

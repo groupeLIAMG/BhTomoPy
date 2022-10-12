@@ -22,22 +22,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 # python setup.py build_ext --inplace
 
+import platform
 import numpy as np
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
+include_dirs = ['./cutils/', np.get_include()]
+if platform.system() == 'Darwin':
+    extra_compile_args = ['-std=c++11', '-stdlib=libc++', '-O3']
+    extra_compile_argsC = ['-O3']
+    include_dirs.append('/opt/local/include')  # for boost
+elif platform.system() == 'Windows':
+    extra_compile_args = ['/O2']
+    extra_compile_argsC = ['/O2']
+    include_dirs=['./cutils/', np.get_include(),
+    'C:\\Users\\giroux\OneDrive\Documents\\boost_1_66_0']
+elif platform.system() == 'Linux':
+    extra_compile_args = ['-std=c++11', '-O3']
+    extra_compile_argsC = ['-O3']
 
 extensions = [
-    Extension('cutils.cgrid2d',
-              sources=['./cutils/cgrid2d.pyx', './cutils/Grid2Dttcr.cpp'],  # additional source file(s)
-              include_dirs=['./cutils/', np.get_include()],
-              language='c++',             # generate C++ code
-              extra_compile_args=['-std=c++11'],),
     Extension('cutils.segy',
               sources=['./cutils/segy.pyx', './cutils/csegy.c'],  # additional source file(s)
-              include_dirs=['./cutils/', np.get_include()],
-              extra_compile_args=['-std=c99'],),
+              include_dirs=include_dirs,
+              extra_compile_args=extra_compile_argsC,),
 ]
 
 setup(

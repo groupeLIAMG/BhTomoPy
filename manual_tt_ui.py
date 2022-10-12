@@ -21,52 +21,76 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
-import matplotlib as mpl
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+
+from matplotlib.axes import Axes
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg #, NavigationToolbar2QT
+from matplotlib.figure import Figure
 import numpy as np
-from sqlalchemy.orm.attributes import flag_modified
 
-from utils_ui import chooseMOG
-
-import database
-#current_module = sys.modules[__name__]
-#database.create_data_management(current_module)
+from database import BhTomoDb
+from utils_ui import MyQLabel, choose_mog, save_mog
 
 
 class ManualttUI(QtWidgets.QFrame):
     KeyPressed = QtCore.pyqtSignal()
 
     def __init__(self, parent=None):
-        super(ManualttUI, self).__init__()
+        super(ManualttUI, self).__init__(parent)
         self.setWindowTitle("BhTomoPy/Manual Traveltime Picking")
         self.mog = None
-        self.initUI()
+        self.db = BhTomoDb()
+        self.init_UI()
 
         # Signals of communication between Upper and Lower Figures
-        self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_trace_data)
+        self.upperFig.UpperTracePickedSignal.connect(self.lowerFig.plot_traces)
         self.upperFig.UpperTracePickedSignal.connect(self.update_control_center)
-        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_amplitude)
+        self.lowerFig.LowerTracePickedSignal.connect(self.upperFig.plot_trace)
         self.lowerFig.LowerTracePickedSignal.connect(self.update_control_center)
 
+    def show(self, filename):
+        if filename != '':
+            self.db.filename = filename
+        super(ManualttUI, self).show()
+
+        # Gets initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Shows it at the center of the screen
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+
+        # Moves the window's center at the center of the screen
+        qr.moveCenter(cp)
+        # Then moves it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
+
+    def showMaximized(self, filename):
+        if filename != '':
+            self.db.filename = filename
+        super(ManualttUI, self).showMaximized()
+
     def next_trace(self):
-        n = int(self.Tnum_Edit.text())
-        n += 1
-        if self.main_data_radio.isChecked():
-            self.mog.tt_done[n - 2] = 1
-        elif self.t0_before_radio.isChecked():
-            self.mog.av.tt_done[n - 2] = 1
-        elif self.t0_after_radio.isChecked():
-            self.mog.ap.tt_done[n - 2] = 1
+        if self.mog is None:
+            return
+        n = int(self.Tnum_Edit.text()) + 1
+#         if self.main_data_radio.isChecked():
+#             self.mog.tt_done[n - 2] = 1
+#         elif self.t0_before_radio.isChecked():
+#             self.mog.av.tt_done[n - 2] = 1
+#         elif self.t0_after_radio.isChecked():
+#             self.mog.ap.tt_done[n - 2] = 1
 
         self.Tnum_Edit.setText(str(n))
-        self.update_control_center()
+        self.update_all()
 
     def prev_trace(self):
-        n = int(self.Tnum_Edit.text())
-        n -= 1
+        if self.mog is None:
+            return
+        n = int(self.Tnum_Edit.text()) - 1
+        if n < 1:
+            return
         self.Tnum_Edit.setText(str(n))
-        if self.mog is not None:
-            self.upperFig.plot_amplitude()    
 
     def onScrollAmplitudeChange(self):
         val = 10**(-int(self.amp_slider.value())/100)
@@ -74,19 +98,15 @@ class ManualttUI(QtWidgets.QFrame):
         self.A_max_Edit.setText(str(val))
         self.A_min_Edit.setCursorPosition(0)
         self.A_max_Edit.setCursorPosition(0)
-        self.update_control_center()
+        self.upperFig.plot_trace()
 
     def update_control_center(self):
-        n = int(self.Tnum_Edit.text()) - 1
-#        ind = self.openmain.mog_combo.currentIndex()
 
-#        self.mog = self.mogs[ind]
         if self.mog is None:
             return
 
-#         if len(self.mogs) == 0:
-#             return
-#         else:
+        n = int(self.Tnum_Edit.text()) - 1
+
         if self.main_data_radio.isChecked():
             done = np.round(len(self.mog.tt[self.mog.tt != -1]) / len(self.mog.tt) * 100)
             self.xRx_label.setText(str(self.mog.data.Rx_x[n]))
@@ -97,8 +117,8 @@ class ManualttUI(QtWidgets.QFrame):
             self.zTx_label.setText(str(self.mog.data.Tx_z[n]))
             self.ntrace_label.setText(str(self.mog.data.ntrace))
             self.percent_done_label.setText(str(done))
-            self.time.setText(str(np.round(self.mog.tt[n], 4)))
-            self.incertitude_value_label.setText(str(np.round(self.mog.et[n], 4)))
+            pt = 'Picked time: {0:g} ± {1:g}'.format(self.mog.tt[n], self.mog.et[n])
+            self.picked_time.setText(pt)
 
         if self.t0_before_radio.isChecked():
             airshot_before = self.mog.av
@@ -111,8 +131,8 @@ class ManualttUI(QtWidgets.QFrame):
             self.zTx_label.setText(str(airshot_before.data.Tx_z[n]))
             self.ntrace_label.setText(str(airshot_before.data.ntrace))
             self.percent_done_label.setText(str(done))
-            self.time.setText(str(np.round(airshot_before.tt[n], 4)))
-            self.incertitude_value_label.setText(str(np.round(airshot_before.et[n], 4)))
+            pt = 'Picked time: {0:g} ± {1:g}'.format(airshot_before.tt[n], airshot_before.et[n])
+            self.picked_time.setText(pt)
 
         if self.t0_after_radio.isChecked():
             airshot_after = self.mog.ap
@@ -125,13 +145,16 @@ class ManualttUI(QtWidgets.QFrame):
             self.zTx_label.setText(str(airshot_after.data.Tx_z[n]))
             self.ntrace_label.setText(str(airshot_after.data.ntrace))
             self.percent_done_label.setText(str(done))
-            self.time.setText(str(np.round(airshot_after.tt[n], 4)))
-            self.incertitude_value_label.setText(str(np.round(airshot_after.et[n], 4)))
+            pt = 'Picked time: {0:g} ± {1:g}'.format(airshot_after.tt[n], airshot_after.et[n])
+            self.picked_time.setText(pt)
 
 #         self.check_save()  TODO ?
+
+    def update_all(self):
+        self.update_control_center()
         self.update_a_and_t_edits()
-        self.upperFig.plot_amplitude()
-        self.lowerFig.plot_trace_data()
+        self.upperFig.plot_trace()
+        self.lowerFig.plot_traces()
 
     def update_a_and_t_edits(self):
         n = int(self.Tnum_Edit.text())
@@ -164,46 +187,35 @@ class ManualttUI(QtWidgets.QFrame):
             self.mog.ap.et[n] = -1.0
             self.mog.ap.tt_done[n] = -1.0
 
-        self.update_control_center()
+        self.update_all()
 
     def next_trace_to_pick(self):
         ind = np.where(self.mog.tt_done == 0)[0]
         to_pick = ind[0] + 1
         self.Tnum_Edit.setText(str(to_pick))
-        self.update_control_center()
+        self.update_all()
 
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
 
     def plot_stats(self):
-
         # ind = self.openmain.mog_combo.currentIndex()
         # mog = self.mogs[ind]
         self.statsFig1 = StatsFig1()
         self.statsFig1.plot_stats(self.mog)
-        self.statsFig1.showMaximized()
+        self.statsFig1.show()
 
     def savefile(self):
-        flag_modified(self.mog, 'tt')
-        flag_modified(self.mog, 'et')
-        flag_modified(self.mog, 'tt_done')
-        if self.mog.useAirShots:
-            flag_modified(self.mog.av, 'tt')
-            flag_modified(self.mog.av, 'et')
-            flag_modified(self.mog.av, 'tt_done')
-            flag_modified(self.mog.ap, 'tt')
-            flag_modified(self.mog.ap, 'et')
-            flag_modified(self.mog.ap, 'tt_done')
-
-        database.session.commit()
-
-#         if self.mog.useAirShots == 1: # TODO: verify implementation with sqlalchemy
-#             sfile['air'] = self.air
-        QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
-                                          buttons=QtWidgets.QMessageBox.Ok)
+        try:
+            save_mog(self.mog, self.db)
+            QtWidgets.QMessageBox.information(self, 'Success', "Database was saved successfully",
+                                              buttons=QtWidgets.QMessageBox.Ok)
+        except ReferenceError as e:
+            QtWidgets.QMessageBox.Warning(self, 'Success', str(e),
+                                              buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        item = chooseMOG(database)
+        item, self.db = choose_mog(self.db, self)
         if item is not None:
             self.mog = item
             if self.mog.useAirShots == True:
@@ -212,7 +224,11 @@ class ManualttUI(QtWidgets.QFrame):
             else:
                 self.t0_before_radio.setEnabled(False)
                 self.t0_after_radio.setEnabled(False)
-            self.update_control_center()
+                
+            # reset t min/max
+            self.t_min_Edit.setText('0')
+            self.t_max_Edit.setText('{0:g}'.format(self.mog.data.timestp[-1]))
+            self.update_all()
 
     def import_tt_file(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')[0]
@@ -239,17 +255,17 @@ class ManualttUI(QtWidgets.QFrame):
                     self.mog.tt[trc_number - 1] = tt
                     self.mog.et[trc_number - 1] = et
     
-                self.update_control_center()
+                self.update_all()
         except:
             QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename), buttons=QtWidgets.QMessageBox.Ok)
 
-    def initUI(self):
+    def init_UI(self):
         blue_palette = QtGui.QPalette()
         blue_palette.setColor(QtGui.QPalette.Foreground, QtCore.Qt.darkCyan)
 
         # ------ Creation of the Manager for the Upper figure ------- #
         self.upperFig = UpperFig(self)
-        self.uppertool = NavigationToolbar2QT(self.upperFig, self)
+#        self.uppertool = NavigationToolbar2QT(self.upperFig, self)
         self.uppermanager = QtWidgets.QWidget()
         self.amp_slider = QtWidgets.QScrollBar()
         self.amp_slider.setMaximum(200)
@@ -259,11 +275,12 @@ class ManualttUI(QtWidgets.QFrame):
         self.amp_slider.setPageStep(10)
         self.amp_slider.valueChanged.connect(self.onScrollAmplitudeChange)
         uppermanagergrid = QtWidgets.QGridLayout()
-        uppermanagergrid.addWidget(self.uppertool, 0, 0)
+#        uppermanagergrid.addWidget(self.uppertool, 0, 0)
         uppermanagergrid.addWidget(self.upperFig, 1, 0)
         uppermanagergrid.addWidget(self.amp_slider, 1, 1)
-        uppermanagergrid.setContentsMargins(0, 0, 0, 0)
-        uppermanagergrid.setVerticalSpacing(3)
+        uppermanagergrid.setHorizontalSpacing(0)
+        uppermanagergrid.setContentsMargins(11, 11, 1, 11)
+        uppermanagergrid.setRowMinimumHeight(1, 350)
         self.uppermanager.setLayout(uppermanagergrid)
 
         # ------ Creation of the Manager for the Lower figure ------- #
@@ -271,7 +288,7 @@ class ManualttUI(QtWidgets.QFrame):
         self.lowermanager = QtWidgets.QWidget()
         lowermanagergrid = QtWidgets.QGridLayout()
         lowermanagergrid.addWidget(self.lowerFig, 0, 0)
-        lowermanagergrid.setContentsMargins(0, 0, 0, 0)
+#        lowermanagergrid.setContentsMargins(0, 0, 0, 0)
         self.lowermanager.setLayout(lowermanagergrid)
 
         # ------- Widgets Creation ------- #
@@ -315,21 +332,14 @@ class ManualttUI(QtWidgets.QFrame):
         self.ntrace_label = MyQLabel("", ha='right')
         self.percent_done_label = MyQLabel('', ha='right')
         trace_label = MyQLabel("traces", ha='left')
-        picked_label = MyQLabel("Picked Time:", ha='right')
-        self.time = QtWidgets.QLabel("")
-        incertitude_label = QtWidgets.QLabel("±")
-        self.incertitude_value_label = QtWidgets.QLabel("")
+        self.picked_time = QtWidgets.QLabel("Picked Time:")
 
         # --- Setting Labels color --- #
-        picked_label.setPalette(blue_palette)
-        self.time.setPalette(blue_palette)
-        incertitude_label.setPalette(blue_palette)
-        self.incertitude_value_label.setPalette(blue_palette)
+        self.picked_time.setPalette(blue_palette)
 
         # --- Actions --- #
         openAction = QtWidgets.QAction('Open main data file', self)
         openAction.setShortcut('Ctrl+O')
-#        openAction.triggered.connect(self.openmain.show)
         openAction.triggered.connect(self.openfile)
 
         saveAction = QtWidgets.QAction('Save', self)
@@ -355,21 +365,21 @@ class ManualttUI(QtWidgets.QFrame):
         # - Edits' Disposition - #
         self.Tnum_Edit.setFixedWidth(100)
         self.Tnum_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.t_min_Edit.setFixedWidth(50)
+        self.t_min_Edit.setFixedWidth(60)
         self.t_min_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.t_max_Edit.setFixedWidth(50)
+        self.t_max_Edit.setFixedWidth(60)
         self.t_max_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.A_min_Edit.setFixedWidth(50)
+        self.A_min_Edit.setFixedWidth(60)
         self.A_min_Edit.setAlignment(QtCore.Qt.AlignHCenter)
-        self.A_max_Edit.setFixedWidth(50)
+        self.A_max_Edit.setFixedWidth(60)
         self.A_max_Edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         # - Edits' Actions - #
-        self.Tnum_Edit.editingFinished.connect(self.update_control_center)
-        self.t_min_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
-        self.t_max_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
-        self.A_min_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
-        self.A_max_Edit.editingFinished.connect(self.upperFig.plot_amplitude)
+        self.Tnum_Edit.editingFinished.connect(self.update_all)
+        self.t_min_Edit.editingFinished.connect(self.upperFig.plot_trace)
+        self.t_max_Edit.editingFinished.connect(self.upperFig.plot_trace)
+        self.A_min_Edit.editingFinished.connect(self.upperFig.plot_trace)
+        self.A_max_Edit.editingFinished.connect(self.upperFig.plot_trace)
 
         # --- Checkboxes --- #
         self.Wave_checkbox = QtWidgets.QCheckBox("Wavelet tranf. denoising")
@@ -382,8 +392,8 @@ class ManualttUI(QtWidgets.QFrame):
 
         # - CheckBoxes' Actions - #
         self.lim_checkbox.stateChanged.connect(self.update_a_and_t_edits)
-        self.lim_checkbox.stateChanged.connect(self.upperFig.plot_amplitude)
-        self.veloc_checkbox.stateChanged.connect(self.update_control_center)
+        self.lim_checkbox.stateChanged.connect(self.upperFig.plot_trace)
+        self.veloc_checkbox.stateChanged.connect(self.lowerFig.plot_traces)
 
         # --- Radio Buttons --- #
         self.main_data_radio = QtWidgets.QRadioButton("Main Data file")
@@ -394,18 +404,17 @@ class ManualttUI(QtWidgets.QFrame):
 
         # - Radio Buttons' Disposition - #
         self.main_data_radio.setChecked(True)
-        # self.t0_before_radio.setChecked(True)
         self.tt_picking_radio.setChecked(True)
 
         # - Radio Buttons' Actions - #
-
         self.main_data_radio.toggled.connect(self.reinit_tnum)
         self.t0_before_radio.toggled.connect(self.reinit_tnum)
         self.t0_after_radio.toggled.connect(self.reinit_tnum)
 
-        self.main_data_radio.toggled.connect(self.update_control_center)
-        self.t0_before_radio.toggled.connect(self.update_control_center)
-        self.t0_after_radio.toggled.connect(self.update_control_center)
+        self.main_data_radio.toggled.connect(self.update_all)
+        self.t0_before_radio.toggled.connect(self.update_all)
+        self.t0_after_radio.toggled.connect(self.update_all)
+        
         # --- Text Edits --- #
         info_Tedit = QtWidgets.QTextEdit()
         info_Tedit.setReadOnly(True)
@@ -421,78 +430,51 @@ class ManualttUI(QtWidgets.QFrame):
         # --- Info Subwidget --- #
         Sub_Info_widget = QtWidgets.QWidget()
         Sub_Info_grid = QtWidgets.QGridLayout()
-        Sub_Info_grid.addWidget(position_label, 0, 1, 1, 3)
-        Sub_Info_grid.addWidget(x_label, 2, 1)
-        Sub_Info_grid.addWidget(y_label, 2, 2)
-        Sub_Info_grid.addWidget(z_label, 2, 3)
-        Sub_Info_grid.addWidget(Tx_label, 3, 0)
-        Sub_Info_grid.addWidget(self.xTx_label, 3, 1)
-        Sub_Info_grid.addWidget(self.yTx_label, 3, 2)
-        Sub_Info_grid.addWidget(self.zTx_label, 3, 3)
-        Sub_Info_grid.addWidget(Rx_label, 4, 0)
-        Sub_Info_grid.addWidget(self.xRx_label, 4, 1)
-        Sub_Info_grid.addWidget(self.yRx_label, 4, 2)
-        Sub_Info_grid.addWidget(self.zRx_label, 4, 3)
-        Sub_Info_grid.addWidget(self.ntrace_label, 5, 1)
-        Sub_Info_grid.addWidget(trace_label, 5, 2)
-        Sub_Info_grid.addWidget(done_label, 6, 2)
-        Sub_Info_grid.addWidget(self.percent_done_label, 6, 1)
+        Sub_Info_grid.addWidget(position_label, 0, 0, 1, 4)
+        Sub_Info_grid.addWidget(x_label, 1, 1)
+        Sub_Info_grid.addWidget(y_label, 1, 2)
+        Sub_Info_grid.addWidget(z_label, 1, 3)
+        Sub_Info_grid.addWidget(Tx_label, 2, 0)
+        Sub_Info_grid.addWidget(self.xTx_label, 2, 1)
+        Sub_Info_grid.addWidget(self.yTx_label, 2, 2)
+        Sub_Info_grid.addWidget(self.zTx_label, 2, 3)
+        Sub_Info_grid.addWidget(Rx_label, 3, 0)
+        Sub_Info_grid.addWidget(self.xRx_label, 3, 1)
+        Sub_Info_grid.addWidget(self.yRx_label, 3, 2)
+        Sub_Info_grid.addWidget(self.zRx_label, 3, 3)
+        Sub_Info_grid.addWidget(self.ntrace_label, 4, 1)
+        Sub_Info_grid.addWidget(trace_label, 4, 2)
+        Sub_Info_grid.addWidget(done_label, 5, 2)
+        Sub_Info_grid.addWidget(self.percent_done_label, 5, 1)
         Sub_Info_widget.setLayout(Sub_Info_grid)
         Sub_Info_widget.setStyleSheet("background: white")
 
         # --- Picked Time SubWidget --- #
         Sub_picked_widget = QtWidgets.QWidget()
         Sub_picked_grid = QtWidgets.QGridLayout()
-        Sub_picked_grid.addWidget(picked_label, 0, 0)
-        Sub_picked_grid.addWidget(self.time, 0, 1)
-        Sub_picked_grid.addWidget(incertitude_label, 0, 2)
-        Sub_picked_grid.addWidget(self.incertitude_value_label, 0, 3)
+        Sub_picked_grid.addWidget(self.picked_time, 0, 0)
         Sub_picked_widget.setLayout(Sub_picked_grid)
         Sub_picked_widget.setStyleSheet(" Background: white ")
-
-        # --- Trace Subwidget --- #
-        Sub_Trace_Widget = QtWidgets.QWidget()
-        Sub_Trace_Grid = QtWidgets.QGridLayout()
-        Sub_Trace_Grid.addWidget(trc_Label, 0, 0)
-        Sub_Trace_Grid.addWidget(self.Tnum_Edit, 0, 1)
-        Sub_Trace_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_Trace_Widget.setLayout(Sub_Trace_Grid)
-
-        # --- Prev Next SubWidget --- #
-        sub_prev_next_widget = QtWidgets.QWidget()
-        sub_prev_next_grid = QtWidgets.QGridLayout()
-        sub_prev_next_grid.addWidget(btn_Prev, 0, 0)
-        sub_prev_next_grid.addWidget(btn_Next, 0, 1)
-        sub_prev_next_grid.setContentsMargins(0, 0, 0, 0)
-        sub_prev_next_widget.setLayout(sub_prev_next_grid)
 
         # --- Left Part SubWidget --- #
         Sub_left_Part_Widget = QtWidgets.QWidget()
         Sub_left_Part_Grid = QtWidgets.QGridLayout()
         Sub_left_Part_Grid.addWidget(Sub_Info_widget, 0, 0, 1, 2)
         Sub_left_Part_Grid.addWidget(Sub_picked_widget, 1, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(Sub_Trace_Widget, 2, 0)
-        Sub_left_Part_Grid.addWidget(sub_prev_next_widget, 3, 0)
-        Sub_left_Part_Grid.addWidget(btn_Next_Pick, 5, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(btn_Reini, 6, 0, 1, 2)
-        Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 7, 0)
-        Sub_left_Part_Grid.addWidget(self.veloc_checkbox, 8, 0)
-        Sub_left_Part_Grid.addWidget(self.lim_checkbox, 9, 0)
-        Sub_left_Part_Grid.setContentsMargins(0, 0, 0, 0)
+        Sub_left_Part_Grid.addWidget(trc_Label, 2, 0)
+        Sub_left_Part_Grid.addWidget(self.Tnum_Edit, 2, 1)
+        Sub_left_Part_Grid.addWidget(btn_Prev, 3, 0)
+        Sub_left_Part_Grid.addWidget(btn_Next, 3, 1)
+        Sub_left_Part_Grid.addWidget(btn_Next_Pick, 4, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(btn_Reini, 5, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(self.Wave_checkbox, 6, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(self.veloc_checkbox, 7, 0, 1, 2)
+        Sub_left_Part_Grid.addWidget(self.lim_checkbox, 8, 0, 1, 2)
+        Sub_left_Part_Grid.setColumnMinimumWidth(0, 100)
+        Sub_left_Part_Grid.setColumnMinimumWidth(1, 100)
+        Sub_left_Part_Grid.setColumnStretch(0, 1)
+        Sub_left_Part_Grid.setColumnStretch(1, 1)
         Sub_left_Part_Widget.setLayout(Sub_left_Part_Grid)
-
-        # --- upper right subWidget --- #
-        Sub_upper_right_Widget = QtWidgets.QWidget()
-        Sub_upper_right_Grid = QtWidgets.QGridLayout()
-        Sub_upper_right_Grid.addWidget(self.pick_checkbox, 0, 0)
-        Sub_upper_right_Grid.addWidget(self.main_data_radio, 1, 0)
-        Sub_upper_right_Grid.addWidget(self.t0_before_radio, 2, 0)
-        Sub_upper_right_Grid.addWidget(self.t0_after_radio, 3, 0)
-        Sub_upper_right_Grid.addWidget(self.pick_combo, 4, 0, 1, 2)
-        Sub_upper_right_Grid.addWidget(btn_Upper, 6, 0, 1, 2)
-        Sub_upper_right_Grid.addWidget(btn_Conti, 7, 0, 1, 2)
-        Sub_upper_right_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_upper_right_Widget.setLayout(Sub_upper_right_Grid)
 
         # --- Contiguous Trace Groupbox --- #
         Conti_Groupbox = QtWidgets.QGroupBox("Shot Gather")
@@ -500,61 +482,48 @@ class ManualttUI(QtWidgets.QFrame):
         Conti_Grid.addWidget(self.tt_picking_radio, 0, 0)
         Conti_Grid.addWidget(self.trace_selec_radio, 1, 0)
         Conti_Grid.setColumnStretch(1, 100)
-        Conti_Grid.setContentsMargins(0, 0, 0, 0)
         Conti_Groupbox.setLayout(Conti_Grid)
 
-        # --- Time and Amplitude Labels SubWidget --- #
-        Sub_T_and_A_Labels_Widget = QtWidgets.QWidget()
-        Sub_T_and_A_Labels_Grid = QtWidgets.QGridLayout()
-        Sub_T_and_A_Labels_Grid.addWidget(t_min_label, 0, 0)
-        Sub_T_and_A_Labels_Grid.addWidget(t_max_label, 0, 1)
-        Sub_T_and_A_Labels_Grid.addWidget(A_min_label, 0, 2)
-        Sub_T_and_A_Labels_Grid.addWidget(A_max_label, 0, 3)
-        Sub_T_and_A_Labels_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_T_and_A_Labels_Widget.setLayout(Sub_T_and_A_Labels_Grid)
-
-        # --- Time and Amplitude Edits SubWidget --- #
-        Sub_T_and_A_Edits_Widget = QtWidgets.QWidget()
-        Sub_T_and_A_Edits_Grid = QtWidgets.QGridLayout()
-        Sub_T_and_A_Edits_Grid.addWidget(self.t_min_Edit, 0, 0)
-        Sub_T_and_A_Edits_Grid.addWidget(self.t_max_Edit, 0, 1)
-        Sub_T_and_A_Edits_Grid.addWidget(self.A_min_Edit, 0, 2)
-        Sub_T_and_A_Edits_Grid.addWidget(self.A_max_Edit, 0, 3)
-        Sub_T_and_A_Edits_Grid.addWidget(btn_Stats, 1, 0, 1, 4)
-        Sub_T_and_A_Edits_Grid.addWidget(self.save_checkbox, 2, 0, 1, 4)
-        Sub_T_and_A_Edits_Grid.addWidget(self.jump_checkbox, 3, 0, 1, 4)
-        Sub_T_and_A_Edits_Grid.setHorizontalSpacing(0)
-        Sub_T_and_A_Edits_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_T_and_A_Edits_Widget.setLayout(Sub_T_and_A_Edits_Grid)
-
-        # --- Time and Ampitude Labels and Edits SubWidget --- #
-        Sub_T_and_A_Widget = QtWidgets.QWidget()
-        Sub_T_and_A_Grid   = QtWidgets.QGridLayout()
-        Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Labels_Widget, 0, 0)
-        Sub_T_and_A_Grid.addWidget(Sub_T_and_A_Edits_Widget, 1, 0)
-        Sub_T_and_A_Grid.setRowStretch(3, 100)
-        Sub_T_and_A_Grid.setContentsMargins(0, 0, 0, 0)
-        Sub_T_and_A_Widget.setLayout(Sub_T_and_A_Grid)
+        # --- upper right subWidget --- #
+        Sub_right_Widget = QtWidgets.QWidget()
+        Sub_right_Grid = QtWidgets.QGridLayout()
+        Sub_right_Grid.addWidget(self.pick_checkbox, 0, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.main_data_radio, 1, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.t0_before_radio, 2, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.t0_after_radio, 3, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.pick_combo, 4, 0, 1, 4)
+        Sub_right_Grid.addWidget(btn_Upper, 5, 0, 1, 4)
+        Sub_right_Grid.addWidget(btn_Conti, 6, 0, 1, 4)
+        Sub_right_Grid.addWidget(Conti_Groupbox, 7, 0, 1, 4)
+        Sub_right_Grid.addWidget(t_min_label, 8, 0)
+        Sub_right_Grid.addWidget(t_max_label, 8, 1)
+        Sub_right_Grid.addWidget(A_min_label, 8, 2)
+        Sub_right_Grid.addWidget(A_max_label, 8, 3)
+        Sub_right_Grid.addWidget(self.t_min_Edit, 9, 0)
+        Sub_right_Grid.addWidget(self.t_max_Edit, 9, 1)
+        Sub_right_Grid.addWidget(self.A_min_Edit, 9, 2)
+        Sub_right_Grid.addWidget(self.A_max_Edit, 9, 3)
+        Sub_right_Grid.addWidget(btn_Stats, 10, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.save_checkbox, 11, 0, 1, 4)
+        Sub_right_Grid.addWidget(self.jump_checkbox, 12, 0, 1, 4)
+        Sub_right_Widget.setLayout(Sub_right_Grid)
 
         # --- Control Center SubWidget --- #
         Control_Center_GroupBox = QtWidgets.QGroupBox("Control Center")
         Control_Center_Grid = QtWidgets.QGridLayout()
         Control_Center_Grid.addWidget(Sub_left_Part_Widget, 0, 0, 4, 1)
-        Control_Center_Grid.addWidget(Sub_upper_right_Widget, 0, 1)
-        Control_Center_Grid.addWidget(Conti_Groupbox, 1, 1)
-        Control_Center_Grid.addWidget(Sub_T_and_A_Widget, 2, 1)
+        Control_Center_Grid.addWidget(Sub_right_Widget, 0, 1)
         Control_Center_GroupBox.setLayout(Control_Center_Grid)
 
         # --- Master Grid Disposition --- #
         master_grid = QtWidgets.QGridLayout()
-        master_grid.addWidget(self.tool, 0, 0, 1, 3)
-        master_grid.addWidget(self.uppermanager, 1, 0, 1, 3)
-        master_grid.addWidget(self.lowermanager, 2, 0, 1, 2)
-        master_grid.addWidget(Control_Center_GroupBox, 2, 2)
+        master_grid.addWidget(self.tool, 0, 0, 1, 2)
+        master_grid.addWidget(self.uppermanager, 1, 0, 1, 2)
+        master_grid.addWidget(self.lowermanager, 2, 0)
+        master_grid.addWidget(Control_Center_GroupBox, 2, 1)
         master_grid.setRowStretch(1, 100)
-        master_grid.setColumnStretch(1, 100)
-        master_grid.setContentsMargins(10, 10, 10, 10)
-        master_grid.setVerticalSpacing(0)
+        master_grid.setColumnStretch(0, 100)
+        master_grid.setColumnMinimumWidth(0, 750)
         self.setLayout(master_grid)
 
     def upper_trace_isClicked(self):
@@ -580,44 +549,30 @@ class UpperFig(FigureCanvasQTAgg):
 
     def __init__(self, tt):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(UpperFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
+        self.mpl_connect('button_press_event', self.onclick)
         self.trc_number = 0
         self.tt = tt
-        self.mpl_connect('button_press_event', self.onclick)
-        # self.mpl_connect('key_press_event', self.press)
         self.isTracingOn = False
 
-    def initFig(self):
-        self.ax = self.figure.add_axes([0.05, 0.13, 0.935, 0.85])
+    def init_figure(self):
+        self.ax = self.figure.add_axes([0.08, 0.13, 0.9, 0.85])
         self.ax2 = self.ax.twiny()
 
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
         self.ax.set_ylabel('Amplitude')
+        self.ax.set_xlabel('Time')
 
         self.ax2.yaxis.set_ticks_position('none')
         self.ax2.xaxis.set_ticks_position('none')
 
-        self.trace, = self.ax.plot([],  # TODO: comma?
-                                   [],
-                                   color='b')
-
-        self.picktt  = self.ax2.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='g')
-
-        self.picket1 = self.ax2.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='r')
-
-        self.picket2 = self.ax2.axvline(-100,
-                                        ymin=0,
-                                        ymax=1,
-                                        color='r')
+        self.trace, = self.ax.plot([], [], color='b')
+        self.picktt  = self.ax2.axvline(-100, ymin=0, ymax=1, color='g')
+        self.picket1 = self.ax2.axvline(-100, ymin=0, ymax=1, color='r')
+        self.picket2 = self.ax2.axvline(-100, ymin=0, ymax=1, color='r')
 
         self.picket1.set_visible(False)
         self.picket2.set_visible(False)
@@ -625,8 +580,10 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax2.get_xaxis().set_visible(False)
         self.ax2.get_yaxis().set_visible(False)
 
-    def plot_amplitude(self):
-
+    def plot_trace(self):
+        if self.tt.mog is None:
+            return
+        
         self.picket1.set_visible(True)
         self.picket2.set_visible(True)
         self.picktt.set_visible(True)
@@ -646,12 +603,7 @@ class UpperFig(FigureCanvasQTAgg):
             if self.tt.mog.tt[self.trc_number] != -1:
                 self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.mog.et[self.trc_number] != -1.0:
-                    self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                           self.tt.mog.et[self.trc_number])
-                    self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                           self.tt.mog.et[self.trc_number])
-                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
+                if self.tt.pick_combo.currentIndex() == 1 and self.tt.mog.et[self.trc_number] != -1.0:
                     self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
                                            self.tt.mog.et[self.trc_number])
                     self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
@@ -662,45 +614,35 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picket1.set_xdata(-100)
                 self.picket2.set_xdata(-100)
 
-        if self.tt.t0_before_radio.isChecked():
-            airshot_before = self.tt.mog.av
-            trace = airshot_before.data.rdata[:, n - 1]
+        elif self.tt.t0_before_radio.isChecked():
+            airshot = self.tt.mog.av
+            trace = airshot.data.rdata[:, n - 1]
 
-            if self.tt.mog.av.tt[self.trc_number] != -1:
-                self.picktt.set_xdata(airshot_before.tt[self.trc_number])
+            if airshot.tt[self.trc_number] != -1:
+                self.picktt.set_xdata(airshot.tt[self.trc_number])
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and self.tt.mog.av.tt[self.trc_number] != -1.0:
-                    self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
-                                           airshot_before.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
-                                           airshot_before.et[self.trc_number])
-                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
-                    self.picket1.set_xdata(airshot_before.tt[self.trc_number] -
-                                           airshot_before.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_before.tt[self.trc_number] +
-                                           airshot_before.et[self.trc_number])
+                if self.tt.pick_combo.currentIndex() == 1 and airshot.tt[self.trc_number] != -1.0:
+                    self.picket1.set_xdata(airshot.tt[self.trc_number] -
+                                           airshot.et[self.trc_number])
+                    self.picket2.set_xdata(airshot.tt[self.trc_number] +
+                                           airshot.et[self.trc_number])
 
             else:
                 self.picktt.set_xdata(-100)
                 self.picket1.set_xdata(-100)
                 self.picket2.set_xdata(-100)
 
-        if self.tt.t0_after_radio.isChecked():
-            airshot_after = self.tt.mog.ap
-            trace = airshot_after.data.rdata[:, n - 1]
-            if airshot_after.tt[self.trc_number] != -1:
-                self.picktt.set_xdata(airshot_after.tt[self.trc_number])
+        elif self.tt.t0_after_radio.isChecked():
+            airshot = self.tt.mog.ap
+            trace = airshot.data.rdata[:, n - 1]
+            if airshot.tt[self.trc_number] != -1:
+                self.picktt.set_xdata(airshot.tt[self.trc_number])
 
-                if self.tt.pick_combo.currentText() == 'Simple Picking' and airshot_after.tt[self.trc_number] != -1.0:
-                    self.picket1.set_xdata(airshot_after.tt[self.trc_number] -
-                                           airshot_after.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_after.tt[self.trc_number] +
-                                           airshot_after.et[self.trc_number])
-                elif self.tt.pick_combo.currentText() == 'Pick with std deviation':
-                    self.picket1.set_xdata(airshot_after.tt[self.trc_number] -
-                                           airshot_after.et[self.trc_number])
-                    self.picket2.set_xdata(airshot_after.tt[self.trc_number] +
-                                           airshot_after.et[self.trc_number])
+                if self.tt.pick_combo.currentIndex() == 1 and airshot.tt[self.trc_number] != -1.0:
+                    self.picket1.set_xdata(airshot.tt[self.trc_number] -
+                                           airshot.et[self.trc_number])
+                    self.picket2.set_xdata(airshot.tt[self.trc_number] +
+                                           airshot.et[self.trc_number])
 
             else:
                 self.picktt.set_xdata(-100)
@@ -708,13 +650,10 @@ class UpperFig(FigureCanvasQTAgg):
                 self.picket2.set_xdata(-100)
 
         if not self.tt.lim_checkbox.isChecked():
-
             self.ax.set_ylim(A_min, A_max)
         else:
             self.ax.set_ylim(min(trace.flatten()), max(trace.flatten()))
 
-        self.ax2.set_xlim(t_min, t_max)
-        self.ax.set_xlim(t_min, t_max)
         if self.tt.main_data_radio.isChecked():
             self.trace.set_xdata(self.tt.mog.data.timestp)
         if self.tt.t0_before_radio.isChecked():
@@ -722,31 +661,15 @@ class UpperFig(FigureCanvasQTAgg):
         if self.tt.t0_after_radio.isChecked():
             self.trace.set_xdata(self.tt.mog.ap.data.timestp)
         self.trace.set_ydata(trace)
+        self.ax2.set_xlim(t_min, t_max)
+        self.ax.set_xlim(t_min, t_max)
 
         # TODO
         if self.tt.Wave_checkbox.isChecked():
             ind, wavelet = self.wavelet_filtering(self.tt.mog.data.rdata)
 
-        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))
-
         self.draw()
-
-    def wavelet_filtering(self, rdata):
-        shape = np.shape(rdata)
-        nptsptrc, ntrace = shape[0], shape[1]
-        N = 3
-        npts = np.ceil(nptsptrc / 2**N) * 2**N
-        d = npts - nptsptrc
-        rdata = np.array([[rdata],
-                          [rdata[-1 - d: -1, :]]])
-        ind_max = np.zeros(ntrace)
-        inc_wb = np.round(ntrace / 100)
-        for n in range(ntrace):
-            trace2 = self.denoise(rdata[:, n], wavelet, N)
-
-    def denoise(self, trace, wavelet, N):
-        swc = swt(trace, N, wavelet)
-
+        
     def onclick(self, event):
 
         if self.isTracingOn is False:
@@ -763,57 +686,37 @@ class UpperFig(FigureCanvasQTAgg):
                     self.tt.mog.tt[self.trc_number] = event.xdata
                     self.tt.mog.tt_done[self.trc_number] = 1
 
-                if self.tt.t0_before_radio.isChecked():
+                elif self.tt.t0_before_radio.isChecked():
                     self.tt.mog.av.tt[self.trc_number] = event.xdata
                     self.tt.mog.av.tt_done[self.trc_number] = 1
                     self.ax2.set_xlim(x_lim[0], x_lim[-1])
                     self.ax.set_ylim(y_lim[0], y_lim[-1])
 
-                if self.tt.t0_after_radio.isChecked():
+                elif self.tt.t0_after_radio.isChecked():
                     self.tt.mog.ap.tt[self.trc_number] = event.xdata
                     self.tt.mog.ap.tt_done[self.trc_number] = 1
                     self.ax2.set_xlim(x_lim[0], x_lim[-1])
                     self.ax.set_ylim(y_lim[0], y_lim[-1])
 
-                if self.tt.pick_combo.currentText() == "Simple Picking":
-                    if self.tt.main_data_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
+                self.picktt.set_xdata(event.xdata)
 
-                    if self.tt.t0_before_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.av.tt[self.trc_number])
-
-                    if self.tt.t0_after_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.ap.tt[self.trc_number])
-
-                elif self.tt.pick_combo.currentText() == "Pick with std deviation":
+                if self.tt.pick_combo.currentindex() == 1:
 
                     if self.tt.main_data_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.mog.tt[self.trc_number] -
-                                               self.tt.mog.et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.mog.tt[self.trc_number] +
-                                               self.tt.mog.et[self.trc_number])
-
-                    if self.tt.t0_before_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.av.tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.mog.av.tt[self.trc_number] -
-                                               self.tt.mog.av.et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.mog.av.tt[self.trc_number] +
-                                               self.tt.mog.av.et[self.trc_number])
-
-                    if self.tt.t0_after_radio.isChecked():
-                        self.picktt.set_xdata(self.tt.mog.ap.tt[self.trc_number])
-                        self.picket1.set_xdata(self.tt.mog.ap.tt[self.trc_number] -
-                                               self.tt.mog.ap.et[self.trc_number])
-                        self.picket2.set_xdata(self.tt.mog.ap.tt[self.trc_number] +
-                                               self.tt.mog.ap.et[self.trc_number])
+                        et = self.tt.mog.et[self.trc_number]
+                    elif self.tt.t0_before_radio.isChecked():
+                        et = self.tt.mog.av.et[self.trc_number]
+                    elif self.tt.t0_after_radio.isChecked():
+                        et = self.tt.mog.ap.et[self.trc_number]
+                        
+                    self.picket1.set_xdata(event.xdata - et)
+                    self.picket2.set_xdata(event.xdata + et)
 
             self.UpperTracePickedSignal.emit(True)
 
         elif event.button == 2:
 
             if self.tt.jump_checkbox.isChecked():
-
                 self.tt.next_trace_to_pick()
             else:
                 self.tt.next_trace()
@@ -824,10 +727,10 @@ class UpperFig(FigureCanvasQTAgg):
                 if self.tt.main_data_radio.isChecked():
                     self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.xdata)
 
-                if self.tt.t0_before_radio.isChecked():
+                elif self.tt.t0_before_radio.isChecked():
                     self.tt.mog.av.et[self.trc_number] = np.abs(self.tt.mog.av.tt[self.trc_number] - event.xdata)
 
-                if self.tt.t0_after_radio.isChecked():
+                elif self.tt.t0_after_radio.isChecked():
                     self.tt.mog.ap.et[self.trc_number] = np.abs(self.tt.mog.ap.tt[self.trc_number] - event.xdata)
 
                 y_lim = self.ax.get_ylim()
@@ -852,7 +755,23 @@ class UpperFig(FigureCanvasQTAgg):
 
             self.UpperTracePickedSignal.emit(True)
 
-        self.draw()
+
+    def wavelet_filtering(self, rdata):
+        nptsptrc, ntrace = rdata.shape
+        N = 3
+        npts = np.ceil(nptsptrc / 2**N) * 2**N
+        d = npts - nptsptrc
+        rdata = np.array([[rdata],
+                          [rdata[-1 - d: -1, :]]])
+        ind_max = np.zeros(ntrace)
+        inc_wb = np.round(ntrace / 100)
+        for n in range(ntrace):
+            pass # TODO:
+#            trace2 = self.denoise(rdata[:, n], wavelet, N)
+
+    def denoise(self, trace, wavelet, N):
+        pass   # TODO:
+#        swc = swt(trace, N, wavelet)
 
 
 class LowerFig(FigureCanvasQTAgg):
@@ -860,17 +779,19 @@ class LowerFig(FigureCanvasQTAgg):
 
     def __init__(self, tt):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(LowerFig, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
         self.tt = tt
         self.mpl_connect('button_press_event', self.onclick)
         self.isTracingOn = False
 
-    def initFig(self):
-        self.ax = self.figure.add_axes([0.07, 0.05, 0.9, 0.85])
+    def init_figure(self):
+        self.ax = self.figure.add_axes([0.1, 0.12, 0.88, 0.86])
         self.ax.yaxis.set_ticks_position('left')
         self.ax.xaxis.set_ticks_position('bottom')
+        self.ax.set_ylabel('Time')
+        self.ax.set_xlabel('Trace no')
 
         self.shot_gather        = self.ax.imshow(np.zeros((2, 2)),
                                                  interpolation='none',
@@ -934,7 +855,9 @@ class LowerFig(FigureCanvasQTAgg):
         self.picked_et_circle2.set_visible(False)
         self.vapp_plot.set_visible(False)
 
-    def plot_trace_data(self):
+    def plot_traces(self):
+        if self.tt.mog is None:
+            return
 
         self.shot_gather.set_visible(True)
         self.picked_square.set_visible(True)
@@ -950,6 +873,8 @@ class LowerFig(FigureCanvasQTAgg):
 
         t_min = float(self.tt.t_min_Edit.text())
         t_max = float(self.tt.t_max_Edit.text())
+        self.ax.set_ylim(t_min, t_max)
+        self.ax.invert_yaxis()
 
         if self.tt.main_data_radio.isChecked():
             current_trc = mog.data.Tx_z[n]
@@ -1084,8 +1009,8 @@ class LowerFig(FigureCanvasQTAgg):
             self.shot_gather.set_extent([0, airshot_after.data.ntrace - 1, t_max, t_min])
             self.draw()
 
-        mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')
+        Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax, 'Trace No')    # @UndefinedVariable
 
     def calculate_Vapp(self):
         mog = self.tt.mog
@@ -1151,21 +1076,19 @@ class LowerFig(FigureCanvasQTAgg):
 
                     idx = np.argmin((np.abs(np.arange(self.tt.mog.data.ntrace) - event.xdata)))
                     self.tt.Tnum_Edit.setText(str(idx + 1))
-                    self.tt.update_control_center()
+                    self.tt.update_control_center()  # TODO: check this
 
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
                 self.LowerTracePickedSignal.emit(True)
 
         elif event.button == 2:
             if self.tt.jump_checkbox.isChecked():
-
                 self.tt.next_trace_to_pick()
             else:
                 self.tt.next_trace()
 
         elif event.button == 3:
             if self.x is not None and self.y is not None:
-
                 if self.tt.main_data_radio.isChecked():
                     self.tt.mog.et[self.trc_number] = np.abs(self.tt.mog.tt[self.trc_number] - event.ydata)
                 elif self.tt.t0_before_radio.isChecked():
@@ -1181,11 +1104,11 @@ class LowerFig(FigureCanvasQTAgg):
 class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
+        fig = Figure(figsize=(10, 7), facecolor='white')
         super(StatsFig1, self).__init__(fig)
-        self.initFig()
+        self.init_figure()
 
-    def initFig(self):
+    def init_figure(self):
 
         self.ax1 = self.figure.add_axes([0.1, 0.1, 0.2, 0.25])
         self.ax2 = self.figure.add_axes([0.4, 0.1, 0.2, 0.25])
@@ -1225,38 +1148,26 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax3.plot(theta, et, marker='o', ls='None')
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
 
-        mpl.axes.Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))
+        Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')
+        Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')
+        Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')
+        Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
+        Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')
-
-
-class MyQLabel(QtWidgets.QLabel):
-    # --- Class For Alignment --- #
-    def __init__(self, label, ha='left', parent=None):
-        super(MyQLabel, self).__init__(label, parent)
-        if ha == 'center':
-            self.setAlignment(QtCore.Qt.AlignCenter)
-        elif ha == 'right':
-            self.setAlignment(QtCore.Qt.AlignRight)
-        else:
-            self.setAlignment(QtCore.Qt.AlignLeft)
+        Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
 
 
 if __name__ == '__main__':
@@ -1266,9 +1177,9 @@ if __name__ == '__main__':
     manual_ui = ManualttUI()
     # manual_ui.update_control_center()
     # manual_ui.update_a_and_t_edits()
-    # manual_ui.upperFig.plot_amplitude()
-    # manual_ui.lowerFig.plot_trace_data()
-    manual_ui.showMaximized()
+    # manual_ui.upperFig.plot_trace()
+    # manual_ui.lowerFig.plot_traces()
+    manual_ui.show('/Users/giroux/JacquesCloud/Projets/Pau/DATA_SUSSARGUES/sussargues2D.h5')
     # manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
     sys.exit(app.exec_())

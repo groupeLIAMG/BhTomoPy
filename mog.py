@@ -18,51 +18,48 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
-
+import os
 import re
 import numpy as np
-from sqlalchemy import Column, String, Float, Boolean, SmallInteger, ForeignKey, Integer, PickleType
-from utils import Base
-from sqlalchemy import orm
 
+from borehole import Borehole
 
 class MogData(object):
     """
     Class to hold multi-offset gather (mog) data
     """
 
-    def __init__(self, name='', date=None):
+    def __init__(self, name='', date=''):
         self.ntrace      = 0     # number of traces
         self.nptsptrc    = 0     # number of points per trace
-        self.rstepsz     = 0     # size of step used
+        self.rstepsz     = 0.0   # size of step used
         self.rnomfreq    = 0     # nominal frequency of antenna
         self.csurvmod    = ''    # survey mode
         self.timec       = 0     # the step of time data
         self.rdata       = 0     # raw data
-        self.tdata       = None  # time data
+        self.tdata       = 0     # time data
         self.timestp     = 0     # matrix of range self.nptstrc containing all the time referencies
-        self.Tx_x        = [0]   # x position of the transmitter
-        self.Tx_y        = [0]   # y position of the transmitter
-        self.Tx_z        = [0]   # z position of the transmitter
-        self.Rx_x        = [0]   # x position of the receptor
-        self.Rx_y        = [0]   # y position of the receptor
-        self.Rx_z        = [0]   # z position of the receptor
+        self.Tx_x        = np.array([0.0])   # x position of the transmitter
+        self.Tx_y        = np.array([0.0])   # y position of the transmitter
+        self.Tx_z        = np.array([0.0])   # z position of the transmitter
+        self.Rx_x        = np.array([0.0])   # x position of the receptor
+        self.Rx_y        = np.array([0.0])   # y position of the receptor
+        self.Rx_z        = np.array([0.0])   # z position of the receptor
         self.antennas    = ''    # name of the antenna
         self.synthetique = 0     # if 1 results from numerical modelling and 0 for field data
-        self.tunits      = 0     # time units
+        self.tunits      = ''    # time units
         self.cunits      = ''    # coordinates units
-        self.TxOffset    = 0     # length of he transmittor which is above the surface
-        self.RxOffset    = 0     # length of he receptor which is above the surface
+        self.TxOffset    = 0.0   # length of he transmittor which is above the surface
+        self.RxOffset    = 0.0   # length of he receptor which is above the surface
         self.comment     = ''    # is defined by the presence of any comment in the file
-        self.date        = ''    # the date of the data sample
+        self.date        = date  # the date of the data sample
         self.name        = name
 
     def readRAMAC(self, basename):
         """
         loads data in Malå RAMAC format
         """
-        rname = basename.split('/')
-        rname = rname[-1]
+        rname = os.path.basename(basename)
 
         self.name = rname
         self.tunits = 'ns'
@@ -70,11 +67,7 @@ class MogData(object):
 
         self.readRAD(basename)
         self.readRD3(basename)
-        try:
-            self.readTLF(basename)
-        except IOError as e:
-            print(str(e) + ' [mog err1]')
-
+        
         self.TxOffset = 0
         self.RxOffset = 0
 
@@ -87,13 +80,19 @@ class MogData(object):
                 self.TxOffset = 0.325
                 self.RxOffset = 0.365
 
-        self.Tx_z = self.Tx_z[:self.ntrace]
-        self.Rx_z = self.Rx_z[:self.ntrace]
-
         self.Tx_y = np.zeros(self.ntrace)
         self.Rx_y = np.zeros(self.ntrace)
         self.Tx_x = np.zeros(self.ntrace)
         self.Rx_x = np.zeros(self.ntrace)
+        
+        try:
+            self.readTLF(basename)
+        except IOError as e:
+            raise e
+
+        self.Tx_z = self.Tx_z[:self.ntrace]
+        self.Rx_z = self.Rx_z[:self.ntrace]
+
 
     def readRAD(self, basename):
         """
@@ -108,7 +107,7 @@ class MogData(object):
                 try:
                     file = open(basename + ".RAD", 'r')
                 except Exception as e:
-                    raise IOError("Cannot open RAD file '" + str(e)[:42] + "...' [mog 2]")
+                    raise IOError(str(e))
 
         # knowing the file's contents, we make sure to read every line while looking for keywords. When we've found one of
         # these keyword, we either search the int('\d+'), the float(r"[-+]?\d*\.\d+|\d+") or a str by getting the
@@ -165,7 +164,7 @@ class MogData(object):
                 except Exception as e:
                     raise IOError("Cannot open RD3 file '" + str(e)[:42] + "...' [mog 3]")
 
-        self.rdata = np.fromfile(file, dtype='int16', count=self.nptsptrc * self.ntrace)
+        self.rdata = np.asfarray(np.fromfile(file, dtype='int16', count=self.nptsptrc * self.ntrace))
         self.rdata.resize((self.ntrace, self.nptsptrc))
         self.rdata = self.rdata.T
 
@@ -217,95 +216,38 @@ class MogData(object):
 
 class PruneParams(object):
     def __init__(self):
-        self.stepTx = 0
-        self.stepRx = 0
-        self.round_factor = 0
+        self.stepTx = 0.0
+        self.stepRx = 0.0
+        self.round_factor = 0.0
         self.use_SNR = 0
-        self.threshold_SNR = 0
-        self.zmin = -1e99
-        self.zmax = 1e99
-        self.thetaMin = -90
-        self.thetaMax = 90
+        self.threshold_SNR = 0.0
+        self.zmin = -1.0e99
+        self.zmax = 1.0e99
+        self.thetaMin = -90.0
+        self.thetaMax = 90.0
 
 
-class Mog(Base):  # Multi-Offset Gather
-
-    __tablename__ = "Mog"
-    name             = Column(String, primary_key=True)
-    pruneParams      = Column(PickleType)    # Object holding the parameters used in pruning
-    data             = Column(PickleType)    # Instance of MogData
-    tau_params       = Column(PickleType)    # Parameters used to set source amplitude (set in manual_amp_ui)
-    fw               = Column(PickleType)    # Numpy array holding wavelet transform frequency filtered traces (set in manual_*_ui)
-    f_et             = Column(Float)         # Standard deviation on frequency
-    amp_name_Ldc     = Column(String)        # Name of inversion to use in attenuation tomography (for obtaining matrix L)
-    type             = Column(SmallInteger)  # VRP or cross-hole (0 or 1, respectively)  # TODO this is unused yet
-    fac_dt           = Column(Float)         # Boolean: time step correction factor
-    user_fac_dt      = Column(Float)         # Time step correction factor defined by user
-    useAirShots      = Column(Boolean)       # Boolean holding whether or not AirShots are used
-    TxCosDir         = Column(PickleType)    # Direction cosine at Tx points
-    RxCosDir         = Column(PickleType)    # Direction cosine at Rx points
-
-    ID               = Column(Integer)       # Unique ID for mog
-    in_Rx_vect       = Column(PickleType)    # Indicates whether or not an element of the receiver is ignored  # TODO should be transferred to 'pruneParams'
-    in_Tx_vect       = Column(PickleType)    # idem.
-    in_vect          = Column(PickleType)    # idem.
-    date             = Column(String)        # Date of the mog's data
-    tt               = Column(PickleType)    # Arrival time
-    et               = Column(PickleType)    # Standard deviation of arrival time
-    tt_done          = Column(PickleType)    # Boolean indicator of arrival time
-
-    ttTx             = Column(PickleType)    # Travel time picked at the Tx np.array
-    ttTx_done        = Column(PickleType)    # Boolean indicator of the picked travel times
-
-    amp_tmin         = Column(PickleType)    # Lower bound of amplitude analysis
-    amp_tmax         = Column(PickleType)    # Upper bound of amplitude analysis
-    amp_done         = Column(PickleType)    # Boolean indicator
-    App              = Column(PickleType)    # Peak-to-peak amplitude
-    fcentroid        = Column(PickleType)    # Centroid frequency
-    scentroid        = Column(PickleType)    # Slowness for centroid frequency
-    tauApp           = Column(PickleType)    # Pseudo travel times for peak-to-peak method
-    tauApp_et        = Column(PickleType)    # Standard deviation
-    tauFce           = Column(PickleType)    # Pseudo travel times for centroid frequency method
-    tauFce_et        = Column(PickleType)    # Standard deviation
-    tauHyb           = Column(PickleType)    # Pseudo travel times for an hybrid
-    tauHyb_et        = Column(PickleType)    # Standard deviation
-    Tx_z_orig        = Column(PickleType)    # Depth of Tx points (from borehole collar)
-    Rx_z_orig        = Column(PickleType)    # Depth of Rx points (from borehole collar)
-
-    Tx_name = Column(String, ForeignKey('Borehole.name'))    # One shouldn't manipulate these columns.
-    Rx_name = Column(String, ForeignKey('Borehole.name'))    # Use the following Tx, Rx, av and ap instead.
-    av_name = Column(String, ForeignKey('Airshots.name'))
-    ap_name = Column(String, ForeignKey('Airshots.name'))
-    Tx = orm.relationship("Borehole", foreign_keys=Tx_name)  # Mog's transmitter borehole
-    Rx = orm.relationship("Borehole", foreign_keys=Rx_name)  # Mog's receiver borehole
-    av = orm.relationship("AirShots", foreign_keys=av_name)  # Mog's 'before' airshot
-    ap = orm.relationship("AirShots", foreign_keys=ap_name)  # Mog's 'after' airshot
+class Mog():  # Multi-Offset Gather
 
     def __init__(self, name='', data=MogData()):
-        self.pruneParams               = PruneParams()
-        self.name                      = name
-        self.data                      = data
-        self.tau_params                = np.array([])
-        self.fw                        = np.array([])
-        self.f_et                      = 1
-        self.amp_name_Ldc              = ''
-        self.type                      = 0
-        self.fac_dt                    = 1
-        self.user_fac_dt               = 0
-        self.pruneParams.stepTx        = 0
-        self.pruneParams.stepRx        = 0
-        self.pruneParams.round_factor  = 0
-        self.pruneParams.use_SNR       = 0
-        self.pruneParams.threshold_SNR = 0
-        self.pruneParams.zmin          = -1e99
-        self.pruneParams.zmax          = 1e99
-        self.pruneParams.thetaMin      = -90
-        self.pruneParams.thetaMax      = 90
-        self.useAirShots               = False
-        self.TxCosDir                  = np.array([])
-        self.RxCosDir                  = np.array([])
+        self.pruneParams              = PruneParams()
+        self.name                     = name
+        self.data                     = data
+        self.tau_params               = np.array([])
+        self.fw                       = np.array([])
+        self.f_et                     = 1.0
+        self.amp_name_Ldc             = ''
+        self.type                     = 0
+        self.fac_dt                   = 1.0
+        self.user_fac_dt              = 0
+        self.useAirShots              = 0
+        self.av                       = None
+        self.ap                       = None
+        self.Tx                       = None
+        self.Rx                       = None
+        self.TxCosDir                 = np.zeros((self.data.ntrace, 3), dtype=float)
+        self.RxCosDir                 = np.zeros((self.data.ntrace, 3), dtype=float)
 
-        self.ID                       = Mog.getID()
         self.in_Rx_vect               = np.ones(self.data.ntrace, dtype=bool)
         self.in_Tx_vect               = np.ones(self.data.ntrace, dtype=bool)
         self.in_vect                  = np.ones(self.data.ntrace, dtype=bool)
@@ -314,9 +256,9 @@ class Mog(Base):  # Multi-Offset Gather
         self.et                       = -1 * np.ones(self.data.ntrace, dtype=float)
         self.tt_done                  = np.zeros(self.data.ntrace, dtype=bool)
 
-        if self.data.tdata is None:
+        if self.data.tdata is None or self.data.tdata == 0:
             self.ttTx                 = np.array([])
-            self.ttTx_done            = np.array([])
+            self.ttTx_done            = np.array([], dtype=bool)
         else:
             self.ttTx                 = np.zeros(self.data.ntrace)
             self.ttTx_done            = np.zeros(self.data.ntrace, dtype=bool)
@@ -338,15 +280,15 @@ class Mog(Base):  # Multi-Offset Gather
 
         self.pruneParams.zmin         = min(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
         self.pruneParams.zmax         = max(np.array([self.data.Tx_z, self.data.Rx_z]).flatten())
+        self.modified                 = True
 
-    def correction_t0(self, ndata, air_before, air_after):
+    def correction_t0(self, ndata, air_before, air_after, show):
         """
         :param ndata:
         :param air_before: instance of class Airshots
         :param air_after: instance of class Airshots
         """
 
-#        show = False  # TODO
         fac_dt_av = 1
         fac_dt_ap = 1
         if not self.useAirShots:
@@ -364,64 +306,31 @@ class Mog(Base):  # Multi-Offset Gather
             if 'fixed_antenna' in air_before.method:
                 t0av = self.get_t0_fixed(air_before, v_air)
             if 'walkaway' in air_before.method:
-                pass  # TODO: get_t0_wa
+                t0av, fac_dt_av = self.get_t0_walkaway(air_before, v_air, show)
 
         if air_after.name != '':
             if 'fixed_antenna' in air_before.method:
                 t0ap = self.get_t0_fixed(air_after, v_air)
 
             if 'walkaway' in air_before.method:
-                pass  # TODO: get_t0_wa
+                t0ap, fac_dt_ap = self.get_t0_walkaway(air_after, v_air, show)
 
         if np.isnan(t0av) or np.isnan(t0ap):
             t0 = np.zeros((1, ndata))
             raise ValueError("t0 correction not applied;Pick t0 before and t0 after for correction")
 
         if np.all(t0av == 0) and np.all(t0ap == 0):
-            t0 = np.zeros((1, ndata))
+            t0 = np.zeros((ndata, ))
         elif t0av == 0:
-            t0 = t0ap + np.zeros((1, ndata))
+            t0 = t0ap + np.zeros((ndata, ))
         elif t0ap == 0:
-            t0 = t0av + np.zeros((1, ndata))
+            t0 = t0av + np.zeros((ndata, ))
         else:
             dt0 = t0ap - t0av
             ddt0 = dt0 / (ndata - 1)
-            t0 = t0av + ddt0 * np.arange(ndata)  # TODO pas sur de cette etape là
+            t0 = t0av + ddt0 * np.arange(ndata)
 
         return t0, fac_dt_av, fac_dt_ap
-
-    @staticmethod
-    def load_self(mog):
-        Mog.getID(mog.ID)
-
-    @staticmethod
-    def get_t0_fixed(shot, v):
-        times = shot.tt
-        std_times = shot.et
-        ind = np.where(times != -1.0)[0]
-        if np.all(std_times == -1.0):
-            times = np.mean(times[ind])
-        else:
-            times = sum(times[ind] * std_times[ind]) / sum(std_times[ind])
-        t0 = times - float(shot.d_TxRx[0]) / v
-        return t0
-
-    @staticmethod
-    def getID(*args):
-        nargin = len(args)
-        counter = 0
-        if nargin == 1:
-            if counter == 0:
-                counter = args[1]
-            elif counter < args[1]:
-                counter = args[1]
-        if counter == 0:
-            counter = 1
-        else:
-            counter += 1
-
-        ID = counter
-        return ID
 
     def getCorrectedTravelTimes(self):
 
@@ -430,7 +339,7 @@ class Mog(Base):  # Multi-Offset Gather
             t0 = np.zeros(np.shape(tt))
             return tt, t0
 
-        t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), self.av, self.ap)
+        t0, fac_dt_av, fac_dt_ap = self.correction_t0(len(self.tt), self.av, self.ap, True)
 
         if self.av is not None:
             self.av.fac_dt = fac_dt_av
@@ -452,31 +361,337 @@ class Mog(Base):  # Multi-Offset Gather
         tt = self.fac_dt * self.tt - t0
 
         return tt, t0
+    
+    def update_coords(self):
+        
+        if 'true positions' in self.data.comment:
+            Tx = np.vstack((self.data.Tx_x, self.data.Tx_y, self.data.Tx_z)).T
+            self.TxCosDir = np.zeros(Tx.shape)
+            tmp = np.unique(Tx, axis=0)
+            tmp = np.sort(tmp, axis=0)
+            tmp = tmp[::-1, :]
+            v = -np.diff(tmp, axis=0)
+            d = np.sqrt(np.sum(v*v, axis=1))
+            l = v/np.kron(d.reshape(-1,1), np.ones((3,)))
+            l = np.vstack((l, l[-1, :]))
+            for n in range(tmp.shape[0]):
+                ind = Tx[:, 0] == tmp[n, 0]
+                ind = np.logical_and(ind, Tx[:, 1] == tmp[n, 1])
+                ind = np.logical_and(ind, Tx[:, 2] == tmp[n, 2])
+                self.TxCosDir[ind, :] = l[n, :]
+                
+            Rx = np.vstack((self.data.Rx_x, self.data.Rx_y, self.data.Rx_z)).T
+            self.RxCosDir = np.zeros(Rx.shape)
+            tmp = np.unique(Rx, axis=0)
+            tmp = np.sort(tmp, axis=0)
+            tmp = tmp[::-1, :]
+            v = -np.diff(tmp, axis=0)
+            d = np.sqrt(np.sum(v*v, axis=1))
+            l = v/np.kron(d.reshape(-1,1), np.ones((3,)))
+            l = np.vstack((l, l[-1, :]))
+            for n in range(tmp.shape[0]):
+                ind = Rx[:, 0] == tmp[n, 0]
+                ind = np.logical_and(ind, Rx[:, 1] == tmp[n, 1])
+                ind = np.logical_and(ind, Rx[:, 2] == tmp[n, 2])
+                self.RxCosDir[ind, :] = l[n, :]
+            return
+
+        if self.Tx is None or self.Rx is None:
+            return
+        
+        if self.Tx == self.Rx:
+            raise RuntimeWarning('Tx et Rx are in the same well: coordinates not updated')
+        
+        if self.type == 0:  # Crosshole
+            self.data.csurvmod = 'SURVEY MODE        = Trans. - MOG'
+            if np.abs(self.Tx.X-self.Tx.Xmax) < 1.0e-5 and np.abs(self.Tx.Y-self.Tx.Ymax) < 1.0e-5:
+                # forage vertical
+                self.data.Tx_x = self.Tx.fdata[0, 0] * np.ones(self.data.ntrace)
+                self.data.Tx_y = self.Tx.fdata[0, 1] * np.ones(self.data.ntrace)
+                self.data.Tx_z = self.Tx.Z - self.data.TxOffset - self.Tx_z_orig
+                self.TxCosDir = np.tile(np.array([0.0, 0.0, 1.0]), (self.data.ntrace, 1))
+            else:
+                self.data.Tx_x, self.data.Tx_y, self.data.Tx_z = Borehole.project(self.Tx.fdata, self.Tx_z_orig+self.data.TxOffset)
+
+            if np.abs(self.Rx.X-self.Rx.Xmax) < 1.0e-5 and np.abs(self.Rx.Y-self.Rx.Ymax) < 1.0e-5:
+                # forage vertical
+                self.data.Rx_x = self.Rx.fdata[0, 0] * np.ones(self.data.ntrace)
+                self.data.Rx_y = self.Rx.fdata[0, 1] * np.ones(self.data.ntrace)
+                self.data.Rx_z = self.Rx.Z - self.data.RxOffset - self.Rx_z_orig
+                self.RxCosDir = np.tile(np.array([0.0, 0.0, 1.0]), (self.data.ntrace, 1))
+            else:
+                self.data.Rx_x, self.data.Rx_y, self.data.Rx_z = Borehole.project(self.Rx.fdata, self.Rx_z_orig+self.data.RxOffset)
+
+        elif self.type == 1:  # VSP
+            # Rx
+            if np.abs(self.Rx.X-self.Rx.Xmax) < 1.0e-5 and np.abs(self.Rx.Y-self.Rx.Ymax) < 1.0e-5:
+                # forage vertical
+                self.data.Rx_x = self.Rx.fdata[0, 0] * np.ones(self.data.ntrace)
+                self.data.Rx_y = self.Rx.fdata[0, 1] * np.ones(self.data.ntrace)
+                self.data.Rx_z = self.Rx.Z - self.data.RxOffset - self.Rx_z_orig
+                self.RxCosDir = np.tile(np.array([0.0, 0.0, 1.0]), (self.data.ntrace, 1))
+            else:
+                self.data.Rx_x, self.data.Rx_y, self.data.Rx_z = Borehole.project(self.Rx.fdata, self.Rx_z_orig+self.data.RxOffset)
+
+            # Tx on surface
+            theta = np.arctan2( self.Tx.Y - self.Rx.Y, self.Tx.X - self.Rx.X )
+            self.data.Tx_x = self.Rx.X + self.Tx_z_orig*np.cos(theta)
+            self.data.Tx_y = self.Rx.Y + self.Tx_z_orig*np.sin(theta)
+            # z -> on assume que z varie lineairement entre les deux trous
+            l = np.sqrt( (self.Tx.Y - self.Rx.Y)**2 + (self.Tx.X - self.Rx.X)**2 )
+            dz = self.Tx.Z_surf - self.Rx.Z_surf
+            self.data.Tx_z = self.Rx.Z_surf + dz*self.Tx_z_orig/l
+                        
+            d = np.sqrt(np.sum((self.Tx.fdata[1, :]-self.Tx.fdata[0, :])**2))
+            # cosinus directeurs
+            l = (self.Tx.fdata[1, :] - self.Tx.fdata[0, :])/d
+            self.TxCosDir = np.tile(l, (self.data.ntrace, 1))
+            
+        else:
+            raise RuntimeWarning('Mog type undefined: coordinates not updated')
+        
+    def sort_by_Tx(self):
+            uTx_z = np.sort(np.unique(self.Tx_z_orig))
+            ind = np.zeros((self.data.ntrace,), dtype=np.int64)
+            start = 0
+            for n in np.arange(uTx_z.size):
+                nos = np.nonzero(uTx_z[n] == self.Tx_z_orig)[0]
+                nfound = len(nos)
+                ind[start+np.arange(nfound)] = nos
+                start = start+nfound
+
+            self.tt = self.tt[ind]
+            self.et = self.et[ind]
+            self.tt_done = self.tt_done[ind]
+            if self.ttTx.size > 0:
+                self.ttTx = self.ttTx[ind]
+                self.ttTx_done = self.ttTx_done[ind]
+            self.amp_tmin = self.amp_tmin[ind]
+            self.amp_tmax = self.amp_tmax[ind]
+            self.amp_done = self.amp_done[ind]
+            self.App = self.App[ind]
+            self.fcentroid = self.fcentroid[ind]
+            self.scentroid = self.scentroid[ind]
+            self.tauApp = self.tauApp[ind]
+            self.tauApp_et = self.tauApp_et[ind]
+            self.tauFce = self.tauFce[ind]
+            self.tauFce_et = self.tauFce_et[ind]
+            self.tauHyb = self.tauHyb[ind]
+            self.tauHyb_et = self.tauHyb_et[ind]
+            self.Tx_z_orig = self.Tx_z_orig[ind]
+            self.Rx_z_orig = self.Rx_z_orig[ind]
+            self.in_vect = self.in_vect[ind]
+            self.TxCosDir = self.TxCosDir[ind, :]
+            self.RxCosDir = self.RxCosDir[ind, :]
+            self.data.rdata = self.data.rdata[:, ind]
+            self.data.Tx_x = self.data.Tx_x[ind]
+            self.data.Tx_y = self.data.Tx_y[ind]
+            self.data.Tx_z = self.data.Tx_z[ind]
+            self.data.Rx_x = self.data.Rx_x[ind]
+            self.data.Rx_y = self.data.Rx_y[ind]
+            self.data.Rx_z = self.data.Rx_z[ind]
 
 
-class AirShots(Base):
+    @staticmethod
+    def get_t0_fixed(shot, v):
+        times = shot.tt
+        std_times = shot.et
+        ind = np.where(times != -1.0)[0]
+        if np.all(std_times == -1.0):
+            times = np.mean(times[ind])
+        else:
+            times = sum(times[ind] * std_times[ind]) / sum(std_times[ind])
+        t0 = times - float(shot.d_TxRx[0]) / v
+        return t0
+    
+    @staticmethod
+    def get_t0_walkaway(shot, v, show):
+        if show:
+            import matplotlib.pyplot as plt
+        ind = shot.tt != -1.0
+        times = shot.tt[np.logical_and(shot.tt_done, ind)]
+        std_times = shot.et[np.logical_and(shot.tt_done, ind)]
+        d = shot.d_TxRx[np.logical_and(shot.tt_done, ind)]
+        slown = 1.0/v
+        if np.all(std_times == -1.0):
+            b = np.linalg.lstsq(np.vstack((d, np.ones((d.size, )))).T, times, rcond=None)[0]
+            t0 = b[1]
+            fac = slown/b[0]
+            if show:
+                plt.figure('Air shot '+shot.name)
+                plt.subplot(121)
+                plt.plot(d, times, 'o')
+                dd = np.hstack(([0.0], d))
+                plt.plot(dd, dd*b[0] + b[1])
+                plt.xlabel('Distance')
+                plt.ylabel('Time')
+                plt.title('Correction factor: {0:g}'.format(fac))
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                
+                plt.subplot(122)
+                plt.plot(d, times*fac, 'o')
+                plt.plot(dd, slown*dd+b[1]*fac,'g')
+                plt.xlabel('Distance')
+                plt.title('After $\Delta t$ correction')
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                plt.show(block=False)
+        else:
+            W = np.diag(1/std_times**2)
+            x = np.vstack((d, np.ones((d.size, )))).T
+            b = np.linalg.lstsq(x.T.dot(W.dot(x)), x.T.dot(W.dot(times)), rcond=None)[0]
+            t0 = b[1]
+            fac = slown/b[0]
+            if show:
+                plt.figure('Air shot '+shot.name)
+                plt.subplot(121)
+                plt.plot(d, times, 'o')
+                plt.errorbar(d, times, yerr=std_times)
+                d = np.hstack(([0.0], d))
+                plt.plot(dd, dd*b[0] + b[1])
+                plt.xlabel('Distance')
+                plt.ylabel('Time')
+                plt.title('Correction factor: {0:g}'.format(fac))
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                
+                plt.subplot(122)
+                plt.plot(d, times*fac, 'o')
+                plt.errorbar(d, times*fac, yerr=std_times)
+                plt.plot(dd, slown*dd+b[1]*fac,'g')
+                plt.xlabel('Distance')
+                plt.title('After $\Delta t$ correction')
+                plt.text(d[0], b[0]*d[-2], '$t_0$ at {0:g}'.format(t0))
+                plt.show(block=False)
+        
+        return t0, fac
 
-    __tablename__ = "Airshots"
-    name    = Column(String, primary_key=True)
-#     mog     = Column(PickleType)  # Deprecated ?
-    data    = Column(PickleType)  # MogData instance
-    d_TxRx  = Column(PickleType)  # Distance between Tx and Rx
-    fac_dt  = Column(Float)       # Time step correction factor computed from slope of t vs d
-    method  = Column(String)      # 'fixed_antenna' when single distance value between Tx & Rx or 'walkaway' when multiple distances
-    tt      = Column(PickleType)  # Arrival times
-    et      = Column(PickleType)  # Standard deviation of arrival times
-    tt_done = Column(PickleType)  # Boolean indicator for arrival times
+    @staticmethod
+    def merge_mogs(mog_list, name, sort=True):
+        # we assume all mogs in list are compatible
+        mdata = MogData()  # mogdata must be instantiated explicitely
+        new_mog = Mog(name, mdata)
+        
+        mog = mog_list[0]
+        new_mog.av = mog.av
+        new_mog.ap = mog.ap
+        new_mog.Tx = mog.Tx
+        new_mog.Rx = mog.Rx
+        new_mog.f_et = mog.f_et
+        new_mog.type = mog.type
+        new_mog.fac_dt = mog.fac_dt
+        new_mog.user_fac_dt = mog.user_fac_dt
+        new_mog.useAirShots = mog.useAirShots
+        new_mog.date = mog.data.date
+        
+        new_mog.data.nptsptrc = mog.data.nptsptrc
+        new_mog.data.rstepsz = mog.data.rstepsz
+        new_mog.data.rnomfreq = mog.data.rnomfreq
+        new_mog.data.csurvmod = mog.data.csurvmod
+        new_mog.data.timec = mog.data.timec
+        new_mog.data.tdata = mog.data.tdata
+        new_mog.data.timestp = mog.data.timestp
+        new_mog.data.antennas = mog.data.antennas
+        new_mog.data.synthetique = mog.data.synthetique
+        new_mog.data.tunits = mog.data.tunits
+        new_mog.data.cunits = mog.data.cunits
+        new_mog.data.TxOffset = mog.data.TxOffset
+        new_mog.data.RxOffset = mog.data.RxOffset
+        new_mog.data.comment = mog.data.comment
+        new_mog.data.date = mog.data.date
 
+        new_mog.tau_params = mog.tau_params.copy()
+        new_mog.fw = mog.fw.copy()
+        new_mog.TxCosDir = mog.TxCosDir.copy()
+        new_mog.RxCosDir = mog.RxCosDir.copy()
+        new_mog.in_Rx_vect = mog.in_Rx_vect.copy()
+        new_mog.in_Tx_vect = mog.in_Tx_vect.copy()
+        new_mog.in_vect = mog.in_vect.copy()
+        new_mog.tt = mog.tt.copy()
+        new_mog.et = mog.et.copy()
+        new_mog.tt_done = mog.tt_done.copy()
+        new_mog.ttTx = mog.ttTx.copy()
+        new_mog.ttTx_done = mog.ttTx_done.copy()
+        new_mog.amp_tmin = mog.amp_tmin.copy()
+        new_mog.amp_tmax = mog.amp_tmax.copy()
+        new_mog.amp_done = mog.amp_done.copy()
+        new_mog.App = mog.App.copy()
+        new_mog.fcentroid = mog.fcentroid.copy()
+        new_mog.scentroid = mog.scentroid.copy()
+        new_mog.tauApp = mog.tauApp.copy()
+        new_mog.tauApp_et = mog.tauApp_et.copy()
+        new_mog.tauFce = mog.tauFce.copy()
+        new_mog.tauFce_et = mog.tauFce_et.copy()
+        new_mog.tauHyb = mog.tauHyb.copy()
+        new_mog.tauHyb_et = mog.tauHyb_et.copy()
+        new_mog.Tx_z_orig = mog.Tx_z_orig.copy()
+        new_mog.Rx_z_orig = mog.Rx_z_orig.copy()
+        
+        new_mog.data.ntrace = mog.data.ntrace
+        new_mog.data.rdata = mog.data.rdata.copy()
+        new_mog.data.Tx_x = mog.data.Tx_x.copy()
+        new_mog.data.Tx_y = mog.data.Tx_y.copy() 
+        new_mog.data.Tx_z = mog.data.Tx_z.copy()
+        new_mog.data.Rx_x = mog.data.Rx_x.copy()
+        new_mog.data.Rx_y = mog.data.Rx_y.copy()
+        new_mog.data.Rx_z = mog.data.Rx_z.copy()
+
+        for n in range(1, len(mog_list)):
+            mog = mog_list[n]
+            
+            new_mog.tau_params = np.r_[new_mog.tau_params, mog.tau_params]
+            new_mog.fw = np.r_[new_mog.fw, mog.fw]
+            new_mog.TxCosDir = np.r_[new_mog.TxCosDir, mog.TxCosDir]
+            new_mog.RxCosDir = np.r_[new_mog.RxCosDir, mog.RxCosDir]
+            new_mog.in_Rx_vect = np.r_[new_mog.in_Rx_vect, mog.in_Rx_vect]
+            new_mog.in_Tx_vect = np.r_[new_mog.in_Tx_vect, mog.in_Tx_vect]
+            new_mog.in_vect = np.r_[new_mog.in_vect, mog.in_vect]
+            new_mog.tt = np.r_[new_mog.tt, mog.tt]
+            new_mog.et = np.r_[new_mog.et, mog.et]
+            new_mog.tt_done = np.r_[new_mog.tt_done, mog.tt_done]
+            new_mog.ttTx = np.r_[new_mog.ttTx, mog.ttTx]
+            new_mog.ttTx_done = np.r_[new_mog.ttTx_done, mog.ttTx_done]
+            new_mog.amp_tmin = np.r_[new_mog.amp_tmin, mog.amp_tmin]
+            new_mog.amp_tmax = np.r_[new_mog.amp_tmax, mog.amp_tmax]
+            new_mog.amp_done = np.r_[new_mog.amp_done, mog.amp_done]
+            new_mog.App = np.r_[new_mog.App, mog.App]
+            new_mog.fcentroid = np.r_[new_mog.fcentroid, mog.fcentroid]
+            new_mog.scentroid = np.r_[new_mog.scentroid, mog.scentroid]
+            new_mog.tauApp = np.r_[new_mog.tauApp, mog.tauApp]
+            new_mog.tauApp_et = np.r_[new_mog.tauApp_et, mog.tauApp_et]
+            new_mog.tauFce = np.r_[new_mog.tauFce, mog.tauFce]
+            new_mog.tauFce_et = np.r_[new_mog.tauFce_et, mog.tauFce_et]
+            new_mog.tauHyb = np.r_[new_mog.tauHyb, mog.tauHyb]
+            new_mog.tauHyb_et = np.r_[new_mog.tauHyb_et, mog.tauHyb_et]
+            new_mog.Tx_z_orig = np.r_[new_mog.Tx_z_orig, mog.Tx_z_orig]
+            new_mog.Rx_z_orig = np.r_[new_mog.Rx_z_orig, mog.Rx_z_orig]
+            
+            new_mog.data.ntrace += mog.data.ntrace
+            new_mog.data.rdata = np.c_[new_mog.data.rdata, mog.data.rdata]
+            new_mog.data.Tx_x = np.r_[new_mog.data.Tx_x, mog.data.Tx_x]
+            new_mog.data.Tx_y = np.r_[new_mog.data.Tx_y, mog.data.Tx_y]
+            new_mog.data.Tx_z = np.r_[new_mog.data.Tx_z, mog.data.Tx_z]
+            new_mog.data.Rx_x = np.r_[new_mog.data.Rx_x, mog.data.Rx_x]
+            new_mog.data.Rx_y = np.r_[new_mog.data.Rx_y, mog.data.Rx_y]
+            new_mog.data.Rx_z = np.r_[new_mog.data.Rx_z, mog.data.Rx_z]
+
+        new_mog.pruneParams.zmin = min(np.array([new_mog.data.Tx_z, new_mog.data.Rx_z]).flatten())
+        new_mog.pruneParams.zmax = max(np.array([new_mog.data.Tx_z, new_mog.data.Rx_z]).flatten())
+        
+        if sort:
+            new_mog.sort_by_Tx()
+        return new_mog
+
+class AirShots():
     def __init__(self, name='', data=MogData()):
-        self.mog = Mog()
         self.name = name
         self.data = data
-        self.d_TxRx = 0
-        self.fac_dt = 1
+        self.d_TxRx = 0.0
+        self.fac_dt = 1.0
 
         self.tt = -1 * np.ones((1, self.data.ntrace), dtype=float)
         self.et = -1 * np.ones((1, self.data.ntrace), dtype=float)
         self.tt_done = np.zeros((1, self.data.ntrace), dtype=bool)
+        
+        self.modified = True
 
 
 if __name__ == '__main__':

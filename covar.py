@@ -32,8 +32,10 @@ from scipy.special import erfcinv
 from scipy.sparse import csr_matrix
 from scipy import linalg
 
-import pyfftw.interfaces.numpy_fft as np_fft
-
+try:
+    import pyfftw.interfaces.numpy_fft as np_fft  # TODO: make sure this works
+except:
+    import numpy.fft as np_fft
 
 class Covariance(object):
     """
@@ -89,7 +91,7 @@ class Covariance(object):
         h = self.compute_h(x, x0)
         return self._compute(h)
 
-    def computeK(self, cx, m, n):
+    def compute_K(self, cx, m, n):
         h = self.compute_hK(cx, m, n)
         return self._compute(h)
 
@@ -597,7 +599,7 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
 
     K = np.zeros((n * p, (n + m) * p))
     for c in cm:
-        K = K + c.computeK(cx, m, n)
+        K = K + c.compute_K(cx, m, n)
     K0 = K[:, n * p:(n + m) * p]
     K = K[:, :n * p]
 
@@ -1297,7 +1299,7 @@ if __name__ == '__main__':
                       [0.0, 20.0],
                       [0.0, 25.0]])
 
-        k2 = cm.computeK(x, 2, 3)
+        k2 = cm.compute_K(x, 2, 3)
 
         print(k1)
         print(k2)
