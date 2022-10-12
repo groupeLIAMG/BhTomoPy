@@ -28,10 +28,10 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import h5py
 
-from cutils import cgrid2d  #@UnresolvedImport
+from ttcrpy import rgrid
 
-from utils import nargout
-import covar
+from BhTomoPy.utils import nargout
+import BhTomoPy.covar as covar
 
 
 class Grid(object):
@@ -56,6 +56,7 @@ class Grid(object):
         self.Tx_Z_water = np.nan
         self.Rx_Z_water = np.nan
         self.in_vect = np.array([])
+        self.nthreads = 1
 
     def getNumberOfCells(self):
         """
@@ -71,9 +72,9 @@ class Grid(object):
         Returns a tuple with the number of cells in each dimension
         """
         if self.gry.size > 1:
-            return (self.grx.size - 1, self.gry.size - 1, self.grz.size - 1)
+            return self.grx.size - 1, self.gry.size - 1, self.grz.size - 1
         else:
-            return (self.grx.size - 1, self.grz.size - 1)
+            return self.grx.size - 1, self.grz.size - 1
 
     @property
     def dx(self):
@@ -91,7 +92,7 @@ class Grid(object):
         return self.grz[1] - self.grz[0]
 
     @staticmethod
-    def lsplane(X, *, nout):
+    def lsplane(X, nout=2):
         """
         Least-squares plane (orthogonal distance regression) to a cloud of points
         Usages:
@@ -109,8 +110,6 @@ class Grid(object):
 
         translation of the matlab function lsplane.m by I M Smith
         """
-#         nout = nargout()  # TODO fix nargout()
-#         print(nout)
 
         m = X.shape[0]
         if m < 3:
@@ -264,7 +263,6 @@ class Grid2D(Grid):
     """
     Class for 2D grids
 
-
     Important: the raytracing codes are based on a column-major order
             for the slowness vector (Z is the "fast" axis).
             To visualize the slowness model with Z axis vertical and X horizontal,
@@ -290,7 +288,7 @@ class Grid2D(Grid):
         self.type = None
 
     def __reduce__(self):
-        # cgrid excluded volontarily, it will be set to None after unpickling
+        # cgrid excluded voluntarily, it will be set to None after unpickling
         # (cgrid is instantiated when needed in method raytrace)
         # this is done to avoid writing code to pickle cython class Grid2Dcpp
         return (Grid2D.rebuild, (self.grx, self.grz, self.cont, self.Tx, self.Rx,
@@ -323,7 +321,8 @@ class Grid2D(Grid):
 
         return g
 
-    def raytrace(self, slowness, Tx, Rx, t0=(), xi=(), theta=()):
+    def raytrace(self, slowness, Tx, Rx, t0=None, xi=None, theta=None,
+                 compute_L=True, return_rays=True):
         """
         Compute traveltimes, raypaths and build ray projection matrix
 
@@ -333,9 +332,8 @@ class Grid2D(Grid):
 
         Input:
             slowness: vector of slowness values at grid cells (ncell x 1)
-            Tx: coordinates of sources points (ndata x 3)
-            Rx: coordinates of receivers      (ndata x 3)
-            t0 (optional): initial time at sources points (ndata x 1)
+            Tx: X & Z coordinates of sources points (ndata x 2)
+            Rx: X & Z coordinates of receivers      (ndata x 2)
             xi (optional): anisotropy ratio vector ( ncell x 1 )
                 values are ratio of slowness in Z over slowness in X
             theta (optional): angle of rotation of the ellipse of anisotropy ( ncell x 1 ),
@@ -347,14 +345,13 @@ class Grid2D(Grid):
                   paths, ndata by 1.  Each matrix is nPts by 2
         """
 
-        nout = nargout()
         # check input data consistency
 
         if Tx.ndim != 2 or Rx.ndim != 2:
             raise ValueError('Tx and Rx should be 2D arrays')
 
-        if Tx.shape[1] != 3 or Rx.shape[1] != 3:
-            raise ValueError('Tx and Rx should be ndata x 3')
+        if Tx.shape[1] != 2 or Rx.shape[1] != 2:
+            raise ValueError('Tx and Rx should be ndata x 2')
 
         if Tx.shape != Rx.shape:
             raise ValueError('Tx and Rx should be of equal size')
@@ -362,39 +359,34 @@ class Grid2D(Grid):
         if len(slowness) != self.getNumberOfCells():
             raise ValueError('Length of slowness vector should equal number of cells')
 
-        if len(xi) != 0 and len(xi) != len(slowness):
-            raise ValueError('Length of xi should equal length of slowness')
+        if xi is not None:
+            if len(xi) != len(slowness):
+                raise ValueError('Length of xi should equal length of slowness')
 
-        if len(theta) != 0 and len(theta) != len(slowness):
-            raise ValueError('Length of theta should equal length of slowness')
+        if theta is not None:
+            if len(theta) != len(slowness):
+                raise ValueError('Length of theta should equal length of slowness')
 
-        if len(t0) == 0:
+        if t0 is None:
             t0 = np.zeros([Tx.shape[0], ])
         elif len(t0) != Tx.shape[0]:
             raise ValueError('Length of t0 should equal number of Tx')
 
         if self.cgrid is None:
-            nx = len(self.grx) - 1
-            nz = len(self.grz) - 1
-            dx = self.grx[1] - self.grx[0]
-            dz = self.grz[1] - self.grz[0]
 
-            typeG = b'iso'
-            if len(xi) != 0:
-                if len(theta) != 0:
-                    typeG = b'tilted'
+            aniso = 'iso'
+            if xi is not None:
+                if theta is not None:
+                    aniso = 'tilted_elliptical'
                 else:
-                    typeG = b'elliptical'
-            self.cgrid = cgrid2d.Grid2Dcpp(typeG, nx, nz, dx, dz, self.grx[0], self.grz[0],
-                                           self.nsnx, self.nsnz, self.nthreads)
+                    aniso = 'elliptical'
+            self.cgrid = rgrid.Grid2d(self.grx, self.grz, method='SPM', aniso=aniso,
+                                      nsnx=self.nsnx, nsnz=self.nsnz, n_threads=self.nthreads)
 
-        if nout == 2:
-            tt, L = self.cgrid.raytrace(slowness, xi, theta, Tx, Rx, t0)
-            return tt, L
-        elif nout == 3:
-            tt, L, rays = self.cgrid.raytrace(slowness, xi, theta, Tx, Rx, t0)
-            return tt, L, rays
-
+        return self.cgrid.raytrace(Tx, Rx, slowness=slowness, xi=xi,
+                                   theta=theta, compute_L=compute_L,
+                                   return_rays=return_rays)
+        
     def getForwardStraightRays(self, ind=None, dx=None, dy=None, dz=None, aniso=False):
         """
         Build ray projection matrix for straight rays
@@ -422,10 +414,9 @@ class Grid2D(Grid):
         else:
             grz = np.arange(self.grz[0], self.grz[-1] + small, dz)
 
-        if not aniso:
-            return cgrid2d.Grid2Dcpp.Lsr2d(self.Tx[np.ix_(ind, [0, 2])], self.Rx[np.ix_(ind, [0, 2])], grx, grz)
-        else:
-            return cgrid2d.Grid2Dcpp.Lsr2da(self.Tx[np.ix_(ind, [0, 2])], self.Rx[np.ix_(ind, [0, 2])], grx, grz)
+        return rgrid.Grid2d.data_kernel_straight_rays(self.Tx[np.ix_(ind, [0, 2])],
+                                                      self.Rx[np.ix_(ind, [0, 2])],
+                                                      grx, grz, aniso)
 
     def getCellCenter(self, dx=None, dz=None):
         """
@@ -508,8 +499,8 @@ class Grid2D(Grid):
             idx = 1 / dx
             idz = 1 / dz
 
-            i = np.kron(np.arange(nx * nz), np.ones((2, )))
-            j = np.zeros((nz * nx * 2, ))
+            i = np.kron(np.arange(nx * nz), np.ones((2, ), dtype=int))
+            j = np.zeros((nz * nx * 2, ), dtype=int)
             v = np.zeros((nz * nx * 2, ))
 
             jj = np.vstack((np.arange(nz), nz + np.arange(nz))).T
@@ -551,8 +542,8 @@ class Grid2D(Grid):
             idx2 = 1 / (dx * dx)
             idz2 = 1 / (dz * dz)
 
-            i = np.kron(np.arange(nx * nz), np.ones((3, )))
-            j = np.zeros((nz * nx * 3, ))
+            i = np.kron(np.arange(nx * nz), np.ones((3, ), dtype=np.int64))
+            j = np.zeros((nz * nx * 3, ), dtype=np.int64)
             v = np.zeros((nz * nx * 3, ))
 
             jj = np.vstack((np.arange(nz), nz + np.arange(nz), 2 * nz + np.arange(nz))).T

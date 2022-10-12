@@ -22,25 +22,26 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 
 
-class Borehole():
+class Borehole:
     """
     Class holding borehole data
     """
+
     def __init__(self, name=''):
 
-        self.name      = name
-        self.X         = 0.0
-        self.Y         = 0.0
-        self.Z         = 0.0
-        self.Xmax      = 0.0
-        self.Ymax      = 0.0
-        self.Zmax      = 0.0
-        self.Z_surf    = 0.0
-        self.Z_water   = 0.0
-        self.scont     = np.array([])
-        self.acont     = np.array([])
-        self.fdata     = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
-        self.modified  = True
+        self.name = name
+        self.X = 0.0
+        self.Y = 0.0
+        self.Z = 0.0
+        self.Xmax = 0.0
+        self.Ymax = 0.0
+        self.Zmax = 0.0
+        self.Z_surf = 0.0
+        self.Z_water = 0.0
+        self.scont = np.array([])
+        self.acont = np.array([])
+        self.fdata = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+        self.modified = True
 
     @staticmethod
     def project(fdata, ldepth):
@@ -74,35 +75,26 @@ class Borehole():
         z = np.zeros((npts, 1))
         c = np.zeros((npts, 3))
 
-        depthBH = np.append(np.array([[0]]), np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0)**2, axis=1))))
+        depthBH = np.append(np.array([[0]]), np.cumsum(np.sqrt(np.sum(np.diff(fdata, n=1, axis=0) ** 2, axis=1))))
 
-        # Knowing that de BH's depth is a matrix which contains the distance between every points of fdata, and that ldepth
-        # contains the points where the data was taken,we need to first make sure that every points taken in charge by ldepth is in the range of the BH's depth.
-        # As a matter of fact, we verify if each points of ldepth is contained in between the volume(i.e. between X and Xmax and the same for Y and Z)
-        # If so, we take the closest point under our point of interest(i.e. i2[0]) and the closest point above our point of interest (i.e. i1[-1])
-        # So you can anticipate that these points will change for every index of the ldepth vector.
+        # Knowing that de BH's depth is a matrix which contains the distance between every points of fdata, and that
+        # ldepth contains the points where the data was taken,we need to first make sure that every points taken in
+        # charge by ldepth is in the range of the BH's depth.  As a matter of fact, we verify if each points of ldepth
+        # is contained in between the volume (i.e. between X and Xmax and the same for Y and Z).  If so, we take the
+        # closest point under our point of interest (i.e. i2[0]) and the closest point above our point of interest
+        # (i.e. i1[-1]). So you can anticipate that these points will change for every index of the ldepth vector.
 
         for n in range(npts):
             i1, = np.nonzero(ldepth[n] >= depthBH)
-            if i1.size == 0:
-                x = np.zeros((npts, 1))
-                y = np.zeros((npts, 1))
-                z = np.zeros((npts, 1))
-                c = np.zeros((npts, 3))
-                raise ValueError
-            i1 = i1[-1]
-
             i2, = np.nonzero(ldepth[n] < depthBH)
-            if i2.size == 0:
-                x = np.zeros((npts, 1))
-                y = np.zeros((npts, 1))
-                z = np.zeros((npts, 1))
-                c = np.zeros((npts, 3))
-                raise ValueError
+            if i1.size == 0 or i2.size == 0:
+                raise ValueError('Depth data outside trajectory range')
+            i1 = i1[-1]
             i2 = i2[0]
 
-            # Here we calculate the distance between the points which have the same index than the closest points above and under
-            d = np.sqrt(np.sum(fdata[i2, :] - fdata[i1, :])**2)
+            # Here we calculate the distance between the points which have the same index than the closest points above
+            # and under
+            d = np.sqrt(np.sum(fdata[i2, :] - fdata[i1, :]) ** 2)
             l = (fdata[i2, :] - fdata[i1, :]) / d
             # the l value represents the direction cosine for every dimension
 
@@ -113,16 +105,17 @@ class Borehole():
             z[n] = fdata[i1, 2] + d2 * l[2]
             c[n, :] = 1
 
-            # We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension to
-            # the closest upper point's coordinates
+            # We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension
+            # to the closest upper point's coordinates
         return x, y, z, c
 
+
 if __name__ == '__main__':
-    fdatatest = np.array([[0,0,0],[1,1,1],[2,2,2],[3,3,3],[4,4,4],[5,5,5]], dtype=np.float64)
+    fdatatest = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4], [5, 5, 5]], dtype=np.float64)
     ldepthtest = np.array([1, 2, 3, 4, 5], dtype=np.float64)
     bh1 = Borehole('BH1')
     bh1.fdata = fdatatest
-    x,y,z,c = Borehole.project(fdatatest,ldepthtest)
+    x, y, z, c = Borehole.project(fdatatest, ldepthtest)
     print(x)
     print(y)
     print(z)

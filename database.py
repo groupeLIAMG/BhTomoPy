@@ -21,18 +21,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import os
 import re
 import shutil
-import numpy as np
+
 import h5py
+import numpy as np
+from ttcrpy import rgrid
 
 from borehole import Borehole
-from covar import Covariance, CovarianceCubic, CovarianceExponential, CovarianceGaussian, CovarianceGravimetric # @UnusedImport
-from covar import CovarianceHoleEffectCosine, CovarianceHoleEffectSine, CovarianceLinear, CovarianceMagnetic # @UnusedImport
-from covar import CovarianceModel, CovarianceNugget, CovarianceSpherical, CovarianceThinPlate # @UnusedImport
-from cutils import cgrid2d  # @UnresolvedImport
-from grid import Grid2D, Grid3D # @UnusedImport
-from inversion import InvLSQRParams, Tomo, invData # @UnusedImport
-from mog import MogData, Mog, AirShots, PruneParams # @UnusedImport
+from grid import Grid2D
 from model import Model
+from mog import MogData, Mog, AirShots
 
 
 class DbList(list):
@@ -236,10 +233,11 @@ class BhTomoDb():
                 elif type(gr[k][kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                     # we have either a list or a custom class
                     gr2 = gr[k][kk]
-                    if '_list_' in gr2.name:
-                        m.__dict__[kk] = self._load_list(gr2)
-                    else:
-                        m.__dict__[kk] = self._load_object(gr2)
+#                     if '_list_' in gr2.name:
+#                         m.__dict__[kk] = self._load_list(gr2)
+#                     else:
+#                         m.__dict__[kk] = self._load_object(gr2)
+                    m.__dict__[kk] = self._load_object(gr2)
             air_shots.append(m)
         return air_shots
     
@@ -266,7 +264,7 @@ class BhTomoDb():
             return
 
         if 'modified' in obj.__dict__.keys():
-            if obj.modified == False:
+            if not obj.modified:
                 # no need to save
                 return
             else:
@@ -278,7 +276,7 @@ class BhTomoDb():
             # print(k, type(obj.__dict__[k]), obj.__dict__[k])
             if obj.__dict__[k] is None:
                 continue
-            if type(obj.__dict__[k]) is cgrid2d.Grid2Dcpp:
+            if type(obj.__dict__[k]) is rgrid.Grid2d:
                 continue
             elif type(obj.__dict__[k]) is str:
                 group.attrs[k] = obj.__dict__[k]
@@ -396,10 +394,11 @@ class BhTomoDb():
                 else:
                     obj.__dict__[k] = np.asarray(group[k])
             elif type(group[k]) is h5py._hl.group.Group:  # @UndefinedVariable
-                if '_list_' in group[k].name:
-                    obj.__dict__[k] = self._load_list(group[k])
-                else:
-                    obj.__dict__[k] = self._load_object(group[k])
+#                 if '_list_' in group[k].name:
+#                     obj.__dict__[k] = self._load_list(group[k])
+#                 else:
+#                     obj.__dict__[k] = self._load_object(group[k])
+                obj.__dict__[k] = self._load_object(group[k])
         return obj
     
     def _load_list(self, group, caller=None):
@@ -420,10 +419,11 @@ class BhTomoDb():
                     m.__dict__[kk] = np.asarray(group[kk])
             elif type(group[kk]) is h5py._hl.group.Group:  # @UndefinedVariable
                 gr2 = group[kk]
-                if '_list_' in gr2.name:
-                    m.__dict__[kk] = self._load_list(gr2)
-                else:
-                    m.__dict__[kk] = self._load_object(gr2, m)
+#                 if '_list_' in gr2.name:
+#                     m.__dict__[kk] = self._load_list(gr2)
+#                 else:
+#                     m.__dict__[kk] = self._load_object(gr2, m)
+                m.__dict__[kk] = self._load_object(gr2, m)
         return m
 
     def _load_model(self, group):
@@ -440,7 +440,7 @@ class BhTomoDb():
                 # we have either a list or a custom class
                 gr2 = group[kk]
                 if '_list_' in gr2.name:
-                    m.__dict__[kk] = self._load_list(gr2, m)
+                    self._load_list(gr2, m)
                 else:
                     m.__dict__[kk] = self._load_object(gr2)
         return m
@@ -508,9 +508,21 @@ if __name__ == '__main__':
     names = db2.get_model_names()
     print(names)
     mod = db2.get_model(names[0])
-    print(mod.mogs)
+    print(mod.mogs[0].data.ntrace)
     print(db2.get_mog_names())
+    mod.modified = True
+    db2.save_model(mod)
+    
+    mog = db2.get_mog(mod.mogs[0].name)
+    mog.modified = True
+    db2.save_mog(mog)
     
     db2.load()
     for bh in db2.boreholes:
         print(bh.name)
+        
+    for m in db2.models:
+        print(m.name)
+        
+    for m in db2.mogs:
+        print(m.name)

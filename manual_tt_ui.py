@@ -21,8 +21,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
-import matplotlib as mpl
+
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg #, NavigationToolbar2QT
+from matplotlib.figure import Figure
 import numpy as np
 
 from database import BhTomoDb
@@ -50,12 +52,27 @@ class ManualttUI(QtWidgets.QFrame):
             self.db.filename = filename
         super(ManualttUI, self).show()
 
+        # Gets initial geometry of the widget:
+        qr = self.frameGeometry()
+
+        # Shows it at the center of the screen
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center()
+
+        # Moves the window's center at the center of the screen
+        qr.moveCenter(cp)
+        # Then moves it at the top left
+        translation = qr.topLeft()
+
+        self.move(translation)
+
     def showMaximized(self, filename):
         if filename != '':
             self.db.filename = filename
         super(ManualttUI, self).showMaximized()
 
     def next_trace(self):
+        if self.mog is None:
+            return
         n = int(self.Tnum_Edit.text()) + 1
 #         if self.main_data_radio.isChecked():
 #             self.mog.tt_done[n - 2] = 1
@@ -65,13 +82,15 @@ class ManualttUI(QtWidgets.QFrame):
 #             self.mog.ap.tt_done[n - 2] = 1
 
         self.Tnum_Edit.setText(str(n))
-        self.update_control_center()
+        self.update_all()
 
     def prev_trace(self):
+        if self.mog is None:
+            return
         n = int(self.Tnum_Edit.text()) - 1
+        if n < 1:
+            return
         self.Tnum_Edit.setText(str(n))
-        if self.mog is not None:
-            self.upperFig.plot_trace()    
 
     def onScrollAmplitudeChange(self):
         val = 10**(-int(self.amp_slider.value())/100)
@@ -79,7 +98,7 @@ class ManualttUI(QtWidgets.QFrame):
         self.A_max_Edit.setText(str(val))
         self.A_min_Edit.setCursorPosition(0)
         self.A_max_Edit.setCursorPosition(0)
-        self.update_control_center()
+        self.upperFig.plot_trace()
 
     def update_control_center(self):
 
@@ -130,6 +149,9 @@ class ManualttUI(QtWidgets.QFrame):
             self.picked_time.setText(pt)
 
 #         self.check_save()  TODO ?
+
+    def update_all(self):
+        self.update_control_center()
         self.update_a_and_t_edits()
         self.upperFig.plot_trace()
         self.lowerFig.plot_traces()
@@ -165,13 +187,13 @@ class ManualttUI(QtWidgets.QFrame):
             self.mog.ap.et[n] = -1.0
             self.mog.ap.tt_done[n] = -1.0
 
-        self.update_control_center()
+        self.update_all()
 
     def next_trace_to_pick(self):
         ind = np.where(self.mog.tt_done == 0)[0]
         to_pick = ind[0] + 1
         self.Tnum_Edit.setText(str(to_pick))
-        self.update_control_center()
+        self.update_all()
 
     def reinit_tnum(self):
         self.Tnum_Edit.setText('1')
@@ -193,7 +215,7 @@ class ManualttUI(QtWidgets.QFrame):
                                               buttons=QtWidgets.QMessageBox.Ok)
 
     def openfile(self):
-        item, self.db = choose_mog(self.db)
+        item, self.db = choose_mog(self.db, self)
         if item is not None:
             self.mog = item
             if self.mog.useAirShots == True:
@@ -206,7 +228,7 @@ class ManualttUI(QtWidgets.QFrame):
             # reset t min/max
             self.t_min_Edit.setText('0')
             self.t_max_Edit.setText('{0:g}'.format(self.mog.data.timestp[-1]))
-            self.update_control_center()
+            self.update_all()
 
     def import_tt_file(self):
         filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Import')[0]
@@ -233,7 +255,7 @@ class ManualttUI(QtWidgets.QFrame):
                     self.mog.tt[trc_number - 1] = tt
                     self.mog.et[trc_number - 1] = et
     
-                self.update_control_center()
+                self.update_all()
         except:
             QtWidgets.QMessageBox.warning(self, 'Warning', "Could not import {} file".format(filename), buttons=QtWidgets.QMessageBox.Ok)
 
@@ -353,7 +375,7 @@ class ManualttUI(QtWidgets.QFrame):
         self.A_max_Edit.setAlignment(QtCore.Qt.AlignHCenter)
 
         # - Edits' Actions - #
-        self.Tnum_Edit.editingFinished.connect(self.update_control_center)
+        self.Tnum_Edit.editingFinished.connect(self.update_all)
         self.t_min_Edit.editingFinished.connect(self.upperFig.plot_trace)
         self.t_max_Edit.editingFinished.connect(self.upperFig.plot_trace)
         self.A_min_Edit.editingFinished.connect(self.upperFig.plot_trace)
@@ -371,7 +393,7 @@ class ManualttUI(QtWidgets.QFrame):
         # - CheckBoxes' Actions - #
         self.lim_checkbox.stateChanged.connect(self.update_a_and_t_edits)
         self.lim_checkbox.stateChanged.connect(self.upperFig.plot_trace)
-        self.veloc_checkbox.stateChanged.connect(self.update_control_center)
+        self.veloc_checkbox.stateChanged.connect(self.lowerFig.plot_traces)
 
         # --- Radio Buttons --- #
         self.main_data_radio = QtWidgets.QRadioButton("Main Data file")
@@ -389,9 +411,9 @@ class ManualttUI(QtWidgets.QFrame):
         self.t0_before_radio.toggled.connect(self.reinit_tnum)
         self.t0_after_radio.toggled.connect(self.reinit_tnum)
 
-        self.main_data_radio.toggled.connect(self.update_control_center)
-        self.t0_before_radio.toggled.connect(self.update_control_center)
-        self.t0_after_radio.toggled.connect(self.update_control_center)
+        self.main_data_radio.toggled.connect(self.update_all)
+        self.t0_before_radio.toggled.connect(self.update_all)
+        self.t0_after_radio.toggled.connect(self.update_all)
         
         # --- Text Edits --- #
         info_Tedit = QtWidgets.QTextEdit()
@@ -408,22 +430,22 @@ class ManualttUI(QtWidgets.QFrame):
         # --- Info Subwidget --- #
         Sub_Info_widget = QtWidgets.QWidget()
         Sub_Info_grid = QtWidgets.QGridLayout()
-        Sub_Info_grid.addWidget(position_label, 0, 1, 1, 3)
-        Sub_Info_grid.addWidget(x_label, 2, 1)
-        Sub_Info_grid.addWidget(y_label, 2, 2)
-        Sub_Info_grid.addWidget(z_label, 2, 3)
-        Sub_Info_grid.addWidget(Tx_label, 3, 0)
-        Sub_Info_grid.addWidget(self.xTx_label, 3, 1)
-        Sub_Info_grid.addWidget(self.yTx_label, 3, 2)
-        Sub_Info_grid.addWidget(self.zTx_label, 3, 3)
-        Sub_Info_grid.addWidget(Rx_label, 4, 0)
-        Sub_Info_grid.addWidget(self.xRx_label, 4, 1)
-        Sub_Info_grid.addWidget(self.yRx_label, 4, 2)
-        Sub_Info_grid.addWidget(self.zRx_label, 4, 3)
-        Sub_Info_grid.addWidget(self.ntrace_label, 5, 1)
-        Sub_Info_grid.addWidget(trace_label, 5, 2)
-        Sub_Info_grid.addWidget(done_label, 6, 2)
-        Sub_Info_grid.addWidget(self.percent_done_label, 6, 1)
+        Sub_Info_grid.addWidget(position_label, 0, 0, 1, 4)
+        Sub_Info_grid.addWidget(x_label, 1, 1)
+        Sub_Info_grid.addWidget(y_label, 1, 2)
+        Sub_Info_grid.addWidget(z_label, 1, 3)
+        Sub_Info_grid.addWidget(Tx_label, 2, 0)
+        Sub_Info_grid.addWidget(self.xTx_label, 2, 1)
+        Sub_Info_grid.addWidget(self.yTx_label, 2, 2)
+        Sub_Info_grid.addWidget(self.zTx_label, 2, 3)
+        Sub_Info_grid.addWidget(Rx_label, 3, 0)
+        Sub_Info_grid.addWidget(self.xRx_label, 3, 1)
+        Sub_Info_grid.addWidget(self.yRx_label, 3, 2)
+        Sub_Info_grid.addWidget(self.zRx_label, 3, 3)
+        Sub_Info_grid.addWidget(self.ntrace_label, 4, 1)
+        Sub_Info_grid.addWidget(trace_label, 4, 2)
+        Sub_Info_grid.addWidget(done_label, 5, 2)
+        Sub_Info_grid.addWidget(self.percent_done_label, 5, 1)
         Sub_Info_widget.setLayout(Sub_Info_grid)
         Sub_Info_widget.setStyleSheet("background: white")
 
@@ -527,7 +549,7 @@ class UpperFig(FigureCanvasQTAgg):
 
     def __init__(self, tt):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(UpperFig, self).__init__(fig)
         self.init_figure()
         self.mpl_connect('button_press_event', self.onclick)
@@ -559,7 +581,9 @@ class UpperFig(FigureCanvasQTAgg):
         self.ax2.get_yaxis().set_visible(False)
 
     def plot_trace(self):
-
+        if self.tt.mog is None:
+            return
+        
         self.picket1.set_visible(True)
         self.picket2.set_visible(True)
         self.picktt.set_visible(True)
@@ -643,8 +667,6 @@ class UpperFig(FigureCanvasQTAgg):
         # TODO
         if self.tt.Wave_checkbox.isChecked():
             ind, wavelet = self.wavelet_filtering(self.tt.mog.data.rdata)
-
-        mpl.axes.Axes.set_xlabel(self.ax, ' Time [{}]'.format(self.tt.mog.data.tunits))    # @UndefinedVariable
 
         self.draw()
         
@@ -757,7 +779,7 @@ class LowerFig(FigureCanvasQTAgg):
 
     def __init__(self, tt):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(LowerFig, self).__init__(fig)
         self.init_figure()
         self.tt = tt
@@ -834,6 +856,8 @@ class LowerFig(FigureCanvasQTAgg):
         self.vapp_plot.set_visible(False)
 
     def plot_traces(self):
+        if self.tt.mog is None:
+            return
 
         self.shot_gather.set_visible(True)
         self.picked_square.set_visible(True)
@@ -985,8 +1009,8 @@ class LowerFig(FigureCanvasQTAgg):
             self.shot_gather.set_extent([0, airshot_after.data.ntrace - 1, t_max, t_min])
             self.draw()
 
-        mpl.axes.Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax, 'Trace No')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax, 'Trace No')    # @UndefinedVariable
 
     def calculate_Vapp(self):
         mog = self.tt.mog
@@ -1052,7 +1076,7 @@ class LowerFig(FigureCanvasQTAgg):
 
                     idx = np.argmin((np.abs(np.arange(self.tt.mog.data.ntrace) - event.xdata)))
                     self.tt.Tnum_Edit.setText(str(idx + 1))
-                    self.tt.update_control_center()
+                    self.tt.update_control_center()  # TODO: check this
 
                 self.ax.set_ylim(y_lim[0], y_lim[-1])
                 self.LowerTracePickedSignal.emit(True)
@@ -1080,7 +1104,7 @@ class LowerFig(FigureCanvasQTAgg):
 class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
+        fig = Figure(figsize=(10, 7), facecolor='white')
         super(StatsFig1, self).__init__(fig)
         self.init_figure()
 
@@ -1124,26 +1148,26 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax3.plot(theta, et, marker='o', ls='None')
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
 
-        mpl.axes.Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
+        Axes.set_ylabel(self.ax4, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
+        Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax6, 'Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
+        Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
 
 
 if __name__ == '__main__':
@@ -1155,7 +1179,7 @@ if __name__ == '__main__':
     # manual_ui.update_a_and_t_edits()
     # manual_ui.upperFig.plot_trace()
     # manual_ui.lowerFig.plot_traces()
-    manual_ui.show('/Users/giroux/JacquesCloud/Projets/Pau/DATA_SUSSARGUES/sussargues.h5')
+    manual_ui.show('/Users/giroux/JacquesCloud/Projets/Pau/DATA_SUSSARGUES/sussargues2D.h5')
     # manual_ui.load_tt_file('C:\\Users\\Utilisateur\\Documents\\MATLAB\\t0302tt')
 
     sys.exit(app.exec_())

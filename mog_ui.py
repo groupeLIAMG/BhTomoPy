@@ -25,12 +25,15 @@ import unicodedata
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 
+import numpy as np
 from scipy.signal import filtfilt, welch, cheb1ord, cheby1
 from scipy import interpolate
-import matplotlib as mpl
+
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.colorbar import Colorbar
 from matplotlib.colors import LinearSegmentedColormap
-import numpy as np
+from matplotlib.figure import Figure
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d   # @UnusedImport
 from spectrum import arburg
@@ -1568,7 +1571,7 @@ class MOGUI(QtWidgets.QWidget):  # Multi Offset Gather User Interface
 class RawDataFig(FigureCanvasQTAgg):
 
     def __init__(self):
-        fig = mpl.figure.Figure(facecolor='white')
+        fig = Figure(facecolor='white')
         super(RawDataFig, self).__init__(fig)
         self.init_figure()
 
@@ -1583,18 +1586,18 @@ class RawDataFig(FigureCanvasQTAgg):
         ax2 = self.figure.axes[1]
         ax1.cla()
         ax2.cla()
-        mpl.axes.Axes.set_xlabel(ax1, 'Trace No')     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(ax1, 'Time [{}]'.format(mogd.tunits))     # @UndefinedVariable
+        Axes.set_xlabel(ax1, 'Trace No')     # @UndefinedVariable
+        Axes.set_ylabel(ax1, 'Time [{}]'.format(mogd.tunits))     # @UndefinedVariable
         cmax = np.abs(max(mogd.rdata.flatten()))
         h = ax1.imshow(mogd.rdata, cmap='seismic', interpolation='none', aspect='auto', vmin=-cmax, vmax=cmax)
-        mpl.colorbar.Colorbar(ax2, h)
+        Colorbar(ax2, h)
 
         self.draw()
 
 
 class SpectraFig(FigureCanvasQTAgg):
     def __init__(self):
-        fig = mpl.figure.Figure(facecolor='white')
+        fig = Figure(facecolor='white')
         super(SpectraFig, self).__init__(fig)
         self.init_figure()
 
@@ -1729,20 +1732,20 @@ class SpectraFig(FigureCanvasQTAgg):
 
             self.ax3.set_xscale('log')
 
-        mpl.axes.Axes.set_title(self.ax1, 'Normalized amplitude')     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax2, 'Log Power spectra')     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax3, 'Signal-to-Noise Ratio')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Rx elevation [{}]'.format(mog.data.cunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Frequency [MHz]')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax3, 'SNR')     # @UndefinedVariable
+        Axes.set_title(self.ax1, 'Normalized amplitude')     # @UndefinedVariable
+        Axes.set_title(self.ax2, 'Log Power spectra')     # @UndefinedVariable
+        Axes.set_title(self.ax3, 'Signal-to-Noise Ratio')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        Axes.set_ylabel(self.ax1, 'Rx elevation [{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_xlabel(self.ax2, 'Frequency [MHz]')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax3, 'SNR')     # @UndefinedVariable
 
         self.draw()
 
 
 class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
     def __init__(self, ui):
-        fig = mpl.figure.Figure(facecolor='white')
+        fig = Figure(facecolor='white')
         super(ZOPFig, self).__init__(fig)
         self.ui = ui
         self.init_figure()
@@ -1758,9 +1761,9 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
         ind = self.ui.MOG_list.selectedIndexes()
         mog = self.db.mogs[ind[0].row()]
 
-        mpl.axes.Axes.set_title(self.ax1, '{}'.format(mog.name))     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_title(self.ax1, '{}'.format(mog.name))     # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        Axes.set_ylabel(self.ax2, ' Elevation [{}]'.format(mog.data.cunits))     # @UndefinedVariable
 
         tol = float(self.ui.tol_edit.text())
         veloc_state = self.ui.veloc_check.isChecked()
@@ -1851,7 +1854,7 @@ class ZOPFig(FigureCanvasQTAgg):  # Zero Offset Profile (ZOP) Figure
 
 class ZOPRaysFig(FigureCanvasQTAgg):
     def __init__(self):
-        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
+        fig = Figure(figsize=(6, 8), facecolor='white')
         super(ZOPRaysFig, self).__init__(fig)
         self.init_figure()
 
@@ -1917,7 +1920,7 @@ class ZOPRaysFig(FigureCanvasQTAgg):
 class StatsttFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
+        fig = Figure(figsize=(100, 100), facecolor='white')
         super(StatsttFig, self).__init__(fig)
         self.init_figure()
 
@@ -1966,31 +1969,31 @@ class StatsttFig(FigureCanvasQTAgg):
         self.vappFig.show()
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
-        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_ylabel(self.ax1, 'Standard Deviation')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))     # @UndefinedVariable
+        Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        Axes.set_title(self.ax5, 'Velocity before correction')     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))     # @UndefinedVariable
+        Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        Axes.set_title(self.ax2, 'Velocity after correction')     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))     # @UndefinedVariable
+        Axes.set_xlabel(self.ax6, 'Shot Number')     # @UndefinedVariable
+        Axes.set_title(self.ax6, '$t_0$ drift in air')     # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax3, 'Standard Deviation')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
 
 
 class VAppFig(FigureCanvasQTAgg):  # Apparent Velocity Figure
     def __init__(self, parent=None):
-        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
+        fig = Figure(figsize=(6, 8), facecolor='white')
         super(VAppFig, self).__init__(fig)
         self.init_figure()
 
@@ -2037,7 +2040,7 @@ class VAppFig(FigureCanvasQTAgg):  # Apparent Velocity Figure
 class StatsAmpFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
+        fig = Figure(figsize=(100, 100), facecolor='white')
         super(StatsAmpFig, self).__init__(fig)
         self.init_figure()
 
@@ -2064,29 +2067,29 @@ class StatsAmpFig(FigureCanvasQTAgg):
         ind = np.nonzero(mog.amp_tmax != -1)[0] == np.nonzero(mog.tauApp != -1)[0]
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
-        mpl.axes.Axes.set_ylabel(self.ax4, r'$\tau_a$')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax4, 'Amplitude - Amplitude ratio')     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(self.ax5, r'$\tau_a$')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax5, 'Amplitude - Centroid Frequency')     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(self.ax6, r'$\tau_a$')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax6, 'Amplitude - Hybrid')     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(self.ax1, r'$\alpha_a$')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax1, 'Amplitude - Amplitude ratio')     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(self.ax2, r'$\alpha_a$')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax2, 'Amplitude - Centroid Frequency')     # @UndefinedVariable
-        mpl.axes.Axes.set_ylabel(self.ax3, r'$\alpha_a$')     # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax3, 'Amplitude - Hybrid')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax4, r'$\tau_a$')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_title(self.ax4, 'Amplitude - Amplitude ratio')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax5, r'$\tau_a$')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax5, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_title(self.ax5, 'Amplitude - Centroid Frequency')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax6, r'$\tau_a$')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax6, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_title(self.ax6, 'Amplitude - Hybrid')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax1, r'$\alpha_a$')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))     # @UndefinedVariable
+        Axes.set_title(self.ax1, 'Amplitude - Amplitude ratio')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax2, r'$\alpha_a$')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        Axes.set_title(self.ax2, 'Amplitude - Centroid Frequency')     # @UndefinedVariable
+        Axes.set_ylabel(self.ax3, r'$\alpha_a$')     # @UndefinedVariable
+        Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')     # @UndefinedVariable
+        Axes.set_title(self.ax3, 'Amplitude - Hybrid')     # @UndefinedVariable
 
 
 class RayCoverageFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
-        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
+        fig = Figure(figsize=(6, 8), facecolor='white')
         super(RayCoverageFig, self).__init__(fig)
         self.init_figure()
 
@@ -2182,7 +2185,7 @@ class RayCoverageFig(FigureCanvasQTAgg):
 
 class PruneFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
-        fig = mpl.figure.Figure(figsize=(6, 8), facecolor='white')
+        fig = Figure(figsize=(6, 8), facecolor='white')
         super(PruneFig, self).__init__(fig)
         self.init_figure()
 

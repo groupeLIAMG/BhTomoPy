@@ -22,7 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 import numpy as np
 
 
-class Model():
+class Model:
     def __init__(self, name=''):
         self.name       = name
         self.grid       = None
@@ -49,7 +49,7 @@ class Model():
         return boreholes
 
     @staticmethod
-    def getModelData(model, selected_mogs, type1, vlim = 0, type2=''):
+    def getModelData(model, selected_mogs, type1, vlim=0, type2=''):
         data = np.array([])
         ind = np.array([])
         
@@ -131,12 +131,11 @@ class Model():
                     in_vect = np.concatenate((in_vect, mog.in_vect.T), axis=0)
                     no = np.concatenate((no, np.arange(mog.ntrace + 1).T), axis=0)
 
-
         elif type1 == 'depth':
             if type2 == '':
                 return data, ind
             
-            _, ind = getModelData(model, air, selected_mogs, type2)  # @UndefinedVariable
+            _, ind = Model.getModelData(model, selected_mogs, type2)  # @UndefinedVariable
             mog = mogs[0]
             tt = mog.Tx_z_orig.T
             et = mog.Rx_z_orig.T
@@ -146,9 +145,11 @@ class Model():
                     tt = np.concatenate((tt, mogs[n].Tx_z_orig.T), axis=0)
                     et = np.concatenate((et, mogs[n].Rx_z_orig.T), axis=0)
                     in_vect = np.concatenate((in_vect, mogs[n].in_vect.T), axis=0)
+        else:
+            raise ValueError
 
         if vlim != 0:   
-            l = np.sqrt(np.sum((model.grid.Tx-model.grid.Rx)**2,axis = 1)).T
+            l = np.sqrt(np.sum((model.grid.Tx-model.grid.Rx)**2, axis=1)).T
             vapp = l/tt
             in2 = vapp<vlim
             print(str(np.sum(~in2&ind)) + " rays with apparent velocity above " + str(vlim))

@@ -7,7 +7,7 @@ Created on Fri Aug  5 12:54:52 2016
 
 from cutils import segy
 
-filename  = '/Users/giroux/CloudStation/Projets/Frio/donnees_brutes/pre-xwell-all.sgy'
+filename = '/Users/giroux/CloudStation/Projets/Frio/donnees_brutes/pre-xwell-all.sgy'
 
 d = segy.read_segy(filename, fields=['sx', 'sy', 'gx', 'gy', 'selev'])  # @UndefinedVariable
 

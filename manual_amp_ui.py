@@ -21,8 +21,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore
-import matplotlib as mpl
+
+from matplotlib.axes import Axes
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.figure import Figure
+
 import numpy as np
 import scipy as spy
 from scipy import signal
@@ -452,7 +455,7 @@ class UpperFig(FigureCanvasQTAgg):
 
     def __init__(self, ui):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(UpperFig, self).__init__(fig)
         self.init_figure()
         self.trc_number = 0
@@ -544,7 +547,7 @@ class LowerFig(FigureCanvasQTAgg):
 
     def __init__(self, ui):
         fig_width, fig_height = 4, 4
-        fig = mpl.figure.Figure(figsize=(fig_width, fig_height), facecolor='white')
+        fig = Figure(figsize=(fig_width, fig_height), facecolor='white')
         super(LowerFig, self).__init__(fig)
         self.init_figure()
         self.ui = ui
@@ -658,7 +661,7 @@ class LowerFig(FigureCanvasQTAgg):
 class StatsFig1(FigureCanvasQTAgg):
     def __init__(self, parent=None):
 
-        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
+        fig = Figure(figsize=(100, 100), facecolor='white')
         super(StatsFig1, self).__init__(fig)
         self.init_figure()
 
@@ -704,26 +707,26 @@ class StatsFig1(FigureCanvasQTAgg):
         self.ax3.plot(theta, et, marker='o', ls='None')
 
         self.figure.suptitle('{}'.format(mog.name), fontsize=20)
-        mpl.axes.Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
+        Axes.set_ylabel(self.ax4, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax4, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
+        Axes.set_ylabel(self.ax1, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax1, 'Straight Ray Length[{}]'.format(mog.data.cunits))    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax5, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax5, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax5, 'Velocity before correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax2, 'Apparent Velocity [{}/{}]'.format(mog.data.cunits, mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax2, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_title(self.ax2, 'Velocity after correction')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
-        mpl.axes.Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax6, ' Time [{}]'.format(mog.data.tunits))    # @UndefinedVariable
+        Axes.set_xlabel(self.ax6, 'Shot Number')    # @UndefinedVariable
+        Axes.set_title(self.ax6, '$t_0$ drift in air')    # @UndefinedVariable
 
-        mpl.axes.Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
-        mpl.axes.Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
+        Axes.set_ylabel(self.ax3, 'Standard Deviation')    # @UndefinedVariable
+        Axes.set_xlabel(self.ax3, 'Angle w/r to horizontal[°]')    # @UndefinedVariable
 
 
 if __name__ == '__main__':

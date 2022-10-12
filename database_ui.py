@@ -200,6 +200,10 @@ class DatabaseUI(QtWidgets.QWidget):
         saveasAction = QtWidgets.QAction('Save as', self)
         saveasAction.setShortcut('Ctrl+A')
         saveasAction.triggered.connect(self.saveasfile)
+        
+        exportBHAction = QtWidgets.QAction('Export boreholes', self)
+        exportBHAction.setShortcut('Ctrl+B')
+        exportBHAction.triggered.connect(self.bh.export_boreholes)
 
         # --- Menubar --- #
         self.menu = QtWidgets.QMenuBar()
@@ -207,6 +211,7 @@ class DatabaseUI(QtWidgets.QWidget):
         filemenu.addAction(openAction)
         filemenu.addAction(saveAction)
         filemenu.addAction(saveasAction)
+        filemenu.addAction(exportBHAction)
 
         # --- GroupBoxes --- #
         # - Boreholes GroupBox - #
@@ -310,7 +315,6 @@ class InfoUI(QtWidgets.QFrame):
         master_grid.addWidget(self.traces_label, 6, 1)
         master_grid.setAlignment(QtCore.Qt.AlignCenter)
         self.setLayout(master_grid)
-        self.setStyleSheet("background: white")
 
 
 class MyLogWidget(QtWidgets.QTextEdit):
@@ -329,16 +333,16 @@ if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
 
     Database_ui = DatabaseUI()
-    Database_ui.show('')
+    Database_ui.show('/Users/giroux/Desktop/sussargues2D.h5')
 
-    Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
-    Database_ui.bh.load_borehole('testData/testConstraints/F3.xyz')
-    Database_ui.bh.load_borehole('testData/testConstraints/F2.xyz')
-    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
-    Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
-    Database_ui.model.load_model("t0302's model")
-    Database_ui.model.load_model("test")
-    Database_ui.model.load_model("test2")
+#     Database_ui.update_log("Welcome to BH TOMO Python Edition's Database")
+#     Database_ui.bh.load_borehole('testData/testConstraints/F3.xyz')
+#     Database_ui.bh.load_borehole('testData/testConstraints/F2.xyz')
+#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0302.rad')
+#     Database_ui.mog.load_file_MOG('testData/formats/ramac/t0102.rad')
+#     Database_ui.model.load_model("t0302's model")
+#     Database_ui.model.load_model("test")
+#     Database_ui.model.load_model("test2")
 #     Database_ui.mog.plot_spectra()
 #     Database_ui.mog.plot_zop()
 

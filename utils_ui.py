@@ -178,7 +178,7 @@ def chooseModel(_db=None):
         nonlocal l0
 
         b3.clear()
-        names = db.load_model_names()
+        names = db.get_model_names()
         if len(names) > 0:
             b3.addItems(names)
         else:

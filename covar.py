@@ -32,8 +32,10 @@ from scipy.special import erfcinv
 from scipy.sparse import csr_matrix
 from scipy import linalg
 
-import pyfftw.interfaces.numpy_fft as np_fft
-
+try:
+    import pyfftw.interfaces.numpy_fft as np_fft  # TODO: make sure this works
+except:
+    import numpy.fft as np_fft
 
 class Covariance(object):
     """
@@ -679,7 +681,7 @@ def _cokri2(x, x0, idl, cm, sv, itype, avg, ng):
     # removal of lines and columns in K and K0 corresponding to missing values
     z = t.flatten(order='F')
     iz = np.logical_not(np.isnan(z))
-    iz2 = np.hstack((iz, np.ones((nc,), dtype=np.int8)))
+    iz2 = np.hstack((iz, np.ones((nc,), dtype=bool)))
     nz = np.sum(iz)
 
     if nz == 0:

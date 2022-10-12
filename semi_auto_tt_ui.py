@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
 from PyQt5 import QtWidgets, QtCore
-import matplotlib as mpl
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
 from utils_ui import MyQLabel
@@ -305,7 +305,7 @@ class SemiAutottUI(QtWidgets.QWidget):
 
 class Fig(FigureCanvasQTAgg):
     def __init__(self):
-        fig = mpl.figure.Figure(facecolor='white')
+        fig = Figure(facecolor='white')
         super(Fig, self).__init__(fig)
         self.init_figure()
 

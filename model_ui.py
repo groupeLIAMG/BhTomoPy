@@ -21,12 +21,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import copy
 import sys
+import psutil
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.figure import Figure
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.mplot3d import axes3d  # @UnusedImport
 import numpy as np
-import matplotlib as mpl
 from model import Model
 from grid import Grid, Grid2D
 from events_ui import GridEdited
@@ -205,7 +206,7 @@ class ModelUI(QtWidgets.QWidget):
 
             gridinfo.num_data_label.setText(str(ndata))
             gridinfo.num_tt_picked_label.setText(str(n_tt_data_picked))
-            gridinfo.num_amp_picked_label.setText(str(n_amp_data_picked))
+            gridinfo.num_amp_picked_label.setText(str(int(n_amp_data_picked)))
             gridinfo.num_cell_label.setText(str(grid.getNumberOfCells()))  # TODO: update field when grid is edited
 
         # -------- Widgets Creation -------- #
@@ -265,8 +266,8 @@ class ModelUI(QtWidgets.QWidget):
         master_grid.addWidget(gUI.grid_param_group, 0, 1, 4, 1)
         master_grid.addWidget(bhs_group, 4, 0, 1, 2)
         master_grid.addWidget(gUI.grid_view_group, 0, 2, 5, 1)
-        master_grid.setColumnStretch(2, 100)
-        master_grid.setRowStretch(4, 100)
+        #master_grid.setColumnStretch(2, 100)
+        #master_grid.setRowStretch(4, 100)
         d.setLayout(master_grid)
 
         plot_boreholes()
@@ -287,11 +288,13 @@ class ModelUI(QtWidgets.QWidget):
 
         data = GridData()
 
-        data.in_vect = mog.in_vect.T
+        data.in_vect = mog.in_vect
         data.Tx = np.array([mog.data.Tx_x, mog.data.Tx_y, mog.data.Tx_z]).T
         data.Rx = np.array([mog.data.Rx_x, mog.data.Rx_y, mog.data.Rx_z]).T
         data.TxCosDir = mog.TxCosDir
         data.RxCosDir = mog.RxCosDir
+        
+        data.nthreads = psutil.cpu_count(logical=False) - 1;
 
         data.boreholes = self.current_model().boreholes
 
@@ -480,6 +483,8 @@ class Grid2DUI(QtWidgets.QWidget):
         self.grid.x0[0] = self.data.boreholes[ind].X
         self.grid.x0[1] = self.data.boreholes[ind].Y
         self.grid.x0[2] = self.data.boreholes[ind].Z
+        
+        self.grid.nthreads = self.nthreads_combo.currentIndex()+1
 
         self.origin_x_edit.setText(str(self.grid.x0[0]))
         self.origin_y_edit.setText(str(self.grid.x0[1]))
@@ -528,20 +533,12 @@ class Grid2DUI(QtWidgets.QWidget):
     def build_grid(data):
 
         grid = Grid2D()
-        grid.x0 = [data.boreholes[0].X, data.boreholes[0].Y, data.boreholes[0].Z]
+        grid.x0 = np.array([data.boreholes[0].X, data.boreholes[0].Y, data.boreholes[0].Z])
         grid.type = '2D'
+        grid.nthreads = data.nthreads
 
-        uTx = data.Tx[data.in_vect, :]
-        uRx = data.Rx[data.in_vect, :]
-
-        b = np.ascontiguousarray(uTx).view(np.dtype((np.void, uTx.dtype.itemsize * uTx.shape[1])))
-        c = np.ascontiguousarray(uRx).view(np.dtype((np.void, uRx.dtype.itemsize * uRx.shape[1])))
-
-        tmpTx = np.unique(b).view(uTx.dtype).reshape(-1, uTx.shape[1])
-        tmpRx = np.unique(c).view(uRx.dtype).reshape(-1, uRx.shape[1])
-
-        uTx = np.sort(tmpTx, axis=0)
-        uRx = np.sort(tmpRx, axis=0)
+        uTx = np.unique(data.Tx[data.in_vect, :], axis=0)
+        uRx = np.unique(data.Rx[data.in_vect, :], axis=0)
 
         data.x0, data.a = Grid.lsplane(np.concatenate((uTx, uRx), axis=0), nout=2)
         # data.x0 : Centroid of the data = point on the best-fit plane
@@ -577,11 +574,22 @@ class Grid2DUI(QtWidgets.QWidget):
 
         self.cell_size_x_edit   = QtWidgets.QLineEdit(str(self.dx))
         self.cell_size_z_edit   = QtWidgets.QLineEdit(str(self.dz))
+        
+        self.pad_minus_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.pad_plus_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.pad_minus_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.pad_plus_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.cell_size_x_edit.setAlignment(QtCore.Qt.AlignHCenter)
+        self.cell_size_z_edit.setAlignment(QtCore.Qt.AlignHCenter)
 
-        self.origin_x_edit      = QtWidgets.QLineEdit()
-        self.origin_y_edit      = QtWidgets.QLineEdit()
-        self.origin_z_edit      = QtWidgets.QLineEdit()
+        self.origin_x_edit      = MyQLabel('', ha='center')
+        self.origin_y_edit      = MyQLabel('', ha='center')
+        self.origin_z_edit      = MyQLabel('', ha='center')
 
+        self.origin_x_edit.setStyleSheet("color: rgb(255, 0, 0);")
+        self.origin_y_edit.setStyleSheet("color: rgb(255, 0, 0);")
+        self.origin_z_edit.setStyleSheet("color: rgb(255, 0, 0);")
+        
         # - Edits' Actions - #
         self.pad_plus_x_edit.editingFinished.connect(self.update_input)
         self.pad_plus_z_edit.editingFinished.connect(self.update_input)
@@ -592,9 +600,9 @@ class Grid2DUI(QtWidgets.QWidget):
         self.cell_size_z_edit.editingFinished.connect(self.update_input)
 
         # - Edits' Diposition - #
-        self.origin_x_edit.setReadOnly(True)
-        self.origin_y_edit.setReadOnly(True)
-        self.origin_z_edit.setReadOnly(True)
+#         self.origin_x_edit.setReadOnly(True)
+#         self.origin_y_edit.setReadOnly(True)
+#         self.origin_z_edit.setReadOnly(True)
 
         # --- Labels --- #
         x_label                 = MyQLabel('X', ha='right')
@@ -617,11 +625,19 @@ class Grid2DUI(QtWidgets.QWidget):
         self.borehole_combo.setCurrentIndex(self.grid.borehole_x0)
 
         # - ComboBoxes Actions - #
-        self.borehole_combo.activated.connect(self.update_input)
+        self.borehole_combo.currentIndexChanged.connect(self.update_input)
+
+        nthreads = psutil.cpu_count(logical=False)
+        self.nthreads_combo = QtWidgets.QComboBox()
+        for n in range(nthreads):
+            self.nthreads_combo.addItem(str(n+1))
+        self.nthreads_combo.setCurrentIndex(self.grid.nthreads-1)
+        self.nthreads_combo.currentIndexChanged.connect(self.update_input)
+
 
         # --- SubWidgets --- #
-        sub_param_widget        = QtWidgets.QWidget()
-        sub_param_grid          = QtWidgets.QGridLayout()
+        sub_param_widget = QtWidgets.QWidget()
+        sub_param_grid   = QtWidgets.QGridLayout()
         sub_param_grid.addWidget(x_label, 1, 0)
         sub_param_grid.addWidget(z_label, 2, 0)
         sub_param_grid.addWidget(pad_minus_label, 0, 1)
@@ -633,19 +649,21 @@ class Grid2DUI(QtWidgets.QWidget):
         sub_param_grid.addWidget(self.pad_plus_z_edit, 2, 2)
         sub_param_grid.addWidget(self.cell_size_x_edit, 1, 3)
         sub_param_grid.addWidget(self.cell_size_z_edit, 2, 3)
-        sub_param_grid.addWidget(borehole_origin_label, 3, 0)
-        sub_param_grid.addWidget(self.borehole_combo, 3, 1)
+        sub_param_grid.addWidget(borehole_origin_label, 3, 0, 1, 2)
+        sub_param_grid.addWidget(self.borehole_combo, 3, 2)
         sub_param_grid.addWidget(origin_label, 4, 0)
         sub_param_grid.addWidget(self.origin_x_edit, 4, 1)
         sub_param_grid.addWidget(self.origin_y_edit, 4, 2)
         sub_param_grid.addWidget(self.origin_z_edit, 4, 3)
-        sub_param_grid.setContentsMargins(0, 0, 0, 0)
+        sub_param_grid.addWidget(MyQLabel('Number of Cores', ha='right'), 5, 0, 1, 2)
+        sub_param_grid.addWidget(self.nthreads_combo, 5, 2)
+        #sub_param_grid.setContentsMargins(0, 0, 0, 0)
         sub_param_widget.setLayout(sub_param_grid)
 
         # --- GroupBox --- #
         # - Grid parameters GroupBox - #
-        self.grid_param_group        = QtWidgets.QGroupBox('Grid Parameters')
-        grid_param_grid         = QtWidgets.QGridLayout()
+        self.grid_param_group = QtWidgets.QGroupBox('Grid Parameters')
+        grid_param_grid = QtWidgets.QGridLayout()
         grid_param_grid.addWidget(sub_param_widget, 0, 0, 1, 3)
         grid_param_grid.addWidget(self.flip_check, 1, 1)
         grid_param_grid.addWidget(adjustment_btn, 2, 1)
@@ -663,7 +681,7 @@ class Grid2DUI(QtWidgets.QWidget):
 class GridInfoUI(QtWidgets.QFrame):
 
     def __init__(self, parent=None):
-        super(GridInfoUI, self).__init__()
+        super(GridInfoUI, self).__init__(parent)
         self.init_UI()
 
     def customEvent(self, event, *args, **kwargs):
@@ -683,6 +701,11 @@ class GridInfoUI(QtWidgets.QFrame):
         self.num_data_label = MyQLabel('0', ha='center')
         self.num_tt_picked_label = MyQLabel('0', ha='right')
         self.num_amp_picked_label = MyQLabel('0', ha='right')
+        
+        self.num_cell_label.setStyleSheet("color: rgb(255, 0, 0);")
+        self.num_data_label.setStyleSheet("color: rgb(255, 0, 0);")
+        self.num_tt_picked_label.setStyleSheet("color: rgb(255, 0, 0);")
+        self.num_amp_picked_label.setStyleSheet("color: rgb(255, 0, 0);")
 
         master_grid = QtWidgets.QGridLayout()
         master_grid.addWidget(cell_label, 0, 0, 1, 2)
@@ -700,7 +723,7 @@ class GridInfoUI(QtWidgets.QFrame):
 class BestFitPlaneFig(FigureCanvasQTAgg):
     def __init__(self, data, parent=None):
 
-        fig = mpl.figure.Figure(figsize=(100, 100), facecolor='white')
+        fig = Figure(figsize=(100, 100), facecolor='white')
         super(BestFitPlaneFig, self).__init__(fig)
         self.data = data
         self.init_figure()
@@ -756,7 +779,7 @@ class BestFitPlaneFig(FigureCanvasQTAgg):
 
 class BoreholesFig(FigureCanvasQTAgg):
     def __init__(self, parent=None):
-        fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
+        fig = Figure(figsize=(4, 3), facecolor='white')
         super(BoreholesFig, self).__init__(fig)
         self.init_figure()
 
@@ -807,7 +830,7 @@ class BoreholesFig(FigureCanvasQTAgg):
 
 class GridViewFig(FigureCanvasQTAgg):
     def __init__(self, gUI, parent=None):
-        fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
+        fig = Figure(figsize=(4, 3), facecolor='white')
         super(GridViewFig, self).__init__(fig)
         self.gUI = gUI
         self.init_figure()
@@ -1010,7 +1033,7 @@ class ConstraintsEditorUI(QtWidgets.QWidget):
 
 class ConstraintsFig(FigureCanvasQTAgg):
     def __init__(self, ConstraintsEditor, parent=None):
-        fig = mpl.figure.Figure(figsize=(4, 3), facecolor='white')
+        fig = Figure(figsize=(4, 3), facecolor='white')
         super(ConstraintsFig, self).__init__(fig)
         self.constraints_editor = ConstraintsEditor
         self.init_figure()
@@ -1047,7 +1070,7 @@ class GridData(object):
         self.Rx_p       = np.array([])
         self.a          = 0
         self.x0         = 0
-
+        self.nthreads   = 1
 
 if __name__ == '__main__':
 
