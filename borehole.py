@@ -88,6 +88,10 @@ class Borehole:
             i1, = np.nonzero(ldepth[n] >= depthBH)
             i2, = np.nonzero(ldepth[n] < depthBH)
             if i1.size == 0 or i2.size == 0:
+                x = np.zeros((npts, 1))
+                y = np.zeros((npts, 1))
+                z = np.zeros((npts, 1))
+                c = np.zeros((npts, 3))
                 raise ValueError('Depth data outside trajectory range')
             i1 = i1[-1]
             i2 = i2[0]
