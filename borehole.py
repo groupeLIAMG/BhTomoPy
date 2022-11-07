@@ -103,7 +103,7 @@ class Borehole:
             x[n] = fdata[i1, 0] + d2 * l[0]
             y[n] = fdata[i1, 1] + d2 * l[1]
             z[n] = fdata[i1, 2] + d2 * l[2]
-            c[n, :] = 1
+            c[n, :] = l
 
             # We represent the ldepth's point of interest coordinates by adding the direction cosine of every dimension
             # to the closest upper point's coordinates
