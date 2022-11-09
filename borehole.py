@@ -98,7 +98,7 @@ class Borehole:
 
             # Here we calculate the distance between the points which have the same index than the closest points above
             # and under
-            d = np.sqrt(np.sum(fdata[i2, :] - fdata[i1, :]) ** 2)
+            d = np.sqrt(np.sum((fdata[i2, :] - fdata[i1, :]) ** 2))
             l = (fdata[i2, :] - fdata[i1, :]) / d
             # the l value represents the direction cosine for every dimension
 
